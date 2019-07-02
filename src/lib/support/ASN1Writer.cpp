@@ -61,50 +61,61 @@ void ASN1Writer::Init(uint8_t *buf, uint32_t maxLen)
     mDeferredLengthList = (uint8_t **)mBufEnd;
 }
 
+void ASN1Writer::InitNullWriter(void)
+{
+    mBuf = NULL;
+    mWritePoint = NULL;
+    mBufEnd = NULL;
+    mDeferredLengthList = NULL;
+}
+
 ASN1_ERROR ASN1Writer::Finalize()
 {
-    uint8_t *compactPoint = mBuf;
-    uint8_t *spanStart = mBuf;
-
-    for (uint8_t **listEntry = (uint8_t **)mBufEnd; listEntry > mDeferredLengthList; )
+    if (mBuf != NULL)
     {
-        uint8_t *lenField = *--listEntry;
-        uint8_t lenFieldFirstByte = *lenField;
+        uint8_t *compactPoint = mBuf;
+        uint8_t *spanStart = mBuf;
 
-        if (lenFieldFirstByte == kUnknownLengthMarker)
-            return ASN1_ERROR_INVALID_STATE;
-
-        uint8_t lenOfLen = (lenFieldFirstByte < 128) ? 1 : (lenFieldFirstByte & 0x7f) + 1;
-
-        uint8_t *spanEnd = lenField + lenOfLen;
-
-        if (spanStart == compactPoint)
-            compactPoint = spanEnd;
-        else
+        for (uint8_t **listEntry = (uint8_t **)mBufEnd; listEntry > mDeferredLengthList; )
         {
-            uint32_t spanLen = spanEnd - spanStart;
+            uint8_t *lenField = *--listEntry;
+            uint8_t lenFieldFirstByte = *lenField;
+
+            if (lenFieldFirstByte == kUnknownLengthMarker)
+                return ASN1_ERROR_INVALID_STATE;
+
+            uint8_t lenOfLen = (lenFieldFirstByte < 128) ? 1 : (lenFieldFirstByte & 0x7f) + 1;
+
+            uint8_t *spanEnd = lenField + lenOfLen;
+
+            if (spanStart == compactPoint)
+                compactPoint = spanEnd;
+            else
+            {
+                uint32_t spanLen = spanEnd - spanStart;
+                memmove(compactPoint, spanStart, spanLen);
+                compactPoint += spanLen;
+            }
+
+            spanStart = lenField + kLengthFieldReserveSize;
+        }
+
+        if (spanStart > compactPoint)
+        {
+            uint32_t spanLen = mWritePoint - spanStart;
             memmove(compactPoint, spanStart, spanLen);
             compactPoint += spanLen;
         }
 
-        spanStart = lenField + kLengthFieldReserveSize;
+        mWritePoint = compactPoint;
     }
-
-    if (spanStart > compactPoint)
-    {
-        uint32_t spanLen = mWritePoint - spanStart;
-        memmove(compactPoint, spanStart, spanLen);
-        compactPoint += spanLen;
-    }
-
-    mWritePoint = compactPoint;
 
     return ASN1_NO_ERROR;
 }
 
 uint16_t ASN1Writer::GetLengthWritten() const
 {
-    return mWritePoint - mBuf;
+    return (mBuf != NULL) ? mWritePoint - mBuf : 0;
 }
 
 ASN1_ERROR ASN1Writer::PutInteger(int64_t val)
@@ -130,6 +141,9 @@ ASN1_ERROR ASN1Writer::PutInteger(int64_t val)
 ASN1_ERROR ASN1Writer::PutBoolean(bool val)
 {
     ASN1_ERROR err;
+
+    // Do nothing for a null writer.
+    VerifyOrExit(mBuf != NULL, err = ASN1_NO_ERROR);
 
     err = EncodeHead(kASN1TagClass_Universal, kASN1UniversalTag_Boolean, false, 1);
     SuccessOrExit(err);
@@ -210,6 +224,9 @@ ASN1_ERROR ASN1Writer::PutBitString(uint32_t val)
     ASN1_ERROR err;
     uint8_t len;
 
+    // Do nothing for a null writer.
+    VerifyOrExit(mBuf != NULL, err = ASN1_NO_ERROR);
+
     if (val == 0)
         len = 1;
     else if (val < 256)
@@ -257,6 +274,9 @@ ASN1_ERROR ASN1Writer::PutBitString(uint8_t unusedBitCount, const uint8_t *encod
 {
     ASN1_ERROR err;
 
+    // Do nothing for a null writer.
+    VerifyOrExit(mBuf != NULL, err = ASN1_NO_ERROR);
+
     err = EncodeHead(kASN1TagClass_Universal, kASN1UniversalTag_BitString, false, encodedBitsLen + 1);
     SuccessOrExit(err);
 
@@ -272,7 +292,12 @@ exit:
 ASN1_ERROR ASN1Writer::PutBitString(uint8_t unusedBitCount, nl::Weave::TLV::TLVReader& encodedBits)
 {
     ASN1_ERROR err;
-    uint32_t encodedBitsLen = encodedBits.GetLength();
+    uint32_t encodedBitsLen;
+
+    // Do nothing for a null writer.
+    VerifyOrExit(mBuf != NULL, err = ASN1_NO_ERROR);
+
+    encodedBitsLen = encodedBits.GetLength();
 
     err = EncodeHead(kASN1TagClass_Universal, kASN1UniversalTag_BitString, false, encodedBitsLen + 1);
     SuccessOrExit(err);
@@ -336,6 +361,9 @@ ASN1_ERROR ASN1Writer::StartEncapsulatedType(uint8_t cls, uint32_t tag, bool bit
 {
     ASN1_ERROR err;
 
+    // Do nothing for a null writer.
+    VerifyOrExit(mBuf != NULL, err = ASN1_NO_ERROR);
+
     err = EncodeHead(cls, tag, false, kUnkownLength);
     SuccessOrExit(err);
 
@@ -362,6 +390,9 @@ ASN1_ERROR ASN1Writer::PutValue(uint8_t cls, uint32_t tag, bool isConstructed, c
 {
     ASN1_ERROR err;
 
+    // Do nothing for a null writer.
+    VerifyOrExit(mBuf != NULL, err = ASN1_NO_ERROR);
+
     err = EncodeHead(cls, tag, isConstructed, valLen);
     SuccessOrExit(err);
 
@@ -375,7 +406,12 @@ exit:
 ASN1_ERROR ASN1Writer::PutValue(uint8_t cls, uint32_t tag, bool isConstructed, nl::Weave::TLV::TLVReader& val)
 {
     ASN1_ERROR err;
-    uint32_t valLen = val.GetLength();
+    uint32_t valLen;
+
+    // Do nothing for a null writer.
+    VerifyOrExit(mBuf != NULL, err = ASN1_NO_ERROR);
+
+    valLen = val.GetLength();
 
     err = EncodeHead(cls, tag, isConstructed, valLen);
     SuccessOrExit(err);
@@ -389,12 +425,18 @@ exit:
 
 ASN1_ERROR ASN1Writer::EncodeHead(uint8_t cls, uint32_t tag, bool isConstructed, int32_t len)
 {
+    ASN1_ERROR err = ASN1_NO_ERROR;
+    uint8_t lenOfLen;
+    uint16_t totalLen;
+
+    // Do nothing for a null writer.
+    VerifyOrExit(mBuf != NULL, err = ASN1_NO_ERROR);
+
     // Only tags <= 31 supported. The implication of this is that encoded tags are exactly 1 byte long.
-    if (tag >= 0x1F)
-        return ASN1_ERROR_UNSUPPORTED_ENCODING;
+    VerifyOrExit(tag <= 0x1F, err = ASN1_ERROR_UNSUPPORTED_ENCODING);
 
     // Compute the number of bytes required to encode the length.
-    uint8_t lenOfLen = GetLengthOfLength(len);
+    lenOfLen = GetLengthOfLength(len);
 
     // If the element length is unknown, allocate a new entry in the deferred-length list.
     //
@@ -410,9 +452,8 @@ ASN1_ERROR ASN1Writer::EncodeHead(uint8_t cls, uint32_t tag, bool isConstructed,
 
     // Make sure there's enough space to encode the entire value without bumping into the deferred length
     // list at the end of the buffer.
-    uint16_t totalLen = 1 + lenOfLen + (len != kUnkownLength ? len : 0);
-    if ((mWritePoint + totalLen) > (uint8_t *)mDeferredLengthList)
-        return ASN1_ERROR_OVERFLOW;
+    totalLen = 1 + lenOfLen + (len != kUnkownLength ? len : 0);
+    VerifyOrExit((mWritePoint + totalLen) <= (uint8_t *)mDeferredLengthList, err = ASN1_ERROR_OVERFLOW);
 
     // Write the tag byte.
     *mWritePoint++ = cls | (isConstructed ? 0x20 : 0) | tag;
@@ -431,13 +472,20 @@ ASN1_ERROR ASN1Writer::EncodeHead(uint8_t cls, uint32_t tag, bool isConstructed,
 
     mWritePoint += lenOfLen;
 
-    return ASN1_NO_ERROR;
+exit:
+    return err;
 }
 
 ASN1_ERROR ASN1Writer::WriteDeferredLength()
 {
+    ASN1_ERROR err = ASN1_NO_ERROR;
     uint8_t **listEntry;
-    uint32_t lenAdj = kLengthFieldReserveSize;
+    uint32_t lenAdj;
+
+    // Do nothing for a null writer.
+    VerifyOrExit(mBuf != NULL, err = ASN1_NO_ERROR);
+
+    lenAdj = kLengthFieldReserveSize;
 
     // Scan the deferred-length list in reverse order looking for the most recent entry where
     // the length is still unknown. This entry represents the "container" element whose encoding
@@ -458,8 +506,7 @@ ASN1_ERROR ASN1Writer::WriteDeferredLength()
 
             // Return an error if the length exceeds the maximum value that can be encoded in the
             // space reserved for the length.
-            if (elemLen > kMaxElementLength)
-                return ASN1_ERROR_LENGTH_OVERFLOW;
+            VerifyOrExit(elemLen <= kMaxElementLength, err = ASN1_ERROR_LENGTH_OVERFLOW);
 
             // Encode the final length of the element, overwriting the unknown length marker
             // in the process.  Note that the number of bytes consumed by the final length field
@@ -468,7 +515,7 @@ ASN1_ERROR ASN1Writer::WriteDeferredLength()
             uint8_t lenOfLen = GetLengthOfLength((int32_t)elemLen);
             EncodeLength(lenField, lenOfLen, elemLen);
 
-            return ASN1_NO_ERROR;
+            ExitNow(err = ASN1_NO_ERROR);
         }
         else
         {
@@ -477,7 +524,10 @@ ASN1_ERROR ASN1Writer::WriteDeferredLength()
         }
     }
 
-    return ASN1_ERROR_INVALID_STATE;
+    err = ASN1_ERROR_INVALID_STATE;
+
+exit:
+    return err;
 }
 
 uint8_t ASN1Writer::GetLengthOfLength(int32_t len)

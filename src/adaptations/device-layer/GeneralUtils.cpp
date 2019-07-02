@@ -79,7 +79,7 @@ const char * CharacterizeIPv6Address(const IPAddress & ipAddr)
 {
     if (ipAddr.IsIPv6LinkLocal())
     {
-        return "Link-local IPv6 address";
+        return "IPv6 link-local address";
     }
     else if (ipAddr.IsIPv6ULA())
     {
@@ -88,27 +88,115 @@ const char * CharacterizeIPv6Address(const IPAddress & ipAddr)
             switch (ipAddr.Subnet())
             {
             case kWeaveSubnetId_PrimaryWiFi:
-                return "Weave WiFi IPv6 ULA";
+                return "Weave WiFi subnet address";
             case kWeaveSubnetId_Service:
-                return "Weave Service IPv6 ULA";
+                return "Weave Service subnet address";
             case kWeaveSubnetId_ThreadMesh:
-                return "Weave Thread IPv6 ULA";
+                return "Weave Thread subnet address";
             case kWeaveSubnetId_ThreadAlarm:
-                return "Weave Thread Alarm IPv6 ULA";
+                return "Weave Thread Alarm subnet address";
             case kWeaveSubnetId_WiFiAP:
-                return "Weave WiFi AP IPv6 ULA";
+                return "Weave WiFi AP subnet address";
             case kWeaveSubnetId_MobileDevice:
-                return "Weave Mobile IPv6 ULA";
+                return "Weave Mobile subnet address";
             default:
-                return "Weave IPv6 ULA";
+                return "Weave IPv6 address";
             }
+        }
+        else
+        {
+            return "IPv6 unique local address";
         }
     }
     else if ((ntohl(ipAddr.Addr[0]) & 0xE0000000U) == 0x20000000U)
     {
-        return "Global IPv6 address";
+        return "IPv6 global unicast address";
     }
     return "IPv6 address";
+}
+
+const char * CharacterizeIPv6Prefix(const Inet::IPPrefix & inPrefix)
+{
+    if (inPrefix.IPAddr.IsIPv6ULA())
+    {
+        if (::nl::Weave::DeviceLayer::FabricState.FabricId != kFabricIdNotSpecified &&
+            inPrefix.IPAddr.GlobalId() == nl::Weave::WeaveFabricIdToIPv6GlobalId(::nl::Weave::DeviceLayer::FabricState.FabricId))
+        {
+            if (inPrefix.Length == 48)
+            {
+                return "Weave fabric prefix";
+            }
+            if (inPrefix.Length == 64)
+            {
+                switch (inPrefix.IPAddr.Subnet())
+                {
+                case kWeaveSubnetId_PrimaryWiFi:
+                    return "Weave WiFi prefix";
+                case kWeaveSubnetId_Service:
+                    return "Weave Service prefix";
+                case kWeaveSubnetId_ThreadMesh:
+                    return "Weave Thread prefix";
+                case kWeaveSubnetId_ThreadAlarm:
+                    return "Weave Thread Alarm prefix";
+                case kWeaveSubnetId_WiFiAP:
+                    return "Weave WiFi AP prefix";
+                case kWeaveSubnetId_MobileDevice:
+                    return "Weave Mobile prefix";
+                default:
+                    return "Weave IPv6 prefix";
+                }
+            }
+        }
+    }
+    return NULL;
+}
+
+/**
+ * Register a text error formatter for Device Layer errors.
+ */
+void RegisterDeviceLayerErrorFormatter(void)
+{
+    static ErrorFormatter sDeviceLayerErrorFormatter =
+    {
+        FormatDeviceLayerError,
+        NULL
+    };
+
+    RegisterErrorFormatter(&sDeviceLayerErrorFormatter);
+}
+
+/**
+ * Given Device Layer error, returns a human-readable NULL-terminated C string
+ * describing the error.
+ *
+ * @param[in] buf                   Buffer into which the error string will be placed.
+ * @param[in] bufSize               Size of the supplied buffer in bytes.
+ * @param[in] err                   The error to be described.
+ *
+ * @return true                     If a descriptions string was written into the supplied buffer.
+ * @return false                    If the supplied error was not a Device Layer error.
+ *
+ */
+bool FormatDeviceLayerError(char * buf, uint16_t bufSize, int32_t err)
+{
+    const char * desc = NULL;
+
+    if (err < WEAVE_DEVICE_ERROR_MIN || err > WEAVE_DEVICE_ERROR_MAX)
+    {
+        return false;
+    }
+
+#if !WEAVE_CONFIG_SHORT_ERROR_STR
+    switch (err)
+    {
+    case WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND        : desc = "Config not found"; break;
+    case WEAVE_DEVICE_ERROR_NOT_SERVICE_PROVISIONED : desc = "Not service provisioned"; break;
+    }
+#endif // !WEAVE_CONFIG_SHORT_ERROR_STR
+
+    FormatError(buf, bufSize, "Device Layer", err, desc);
+
+    return true;
 }
 
 } // namespace DeviceLayer

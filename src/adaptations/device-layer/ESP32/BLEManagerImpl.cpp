@@ -159,7 +159,7 @@ WEAVE_ERROR BLEManagerImpl::_SetAdvertisingEnabled(bool val)
 
     VerifyOrExit(mServiceMode == ConnectivityManager::kWoBLEServiceMode_NotSupported, err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
 
-    if (val != mServiceMode)
+    if (GetFlag(mFlags, kFlag_AdvertisingEnabled) != val)
     {
         SetFlag(mFlags, kFlag_AdvertisingEnabled, val);
         PlatformMgr().ScheduleWork(DriveBLEState, 0);
@@ -175,7 +175,7 @@ WEAVE_ERROR BLEManagerImpl::_SetFastAdvertisingEnabled(bool val)
 
     VerifyOrExit(mServiceMode == ConnectivityManager::kWoBLEServiceMode_NotSupported, err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
 
-    if (val != mServiceMode)
+    if (GetFlag(mFlags, kFlag_FastAdvertisingEnabled) != val)
     {
         SetFlag(mFlags, kFlag_FastAdvertisingEnabled, val);
         PlatformMgr().ScheduleWork(DriveBLEState, 0);
@@ -272,6 +272,7 @@ bool BLEManagerImpl::CloseConnection(BLE_CONNECTION_OBJECT conId)
 
     // Signal the ESP BLE layer to close the conntion.
     err = esp_ble_gatts_close(mAppIf, conId);
+    if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "esp_ble_gatts_close() failed: %s", ErrorStr(err));
     }
@@ -606,7 +607,7 @@ WEAVE_ERROR BLEManagerImpl::ConfigureAdvertisingData(void)
     // Construct the Weave Service Data to be sent in the scan response packet.
     memcpy(weaveServiceData.ServiceUUID, ShortUUID_WoBLEService, sizeof(weaveServiceData.ServiceUUID));
     weaveServiceData.DataBlockLen = 16;
-    weaveServiceData.DataBlockType = 1;
+    weaveServiceData.DataBlockType = 0x16;
     weaveServiceData.DataBlockMajorVersion = 0;
     weaveServiceData.DataBlockMinorVersion = 1;
     Encoding::LittleEndian::Put16(weaveServiceData.DeviceVendorId, (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_VENDOR_ID);

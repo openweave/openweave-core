@@ -301,8 +301,16 @@ ip6_select_source_address(struct netif *netif, const ip6_addr_t *dest)
     }
     cand_pref = ip6_addr_ispreferred(netif_ip6_addr_state(netif, i));
     /* @todo compute the actual common bits, for longest matching prefix. */
-    cand_bits = ip6_addr_netcmp(cand_addr, dest); /* just 1 or 0 for now */
-    if (cand_bits && ip6_addr_nethostcmp(cand_addr, dest)) {
+    if (ip6_addr_netcmp(cand_addr, dest)) {
+        cand_bits = 64;
+    }
+    else if (ip6_addr_net48cmp(cand_addr, dest)) {
+        cand_bits = 48;
+    }
+    else {
+        cand_bits = 0;
+    }
+    if (cand_bits == 64 && ip6_addr_nethostcmp(cand_addr, dest)) {
       return netif_ip_addr6(netif, i); /* Rule 1 */
     }
     if ((best_addr == NULL) || /* no alternative yet */

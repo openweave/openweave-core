@@ -66,8 +66,7 @@ class test_weave_wdm_next_application_key_01(weave_wdm_next_test_base):
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['test_tag'] = self.__class__.__name__[35:].upper()
-        wdm_next_args['test_case_name'] = ['A01: Mutual Subscribe: Application key: Key distribution',
-                                           'B01: Stress Mutual Subscribe: Application key: Key distribution']
+        wdm_next_args['test_case_name'] = ['B01: Stress Mutual Subscribe: Application key: Key distribution']
         print 'test file: ' + self.__class__.__name__
         print "test_weave_wdm_next_application_key test A01 and B01"
         super(test_weave_wdm_next_application_key_01, self).weave_wdm_next_test_base(wdm_next_args)

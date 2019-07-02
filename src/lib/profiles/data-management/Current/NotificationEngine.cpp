@@ -1680,13 +1680,15 @@ WEAVE_ERROR NotificationEngine::BuildSubscriptionlessNotification(PacketBuffer *
         TraitDataHandle traitHandle = currPath->mTraitDataHandle;
 
         // Get the max version from the datasource
-        err = pubCatalog->Locate(traitHandle, &dataSource);
-        SuccessOrExit(err);
+        // Locate() can return an error if the sink has been removed from the catalog. In that case,
+        // skip this path
+        if (pubCatalog->Locate(traitHandle, &dataSource) == WEAVE_NO_ERROR)
+        {
+            schemaVersion = dataSource->GetSchemaEngine()->GetMaxVersion();
 
-        schemaVersion = dataSource->GetSchemaEngine()->GetMaxVersion();
-
-        err = notifyRequest.WriteDataElement(traitHandle, kRootPropertyPathHandle, schemaVersion, NULL, 0, NULL, 0);
-        SuccessOrExit(err);
+            err = notifyRequest.WriteDataElement(traitHandle, kRootPropertyPathHandle, schemaVersion, NULL, 0, NULL, 0);
+            SuccessOrExit(err);
+        }
     }
 
     err = notifyRequest.MoveToState(kNotifyRequestBuilder_Idle);

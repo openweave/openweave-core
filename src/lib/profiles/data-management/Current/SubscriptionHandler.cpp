@@ -294,8 +294,13 @@ WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequest::Pa
 
         SuccessOrExit(err);
 
-        err = SubscriptionEngine::GetInstance()->mPublisherCatalog->Locate(traitDataHandle, &dataSource);
-        SuccessOrExit(err);
+        if (SubscriptionEngine::GetInstance()->mPublisherCatalog->Locate(traitDataHandle, &dataSource) != WEAVE_NO_ERROR)
+        {
+            // Ideally, this code will not be reached as Locate() should find the entry in the catalog.
+            // Otherwise, the earlier AddressToHandle() call would have continued.
+            // However, keeping this check here for consistency and code safety
+            continue;
+        }
 
         if (dataSource->GetSchemaEngine()->GetVersionIntersection(requestedSchemaVersionRange, computedVersionIntersection))
         {
@@ -684,6 +689,8 @@ void SubscriptionHandler::InitWithIncomingRequest(Binding * const aBinding, cons
         inParam.mSubscribeRequestParsed.mTraitInstanceList    = mTraitInstanceList;
         inParam.mSubscribeRequestParsed.mNumTraitInstances    = mNumTraitInstances;
         inParam.mSubscribeRequestParsed.mSubscribeToAllEvents = mSubscribeToAllEvents;
+
+        memcpy(inParam.mSubscribeRequestParsed.mNextVendedEvents, mSelfVendedEvents, sizeof(inParam.mSubscribeRequestParsed.mNextVendedEvents));
 
         err = request.GetSubscribeTimeoutMin(&inParam.mSubscribeRequestParsed.mTimeoutSecMin);
         if (WEAVE_END_OF_TLV == err)

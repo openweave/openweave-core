@@ -27,17 +27,11 @@
 #ifndef __WEAVEDEVICEMANAGER_H
 #define __WEAVEDEVICEMANAGER_H
 
-// This module uses Legacy WDM (V2)
-#include <Weave/Profiles/data-management/Legacy/WdmManagedNamespace.h>
-
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/common/WeaveMessage.h>
-#include <Weave/Profiles/data-management/DataManagement.h>
-#include <Weave/Profiles/data-management/ProfileDatabase.h>
 #include <Weave/Profiles/device-description/DeviceDescription.h>
-#include <Weave/Profiles/locale/LocaleProfile.hpp>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/network-provisioning/NetworkInfo.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
@@ -54,7 +48,6 @@ namespace Weave {
 namespace DeviceManager {
 
 using namespace nl::Weave::Profiles;
-using namespace nl::Weave::Profiles::DataManagement;
 using namespace nl::Weave::Profiles::DeviceDescription;
 using namespace nl::Weave::Profiles::Vendor::Nestlabs::DropcamLegacyPairing;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
@@ -92,10 +85,6 @@ typedef void (*GetFabricConfigCompleteFunct)(WeaveDeviceManager *deviceMgr, void
 typedef void (*ErrorFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, WEAVE_ERROR err, DeviceStatus *devStatus);
 typedef void (*StartFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, WeaveConnection *con);
 typedef void (*ConnectionClosedFunc)(WeaveDeviceManager *deviceMgr, void *appReqState, WeaveConnection *con, WEAVE_ERROR conErr);
-typedef void (*GetActiveLocaleCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, const char *activeLocale);
-typedef void (*GetAvailableLocalesCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, uint16_t localeCount, const char **localeList);
-typedef void (*ThermostatGetEntryKeyCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, const char *entryKey);
-typedef void (*ThermostatSystemTestStatusCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, uint64_t systemTestStatus);
 typedef void (*PairTokenCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, const uint8_t *tokenPairingBundle, uint32_t tokenPairingBunldeLen);
 typedef void (*UnpairTokenCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState);
 typedef void (*GetCameraAuthDataCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, const char *macAddress, const char *authData);
@@ -245,15 +234,6 @@ public:
     WEAVE_ERROR StartSystemTest(void* appReqState, uint32_t profileId, uint32_t testId, CompleteFunct onComplete, ErrorFunct onError);
     WEAVE_ERROR StopSystemTest(void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
 
-    // ----- Locale -----
-    WEAVE_ERROR GetActiveLocale(void* appReqState, GetActiveLocaleCompleteFunct onComplete, ErrorFunct onError);
-    WEAVE_ERROR SetActiveLocale(void* appReqState, const char *aLocale, CompleteFunct onComplete, ErrorFunct onError);
-    WEAVE_ERROR GetAvailableLocales(void* appReqState, GetAvailableLocalesCompleteFunct onComplete, ErrorFunct onError);
-
-    // ---- Thermostat ----
-    WEAVE_ERROR ThermostatGetEntryKey(void* appReqState, ThermostatGetEntryKeyCompleteFunct onComplete, ErrorFunct onError);
-    WEAVE_ERROR ThermostatSystemTestStatus(void* appReqState, ThermostatSystemTestStatusCompleteFunct onComplete, ErrorFunct onError);
-
     // ---- Token Pairing ----
     WEAVE_ERROR PairToken(const uint8_t *pairingToken, uint32_t pairingTokenLen, void* appReqState, PairTokenCompleteFunct onComplete, ErrorFunct onError);
     WEAVE_ERROR UnpairToken(void* appReqState, UnpairTokenCompleteFunct onComplete, ErrorFunct onError);
@@ -311,18 +291,13 @@ private:
         kOpState_RestartRemotePassiveRendezvous         = 35,
         kOpState_InitializeBleConnection                = 36,
         kOpState_Hush                                   = 37,
-        kOpState_GetActiveLocale                        = 38,
-        kOpState_SetActiveLocale                        = 39,
-        kOpState_GetAvailableLocales                    = 40,
-        kOpState_ThermostatGetEntryKey                  = 41,
-        kOpState_ThermostatSystemTestStatus             = 42,
-        kOpState_StartSystemTest                        = 43,
-        kOpState_StopSystemTest                         = 44,
-        kOpState_PairToken                              = 45,
-        kOpState_UnpairToken                            = 46,
-        kOpState_GetCameraAuthData                      = 47,
-        kOpState_EnumerateDevices                       = 48,
-        kOpState_RemotePassiveRendezvousTimedOut        = 49
+        kOpState_StartSystemTest                        = 38,
+        kOpState_StopSystemTest                         = 39,
+        kOpState_PairToken                              = 40,
+        kOpState_UnpairToken                            = 41,
+        kOpState_GetCameraAuthData                      = 42,
+        kOpState_EnumerateDevices                       = 43,
+        kOpState_RemotePassiveRendezvousTimedOut        = 44
     };
 
     enum ConnectionState
@@ -371,35 +346,6 @@ private:
         kCertDecodeBufferSize = 1024
     };
 
-    class WDMDMClient : public nl::Weave::Profiles::DataManagement::DMClient
-    {
-    public:
-        WDMDMClient(void);
-        ~WDMDMClient(void);
-
-        WEAVE_ERROR InitClient(WeaveDeviceManager *aDeviceMgr, WeaveExchangeManager *aExchangeMgr);
-
-        WEAVE_ERROR ViewConfirm(const uint64_t &aResponderId, StatusReport &aStatus, uint16_t aTxnId);
-        WEAVE_ERROR ViewConfirm(const uint64_t &aResponderId, ReferencedTLVData &aDataList, uint16_t aTxnId);
-        WEAVE_ERROR UpdateConfirm(const uint64_t &aResponderId, StatusReport &aStatus, uint16_t aTxnId);
-        using nl::Weave::Profiles::DataManagement::ProtocolEngine::IncompleteIndication;
-        void IncompleteIndication(const uint64_t &aPeerNodeId, StatusReport &aReport);
-
-#if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
-
-        WEAVE_ERROR SubscribeConfirm(const uint64_t &aResponderId, StatusReport &aStatus, uint16_t aTxnId);
-        WEAVE_ERROR SubscribeConfirm(const uint64_t &aResponderId, const TopicIdentifier &aTopicId, uint16_t aTxnId);
-        WEAVE_ERROR SubscribeConfirm(const uint64_t &aResponderId, const TopicIdentifier &aTopicId, ReferencedTLVData &aDataList, uint16_t aTxnId);
-        WEAVE_ERROR UnsubscribeIndication(const uint64_t &aPublisherId, const TopicIdentifier &aTopicId, StatusReport &aReport);
-        WEAVE_ERROR CancelSubscriptionConfirm(const uint64_t &aResponderId, const TopicIdentifier &aTopicId,  StatusReport &aStatus, uint16_t aTxnId);
-        WEAVE_ERROR NotifyIndication(const TopicIdentifier &aTopicId, ReferencedTLVData &aDataList);
-        
-#endif // WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
-
-    private:
-        WeaveDeviceManager *mDeviceMgr;
-    };
-
     System::Layer* mSystemLayer;
     WeaveMessageLayer *mMessageLayer;
     WeaveExchangeManager *mExchangeMgr;
@@ -417,10 +363,6 @@ private:
         AddNetworkCompleteFunct AddNetwork;
         GetRendezvousModeCompleteFunct GetRendezvousMode;
         GetFabricConfigCompleteFunct GetFabricConfig;
-        GetActiveLocaleCompleteFunct GetActiveLocale;
-        GetAvailableLocalesCompleteFunct GetAvailableLocales;
-        ThermostatGetEntryKeyCompleteFunct ThermostatGetEntryKey;
-        ThermostatSystemTestStatusCompleteFunct ThermostatSystemStatus;
         PairTokenCompleteFunct PairToken;
         UnpairTokenCompleteFunct UnpairToken;
         GetCameraAuthDataCompleteFunct GetCameraAuthData;
@@ -474,8 +416,6 @@ private:
     bool mUseAccessToken;
     bool mConnectedToRemoteDevice;                              // Used to determine whether to allow auto-reconnect.
     bool mIsUnsecuredConnectionListenerSet;
-    WDMDMClient mDMClient;
-    const char *mActiveLocale;
     uint32_t mPingSize;
     uint8_t *mTokenPairingCertificate;
     uint32_t mTokenPairingCertificateLen;
@@ -660,12 +600,6 @@ private:
     WEAVE_ERROR EndCertValidation(Security::WeaveCertificateSet& certSet, Security::ValidationContext& validContext) __OVERRIDE;
 
 #endif // WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
-
-    // Locale
-    static void WriteLocaleRequest(nl::Weave::TLV::TLVWriter &aWriter, void *ctx);
-
-    // Thermostat
-    static void WriteThermostatRequest(nl::Weave::TLV::TLVWriter &aWriter, void *ctx);
 
     // Convert EUI-48 value to string of hex characters. String buffer must be at least EUI48_STR_LEN bytes in length.
     static void Eui48ToString(char *strBuf, uint8_t (&eui)[EUI48_LEN]);

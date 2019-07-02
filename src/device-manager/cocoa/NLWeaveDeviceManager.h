@@ -30,11 +30,11 @@
 #import "NLServiceInfo.h"
 
 typedef void (^WDMCompletionBlock)(id owner, id data);
-typedef void (^WDMFailureBlock)(id owner, NSError *error);
+typedef void (^WDMFailureBlock)(id owner, NSError * error);
 
 @interface NLWeaveDeviceManager : NSObject
 
-@property (copy, readonly) NSString* name;
+@property (copy, readonly) NSString * name;
 @property (readonly) CBPeripheral * blePeripheral;
 @property (readonly) dispatch_queue_t resultCallbackQueue;
 @property (weak) id owner;
@@ -42,36 +42,36 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
 /**
  *  @brief Disable default initializer inherited from NSObject
  */
--(instancetype)init NS_UNAVAILABLE;
+- (instancetype)init NS_UNAVAILABLE;
 
 /**
  *  @brief Close all connections gracifully.
  *
  *  The device manager would be ready for another connection after completion.
  */
--(void)Close:(WDMCompletionBlock)completionHandler failure:(WDMFailureBlock)failureHandler;
+- (void)Close:(WDMCompletionBlock)completionHandler failure:(WDMFailureBlock)failureHandler;
 
 /**
  *  @brief Forcifully release all resources and destroy all references.
  *
  *  There is no way to revive this device manager after this call.
  */
--(void)Shutdown:(WDMCompletionBlock)completionHandler;
+- (void)Shutdown:(WDMCompletionBlock)completionHandler;
 
 // ----- Device Information -----
--(WEAVE_ERROR)GetDeviceId:(uint64_t *)deviceId;
--(WEAVE_ERROR)GetDeviceAddress:(NSMutableString *)strAddr;
+- (WEAVE_ERROR)GetDeviceId:(uint64_t *)deviceId;
+- (WEAVE_ERROR)GetDeviceAddress:(NSMutableString *)strAddr;
 
 // ----- Connection Management -----
 
--(void)rendezvousWithDevicePairingCode:(NSString *)pairingCode
-                            completion:(WDMCompletionBlock)completionBlock
-                               failure:(WDMFailureBlock)failureBlock;
+- (void)rendezvousWithDevicePairingCode:(NSString *)pairingCode
+                             completion:(WDMCompletionBlock)completionBlock
+                                failure:(WDMFailureBlock)failureBlock;
 
--(void)rendezvousWithDevicePairingCode:(NSString *)pairingCode
-                identifyDeviceCriteria:(NLIdentifyDeviceCriteria *)identifyDeviceCriteria
-                            completion:(WDMCompletionBlock)completionBlock
-                               failure:(WDMFailureBlock)failureBlock;
+- (void)rendezvousWithDevicePairingCode:(NSString *)pairingCode
+                 identifyDeviceCriteria:(NLIdentifyDeviceCriteria *)identifyDeviceCriteria
+                             completion:(WDMCompletionBlock)completionBlock
+                                failure:(WDMFailureBlock)failureBlock;
 
 - (void)rendezvousWithDeviceAccessToken:(NSString *)accessToken
                  identifyDeviceCriteria:(NLIdentifyDeviceCriteria *)identifyDeviceCriteria
@@ -100,8 +100,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
     @{
  */
 
-- (void)passiveRendezvousWithCompletion:(WDMCompletionBlock)completionBlock
-                                failure:(WDMFailureBlock)failureBlock;
+- (void)passiveRendezvousWithCompletion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
 - (void)passiveRendezvousWithDevicePairingCode:(NSString *)pairingCode
                                     completion:(WDMCompletionBlock)completionBlock
@@ -149,43 +148,38 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
 
 - (NSInteger)setRendezvousAddress:(NSString *)aRendezvousAddress;
 
--(void)identifyDevice:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
+- (void)identifyDevice:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
--(void)startDeviceEnumerationWithIdentifyDeviceCriteria:(NLIdentifyDeviceCriteria *)identifyDeviceCriteria
-                                            completion:(WDMCompletionBlock)completionBlock
-                                            failure:(WDMFailureBlock)failureBlock;
+- (void)startDeviceEnumerationWithIdentifyDeviceCriteria:(NLIdentifyDeviceCriteria *)identifyDeviceCriteria
+                                              completion:(WDMCompletionBlock)completionBlock
+                                                 failure:(WDMFailureBlock)failureBlock;
 
--(void)stopDeviceEnumeration;
+- (void)stopDeviceEnumeration;
 
--(void)connectDevice:(uint64_t)deviceId
-       deviceAddress:(NSString *)deviceAddress
-          completion:(WDMCompletionBlock)completionBlock
-             failure:(WDMFailureBlock)failureBlock;
+- (void)connectDevice:(uint64_t)deviceId
+        deviceAddress:(NSString *)deviceAddress
+           completion:(WDMCompletionBlock)completionBlock
+              failure:(WDMFailureBlock)failureBlock;
 
--(void)reconnectDevice:(WDMCompletionBlock)completionBlock
-                failure:(WDMFailureBlock)failureBlock;
+- (void)reconnectDevice:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
--(void)connectBle:(CBPeripheral*)peripheral
-       completion:(WDMCompletionBlock)completionBlock
-          failure:(WDMFailureBlock)failureBlock;
+- (void)connectBle:(CBPeripheral *)peripheral completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
--(void)connectBleWithPairingCode:(CBPeripheral*)peripheral
-                     pairingCode:(NSString *)pairingCode
-                      completion:(WDMCompletionBlock)completionBlock
-                         failure:(WDMFailureBlock)failureBlock;
+- (void)connectBleWithPairingCode:(CBPeripheral *)peripheral
+                      pairingCode:(NSString *)pairingCode
+                       completion:(WDMCompletionBlock)completionBlock
+                          failure:(WDMFailureBlock)failureBlock;
 
--(void)connectBleWithDeviceAccessToken:(CBPeripheral*)peripheral
-                           accessToken:(NSString *)accessToken
-                            completion:(WDMCompletionBlock)completionBlock
-                               failure:(WDMFailureBlock)failureBlock;
+- (void)connectBleWithDeviceAccessToken:(CBPeripheral *)peripheral
+                            accessToken:(NSString *)accessToken
+                             completion:(WDMCompletionBlock)completionBlock
+                                failure:(WDMFailureBlock)failureBlock;
 
 - (BOOL)isConnected;
 
 - (BOOL)isValidPairingCode:(NSString *)pairingCode;
 
-- (void)getCameraAuthData:(NSString *)nonce
-         completion:(WDMCompletionBlock)completionBlock
-            failure:(WDMFailureBlock)failureBlock;
+- (void)getCameraAuthData:(NSString *)nonce completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
 /**
     \defgroup NetworkProvisioning Network Provisioning
@@ -200,25 +194,15 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
         completion:(WDMCompletionBlock)completionBlock
            failure:(WDMFailureBlock)failureBlock;
 
-- (void)updateNetwork:(NLNetworkInfo *)netInfo
-           completion:(WDMCompletionBlock)completionBlock
-              failure:(WDMFailureBlock)failureBlock;
+- (void)updateNetwork:(NLNetworkInfo *)netInfo completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
-- (void)removeNetwork:(NLNetworkID)networkId
-           completion:(WDMCompletionBlock)completionBlock
-              failure:(WDMFailureBlock)failureBlock;
+- (void)removeNetwork:(NLNetworkID)networkId completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
-- (void)getNetworks:(uint8_t)flags
-         completion:(WDMCompletionBlock)completionBlock
-            failure:(WDMFailureBlock)failureBlock;
+- (void)getNetworks:(uint8_t)flags completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
-- (void)enableNetwork:(NLNetworkID)networkId
-           completion:(WDMCompletionBlock)completionBlock
-              failure:(WDMFailureBlock)failureBlock;
+- (void)enableNetwork:(NLNetworkID)networkId completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
-- (void)disableNetwork:(NLNetworkID)networkId
-            completion:(WDMCompletionBlock)completionBlock
-               failure:(WDMFailureBlock)failureBlock;
+- (void)disableNetwork:(NLNetworkID)networkId completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
 - (void)testNetworkConnectivity:(NLNetworkID)networkId
                      completion:(WDMCompletionBlock)completionBlock
@@ -266,9 +250,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
            completion:(WDMCompletionBlock)completionBlock
               failure:(WDMFailureBlock)failureBlock;
 
-- (void)unregisterService:(uint64_t)serviceId
-               completion:(WDMCompletionBlock)completionBlock
-                  failure:(WDMFailureBlock)failureBlock;
+- (void)unregisterService:(uint64_t)serviceId completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
 - (void)getLastNetworkProvisioningResult:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
@@ -288,9 +270,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
 
 - (void)disarmFailSafe:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
-- (void)resetConfig:(uint16_t)resetFlags
-         completion:(WDMCompletionBlock)completionBlock
-            failure:(WDMFailureBlock)failureBlock;
+- (void)resetConfig:(uint16_t)resetFlags completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
 - (void)enableConnectionMonitor:(NSInteger)intervalMs
                         timeout:(NSInteger)timeoutMs
@@ -313,18 +293,16 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
     @{
  */
 
-- (void)pairToken:(NSData *)pairingToken
-       completion:(WDMCompletionBlock)completionBlock
-          failure:(WDMFailureBlock)failureBlock;
+- (void)pairToken:(NSData *)pairingToken completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
 /**
     @}
  */
 
--(void)ping:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
+- (void)ping:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 
 // ----- Error Logging -----
--(NSString *)toErrorString:(WEAVE_ERROR)err;
+- (NSString *)toErrorString:(WEAVE_ERROR)err;
 //-(NSError *)toError:(WEAVE_ERROR)err;
 
 @end

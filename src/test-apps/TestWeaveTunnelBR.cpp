@@ -2310,6 +2310,75 @@ exit:
     gTunAgent.Shutdown();
 }
 
+static void TestTunnelRestrictedRoutingOnStandaloneTunnelOpen(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Done = false;
+    gTestSucceeded = false;
+    gCurrTestNum = kTestNum_TestTunnelRestrictedRoutingOnStandaloneTunnelOpen;
+    gTestStartTime = Now();
+    gMaxTestDurationMillisecs = DEFAULT_TEST_DURATION_MILLISECS;
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    if (gUseServiceDir)
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId,
+                            gAuthMode, &gServiceMgr);
+    }
+    else
+#endif
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId, gDestAddr,
+                            gAuthMode);
+    }
+
+    gTunAgent.SetTunnelingDeviceRole(kClientRole_StandaloneDevice);
+
+    gTunAgent.OnServiceTunStatusNotify = WeaveTunnelOnStatusNotifyHandlerCB;
+
+    SuccessOrExit(err);
+
+    err = gTunAgent.StartServiceTunnel();
+    SuccessOrExit(err);
+
+    while (!Done)
+    {
+        struct timeval sleepTime;
+        sleepTime.tv_sec = TEST_SLEEP_TIME_WITHIN_LOOP_SECS;
+        sleepTime.tv_usec = TEST_SLEEP_TIME_WITHIN_LOOP_MICROSECS;
+
+        ServiceNetwork(sleepTime);
+
+        if (Now() < gTestStartTime + gMaxTestDurationMillisecs * System::kTimerFactor_micro_per_milli)
+        {
+            if (gTestSucceeded)
+            {
+                Done = true;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        else // Time's up
+        {
+            gTestSucceeded = false;
+            Done = true;
+        }
+
+        if (Done)
+        {
+            gTunAgent.StopServiceTunnel(WEAVE_NO_ERROR);
+        }
+    }
+
+exit:
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
+
+    gTunAgent.Shutdown();
+}
+
 static void TestTunnelResetReconnectBackoffImmediately(nlTestSuite *inSuite, void *inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -2796,6 +2865,7 @@ WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyRea
 
         break;
       case  kTestNum_TestTunnelRestrictedRoutingOnTunnelOpen:
+      case  kTestNum_TestTunnelRestrictedRoutingOnStandaloneTunnelOpen:
         if (reason == WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp)
         {
             // Check if we got the correct error code and the Fabric tunnel
@@ -3211,6 +3281,7 @@ static const nlTest tunnelTests[] = {
     NL_TEST_DEF("TestTunnelLivenessDisconnectOnNoResponse", TestTunnelLivenessDisconnectOnNoResponse),
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
     NL_TEST_DEF("TestTunnelRestrictedRoutingOnTunnelOpen", TestTunnelRestrictedRoutingOnTunnelOpen),
+    NL_TEST_DEF("TestTunnelRestrictedRoutingOnStandaloneTunnelOpen", TestTunnelRestrictedRoutingOnStandaloneTunnelOpen),
     NL_TEST_DEF("TestTunnelResetReconnectBackoffImmediately", TestTunnelResetReconnectBackoffImmediately),
     NL_TEST_DEF("TestTunnelResetReconnectBackoffRandomized", TestTunnelResetReconnectBackoffRandomized),
     NL_TEST_DEF("TestTunnelNoStatusReportResetReconnectBackoff", TestTunnelNoStatusReportResetReconnectBackoff),
@@ -3251,22 +3322,10 @@ int main(int argc, char *argv[])
     }
 
     if (!ParseArgsFromEnvVar(TOOL_NAME, TOOL_OPTIONS_ENV_VAR_NAME, gToolOptionSets, NULL, true) ||
-        !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets, HandleNonOptionArgs))
+        !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets, HandleNonOptionArgs) ||
+        !ResolveWeaveNetworkOptions(TOOL_NAME, gWeaveNodeOptions, gNetworkOptions))
     {
         exit(EXIT_FAILURE);
-    }
-
-    if (gNetworkOptions.LocalIPv6Addr != IPAddress::Any)
-    {
-        if (!gNetworkOptions.LocalIPv6Addr.IsIPv6ULA())
-        {
-            WeaveLogError(WeaveTunnel, "Local address must be an IPv6 ULA\n");
-            exit(EXIT_FAILURE);
-        }
-        gWeaveNodeOptions.FabricId = gNetworkOptions.LocalIPv6Addr.GlobalId();
-        gWeaveNodeOptions.LocalNodeId = IPv6InterfaceIdToWeaveNodeId(gNetworkOptions.LocalIPv6Addr.InterfaceId());
-        gWeaveNodeOptions.SubnetId = gNetworkOptions.LocalIPv6Addr.Subnet();
-
     }
 
     InitSystemLayer();

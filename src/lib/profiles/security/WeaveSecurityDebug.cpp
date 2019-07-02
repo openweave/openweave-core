@@ -164,10 +164,13 @@ NL_DLL_EXPORT void PrintCert(FILE *out, const WeaveCertificateData& cert, const 
     Indent(out, indent + 2);
     fprintf(out, "Not After: "); PrintPackedDate(out, cert.NotAfterDate); fprintf(out, "\n");
 
-    Indent(out, indent);
-    fprintf(out, "Type: ");
-    PrintCertType(out, cert.CertType);
-    fprintf(out, "\n");
+    if (cert.CertType != kCertType_NotSpecified)
+    {
+        Indent(out, indent);
+        fprintf(out, "Type: ");
+        PrintCertType(out, cert.CertType);
+        fprintf(out, "\n");
+    }
 
     if (cert.CertFlags & kCertFlag_IsCA)
     {
@@ -308,6 +311,20 @@ void PrintWeaveDN(FILE *out, const WeaveDN& dn)
         fprintf(out, " (%s)", certDesc);
 }
 
+WEAVE_ERROR PrintWeaveDN(FILE *out, TLVReader & reader)
+{
+    WEAVE_ERROR err;
+    WeaveDN dn;
+
+    err = DecodeWeaveDN(reader, dn);
+    SuccessOrExit(err);
+
+    PrintWeaveDN(out, dn);
+
+exit:
+    return err;
+}
+
 void PrintPackedTime(FILE *out, uint32_t t)
 {
     nl::Weave::ASN1::ASN1UniversalTime asn1Time;
@@ -379,6 +396,270 @@ const char *DescribeWeaveCertId(OID attrOID, uint64_t weaveCertId)
     default:
         return NULL;
     }
+}
+
+WEAVE_ERROR PrintCertArray(FILE * out, TLVReader & reader, uint16_t indent)
+{
+    WEAVE_ERROR err;
+    TLVType outerContainerType;
+    uint32_t certNum = 1;
+    WeaveCertificateData cert;
+
+    if (reader.GetType() == kTLVType_NotSpecified)
+    {
+        err = reader.Next();
+        SuccessOrExit(err);
+    }
+
+    VerifyOrExit(reader.GetType() == kTLVType_Array, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = reader.EnterContainer(outerContainerType);
+    SuccessOrExit(err);
+
+    while ((err = reader.Next()) == WEAVE_NO_ERROR)
+    {
+        VerifyOrExit(reader.GetType() == kTLVType_Structure, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+        Indent(out, indent);
+        fprintf(out, "Certificate %" PRId32 ":\n", certNum);
+
+        err = DecodeWeaveCert(reader, cert);
+        SuccessOrExit(err);
+
+        err = DetermineCertType(cert);
+        SuccessOrExit(err);
+
+        PrintCert(out, cert, NULL, indent + 2, true);
+
+        certNum++;
+    }
+
+    VerifyOrExit(err == WEAVE_END_OF_TLV, /**/);
+
+    err = reader.ExitContainer(kTLVType_Array);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR PrintECDSASignature(FILE * out, TLVReader & reader, uint16_t indent)
+{
+    WEAVE_ERROR err;
+    TLVType outerContainerType;
+
+    if (reader.GetType() == kTLVType_NotSpecified)
+    {
+        err = reader.Next();
+        SuccessOrExit(err);
+    }
+
+    // Verify the start of the ECDSASignture structure.
+    VerifyOrExit(reader.GetType() == kTLVType_Structure, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = reader.EnterContainer(outerContainerType);
+    SuccessOrExit(err);
+
+    while ((err = reader.Next()) == WEAVE_NO_ERROR)
+    {
+        uint64_t tag;
+        uint8_t tagNum;
+        const char * label;
+        const uint8_t * data;
+
+        tag = reader.GetTag();
+
+        if (!IsContextTag(tag))
+        {
+            continue;
+        }
+
+        tagNum = TagNumFromTag(tag);
+
+        switch (tagNum)
+        {
+        case kTag_ECDSASignature_r:
+            label = "r";
+            break;
+        case kTag_ECDSASignature_s:
+            label = "s";
+            break;
+        default:
+            continue;
+        }
+
+        VerifyOrExit(reader.GetType() == kTLVType_ByteString, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+        err = reader.GetDataPtr(data);
+        SuccessOrExit(err);
+
+        PrintHexField(out, label, indent, reader.GetLength(), data);
+    }
+
+    VerifyOrExit(err == WEAVE_END_OF_TLV, /**/);
+
+    err = reader.ExitContainer(kTLVType_Structure);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR PrintCertReference(FILE * out, TLVReader & reader, uint16_t indent)
+{
+    WEAVE_ERROR err;
+    TLVType outerContainerType;
+
+    if (reader.GetType() == kTLVType_NotSpecified)
+    {
+        err = reader.Next();
+        SuccessOrExit(err);
+    }
+
+    // Verify the start of the WeaveECDSASignture structure.
+    VerifyOrExit(reader.GetType() == kTLVType_Structure, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = reader.EnterContainer(outerContainerType);
+    SuccessOrExit(err);
+
+    while ((err = reader.Next()) == WEAVE_NO_ERROR)
+    {
+        uint64_t tag;
+        uint8_t tagNum;
+        const uint8_t * data;
+        uint32_t dataLen;
+
+        tag = reader.GetTag();
+
+        if (!IsContextTag(tag))
+        {
+            continue;
+        }
+
+        tagNum = TagNumFromTag(tag);
+
+        switch (tagNum)
+        {
+        case kTag_WeaveCertificateRef_Subject:
+            Indent(out, indent);
+            fprintf(out, "Subject DN: ");
+            err = PrintWeaveDN(out, reader);
+            SuccessOrExit(err);
+            break;
+        case kTag_WeaveCertificateRef_PublicKeyId:
+            VerifyOrExit(reader.GetType() == kTLVType_ByteString, err = WEAVE_ERROR_INVALID_ARGUMENT);
+            err = reader.GetDataPtr(data);
+            SuccessOrExit(err);
+            dataLen = reader.GetLength();
+            Indent(out, indent);
+            fprintf(out, "Public Key Id: ");
+            for (uint32_t i = 0; i < dataLen; i++)
+                fprintf(out, "%02X", data[i]);
+            fprintf(out, "\n");
+            break;
+        default:
+            break;
+        }
+    }
+
+    VerifyOrExit(err == WEAVE_END_OF_TLV, /**/);
+
+    err = reader.ExitContainer(kTLVType_Structure);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR PrintWeaveSignature(FILE * out, TLVReader & reader, uint16_t indent)
+{
+    WEAVE_ERROR err;
+    TLVType outerContainerType;
+    bool sigAlgoPrinted = false;
+
+    if (reader.GetType() == kTLVType_NotSpecified)
+    {
+        err = reader.Next();
+        SuccessOrExit(err);
+    }
+
+    // Verify the start of the WeaveSignature structure.
+    VerifyOrExit(reader.GetType() == kTLVType_Structure, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = reader.EnterContainer(outerContainerType);
+    SuccessOrExit(err);
+
+    while ((err = reader.Next()) == WEAVE_NO_ERROR)
+    {
+        uint64_t tag = reader.GetTag();
+        uint8_t tagNum;
+
+        if (!IsContextTag(tag))
+        {
+            continue;
+        }
+
+        tagNum = TagNumFromTag(tag);
+
+        if (!sigAlgoPrinted && tagNum != kTag_WeaveSignature_SignatureAlgorithm)
+        {
+            Indent(out, indent);
+            fprintf(out, "Signature Algorithm: ECDSAWithSHA1 (implicit)\n");
+            sigAlgoPrinted = true;
+        }
+
+        switch (tagNum)
+        {
+        case kTag_WeaveSignature_ECDSASignatureData:
+            Indent(out, indent);
+            fprintf(out, "ECDSA Signature:\n");
+            err = PrintECDSASignature(out, reader, indent + 2);
+            SuccessOrExit(err);
+            break;
+
+        case kTag_WeaveSignature_SigningCertificateRef:
+            Indent(out, indent);
+            fprintf(out, "Signing Certificate Reference:\n");
+            err = PrintCertReference(out, reader, indent + 2);
+            SuccessOrExit(err);
+            break;
+
+        case kTag_WeaveSignature_RelatedCertificates:
+            Indent(out, indent);
+            fprintf(out, "Related Certificates:\n");
+            err = PrintCertArray(out, reader, indent + 2);
+            SuccessOrExit(err);
+            break;
+
+        case kTag_WeaveSignature_SignatureAlgorithm:
+        {
+            uint16_t sigAlgo;
+
+            VerifyOrExit(reader.GetType() == kTLVType_UnsignedInteger, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+            err = reader.Get(sigAlgo);
+            SuccessOrExit(err);
+
+            Indent(out, indent);
+            fprintf(out, "Signature Algorithm: %s\n", GetOIDName(sigAlgo));
+
+            sigAlgoPrinted = true;
+
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
+
+    VerifyOrExit(err == WEAVE_END_OF_TLV, /**/);
+
+    err = reader.ExitContainer(kTLVType_Structure);
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 
 #endif // WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS

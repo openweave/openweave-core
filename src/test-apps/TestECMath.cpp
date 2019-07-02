@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -24,7 +25,9 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "ToolCommon.h"
 #include <Weave/Core/WeaveConfig.h>
@@ -201,7 +204,7 @@ static uECC_Curve CurveOID2uECC_Curve(OID curveOID)
     }
 }
 
-int TestECMath_PointAddition(OID curveOID, uint32_t iterationCounter)
+static bool TestECMath_PointAddition(OID curveOID, uint32_t iterationCounter)
 {
     uECC_Curve curve;
     uECC_word_t *ecPointS;
@@ -213,7 +216,7 @@ int TestECMath_PointAddition(OID curveOID, uint32_t iterationCounter)
     if (curve == NULL)
     {
         printf("\tERROR: Unsupported Elliptic Curve !!! \n");
-        return 0;
+        return false;
     }
 
     switch (curveOID) {
@@ -237,7 +240,7 @@ int TestECMath_PointAddition(OID curveOID, uint32_t iterationCounter)
 
     default:
         printf("\tERROR: Unsupported Elliptic Curve !!! \n");
-        return 0;
+        return false;
     }
 
     // Main Loop: ecPointR = ecPointS + ecPointT
@@ -248,13 +251,13 @@ int TestECMath_PointAddition(OID curveOID, uint32_t iterationCounter)
     if (!uECC_point_equal(ecPointR, ecPointR_Expected, uECC_curve_num_words(curve)))
     {
         printf("\tERROR: MicroECC point addition test failed !!! \n");
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
-int TestECMath_PointSubtraction(OID curveOID, uint32_t iterationCounter)
+static bool TestECMath_PointSubtraction(OID curveOID, uint32_t iterationCounter)
 {
     uECC_Curve curve;
     uECC_word_t *ecPointS;
@@ -266,7 +269,7 @@ int TestECMath_PointSubtraction(OID curveOID, uint32_t iterationCounter)
     if (curve == NULL)
     {
         printf("\tERROR: Unsupported Elliptic Curve !!! \n");
-        return 0;
+        return false;
     }
 
     switch (curveOID) {
@@ -290,7 +293,7 @@ int TestECMath_PointSubtraction(OID curveOID, uint32_t iterationCounter)
 
     default:
         printf("\tERROR: Unsupported Elliptic Curve !!! \n");
-        return 0;
+        return false;
     }
 
     // Main Loop: ecPointR = ecPointS - ecPointT
@@ -304,13 +307,13 @@ int TestECMath_PointSubtraction(OID curveOID, uint32_t iterationCounter)
     if (!uECC_point_equal(ecPointR, ecPointR_Expected, uECC_curve_num_words(curve)))
     {
         printf("\tERROR: MicroECC point subtraction test failed !!! \n");
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
-int TestECMath_PointDouble(OID curveOID, uint32_t iterationCounter)
+static bool TestECMath_PointDouble(OID curveOID, uint32_t iterationCounter)
 {
     uECC_Curve curve;
     uECC_word_t *ecPointS;
@@ -321,7 +324,7 @@ int TestECMath_PointDouble(OID curveOID, uint32_t iterationCounter)
     if (curve == NULL)
     {
         printf("\tERROR: Unsupported Elliptic Curve !!! \n");
-        return 0;
+        return false;
     }
 
     switch (curveOID) {
@@ -342,7 +345,7 @@ int TestECMath_PointDouble(OID curveOID, uint32_t iterationCounter)
 
     default:
         printf("\tERROR: Unsupported Elliptic Curve !!! \n");
-        return 0;
+        return false;
     }
 
     // Main Loop: ecPointR = 2 * ecPointS
@@ -353,13 +356,13 @@ int TestECMath_PointDouble(OID curveOID, uint32_t iterationCounter)
     if (!uECC_point_equal(ecPointR, ecPointR_Expected, uECC_curve_num_words(curve)))
     {
         printf("\tERROR: MicroECC point double test failed !!! \n");
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
-int TestECMath_PointMultiply(OID curveOID, uint32_t iterationCounter)
+static bool TestECMath_PointMultiply(OID curveOID, uint32_t iterationCounter)
 {
     uECC_Curve curve;
     uECC_word_t *ecPointS;
@@ -371,7 +374,7 @@ int TestECMath_PointMultiply(OID curveOID, uint32_t iterationCounter)
     if (curve == NULL)
     {
         printf("\tERROR: Unsupported Elliptic Curve !!! \n");
-        return 0;
+        return false;
     }
 
     switch (curveOID) {
@@ -395,7 +398,7 @@ int TestECMath_PointMultiply(OID curveOID, uint32_t iterationCounter)
 
     default:
         printf("\tERROR: Unsupported Elliptic Curve !!! \n");
-        return 0;
+        return false;
     }
 
     // Main Loop: ecPointR = ScalarD * ecPointS
@@ -406,13 +409,13 @@ int TestECMath_PointMultiply(OID curveOID, uint32_t iterationCounter)
     if (!uECC_point_equal(ecPointR, ecPointR_Expected, uECC_curve_num_words(curve)))
     {
         printf("\tERROR: MicroECC point multiply test failed !!! \n");
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
-int TestECMath_JointScalarMultiply(OID curveOID, uint32_t iterationCounter)
+static bool TestECMath_JointScalarMultiply(OID curveOID, uint32_t iterationCounter)
 {
     uECC_Curve curve;
     uECC_word_t *ecPointS;
@@ -428,7 +431,7 @@ int TestECMath_JointScalarMultiply(OID curveOID, uint32_t iterationCounter)
     if (curve == NULL)
     {
         printf("\tERROR: Unsupported Elliptic Curve !!! \n");
-        return 0;
+        return false;
     }
 
     switch (curveOID) {
@@ -459,7 +462,7 @@ int TestECMath_JointScalarMultiply(OID curveOID, uint32_t iterationCounter)
 
     default:
         printf("\tERROR: Unsupported Elliptic Curve !!! \n");
-        return 0;
+        return false;
     }
 
     // Main Loop: ecPointR = ScalarD * ecPointS + ScalarE * ecPointT
@@ -479,10 +482,10 @@ int TestECMath_JointScalarMultiply(OID curveOID, uint32_t iterationCounter)
     if (!uECC_point_equal(ecPointR, ecPointR_Expected, uECC_curve_num_words(curve)))
     {
         printf("\tERROR: MicroECC joint scalar multiply test failed !!! \n");
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 #endif // WEAVE_CONFIG_USE_MICRO_ECC
 
@@ -492,7 +495,7 @@ int TestECMath_JointScalarMultiply(OID curveOID, uint32_t iterationCounter)
 
 #if WEAVE_CONFIG_USE_OPENSSL_ECC
 
-int TestECMath_PointAddition(OID curveOID, uint32_t iterationCounter)
+static bool TestECMath_PointAddition(OID curveOID, uint32_t iterationCounter)
 {
     WEAVE_ERROR err;
     EC_GROUP *ecGroup = NULL;
@@ -596,12 +599,13 @@ exit:
     if (err != WEAVE_NO_ERROR)
     {
         printf("\tERROR: Exiting with error !!! \n");
-        return 0;
+        return false;
     }
-    return 1;
+
+    return true;
 }
 
-int TestECMath_PointSubtraction(OID curveOID, uint32_t iterationCounter)
+static bool TestECMath_PointSubtraction(OID curveOID, uint32_t iterationCounter)
 {
     WEAVE_ERROR err;
     EC_GROUP *ecGroup = NULL;
@@ -719,12 +723,13 @@ exit:
     if (err != WEAVE_NO_ERROR)
     {
         printf("\tERROR: Exiting with error !!! \n");
-        return 0;
+        return false;
     }
-    return 1;
+
+    return true;
 }
 
-int TestECMath_PointDouble(OID curveOID, uint32_t iterationCounter)
+static bool TestECMath_PointDouble(OID curveOID, uint32_t iterationCounter)
 {
     WEAVE_ERROR err;
     EC_GROUP *ecGroup = NULL;
@@ -809,12 +814,13 @@ exit:
     if (err != WEAVE_NO_ERROR)
     {
         printf("\tERROR: Exiting with error !!! \n");
-        return 0;
+        return false;
     }
-    return 1;
+
+    return true;
 }
 
-int TestECMath_PointMultiply(OID curveOID, uint32_t iterationCounter)
+static bool TestECMath_PointMultiply(OID curveOID, uint32_t iterationCounter)
 {
     WEAVE_ERROR err;
     EC_GROUP *ecGroup = NULL;
@@ -904,14 +910,15 @@ exit:
     if (err != WEAVE_NO_ERROR)
     {
         printf("\tERROR: Exiting with error !!! \n");
-        return 0;
+        return false;
     }
-    return 1;
+
+    return true;
 }
 
 #if !defined(OPENSSL_IS_BORINGSSL)
 
-int TestECMath_JointScalarMultiply(OID curveOID, uint32_t iterationCounter)
+static bool TestECMath_JointScalarMultiply(OID curveOID, uint32_t iterationCounter)
 {
     WEAVE_ERROR err;
     EC_GROUP *ecGroup = NULL;
@@ -1032,9 +1039,10 @@ exit:
     if (err != WEAVE_NO_ERROR)
     {
         printf("\tERROR: Exiting with error !!! \n");
-        return 0;
+        return false;
     }
-    return 1;
+
+    return true;
 }
 
 #endif // !defined(OPENSSL_IS_BORINGSSL)
@@ -1055,6 +1063,8 @@ exit:
 
 int main(int argc, char *argv[])
 {
+    bool status = true;
+
     struct TestCurve {
         OID oid;
         char const *name;
@@ -1072,7 +1082,7 @@ int main(int argc, char *argv[])
 #endif
     };
 
-    typedef int (*TestECMath_Function)(OID curveOID, uint32_t iterationCounter);
+    typedef bool (*TestECMath_Function)(OID curveOID, uint32_t iterationCounter);
 
     struct TestFunction {
         TestECMath_Function function;
@@ -1101,7 +1111,8 @@ int main(int argc, char *argv[])
             time_t timeStart = time(NULL);
 #endif
 
-            TestECMath_Functions[i].function(TestECMath_Curves[j].oid, TEST_ECMATH_NUMBER_OF_ITERATIONS);
+            status = TestECMath_Functions[i].function(TestECMath_Curves[j].oid, TEST_ECMATH_NUMBER_OF_ITERATIONS);
+            VerifyOrExit(status == true, );
 
 #if TEST_ECMATH_DEBUG_PRINT_ENABLE
             time_t timeEnd = time(NULL);
@@ -1109,4 +1120,7 @@ int main(int argc, char *argv[])
 #endif
         }
     }
+
+exit:
+    return ((status != false) ? EXIT_SUCCESS : EXIT_FAILURE);
 }

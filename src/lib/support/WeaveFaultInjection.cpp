@@ -40,6 +40,7 @@ static const nl::FaultInjection::Name sManagerName = "Weave";
 static const nl::FaultInjection::Name sFaultNames[] = {
     "AllocExchangeContext",
     "DropIncomingUDPMsg",
+    "DropOutgoingUDPMsg",
     "AllocBinding",
     "SendAlarm",
     "HandleAlarm",
@@ -69,6 +70,7 @@ static const nl::FaultInjection::Name sFaultNames[] = {
     "WDMUpdateRequestSendErrorInline",
     "WDMUpdateRequestSendErrorAsync",
     "WDMUpdateRequestBadProfile",
+    "WDMUpdateRequestDropMessage",
     "WDMUpdateResponseBusy",
     "WDMPathStoreFull",
     "WDMTreatNotifyAsCancel",

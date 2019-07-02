@@ -50,34 +50,42 @@ public:
 
     enum WiFiStationMode
     {
-        kWiFiStationMode_NotSupported               = -1,
-        kWiFiStationMode_ApplicationControlled      = 0,
-        kWiFiStationMode_Disabled                   = 1,
-        kWiFiStationMode_Enabled                    = 2,
+        kWiFiStationMode_NotSupported               = 0,
+        kWiFiStationMode_ApplicationControlled      = 1,
+        kWiFiStationMode_Disabled                   = 2,
+        kWiFiStationMode_Enabled                    = 3,
     };
 
     enum WiFiAPMode
     {
-        kWiFiAPMode_NotSupported                    = -1,
-        kWiFiAPMode_ApplicationControlled           = 0,
-        kWiFiAPMode_Disabled                        = 1,
-        kWiFiAPMode_Enabled                         = 2,
-        kWiFiAPMode_OnDemand                        = 3,
-        kWiFiAPMode_OnDemand_NoStationProvision     = 4,
+        kWiFiAPMode_NotSupported                    = 0,
+        kWiFiAPMode_ApplicationControlled           = 1,
+        kWiFiAPMode_Disabled                        = 2,
+        kWiFiAPMode_Enabled                         = 3,
+        kWiFiAPMode_OnDemand                        = 4,
+        kWiFiAPMode_OnDemand_NoStationProvision     = 5,
+    };
+
+    enum ThreadMode
+    {
+        kThreadMode_NotSupported                    = 0,
+        kThreadMode_ApplicationControlled           = 1,
+        kThreadMode_Disabled                        = 2,
+        kThreadMode_Enabled                         = 3,
     };
 
     enum ServiceTunnelMode
     {
-        kServiceTunnelMode_NotSupported             = -1,
-        kServiceTunnelMode_Disabled                 = 0,
-        kServiceTunnelMode_Enabled                  = 1,
+        kServiceTunnelMode_NotSupported             = 0,
+        kServiceTunnelMode_Disabled                 = 1,
+        kServiceTunnelMode_Enabled                  = 2,
     };
 
     enum WoBLEServiceMode
     {
-        kWoBLEServiceMode_NotSupported              = -1,
-        kWoBLEServiceMode_Enabled                   = 0,
-        kWoBLEServiceMode_Disabled                  = 1,
+        kWoBLEServiceMode_NotSupported              = 0,
+        kWoBLEServiceMode_Enabled                   = 1,
+        kWoBLEServiceMode_Disabled                  = 2,
     };
 
     // WiFi station methods
@@ -102,6 +110,18 @@ public:
     uint32_t GetWiFiAPIdleTimeoutMS(void);
     void SetWiFiAPIdleTimeoutMS(uint32_t val);
 
+    WEAVE_ERROR GetAndLogWifiStatsCounters(void);
+
+    // Thread Methods
+    ThreadMode GetThreadMode(void);
+    WEAVE_ERROR SetThreadMode(ThreadMode val);
+    bool IsThreadEnabled(void);
+    bool IsThreadApplicationControlled(void);
+    bool IsThreadAttached(void);
+    bool IsThreadProvisioned(void);
+    void ClearThreadProvision(void);
+    bool HaveServiceConnectivityViaThread(void);
+
     // Internet connectivity methods
     bool HaveIPv4InternetConnectivity(void);
     bool HaveIPv6InternetConnectivity(void);
@@ -111,6 +131,7 @@ public:
     WEAVE_ERROR SetServiceTunnelMode(ServiceTunnelMode val);
     bool IsServiceTunnelConnected(void);
     bool IsServiceTunnelRestricted(void);
+    bool HaveServiceConnectivityViaTunnel(void);
 
     // Service connectivity methods
     bool HaveServiceConnectivity(void);
@@ -126,6 +147,12 @@ public:
     WEAVE_ERROR SetBLEDeviceName(const char * deviceName);
     uint16_t NumBLEConnections(void);
 
+    // User selected mode methods
+    bool IsUserSelectedModeActive(void);
+    void SetUserSelectedMode(bool val);
+    uint16_t GetUserSelectedModeTimeout(void);
+    void SetUserSelectedModeTimeout(uint16_t val);
+
     // Support methods
     static const char * WiFiStationModeToStr(WiFiStationMode mode);
     static const char * WiFiAPModeToStr(WiFiAPMode mode);
@@ -136,17 +163,28 @@ private:
 
     // ===== Members for internal use by the following friends.
 
-    friend class ::nl::Weave::DeviceLayer::PlatformManagerImpl;
-    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericPlatformManagerImpl;
-    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericPlatformManagerImpl_FreeRTOS;
-    friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServerImpl;
-    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericNetworkProvisioningServerImpl;
+    friend class PlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
+    friend class Internal::NetworkProvisioningServerImpl;
+    template<class> friend class Internal::GenericNetworkProvisioningServerImpl;
 
     WEAVE_ERROR Init(void);
     void OnPlatformEvent(const WeaveDeviceEvent * event);
     bool CanStartWiFiScan(void);
     void OnWiFiScanDone(void);
     void OnWiFiStationProvisionChange(void);
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    ConnectivityManager() = default;
+    ~ConnectivityManager() = default;
+
+    // No copy, move or assignment.
+    ConnectivityManager(const ConnectivityManager &) = delete;
+    ConnectivityManager(const ConnectivityManager &&) = delete;
+    ConnectivityManager & operator=(const ConnectivityManager &) = delete;
 };
 
 /**
@@ -275,6 +313,16 @@ inline void ConnectivityManager::SetWiFiAPIdleTimeoutMS(uint32_t val)
     static_cast<ImplClass*>(this)->_SetWiFiAPIdleTimeoutMS(val);
 }
 
+inline WEAVE_ERROR ConnectivityManager::GetAndLogWifiStatsCounters(void)
+{
+    return static_cast<ImplClass*>(this)->_GetAndLogWifiStatsCounters();
+}
+
+inline bool ConnectivityManager::HaveServiceConnectivityViaTunnel(void)
+{
+    return static_cast<ImplClass*>(this)->_HaveServiceConnectivityViaTunnel();
+}
+
 inline bool ConnectivityManager::HaveIPv4InternetConnectivity(void)
 {
     return static_cast<ImplClass*>(this)->_HaveIPv4InternetConnectivity();
@@ -308,6 +356,46 @@ inline bool ConnectivityManager::IsServiceTunnelRestricted(void)
 inline bool ConnectivityManager::HaveServiceConnectivity(void)
 {
     return static_cast<ImplClass*>(this)->_HaveServiceConnectivity();
+}
+
+inline ConnectivityManager::ThreadMode ConnectivityManager::GetThreadMode(void)
+{
+    return static_cast<ImplClass*>(this)->_GetThreadMode();
+}
+
+inline WEAVE_ERROR ConnectivityManager::SetThreadMode(ThreadMode val)
+{
+    return static_cast<ImplClass*>(this)->_SetThreadMode(val);
+}
+
+inline bool ConnectivityManager::IsThreadEnabled(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadEnabled();
+}
+
+inline bool ConnectivityManager::IsThreadApplicationControlled(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadApplicationControlled();
+}
+
+inline bool ConnectivityManager::IsThreadAttached(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadAttached();
+}
+
+inline bool ConnectivityManager::IsThreadProvisioned(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadProvisioned();
+}
+
+inline void ConnectivityManager::ClearThreadProvision(void)
+{
+    static_cast<ImplClass*>(this)->_ClearThreadProvision();
+}
+
+inline bool ConnectivityManager::HaveServiceConnectivityViaThread(void)
+{
+    return static_cast<ImplClass*>(this)->_HaveServiceConnectivityViaThread();
 }
 
 inline ConnectivityManager::WoBLEServiceMode ConnectivityManager::GetWoBLEServiceMode(void)
@@ -353,6 +441,26 @@ inline WEAVE_ERROR ConnectivityManager::SetBLEDeviceName(const char * deviceName
 inline uint16_t ConnectivityManager::NumBLEConnections(void)
 {
     return static_cast<ImplClass*>(this)->_NumBLEConnections();
+}
+
+inline bool ConnectivityManager::IsUserSelectedModeActive(void)
+{
+    return static_cast<ImplClass*>(this)->_IsUserSelectedModeActive();
+}
+
+inline void ConnectivityManager::SetUserSelectedMode(bool val)
+{
+    static_cast<ImplClass*>(this)->_SetUserSelectedMode(val);
+}
+
+inline uint16_t ConnectivityManager::GetUserSelectedModeTimeout(void)
+{
+    return static_cast<ImplClass*>(this)->_GetUserSelectedModeTimeout();
+}
+
+inline void ConnectivityManager::SetUserSelectedModeTimeout(uint16_t val)
+{
+    static_cast<ImplClass*>(this)->_SetUserSelectedModeTimeout(val);
 }
 
 inline const char * ConnectivityManager::WiFiStationModeToStr(WiFiStationMode mode)

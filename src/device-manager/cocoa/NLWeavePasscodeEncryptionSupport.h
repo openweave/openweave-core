@@ -27,10 +27,10 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString *const NLPasscodeEncryptionSupportDomain;
+extern NSString * const NLPasscodeEncryptionSupportDomain;
 
 // Error codes for NLPasscodeEncryptionSupportDomain
-typedef NS_ENUM (NSInteger, NLPasscodeEncryptionSupportDomainCode){
+typedef NS_ENUM(NSInteger, NLPasscodeEncryptionSupportDomainCode) {
     NLPasscodeEncryptionSupportDomainSuccess = 0,
     NLPasscodeEncryptionSupportDomainEncryptionFailure = 1,
     NLPasscodeEncryptionSupportDomainDecryptionFailure = 2,
@@ -53,11 +53,11 @@ extern NSUInteger const NLWeavePasscode_Config2;
 
 /** Key diversifier used in the derivation of the passcode encryption and authentication keys.
  */
-extern UInt8 const NLWeavePasscodeEncKeyDiversifier [];
+extern UInt8 const NLWeavePasscodeEncKeyDiversifier[];
 
 /** Key diversifier used in the derivation of the passcode fingerprint key.
  */
-extern UInt8 const NLWeavePasscodeFingerprintKeyDiversifier [];
+extern UInt8 const NLWeavePasscodeFingerprintKeyDiversifier[];
 
 extern UInt32 const NLWeavePasscodeEncKeyDiversifierSize;
 extern UInt32 const NLWeavePasscodeFingerprintKeyDiversifierSize;
@@ -73,50 +73,43 @@ extern UInt32 const NLWeavePasscodeFingerprintKeyLen;
 @interface NLWeavePasscodeEncryptionSupport : NSObject
 /** Encrypt a passcode using the Nest Passcode Encryption scheme.
  */
-+ (nullable NSData *) encryptPasscode: (UInt8) config
-                       keyId: (UInt32) keyId
-                       nonce: (UInt32) nonce
-                    passcode: (NSData *) passcode
-                      encKey: (NSData *) encKey
-                     authKey: (NSData *) authKey
-              fingerprintKey: (NSData *) fingerprintKey
-                       error: (NSError **) errOut;
++ (nullable NSData *)encryptPasscode:(UInt8)config
+                               keyId:(UInt32)keyId
+                               nonce:(UInt32)nonce
+                            passcode:(NSData *)passcode
+                              encKey:(NSData *)encKey
+                             authKey:(NSData *)authKey
+                      fingerprintKey:(NSData *)fingerprintKey
+                               error:(NSError **)errOut;
 
 /** Decrypt a passcode that was encrypted using the Nest Passcode Encryption scheme.
  */
-+ (nullable NSData *) decryptPasscode: (NSData *) encPasscode
-                               config: (UInt8) config
-                               encKey: (NSData *) encKey
-                              authKey: (NSData *) authKey
-                       fingerprintKey: (NSData *) fingerprintKey
-                                error: (NSError **) errOut;
++ (nullable NSData *)decryptPasscode:(NSData *)encPasscode
+                              config:(UInt8)config
+                              encKey:(NSData *)encKey
+                             authKey:(NSData *)authKey
+                      fingerprintKey:(NSData *)fingerprintKey
+                               error:(NSError **)errOut;
 
 /** Determines if the specified Passcode encryption configuration is supported.
  */
-+ (BOOL) isSupportedPasscodeEncryptionConfig: (UInt8) config;
++ (BOOL)isSupportedPasscodeEncryptionConfig:(UInt8)config;
 
 /** Extract the configuration type from an encrypted Passcode.
  */
-+ (BOOL) getEncryptedPasscodeConfig: (NSData *) encPasscode
-                             config: (UInt8 *) configOut
-                              error: (NSError **) errOut;
++ (BOOL)getEncryptedPasscodeConfig:(NSData *)encPasscode config:(UInt8 *)configOut error:(NSError **)errOut;
 
 /** Extract the key id from an encrypted Passcode.
  */
-+ (BOOL) getEncryptedPasscodeKeyId: (NSData *) encPasscode
-                             keyId: (UInt32 *) keyIdOut
-                             error: (NSError **) errOut;
++ (BOOL)getEncryptedPasscodeKeyId:(NSData *)encPasscode keyId:(UInt32 *)keyIdOut error:(NSError **)errOut;
 
 /** Extract the nonce value from an encrypted Passcode.
  */
-+ (BOOL) getEncryptedPasscodeNonce: (NSData *) encPasscode
-                             nonce: (UInt32 *) nonceOut
-                             error: (NSError **) errOut;
++ (BOOL)getEncryptedPasscodeNonce:(NSData *)encPasscode nonce:(UInt32 *)nonceOut error:(NSError **)errOut;
 
 /** Extract the fingerprint from an encrypted Passcode.
  */
-+ (nullable NSData *) getEncryptedPasscodeFingerprint: (NSData *) encPasscode error: (NSError **) errOut;
-
++ (nullable NSData *)getEncryptedPasscodeFingerprint:(NSData *)encPasscode error:(NSError **)errOut;
 
 @end
 NS_ASSUME_NONNULL_END

@@ -53,6 +53,17 @@ private:
     friend EchoServer & EchoSvr(void);
 
     static EchoServer sInstance;
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    EchoServer() = default;
+    ~EchoServer() = default;
+
+    // No copy, move or assignment.
+    EchoServer(const EchoServer &) = delete;
+    EchoServer(const EchoServer &&) = delete;
+    EchoServer & operator=(const EchoServer &) = delete;
 };
 
 /**

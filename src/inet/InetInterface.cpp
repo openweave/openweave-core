@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -118,23 +119,24 @@ NL_DLL_EXPORT INET_ERROR InterfaceNameToId(const char *intfName, InterfaceId& in
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
-InterfaceIterator::InterfaceIterator()
+InterfaceIteratorBasis::InterfaceIteratorBasis(void)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
     curIntf = netif_list;
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    int rv;
-    rv = getifaddrs(&addrsList);
-    if (rv != -1)
+    const int rv = getifaddrs(&addrsList);
+
+    if (rv != -1) {
         curAddr = addrsList;
-    else
+    } else {
         curAddr = addrsList = NULL;
+    }
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
-InterfaceIterator::~InterfaceIterator()
+InterfaceIteratorBasis::~InterfaceIteratorBasis(void)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
     curIntf = NULL;
@@ -147,7 +149,56 @@ InterfaceIterator::~InterfaceIterator()
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
-bool InterfaceIterator::Next()
+InterfaceId InterfaceIteratorBasis::GetInterface(void)
+{
+    InterfaceId rv = INET_NULL_INTERFACEID;
+
+    if (HasCurrent())
+    {
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+        rv = curIntf;
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+        rv = if_nametoindex(curAddr->ifa_name);
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    }
+
+    return rv;
+}
+
+bool InterfaceIteratorBasis::SupportsMulticast(void)
+{
+    if (HasCurrent())
+    {
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
+        return (curIntf->flags & (NETIF_FLAG_IGMP | NETIF_FLAG_MLD6 | NETIF_FLAG_BROADCAST)) != 0;
+#else
+        return (curIntf->flags & NETIF_FLAG_POINTTOPOINT) == 0;
+#endif // LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+        return (curAddr->ifa_flags & IFF_MULTICAST) != 0;
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    }
+    else
+        return false;
+}
+
+InterfaceIterator::InterfaceIterator(void) :
+    InterfaceIteratorBasis()
+{
+    return;
+}
+
+InterfaceIterator::~InterfaceIterator(void)
+{
+    return;
+}
+
+bool InterfaceIterator::Next(void)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
     if (curIntf != NULL)
@@ -167,62 +218,14 @@ bool InterfaceIterator::Next()
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
-InterfaceId InterfaceIterator::GetInterface()
-{
-    InterfaceId rv = INET_NULL_INTERFACEID;
-
-    if (HasCurrent())
-    {
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
-        rv = curIntf;
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-        rv = if_nametoindex(curAddr->ifa_name);
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    }
-
-    return rv;
-}
-
-bool InterfaceIterator::SupportsMulticast()
-{
-    if (HasCurrent())
-    {
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
-#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
-        return (curIntf->flags & (NETIF_FLAG_IGMP | NETIF_FLAG_MLD6)) == 0;
-#else
-        return (curIntf->flags & NETIF_FLAG_POINTTOPOINT) == 0;
-#endif // LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-        return (curAddr->ifa_flags & IFF_MULTICAST) != 0;
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    }
-    else
-        return false;
-}
-
-
-
-InterfaceAddressIterator::InterfaceAddressIterator()
+InterfaceAddressIterator::InterfaceAddressIterator(void) :
+    InterfaceIteratorBasis()
 {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    curIntf = netif_list;
     curAddrIndex = 0;
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    int rv;
-    rv = getifaddrs(&addrsList);
-    if (rv != -1) {
-        curAddr = addrsList;
-    } else {
-        curAddr = addrsList = NULL;
-        return;
-    }
     // Advance the iterator until we're sure that the current element has
     // a valid AF_INET or AF_INET6 address.
     while ((curAddr != NULL) &&
@@ -238,21 +241,14 @@ InterfaceAddressIterator::InterfaceAddressIterator()
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
-InterfaceAddressIterator::~InterfaceAddressIterator()
+InterfaceAddressIterator::~InterfaceAddressIterator(void)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    curIntf = NULL;
     curAddrIndex = 0;
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    if (addrsList != NULL)
-        freeifaddrs(addrsList);
-    curAddr = addrsList = NULL;
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
-bool InterfaceAddressIterator::Next()
+bool InterfaceAddressIterator::Next(void)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
     while (curIntf != NULL)
@@ -290,7 +286,7 @@ bool InterfaceAddressIterator::Next()
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
-IPAddress InterfaceAddressIterator::GetAddress()
+IPAddress InterfaceAddressIterator::GetAddress(void)
 {
     IPAddress rv = IPAddress::Any;
 
@@ -318,8 +314,7 @@ IPAddress InterfaceAddressIterator::GetAddress()
 }
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-
-uint8_t InterfaceAddressIterator::GetIPv6PrefixLength()
+uint8_t InterfaceAddressIterator::GetIPv6PrefixLength(void)
 {
     uint8_t prefixLen = 0;
 
@@ -351,47 +346,8 @@ uint8_t InterfaceAddressIterator::GetIPv6PrefixLength()
 
     return prefixLen;
 }
-
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-
-
-InterfaceId InterfaceAddressIterator::GetInterface()
-{
-    InterfaceId rv = INET_NULL_INTERFACEID;
-
-    if (HasCurrent())
-    {
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
-        rv = curIntf;
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-        rv = if_nametoindex(curAddr->ifa_name);
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    }
-
-    return rv;
-}
-
-bool InterfaceAddressIterator::SupportsMulticast()
-{
-    if (HasCurrent())
-    {
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
-#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
-        return (curIntf->flags & (NETIF_FLAG_IGMP | NETIF_FLAG_MLD6)) == 0;
-#else
-        return (curIntf->flags & NETIF_FLAG_POINTTOPOINT) == 0;
-#endif // LWIP_VERSION_MAJOR > 1
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-        return (curAddr->ifa_flags & IFF_MULTICAST) != 0;
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    }
-    else
-        return false;
-}
 
 } // namespace Inet
+
 } // namespace nl

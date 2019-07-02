@@ -57,6 +57,36 @@ NL_DLL_EXPORT int64_t Divide(int64_t inDividend, int64_t inDivisor);
  */
 NL_DLL_EXPORT uint32_t DivideBy1000(uint64_t inDividend);
 
+/**
+ * @brief
+ *   Performs rounding towards 0.
+ *
+ * @param[in] a         Value to be rounded.
+ *
+ * @param[in] b         Rounding granularity.
+ *
+ * @return              Value rounded down to the nearest multiple of rounding granularity.
+ */
+constexpr inline uint32_t RoundDown(uint32_t a, uint32_t b)
+{
+    return (a / b * b);
+}
+
+/**
+ * @brief
+ *   Performs rounding away from 0.
+ *
+ * @param[in] a         Value to be rounded.
+ *
+ * @param[in] b         Rounding granularity.
+ *
+ * @return              Value rounded up to the nearest multiple of rounding granularity.
+ */
+constexpr inline uint32_t RoundUp(uint32_t a, uint32_t b)
+{
+    return RoundDown(a + b - 1, b);
+}
+
 } // namespace Platform
 } // namespace Weave
 } // namespace nl

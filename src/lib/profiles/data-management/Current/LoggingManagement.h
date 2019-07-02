@@ -63,25 +63,25 @@ struct CircularEventBuffer
     void AddEventUTC(utc_timestamp_t inEventTimestamp);
 #endif
 
-    nl::Weave::TLV::WeaveCircularTLVBuffer mBuffer; //< The underlying TLV buffer storing the events in a TLV representation
+    nl::Weave::TLV::WeaveCircularTLVBuffer mBuffer; ///< The underlying TLV buffer storing the events in a TLV representation
 
-    CircularEventBuffer * mPrev; //< A pointer #CircularEventBuffer storing events less important events
-    CircularEventBuffer * mNext; //< A pointer #CircularEventBuffer storing events more important events
+    CircularEventBuffer * mPrev; ///< A pointer #CircularEventBuffer storing events less important events
+    CircularEventBuffer * mNext; ///< A pointer #CircularEventBuffer storing events more important events
 
-    ImportanceType mImportance; //< The buffer is the final bucket for events of this importance.  Events of lesser importance are
-                                //dropped when they get bumped out of this buffer
+    ImportanceType mImportance; ///< The buffer is the final bucket for events of this importance.  Events of lesser importance are
+                                ///< dropped when they get bumped out of this buffer
 
-    event_id_t mFirstEventID; //< First event ID stored in the logging subsystem for this importance
-    event_id_t mLastEventID;  //< Last event ID vended for this importance
+    event_id_t mFirstEventID; ///< First event ID stored in the logging subsystem for this importance
+    event_id_t mLastEventID;  ///< Last event ID vended for this importance
 
-    timestamp_t mFirstEventTimestamp; //< The timestamp of the first event in this buffer
-    timestamp_t mLastEventTimestamp;  //< The timestamp of the last event in this buffer
+    timestamp_t mFirstEventTimestamp; ///< The timestamp of the first event in this buffer
+    timestamp_t mLastEventTimestamp;  ///< The timestamp of the last event in this buffer
 
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
-    utc_timestamp_t mFirstEventUTCTimestamp; //< The UTC timestamp of the first event in this buffer
-    utc_timestamp_t mLastEventUTCTimestamp;  //< The UTC timestamp of the last event in this buffer
+    utc_timestamp_t mFirstEventUTCTimestamp; ///< The UTC timestamp of the first event in this buffer
+    utc_timestamp_t mLastEventUTCTimestamp;  ///< The UTC timestamp of the last event in this buffer
 
-    bool mUTCInitialized; //< Indicates whether UTC timestamps are initialized in this buffer
+    bool mUTCInitialized; ///< Indicates whether UTC timestamps are initialized in this buffer
 #endif
 
     // The counter we're going to actually use.
@@ -132,19 +132,46 @@ struct EventEnvelopeContext
     int64_t mDeltaUtc;
 #endif
     ImportanceType mImportance;
-    ExternalEvents *mExternalEvents;
+    ExternalEvents * mExternalEvents;
 };
 
 enum LoggingManagementStates
 {
-    kLoggingManagementState_Idle       = 1, //< No log offload in progress, log offload can begin without any constraints
-    kLoggingManagementState_InProgress = 2, //< Log offload in progress
-    kLoggingManagementState_Holdoff    = 3, //< Log offload has completed; we do not restart the log until the holdoff expires
-    kLoggingManagementState_Shutdown   = 4  //< Not capable of performing any logging operation
+    kLoggingManagementState_Idle       = 1, ///< No log offload in progress, log offload can begin without any constraints
+    kLoggingManagementState_InProgress = 2, ///< Log offload in progress
+    kLoggingManagementState_Holdoff    = 3, ///< Log offload has completed; we do not restart the log until the holdoff expires
+    kLoggingManagementState_Shutdown   = 4  ///< Not capable of performing any logging operation
 };
 
 // forward class declaration
 class LogBDXUpload;
+
+/**
+ * @brief
+ *   A helper class used in initializing logging management.
+ *
+ * The class is used to encapsulate the resources allocated by the caller and denotes
+ * resources to be used in logging events of a particular importance.  Note that
+ * while resources referring to the counters are used exclusively by the
+ * particular importance level, the buffers are shared between `this` importance
+ * level and events that are "more" important.
+ */
+
+struct LogStorageResources
+{
+    void * mBuffer;     ///< Buffer to be used as a storage at the particular importance level and shared with more important events.
+                        ///< Must not be NULL.  Must be large enough to accommodate the largest event emitted by the system.
+    size_t mBufferSize; ///< The size, in bytes, of the `mBuffer`.
+    nl::Weave::Platform::PersistedStorage::Key *
+        mCounterKey;        ///< Name of the key naming persistent counter for events of this importance.  When NULL, the persistent
+                            ///< counters will not be used for this importance level.
+    uint32_t mCounterEpoch; ///< The interval used in incrementing persistent counters.  When 0, the persistent counters will not be
+                            ///< used for this importance level.
+    nl::Weave::PersistedCounter *
+        mCounterStorage; ///< Application-provided storage for persistent counter for this importance level. When NULL, persistent
+                         ///< counters will not be used for this importance level.
+    ImportanceType mImportance; ///< Log importance level associated with the resources provided in this structure.
+};
 
 /**
  * @brief
@@ -156,20 +183,13 @@ class LoggingManagement
     friend class LogBDXUpload;
 
 public:
-    LoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers, size_t * inBufferLengths, void ** inBuffers,
-                      nl::Weave::Platform::PersistedStorage::Key * inCounterKeys, const uint32_t * inCounterEpochs,
-                      nl::Weave::PersistedCounter ** inCounterStorage);
-    LoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers, size_t * inBufferLengths, void ** inBuffers,
-                      nl::Weave::MonotonicallyIncreasingCounter ** nWeaveCounter);
+    LoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers, const LogStorageResources * const inLogStorageResources);
     LoggingManagement(void);
 
     static LoggingManagement & GetInstance(void);
 
-    static void CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers, size_t * inBufferLengths,
-                                        void ** inBuffers, nl::Weave::Platform::PersistedStorage::Key * inCounterKeys,
-                                        const uint32_t * inCounterEpochs, nl::Weave::PersistedCounter ** inCounterStorage);
-    static void CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers, size_t * inBufferLengths,
-                                        void ** inBuffers, nl::Weave::MonotonicallyIncreasingCounter ** nWeaveCounter);
+    static void CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers, const LogStorageResources * const inLogStorageResources);
+
     static void DestroyLoggingManagement(void);
 
     WEAVE_ERROR SetExchangeManager(nl::Weave::WeaveExchangeManager * inMgr);
@@ -209,8 +229,8 @@ public:
 #if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,
                                                    NotifyExternalEventsDeliveredFunct inNotifyCallback,
-                                                   NotifyExternalEventsEvictedFunct inEvictedCallback,
-                                                   size_t inNumEvents, event_id_t * outLastEventID);
+                                                   NotifyExternalEventsEvictedFunct inEvictedCallback, size_t inNumEvents,
+                                                   event_id_t * outLastEventID);
     WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,
                                                    NotifyExternalEventsDeliveredFunct inNotifyCallback, size_t inNumEvents,
                                                    event_id_t * outLastEventID);
@@ -221,7 +241,6 @@ public:
     WEAVE_ERROR BlitEvent(EventLoadOutContext * aContext, const EventSchema & inSchema, EventWriterFunct inEventWriter,
                           void * inAppData, const EventOptions * inOptions);
     void SkipEvent(EventLoadOutContext * aContext);
-
 
 #if WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
     bool CheckShouldRunWDM(void);
@@ -260,8 +279,10 @@ private:
 
 #if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     static WEAVE_ERROR FindExternalEvents(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
-    WEAVE_ERROR GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventId, ExternalEvents * outExternalEvents, nl::Weave::TLV::TLVReader & inReader);
-    static WEAVE_ERROR BlitExternalEvent(nl::Weave::TLV::TLVWriter &inWriter, ImportanceType inImportance, ExternalEvents &inEvents);
+    WEAVE_ERROR GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventId, ExternalEvents * outExternalEvents,
+                                             nl::Weave::TLV::TLVReader & inReader);
+    static WEAVE_ERROR BlitExternalEvent(nl::Weave::TLV::TLVWriter & inWriter, ImportanceType inImportance,
+                                         ExternalEvents & inEvents);
 #endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     CircularEventBuffer * mEventBuffer;
     WeaveExchangeManager * mExchangeMgr;

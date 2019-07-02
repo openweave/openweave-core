@@ -40,8 +40,54 @@
 /* Platform include headers */
 #include <BuildConfig.h>
 
-#if HAVE_SYSTEMPROJECTCONFIG_H
-#include <SystemProjectConfig.h>
+/* Include a Weave project-specific configuration file, if defined.
+ *
+ * An application or module that incorporates Weave can define a project
+ * configuration file to override standard Weave configuration with
+ * application-specific values.  The WeaveProjectConfig.h file is typically
+ * located outside the OpenWeave source tree, alongside the source code for the
+ * application.  The config file is included here to enable certain system-wide
+ * configuration options, primarily related to logging and error reporting.
+ */
+#ifdef WEAVE_PROJECT_CONFIG_INCLUDE
+#include WEAVE_PROJECT_CONFIG_INCLUDE
+#endif
+
+/* Include a Weave platform-specific configuration file, if defined.
+ *
+ * A platform configuration file contains overrides to standard Weave
+ * configuration that are specific to the platform or OS on which Weave is
+ * running.  It is typically provided as apart of an adaptation layer that
+ * adapts OpenWeave to the target environment.  This adaptation layer may be
+ * included in the OpenWeave source tree itself or implemented externally.  The
+ * config file is included here to enable certain system-wide configuration
+ * options, primarily related to logging and error reporting.
+ */
+#ifdef WEAVE_PLATFORM_CONFIG_INCLUDE
+#include WEAVE_PLATFORM_CONFIG_INCLUDE
+#endif
+
+/* Include a SystemLayer project-specific configuration file, if defined.
+ *
+ * An application or module that incorporates Weave can define a project configuration
+ * file to override standard System Layer configuration with application-specific values.
+ * The project config file is typically located outside the OpenWeave source tree,
+ * alongside the source code for the application.
+ */
+#ifdef SYSTEM_PROJECT_CONFIG_INCLUDE
+#include SYSTEM_PROJECT_CONFIG_INCLUDE
+#endif // SYSTEM_PROJECT_CONFIG_INCLUDE
+
+/* Include a SystemLayer platform-specific configuration file, if defined.
+ *
+ * A platform configuration file contains overrides to standard System Layer configuration
+ * that are specific to the platform or OS on which Weave is running.  It is typically
+ * provided as apart of an adaptation layer that adapts OpenWeave to the target
+ * environment.  This adaptation layer may be included in the OpenWeave source tree
+ * itself or implemented externally.
+ */
+#ifdef SYSTEM_PLATFORM_CONFIG_INCLUDE
+#include SYSTEM_PLATFORM_CONFIG_INCLUDE
 #endif
 
 /*--- Sanity check on the build configuration logic. ---*/
@@ -78,7 +124,7 @@
 #endif // WEAVE_SYSTEM_CONFIG_TRANSFER_INETLAYER_PROJECT_CONFIGURATION
 
 #if WEAVE_SYSTEM_CONFIG_TRANSFER_INETLAYER_PROJECT_CONFIGURATION
-#if HAVE_INETPROJECTCONFIG_H
+#ifdef INET_PROJECT_CONFIG_INCLUDE
 #if WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 /*
  * NOTE WELL: the `INET_LWIP` and `INET_SOCKETS` configuration parameters used to be generated directly by the `autoconf` system.
@@ -96,8 +142,8 @@
 #endif // !defined(INET_SOCKETS)
 #endif // WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
-#include <InetProjectConfig.h>
-#endif // HAVE_INETPROJECTCONFIG_H
+#include INET_PROJECT_CONFIG_INCLUDE
+#endif // INET_PROJECT_CONFIG_INCLUDE
 
 #if !defined(WEAVE_SYSTEM_CONFIG_POSIX_LOCKING) && defined(INET_CONFIG_POSIX_LOCKING)
 #define WEAVE_SYSTEM_CONFIG_POSIX_LOCKING INET_CONFIG_POSIX_LOCKING

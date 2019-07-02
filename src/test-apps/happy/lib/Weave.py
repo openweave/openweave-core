@@ -122,6 +122,11 @@ class Weave(WeaveState):
         cmd_path = self.__get_cmd_path("TestInetLayer")
         return cmd_path
 
+    def getWeaveInetLayerDNSPath(self):
+        self.__check_weave_path()
+        cmd_path = self.__get_cmd_path("TestInetLayerDNS")
+        return cmd_path
+
     def getWeaveInetLayerMulticastPath(self):
         self.__check_weave_path()
         cmd_path = self.__get_cmd_path("TestInetLayerMulticast")
@@ -202,10 +207,14 @@ class Weave(WeaveState):
         cmd_path = self.__get_cmd_path("weave-dd-client")
         return cmd_path
 
-    def getWeaveWeaveDeviceMgrLibPath(self):
-        relative_path = os.path.join('..', 'device-manager', 'python', '_WeaveDeviceMgr.so')
-        if self.configuration == {} and 'abs_builddir' not in os.environ:
-            return os.path.join(os.getcwd(), relative_path)
+    def getWeaveDeviceMgrPath(self):
+        relative_path = os.path.join("..", "..", "..", "..", "src", "device-manager", "python")
+        self.__check_weave_path()
+        cmd_path = self.__get_cmd_path(relative_path)
+        return cmd_path
+
+    def getWeaveDeviceMgrLibPath(self):
+        relative_path = os.path.join('..', 'device-manager', 'python')
         self.__check_weave_path()
         cmd_path = self.__get_cmd_path(relative_path)
         return cmd_path

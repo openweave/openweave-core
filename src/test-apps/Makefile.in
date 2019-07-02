@@ -169,6 +169,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	TestProvHash$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestRetainedPacketBuffer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSerialNumUtils$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestSoftwareUpdate$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSystemObject$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSystemTimer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestTAKE$(EXEEXT) TestTLV$(EXEEXT) \
@@ -178,7 +179,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveEncoding$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveFabricState$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveSignature$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	infratest$(EXEEXT) wsuptest$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	infratest$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestErrorStr$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus$(EXEEXT) \
@@ -203,7 +204,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_WITH_OPENSSL_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__append_10 = \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@    TestDNSResolution                            \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@    TestInetLayerDNS                            \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@    TestWoble                                    \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@    $(NULL)
 
@@ -592,6 +593,7 @@ target_triplet = @target@
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__append_43 = \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/inet/test_inet_01.py                            \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/inet/test_inet_dns_01.py                        \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/inet/test_inet_multicast_01.py                  \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    $(NULL)
 
@@ -681,7 +683,7 @@ libWeaveTestCommon_a_LIBADD =
 am__libWeaveTestCommon_a_SOURCES_DIST = CASEOptions.cpp \
 	KeyExportOptions.cpp TAKEOptions.cpp DeviceDescOptions.cpp \
 	Certs.cpp TestGroupKeyStore.cpp ToolCommon.cpp \
-	ToolCommonOptions.cpp PASEEngineTest.cpp \
+	ToolCommonOptions.cpp TapAddrAutoconf.cpp PASEEngineTest.cpp \
 	MockPlatformClocks.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_libWeaveTestCommon_a_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	CASEOptions.$(OBJEXT) \
@@ -692,6 +694,7 @@ am__libWeaveTestCommon_a_SOURCES_DIST = CASEOptions.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	TestGroupKeyStore.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	ToolCommon.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	ToolCommonOptions.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TapAddrAutoconf.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	PASEEngineTest.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	MockPlatformClocks.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPersistedStorageImplementation.$(OBJEXT)
@@ -707,7 +710,7 @@ libWeaveTestGroupKeyStore_a_OBJECTS =  \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	TestTDM$(EXEEXT)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@am__EXEEXT_2 = TestWarm$(EXEEXT)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_WITH_OPENSSL_TRUE@am__EXEEXT_3 = TestWeaveProvBundle$(EXEEXT)
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__EXEEXT_4 = TestDNSResolution$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__EXEEXT_4 = TestInetLayerDNS$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@	TestWoble$(EXEEXT)
 @WEAVE_BUILD_DEVICE_MANAGER_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_5 = mock-device$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(libexecdir)"
@@ -743,6 +746,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestProvHash$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestRetainedPacketBuffer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSerialNumUtils$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestSoftwareUpdate$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSystemObject$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSystemTimer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestTAKE$(EXEEXT) TestTLV$(EXEEXT) \
@@ -776,7 +780,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandSender$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandReceiver$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestInetLayerDNS$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWoble$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock-device$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock-weave-bg$(EXEEXT) \
@@ -789,7 +793,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	weave-service-dir$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	weave-swu-client$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	weave-swu-server$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	wsuptest$(EXEEXT) $(am__EXEEXT_9)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_9)
 PROGRAMS = $(libexec_PROGRAMS) $(noinst_PROGRAMS)
 am__GenerateEventLog_SOURCES_DIST = GenerateEventLog.cpp \
 	MockEvents.cpp \
@@ -879,17 +883,6 @@ TestCrypto_OBJECTS = $(am_TestCrypto_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestCrypto_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveCryptoTests.a \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
-am__TestDNSResolution_SOURCES_DIST = TestDNSResolution.cpp
-@WEAVE_BUILD_TESTS_TRUE@am_TestDNSResolution_OBJECTS =  \
-@WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution.$(OBJEXT)
-TestDNSResolution_OBJECTS = $(am_TestDNSResolution_OBJECTS)
-@WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
-TestDNSResolution_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestDNSResolution_LDFLAGS) \
-	$(LDFLAGS) -o $@
 am__TestDRBG_SOURCES_DIST = TestDRBG.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestDRBG_OBJECTS = TestDRBG.$(OBJEXT)
 TestDRBG_OBJECTS = $(am_TestDRBG_OBJECTS)
@@ -1003,6 +996,17 @@ TestInetLayer_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestInetLayer_LDFLAGS) $(LDFLAGS) \
 	-o $@
+am__TestInetLayerDNS_SOURCES_DIST = TestInetLayerDNS.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestInetLayerDNS_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	TestInetLayerDNS.$(OBJEXT)
+TestInetLayerDNS_OBJECTS = $(am_TestInetLayerDNS_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayerDNS_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+TestInetLayerDNS_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestInetLayerDNS_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am__TestInetLayerMulticast_SOURCES_DIST = TestInetLayerMulticast.cpp \
 	TestInetLayerCommon.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestInetLayerMulticast_OBJECTS =  \
@@ -1172,6 +1176,16 @@ am__TestSerialNumUtils_SOURCES_DIST = TestSerialNumUtils.cpp
 TestSerialNumUtils_OBJECTS = $(am_TestSerialNumUtils_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestSerialNumUtils_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+am__TestSoftwareUpdate_SOURCES_DIST = TestSoftwareUpdate.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestSoftwareUpdate_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	TestSoftwareUpdate.$(OBJEXT)
+TestSoftwareUpdate_OBJECTS = $(am_TestSoftwareUpdate_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestSoftwareUpdate_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+TestSoftwareUpdate_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestSoftwareUpdate_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am__TestStatusReportStr_SOURCES_DIST = TestStatusReportStr.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestStatusReportStr_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr.$(OBJEXT)
@@ -1745,10 +1759,6 @@ weave_swu_server_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_swu_server_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am__wsuptest_SOURCES_DIST = wsuptest.cpp
-@WEAVE_BUILD_TESTS_TRUE@am_wsuptest_OBJECTS = wsuptest.$(OBJEXT)
-wsuptest_OBJECTS = $(am_wsuptest_OBJECTS)
-@WEAVE_BUILD_TESTS_TRUE@wsuptest_DEPENDENCIES = $(am__DEPENDENCIES_6)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -1793,26 +1803,27 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestAppKeys_SOURCES) $(TestArgParser_SOURCES) \
 	$(TestBinding_SOURCES) $(TestCASE_SOURCES) \
 	$(TestCodeUtils_SOURCES) $(TestCrypto_SOURCES) \
-	$(TestDNSResolution_SOURCES) $(TestDRBG_SOURCES) \
-	$(TestDataManagement_SOURCES) $(TestDeviceDescriptor_SOURCES) \
-	$(TestECDH_SOURCES) $(TestECDSA_SOURCES) $(TestECMath_SOURCES) \
+	$(TestDRBG_SOURCES) $(TestDataManagement_SOURCES) \
+	$(TestDeviceDescriptor_SOURCES) $(TestECDH_SOURCES) \
+	$(TestECDSA_SOURCES) $(TestECMath_SOURCES) \
 	$(TestErrorStr_SOURCES) $(TestEventLogging_SOURCES) \
 	$(TestFabricStateDelegate_SOURCES) $(TestInetAddress_SOURCES) \
 	$(TestInetBuffer_SOURCES) $(TestInetEndPoint_SOURCES) \
-	$(TestInetLayer_SOURCES) $(TestInetLayerMulticast_SOURCES) \
-	$(TestInetTimer_SOURCES) $(TestKeyExport_SOURCES) \
-	$(TestKeyIds_SOURCES) $(TestMsgEnc_SOURCES) \
-	$(TestNetworkInfo_SOURCES) $(TestPASE_SOURCES) \
-	$(TestPacketBuffer_SOURCES) $(TestPairingCodeUtils_SOURCES) \
-	$(TestPasscodeEnc_SOURCES) $(TestPathStore_SOURCES) \
-	$(TestPersistedCounter_SOURCES) \
+	$(TestInetLayer_SOURCES) $(TestInetLayerDNS_SOURCES) \
+	$(TestInetLayerMulticast_SOURCES) $(TestInetTimer_SOURCES) \
+	$(TestKeyExport_SOURCES) $(TestKeyIds_SOURCES) \
+	$(TestMsgEnc_SOURCES) $(TestNetworkInfo_SOURCES) \
+	$(TestPASE_SOURCES) $(TestPacketBuffer_SOURCES) \
+	$(TestPairingCodeUtils_SOURCES) $(TestPasscodeEnc_SOURCES) \
+	$(TestPathStore_SOURCES) $(TestPersistedCounter_SOURCES) \
 	$(TestPersistedStorage_SOURCES) \
 	$(TestProfileStringSupport_SOURCES) $(TestProvHash_SOURCES) \
 	$(TestRADaemon_SOURCES) $(TestResourceIdentifier_SOURCES) \
 	$(TestRetainedPacketBuffer_SOURCES) \
-	$(TestSerialNumUtils_SOURCES) $(TestStatusReportStr_SOURCES) \
-	$(TestSystemObject_SOURCES) $(TestSystemTimer_SOURCES) \
-	$(TestTAKE_SOURCES) $(TestTDM_SOURCES) $(TestTLV_SOURCES) \
+	$(TestSerialNumUtils_SOURCES) $(TestSoftwareUpdate_SOURCES) \
+	$(TestStatusReportStr_SOURCES) $(TestSystemObject_SOURCES) \
+	$(TestSystemTimer_SOURCES) $(TestTAKE_SOURCES) \
+	$(TestTDM_SOURCES) $(TestTLV_SOURCES) \
 	$(TestThermostatStatus_SOURCES) $(TestTimeUtils_SOURCES) \
 	$(TestTimeZone_SOURCES) $(TestWDM_SOURCES) $(TestWRMP_SOURCES) \
 	$(TestWarm_SOURCES) $(TestWdmNext_SOURCES) \
@@ -1834,7 +1845,7 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(weave_device_descriptor_SOURCES) $(weave_heartbeat_SOURCES) \
 	$(weave_key_export_SOURCES) $(weave_ping_SOURCES) \
 	$(weave_service_dir_SOURCES) $(weave_swu_client_SOURCES) \
-	$(weave_swu_server_SOURCES) $(wsuptest_SOURCES)
+	$(weave_swu_server_SOURCES)
 DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__libMockBlePlatformDelegate_a_SOURCES_DIST) \
 	$(am__libWeaveCryptoTests_a_SOURCES_DIST) \
@@ -1845,9 +1856,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestArgParser_SOURCES_DIST) \
 	$(am__TestBinding_SOURCES_DIST) $(am__TestCASE_SOURCES_DIST) \
 	$(am__TestCodeUtils_SOURCES_DIST) \
-	$(am__TestCrypto_SOURCES_DIST) \
-	$(am__TestDNSResolution_SOURCES_DIST) \
-	$(am__TestDRBG_SOURCES_DIST) \
+	$(am__TestCrypto_SOURCES_DIST) $(am__TestDRBG_SOURCES_DIST) \
 	$(am__TestDataManagement_SOURCES_DIST) \
 	$(am__TestDeviceDescriptor_SOURCES_DIST) \
 	$(am__TestECDH_SOURCES_DIST) $(am__TestECDSA_SOURCES_DIST) \
@@ -1859,6 +1868,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestInetBuffer_SOURCES_DIST) \
 	$(am__TestInetEndPoint_SOURCES_DIST) \
 	$(am__TestInetLayer_SOURCES_DIST) \
+	$(am__TestInetLayerDNS_SOURCES_DIST) \
 	$(am__TestInetLayerMulticast_SOURCES_DIST) \
 	$(am__TestInetTimer_SOURCES_DIST) \
 	$(am__TestKeyExport_SOURCES_DIST) \
@@ -1877,6 +1887,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestResourceIdentifier_SOURCES_DIST) \
 	$(am__TestRetainedPacketBuffer_SOURCES_DIST) \
 	$(am__TestSerialNumUtils_SOURCES_DIST) \
+	$(am__TestSoftwareUpdate_SOURCES_DIST) \
 	$(am__TestStatusReportStr_SOURCES_DIST) \
 	$(am__TestSystemObject_SOURCES_DIST) \
 	$(am__TestSystemTimer_SOURCES_DIST) \
@@ -1914,8 +1925,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__weave_ping_SOURCES_DIST) \
 	$(am__weave_service_dir_SOURCES_DIST) \
 	$(am__weave_swu_client_SOURCES_DIST) \
-	$(am__weave_swu_server_SOURCES_DIST) \
-	$(am__wsuptest_SOURCES_DIST)
+	$(am__weave_swu_server_SOURCES_DIST)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -1943,12 +1953,13 @@ am__noinst_HEADERS_DIST = CASEOptions.h DMTestClient.h \
 	MockWdmNodeOptions.h MockWdmSubscriptionInitiator.h \
 	MockWdmSubscriptionResponder.h MockWdmTestVerifier.h \
 	MockWdmViewClient.h MockWdmViewServer.h PASEEngineTest.h \
-	TAKEOptions.h TestDRBG.h TestEventLoggingSchemaExamples.h \
-	TestGroupKeyStore.h TestInetLayerCommon.hpp \
-	TestPersistedStorageImplementation.h TestProfile.h TestWRMP.h \
-	TestWdmOneWayCommand.h TestWdmSubscriptionlessNotification.h \
-	TestWeaveCertData.h TestWeaveTunnel.h TestWeaveTunnelServer.h \
-	ToolCommon.h ToolCommonOptions.h WdmNextPerfUtility.h \
+	TAKEOptions.h TapAddrAutoconf.h TestDRBG.h \
+	TestEventLoggingSchemaExamples.h TestGroupKeyStore.h \
+	TestInetLayerCommon.hpp TestPersistedStorageImplementation.h \
+	TestProfile.h TestWRMP.h TestWdmOneWayCommand.h \
+	TestWdmSubscriptionlessNotification.h TestWeaveCertData.h \
+	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
+	ToolCommonOptions.h WdmNextPerfUtility.h \
 	crypto-tests/WeaveCryptoTests.h nlweavebdxclient-development.h \
 	nlweavebdxclient.h nlweavebdxserver-development.h \
 	nlweaveswuclient.h schema/nest/test/trait/TestATrait.h \
@@ -2450,6 +2461,7 @@ RECHECK_LOGS = $(TEST_LOGS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/wrmp/test_weave_wrmp_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_38 = happy/tests/standalone/inet/test_inet_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/inet/test_inet_dns_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/inet/test_inet_multicast_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@am__EXEEXT_39 = test-weave-device-descriptor-encode.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	test-Verhoeff.sh \
@@ -2710,7 +2722,7 @@ PYTHON_VERSION = @PYTHON_VERSION@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
-SHELL = @SHELL@
+SHELL := /bin/bash
 SOCKETS_CPPFLAGS = @SOCKETS_CPPFLAGS@
 SOCKETS_LDFLAGS = @SOCKETS_LDFLAGS@
 SOCKETS_LIBS = @SOCKETS_LIBS@
@@ -2722,6 +2734,7 @@ VISIBILITY_OBJCFLAGS = @VISIBILITY_OBJCFLAGS@
 VISIBILITY_OBJCXXCFLAGS = @VISIBILITY_OBJCXXCFLAGS@
 WEAVE_DEVICE_LAYER_TARGET = @WEAVE_DEVICE_LAYER_TARGET@
 WEAVE_DEVICE_LAYER_TARGET_ESP32 = @WEAVE_DEVICE_LAYER_TARGET_ESP32@
+WEAVE_DEVICE_LAYER_TARGET_NRF5 = @WEAVE_DEVICE_LAYER_TARGET_NRF5@
 WEAVE_LOGGING_STYLE = @WEAVE_LOGGING_STYLE@
 WEAVE_LOGGING_STYLE_ANDROID = @WEAVE_LOGGING_STYLE_ANDROID@
 WEAVE_LOGGING_STYLE_EXTERNAL = @WEAVE_LOGGING_STYLE_EXTERNAL@
@@ -2779,6 +2792,18 @@ localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
+nl_filtered_build = @nl_filtered_build@
+nl_filtered_build_cpu = @nl_filtered_build_cpu@
+nl_filtered_build_os = @nl_filtered_build_os@
+nl_filtered_build_vendor = @nl_filtered_build_vendor@
+nl_filtered_host = @nl_filtered_host@
+nl_filtered_host_cpu = @nl_filtered_host_cpu@
+nl_filtered_host_os = @nl_filtered_host_os@
+nl_filtered_host_vendor = @nl_filtered_host_vendor@
+nl_filtered_target = @nl_filtered_target@
+nl_filtered_target_cpu = @nl_filtered_target_cpu@
+nl_filtered_target_os = @nl_filtered_target_os@
+nl_filtered_target_vendor = @nl_filtered_target_vendor@
 nlbuild_autotools_stem = @nlbuild_autotools_stem@
 oldincludedir = @oldincludedir@
 openssl_buildstem = @openssl_buildstem@
@@ -2803,6 +2828,7 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+AM_LOG_DRIVER_FLAGS := --build-num $(shell echo $$PPID|tail -c5)
 
 #
 # Other files we do want to distribute with the Weave source SDK.
@@ -2872,12 +2898,13 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 	MockWdmNodeOptions.h MockWdmSubscriptionInitiator.h \
 	MockWdmSubscriptionResponder.h MockWdmTestVerifier.h \
 	MockWdmViewClient.h MockWdmViewServer.h PASEEngineTest.h \
-	TAKEOptions.h TestDRBG.h TestEventLoggingSchemaExamples.h \
-	TestGroupKeyStore.h TestInetLayerCommon.hpp \
-	TestPersistedStorageImplementation.h TestProfile.h TestWRMP.h \
-	TestWdmOneWayCommand.h TestWdmSubscriptionlessNotification.h \
-	TestWeaveCertData.h TestWeaveTunnel.h TestWeaveTunnelServer.h \
-	ToolCommon.h ToolCommonOptions.h WdmNextPerfUtility.h \
+	TAKEOptions.h TapAddrAutoconf.h TestDRBG.h \
+	TestEventLoggingSchemaExamples.h TestGroupKeyStore.h \
+	TestInetLayerCommon.hpp TestPersistedStorageImplementation.h \
+	TestProfile.h TestWRMP.h TestWdmOneWayCommand.h \
+	TestWdmSubscriptionlessNotification.h TestWeaveCertData.h \
+	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
+	ToolCommonOptions.h WdmNextPerfUtility.h \
 	crypto-tests/WeaveCryptoTests.h nlweavebdxclient-development.h \
 	nlweavebdxclient.h nlweavebdxserver-development.h \
 	nlweaveswuclient.h schema/nest/test/trait/TestATrait.h \
@@ -2929,6 +2956,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@    TestGroupKeyStore.cpp                        \
 @WEAVE_BUILD_TESTS_TRUE@    ToolCommon.cpp                               \
 @WEAVE_BUILD_TESTS_TRUE@    ToolCommonOptions.cpp                        \
+@WEAVE_BUILD_TESTS_TRUE@    TapAddrAutoconf.cpp                          \
 @WEAVE_BUILD_TESTS_TRUE@    PASEEngineTest.cpp                           \
 @WEAVE_BUILD_TESTS_TRUE@    MockPlatformClocks.cpp                       \
 @WEAVE_BUILD_TESTS_TRUE@    TestPersistedStorageImplementation.cpp       \
@@ -3049,11 +3077,11 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	TestPacketBuffer TestPasscodeEnc \
 @WEAVE_BUILD_TESTS_TRUE@	TestProfileStringSupport TestProvHash \
 @WEAVE_BUILD_TESTS_TRUE@	TestRetainedPacketBuffer \
-@WEAVE_BUILD_TESTS_TRUE@	TestSerialNumUtils TestSystemObject \
-@WEAVE_BUILD_TESTS_TRUE@	TestSystemTimer TestTAKE TestTLV \
-@WEAVE_BUILD_TESTS_TRUE@	TestTimeUtils TestTimeZone \
-@WEAVE_BUILD_TESTS_TRUE@	TestWeaveCert TestWeaveEncoding \
-@WEAVE_BUILD_TESTS_TRUE@	TestWeaveFabricState \
+@WEAVE_BUILD_TESTS_TRUE@	TestSerialNumUtils TestSoftwareUpdate \
+@WEAVE_BUILD_TESTS_TRUE@	TestSystemObject TestSystemTimer \
+@WEAVE_BUILD_TESTS_TRUE@	TestTAKE TestTLV TestTimeUtils \
+@WEAVE_BUILD_TESTS_TRUE@	TestTimeZone TestWeaveCert \
+@WEAVE_BUILD_TESTS_TRUE@	TestWeaveEncoding TestWeaveFabricState \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveProvBundle TestWeaveSignature \
 @WEAVE_BUILD_TESTS_TRUE@	infratest TestErrorStr \
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr \
@@ -3077,8 +3105,8 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveTunnelServer TestWdmNext \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandSender \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandReceiver \
-@WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution TestWoble \
-@WEAVE_BUILD_TESTS_TRUE@	mock-device mock-weave-bg \
+@WEAVE_BUILD_TESTS_TRUE@	TestInetLayerDNS TestWoble mock-device \
+@WEAVE_BUILD_TESTS_TRUE@	mock-weave-bg \
 @WEAVE_BUILD_TESTS_TRUE@	weave-bdx-client-development \
 @WEAVE_BUILD_TESTS_TRUE@	weave-bdx-client-v0 \
 @WEAVE_BUILD_TESTS_TRUE@	weave-bdx-server-development \
@@ -3086,7 +3114,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	weave-connection-tunnel \
 @WEAVE_BUILD_TESTS_TRUE@	weave-dd-client weave-service-dir \
 @WEAVE_BUILD_TESTS_TRUE@	weave-swu-client weave-swu-server \
-@WEAVE_BUILD_TESTS_TRUE@	wsuptest $(NULL) $(am__append_15)
+@WEAVE_BUILD_TESTS_TRUE@	$(NULL) $(am__append_15)
 
 # The additional environment variables and their values that will be
 # made available to all programs and scripts in TESTS.
@@ -3271,6 +3299,9 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@TestRetainedPacketBuffer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestSerialNumUtils_SOURCES = TestSerialNumUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestSerialNumUtils_LDADD = $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestSoftwareUpdate_SOURCES = TestSoftwareUpdate.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestSoftwareUpdate_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestSoftwareUpdate_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestSystemObject_SOURCES = TestSystemObject.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestSystemObject_CPPFLAGS = $(AM_CPPFLAGS) $(PTHREAD_CFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestSystemObject_LDFLAGS = $(PTHREAD_CFLAGS)
@@ -3402,9 +3433,9 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@TestPairingCodeUtils_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_SOURCES = TestResourceIdentifier.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
-@WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_SOURCES = TestDNSResolution.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayerDNS_SOURCES = TestInetLayerDNS.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayerDNS_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayerDNS_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@mock_device_LDADD = libWeaveTestCommon.a \
 @WEAVE_BUILD_TESTS_TRUE@	$(COMMON_LDADD) $(am__append_45)
@@ -3471,8 +3502,6 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 
 @WEAVE_BUILD_TESTS_TRUE@weave_swu_server_LDFLAGS = ${AM_CPPFLAGS}
 @WEAVE_BUILD_TESTS_TRUE@weave_swu_server_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
-@WEAVE_BUILD_TESTS_TRUE@wsuptest_SOURCES = wsuptest.cpp
-@WEAVE_BUILD_TESTS_TRUE@wsuptest_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_COVERAGE_TRUE@@WEAVE_BUILD_TESTS_TRUE@CLEANFILES = $(wildcard *.gcda *.gcno)
 
 # The bundle should positively be qualified with the absolute build
@@ -3684,10 +3713,6 @@ TestCrypto$(EXEEXT): $(TestCrypto_OBJECTS) $(TestCrypto_DEPENDENCIES) $(EXTRA_Te
 	@rm -f TestCrypto$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestCrypto_OBJECTS) $(TestCrypto_LDADD) $(LIBS)
 
-TestDNSResolution$(EXEEXT): $(TestDNSResolution_OBJECTS) $(TestDNSResolution_DEPENDENCIES) $(EXTRA_TestDNSResolution_DEPENDENCIES) 
-	@rm -f TestDNSResolution$(EXEEXT)
-	$(AM_V_CXXLD)$(TestDNSResolution_LINK) $(TestDNSResolution_OBJECTS) $(TestDNSResolution_LDADD) $(LIBS)
-
 TestDRBG$(EXEEXT): $(TestDRBG_OBJECTS) $(TestDRBG_DEPENDENCIES) $(EXTRA_TestDRBG_DEPENDENCIES) 
 	@rm -f TestDRBG$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestDRBG_OBJECTS) $(TestDRBG_LDADD) $(LIBS)
@@ -3745,6 +3770,10 @@ TestInetEndPoint$(EXEEXT): $(TestInetEndPoint_OBJECTS) $(TestInetEndPoint_DEPEND
 TestInetLayer$(EXEEXT): $(TestInetLayer_OBJECTS) $(TestInetLayer_DEPENDENCIES) $(EXTRA_TestInetLayer_DEPENDENCIES) 
 	@rm -f TestInetLayer$(EXEEXT)
 	$(AM_V_CXXLD)$(TestInetLayer_LINK) $(TestInetLayer_OBJECTS) $(TestInetLayer_LDADD) $(LIBS)
+
+TestInetLayerDNS$(EXEEXT): $(TestInetLayerDNS_OBJECTS) $(TestInetLayerDNS_DEPENDENCIES) $(EXTRA_TestInetLayerDNS_DEPENDENCIES) 
+	@rm -f TestInetLayerDNS$(EXEEXT)
+	$(AM_V_CXXLD)$(TestInetLayerDNS_LINK) $(TestInetLayerDNS_OBJECTS) $(TestInetLayerDNS_LDADD) $(LIBS)
 
 TestInetLayerMulticast$(EXEEXT): $(TestInetLayerMulticast_OBJECTS) $(TestInetLayerMulticast_DEPENDENCIES) $(EXTRA_TestInetLayerMulticast_DEPENDENCIES) 
 	@rm -f TestInetLayerMulticast$(EXEEXT)
@@ -3827,6 +3856,10 @@ TestRetainedPacketBuffer$(EXEEXT): $(TestRetainedPacketBuffer_OBJECTS) $(TestRet
 TestSerialNumUtils$(EXEEXT): $(TestSerialNumUtils_OBJECTS) $(TestSerialNumUtils_DEPENDENCIES) $(EXTRA_TestSerialNumUtils_DEPENDENCIES) 
 	@rm -f TestSerialNumUtils$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestSerialNumUtils_OBJECTS) $(TestSerialNumUtils_LDADD) $(LIBS)
+
+TestSoftwareUpdate$(EXEEXT): $(TestSoftwareUpdate_OBJECTS) $(TestSoftwareUpdate_DEPENDENCIES) $(EXTRA_TestSoftwareUpdate_DEPENDENCIES) 
+	@rm -f TestSoftwareUpdate$(EXEEXT)
+	$(AM_V_CXXLD)$(TestSoftwareUpdate_LINK) $(TestSoftwareUpdate_OBJECTS) $(TestSoftwareUpdate_LDADD) $(LIBS)
 
 TestStatusReportStr$(EXEEXT): $(TestStatusReportStr_OBJECTS) $(TestStatusReportStr_DEPENDENCIES) $(EXTRA_TestStatusReportStr_DEPENDENCIES) 
 	@rm -f TestStatusReportStr$(EXEEXT)
@@ -4123,10 +4156,6 @@ weave-swu-server$(EXEEXT): $(weave_swu_server_OBJECTS) $(weave_swu_server_DEPEND
 	@rm -f weave-swu-server$(EXEEXT)
 	$(AM_V_CXXLD)$(weave_swu_server_LINK) $(weave_swu_server_OBJECTS) $(weave_swu_server_LDADD) $(LIBS)
 
-wsuptest$(EXEEXT): $(wsuptest_OBJECTS) $(wsuptest_DEPENDENCIES) $(EXTRA_wsuptest_DEPENDENCIES) 
-	@rm -f wsuptest$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(wsuptest_OBJECTS) $(wsuptest_LDADD) $(LIBS)
-
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f crypto-tests/*.$(OBJEXT)
@@ -4152,6 +4181,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MockSWUServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PASEEngineTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TAKEOptions.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TapAddrAutoconf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestASN1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestAppKeys.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestArgParser.Po@am__quote@
@@ -4159,7 +4189,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCASE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCodeUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCrypto-TestCrypto.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDNSResolution.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDRBG.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDataManagement.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDeviceDescriptor.Po@am__quote@
@@ -4177,6 +4206,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetEndPoint.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayerCommon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayerDNS.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayerMulticast.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetTimer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestKeyExport.Po@am__quote@
@@ -4199,6 +4229,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestResourceIdentifier.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestRetainedPacketBuffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestSerialNumUtils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestSoftwareUpdate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestStatusReportStr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestSystemObject-TestSystemObject.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestSystemTimer.Po@am__quote@
@@ -4296,7 +4327,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-service-dir.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-swu-client.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-swu-server.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsuptest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto-tests/$(DEPDIR)/WeaveCryptoAESTests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto-tests/$(DEPDIR)/WeaveCryptoHKDFTests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto-tests/$(DEPDIR)/WeaveCryptoHMACTests.Po@am__quote@
@@ -6352,6 +6382,13 @@ TestSerialNumUtils.log: TestSerialNumUtils$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+TestSoftwareUpdate.log: TestSoftwareUpdate$(EXEEXT)
+	@p='TestSoftwareUpdate$(EXEEXT)'; \
+	b='TestSoftwareUpdate'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 TestSystemObject.log: TestSystemObject$(EXEEXT)
 	@p='TestSystemObject$(EXEEXT)'; \
 	b='TestSystemObject'; \
@@ -6425,13 +6462,6 @@ TestWeaveSignature.log: TestWeaveSignature$(EXEEXT)
 infratest.log: infratest$(EXEEXT)
 	@p='infratest$(EXEEXT)'; \
 	b='infratest'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-wsuptest.log: wsuptest$(EXEEXT)
-	@p='wsuptest$(EXEEXT)'; \
-	b='wsuptest'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -6513,9 +6543,9 @@ TestWeaveProvBundle.log: TestWeaveProvBundle$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-TestDNSResolution.log: TestDNSResolution$(EXEEXT)
-	@p='TestDNSResolution$(EXEEXT)'; \
-	b='TestDNSResolution'; \
+TestInetLayerDNS.log: TestInetLayerDNS$(EXEEXT)
+	@p='TestInetLayerDNS$(EXEEXT)'; \
+	b='TestInetLayerDNS'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -8431,6 +8461,13 @@ happy/tests/standalone/inet/test_inet_01.py.log: happy/tests/standalone/inet/tes
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/inet/test_inet_dns_01.py.log: happy/tests/standalone/inet/test_inet_dns_01.py
+	@p='happy/tests/standalone/inet/test_inet_dns_01.py'; \
+	b='happy/tests/standalone/inet/test_inet_dns_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 happy/tests/standalone/inet/test_inet_multicast_01.py.log: happy/tests/standalone/inet/test_inet_multicast_01.py
 	@p='happy/tests/standalone/inet/test_inet_multicast_01.py'; \
 	b='happy/tests/standalone/inet/test_inet_multicast_01.py'; \
@@ -8562,11 +8599,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@install-exec-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-recursive
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

@@ -217,6 +217,7 @@ am__libBleLayer_a_SOURCES_DIST = @top_builddir@/src/ble/BleLayer.cpp \
 	@top_builddir@/src/ble/BLEEndPoint.cpp \
 	@top_builddir@/src/ble/WoBle.cpp \
 	@top_builddir@/src/ble/BleUUID.cpp \
+	@top_builddir@/src/ble/BleError.cpp \
 	@top_builddir@/src/device-manager/WoBleTest.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@am__objects_1 = @top_builddir@/src/device-manager/libBleLayer_a-WoBleTest.$(OBJEXT)
@@ -225,6 +226,7 @@ am__objects_2 =  \
 	@top_builddir@/src/ble/libBleLayer_a-BLEEndPoint.$(OBJEXT) \
 	@top_builddir@/src/ble/libBleLayer_a-WoBle.$(OBJEXT) \
 	@top_builddir@/src/ble/libBleLayer_a-BleUUID.$(OBJEXT) \
+	@top_builddir@/src/ble/libBleLayer_a-BleError.$(OBJEXT) \
 	$(am__objects_1)
 am_libBleLayer_a_OBJECTS = $(am__objects_2)
 libBleLayer_a_OBJECTS = $(am_libBleLayer_a_OBJECTS)
@@ -460,6 +462,7 @@ VISIBILITY_OBJCFLAGS = @VISIBILITY_OBJCFLAGS@
 VISIBILITY_OBJCXXCFLAGS = @VISIBILITY_OBJCXXCFLAGS@
 WEAVE_DEVICE_LAYER_TARGET = @WEAVE_DEVICE_LAYER_TARGET@
 WEAVE_DEVICE_LAYER_TARGET_ESP32 = @WEAVE_DEVICE_LAYER_TARGET_ESP32@
+WEAVE_DEVICE_LAYER_TARGET_NRF5 = @WEAVE_DEVICE_LAYER_TARGET_NRF5@
 WEAVE_LOGGING_STYLE = @WEAVE_LOGGING_STYLE@
 WEAVE_LOGGING_STYLE_ANDROID = @WEAVE_LOGGING_STYLE_ANDROID@
 WEAVE_LOGGING_STYLE_EXTERNAL = @WEAVE_LOGGING_STYLE_EXTERNAL@
@@ -517,6 +520,18 @@ localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
+nl_filtered_build = @nl_filtered_build@
+nl_filtered_build_cpu = @nl_filtered_build_cpu@
+nl_filtered_build_os = @nl_filtered_build_os@
+nl_filtered_build_vendor = @nl_filtered_build_vendor@
+nl_filtered_host = @nl_filtered_host@
+nl_filtered_host_cpu = @nl_filtered_host_cpu@
+nl_filtered_host_os = @nl_filtered_host_os@
+nl_filtered_host_vendor = @nl_filtered_host_vendor@
+nl_filtered_target = @nl_filtered_target@
+nl_filtered_target_cpu = @nl_filtered_target_cpu@
+nl_filtered_target_os = @nl_filtered_target_os@
+nl_filtered_target_vendor = @nl_filtered_target_vendor@
 nlbuild_autotools_stem = @nlbuild_autotools_stem@
 oldincludedir = @oldincludedir@
 openssl_buildstem = @openssl_buildstem@
@@ -544,7 +559,8 @@ top_srcdir = @top_srcdir@
 nl_BleLayer_sources = @top_builddir@/src/ble/BleLayer.cpp \
 	@top_builddir@/src/ble/BLEEndPoint.cpp \
 	@top_builddir@/src/ble/WoBle.cpp \
-	@top_builddir@/src/ble/BleUUID.cpp $(NULL) $(am__append_1)
+	@top_builddir@/src/ble/BleUUID.cpp \
+	@top_builddir@/src/ble/BleError.cpp $(NULL) $(am__append_1)
 lib_LIBRARIES = libBleLayer.a
 libBleLayer_a_CPPFLAGS = -I$(top_srcdir)/src/include $(LWIP_CPPFLAGS) \
 	$(NULL) $(am__append_2)
@@ -633,6 +649,9 @@ clean-libLIBRARIES:
 @top_builddir@/src/ble/libBleLayer_a-BleUUID.$(OBJEXT):  \
 	@top_builddir@/src/ble/$(am__dirstamp) \
 	@top_builddir@/src/ble/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/ble/libBleLayer_a-BleError.$(OBJEXT):  \
+	@top_builddir@/src/ble/$(am__dirstamp) \
+	@top_builddir@/src/ble/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/device-manager/$(am__dirstamp):
 	@$(MKDIR_P) @top_builddir@/src/device-manager
 	@: > @top_builddir@/src/device-manager/$(am__dirstamp)
@@ -657,6 +676,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-BLEEndPoint.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-BleError.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-BleLayer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-BleUUID.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-WoBle.Po@am__quote@
@@ -741,6 +761,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/ble/BleUUID.cpp' object='@top_builddir@/src/ble/libBleLayer_a-BleUUID.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libBleLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/ble/libBleLayer_a-BleUUID.obj `if test -f '@top_builddir@/src/ble/BleUUID.cpp'; then $(CYGPATH_W) '@top_builddir@/src/ble/BleUUID.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/ble/BleUUID.cpp'; fi`
+
+@top_builddir@/src/ble/libBleLayer_a-BleError.o: @top_builddir@/src/ble/BleError.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libBleLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/ble/libBleLayer_a-BleError.o -MD -MP -MF @top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-BleError.Tpo -c -o @top_builddir@/src/ble/libBleLayer_a-BleError.o `test -f '@top_builddir@/src/ble/BleError.cpp' || echo '$(srcdir)/'`@top_builddir@/src/ble/BleError.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-BleError.Tpo @top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-BleError.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/ble/BleError.cpp' object='@top_builddir@/src/ble/libBleLayer_a-BleError.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libBleLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/ble/libBleLayer_a-BleError.o `test -f '@top_builddir@/src/ble/BleError.cpp' || echo '$(srcdir)/'`@top_builddir@/src/ble/BleError.cpp
+
+@top_builddir@/src/ble/libBleLayer_a-BleError.obj: @top_builddir@/src/ble/BleError.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libBleLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/ble/libBleLayer_a-BleError.obj -MD -MP -MF @top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-BleError.Tpo -c -o @top_builddir@/src/ble/libBleLayer_a-BleError.obj `if test -f '@top_builddir@/src/ble/BleError.cpp'; then $(CYGPATH_W) '@top_builddir@/src/ble/BleError.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/ble/BleError.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-BleError.Tpo @top_builddir@/src/ble/$(DEPDIR)/libBleLayer_a-BleError.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/ble/BleError.cpp' object='@top_builddir@/src/ble/libBleLayer_a-BleError.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libBleLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/ble/libBleLayer_a-BleError.obj `if test -f '@top_builddir@/src/ble/BleError.cpp'; then $(CYGPATH_W) '@top_builddir@/src/ble/BleError.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/ble/BleError.cpp'; fi`
 
 @top_builddir@/src/device-manager/libBleLayer_a-WoBleTest.o: @top_builddir@/src/device-manager/WoBleTest.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libBleLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/libBleLayer_a-WoBleTest.o -MD -MP -MF @top_builddir@/src/device-manager/$(DEPDIR)/libBleLayer_a-WoBleTest.Tpo -c -o @top_builddir@/src/device-manager/libBleLayer_a-WoBleTest.o `test -f '@top_builddir@/src/device-manager/WoBleTest.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/WoBleTest.cpp

@@ -46,9 +46,15 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/ESP32/PlatformManagerImpl.h \
     include/Weave/DeviceLayer/ESP32/WeaveDevicePlatformEvent.h \
     include/Weave/DeviceLayer/ESP32/NetworkProvisioningServerImpl.h \
+    include/Weave/DeviceLayer/nRF5/ConfigurationManagerImpl.h \
+    include/Weave/DeviceLayer/nRF5/PlatformManagerImpl.h \
+    include/Weave/DeviceLayer/nRF5/nRF5Config.h \
+    include/Weave/DeviceLayer/nRF5/WeaveDevicePlatformConfig.h \
+    include/Weave/DeviceLayer/nRF5/WeaveDevicePlatformEvent.h \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp \
     include/Weave/DeviceLayer/GeneralUtils.h \
+    include/Weave/DeviceLayer/NetworkTelemetryManager.h \
     include/Weave/DeviceLayer/PlatformManager.h \
     include/Weave/DeviceLayer/TimeSyncManager.h \
     include/Weave/DeviceLayer/TraitManager.h \
@@ -60,7 +66,9 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/internal/DeviceControlServer.h \
     include/Weave/DeviceLayer/internal/DeviceDescriptionServer.h \
     include/Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h \
+    include/Weave/DeviceLayer/internal/DeviceNetworkInfo.h \
     include/Weave/DeviceLayer/internal/EchoServer.h \
+    include/Weave/DeviceLayer/internal/EventLogging.h \
     include/Weave/DeviceLayer/internal/FabricProvisioningServer.h \
     include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h \
     include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.ipp \
@@ -68,13 +76,16 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.ipp \
     include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h \
     include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.ipp \
-    include/Weave/DeviceLayer/internal/NetworkInfo.h \
     include/Weave/DeviceLayer/internal/NetworkProvisioningServer.h \
     include/Weave/DeviceLayer/internal/ServiceDirectoryManager.h \
     include/Weave/DeviceLayer/internal/ServiceProvisioningServer.h \
     include/Weave/DeviceLayer/internal/ServiceTunnelAgent.h \
     include/Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h \
+    trait-support/nest/trait/network/TelemetryNetworkTrait.h \
+    trait-support/nest/trait/network/TelemetryNetworkWifiTrait.h \
+    trait-support/nest/trait/network/TelemetryNetworkWpanTrait.h \
     trait-support/weave/trait/description/DeviceIdentityTrait.h \
+    trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.h \
     $(NULL)
 
 if CONFIG_DEVICE_LAYER
@@ -92,11 +103,13 @@ libDeviceLayer_a_SOURCES                = \
     DeviceControlServer.cpp               \
     DeviceDescriptionServer.cpp           \
     DeviceIdentityTraitDataSource.cpp     \
+    DeviceNetworkInfo.cpp                 \
     EchoServer.cpp                        \
+    EventLogging.cpp                      \
     FabricProvisioningServer.cpp          \
     GeneralUtils.cpp                      \
     Globals.cpp                           \
-    NetworkInfo.cpp                       \
+    NetworkTelemetryManager.cpp           \
     PersistedStorage.cpp                  \
     ServiceDirectoryManager.cpp           \
     ServiceProvisioningServer.cpp         \
@@ -106,7 +119,11 @@ libDeviceLayer_a_SOURCES                = \
     TestDeviceIds.cpp                     \
     TimeSyncManager.cpp                   \
     TraitManager.cpp                      \
+    trait-support/nest/trait/network/TelemetryNetworkTrait.cpp \
+    trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp \
+    trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp \
     trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
+    trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp \
     $(NULL)
 
 if WEAVE_DEVICE_LAYER_TARGET_ESP32
@@ -129,6 +146,27 @@ libDeviceLayer_a_SOURCES               +=       \
     $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32
+
+if WEAVE_DEVICE_LAYER_TARGET_NRF5
+
+libDeviceLayer_a_SOURCES               +=       \
+    nRF5/BLEManagerImpl.cpp                     \
+    nRF5/ConfigurationManagerImpl.cpp           \
+    nRF5/PlatformManagerImpl.cpp                \
+    nRF5/ConnectivityManagerImpl.cpp            \
+    nRF5/NetworkProvisioningServerImpl.cpp      \
+    nRF5/ThreadStackManagerImpl.cpp             \
+    nRF5/GroupKeyStoreImpl.cpp                  \
+    nRF5/nRF5Config.cpp                         \
+    nRF5/nRF5Utils.cpp                          \
+    nRF5/Entropy.cpp                            \
+    nRF5/Logging.cpp                            \
+    FreeRTOS/SystemTimeSupport.cpp              \
+    OpenThread/OpenThreadUtils.cpp              \
+    LwIP/WarmSupport.cpp                        \
+    $(NULL)
+
+endif # WEAVE_DEVICE_LAYER_TARGET_NRF5
 
 endif # CONFIG_DEVICE_LAYER
 

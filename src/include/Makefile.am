@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -322,7 +323,7 @@ dist_warm_HEADERS = $(addprefix ../,$(nl_public_Warm_header_sources))
 
 # Weave - Top-level
 #
-# Right now, this exists exclusive to serve the auto-generated
+# Right now, this exists exclusively to serve the auto-generated
 # Weave/WeaveVersion.h header.
 
 nl_public_Weave_source_dirstem = Weave
@@ -358,6 +359,9 @@ $(nl_public_Weave_destination_dirstem)/WeaveVersion.h: $(top_builddir)/.local-ve
 	$(call check-file,WeaveVersion.h)
 
 # Weave - Support
+#
+# All of these are non-auto-generated source headers, except
+# ASN1OID.h. That auto-generated header is treated independently.
 
 nl_public_WeaveSupport_source_dirstem = lib/support
 nl_public_WeaveSupport_destination_dirstem = Weave/Support
@@ -367,7 +371,6 @@ $(nl_public_WeaveSupport_source_dirstem)/ASN1.h \
 $(nl_public_WeaveSupport_source_dirstem)/ASN1Config.h \
 $(nl_public_WeaveSupport_source_dirstem)/ASN1Error.h \
 $(nl_public_WeaveSupport_source_dirstem)/ASN1Macros.h \
-$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h \
 $(nl_public_WeaveSupport_source_dirstem)/Base64.h \
 $(nl_public_WeaveSupport_source_dirstem)/CodeUtils.h \
 $(nl_public_WeaveSupport_source_dirstem)/ErrorStr.h \
@@ -388,6 +391,10 @@ $(nl_public_WeaveSupport_source_dirstem)/WeaveCounter.h \
 $(nl_public_WeaveSupport_source_dirstem)/WeaveFaultInjection.h \
 $(nl_public_WeaveSupport_source_dirstem)/WeaveNames.h \
 $(nl_public_WeaveSupport_source_dirstem)/nlargparser.hpp \
+$(NULL)
+
+nl_public_WeaveSupport_ASN1OID_base_header_sources = \
+$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h \
 $(NULL)
 
 nl_public_WeaveSupport_crypto_header_sources = \
@@ -428,13 +435,28 @@ $(nl_public_WeaveSupport_pairing_code_header_sources) \
 $(nl_public_WeaveSupport_platform_header_sources) \
 $(NULL)
 
+nl_public_WeaveSupport_ASN1OID_header_sources = \
+$(nl_public_WeaveSupport_ASN1OID_base_header_sources) \
+$(NULL)
+
 nl_public_WeaveSupport_header_paths = $(subst $(nl_public_WeaveSupport_source_dirstem)/,,$(nl_public_WeaveSupport_header_sources))
+
+nl_public_WeaveSupport_ASN1OID_header_paths = $(subst $(nl_public_WeaveSupport_source_dirstem)/,,$(nl_public_WeaveSupport_ASN1OID_header_sources))
 
 nl_public_WeaveSupport_header_destinations = $(addprefix $(nl_public_WeaveSupport_destination_dirstem)/,$(nl_public_WeaveSupport_header_paths))
 
+nl_public_WeaveSupport_ASN1OID_header_destinations = $(addprefix $(nl_public_WeaveSupport_destination_dirstem)/,$(nl_public_WeaveSupport_ASN1OID_header_paths))
+
 nl_public_WeaveSupport_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveSupport_header_destinations))))
 
-$(nl_public_WeaveSupport_header_dirs):
+nl_public_WeaveSupport_ASN1OID_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveSupport_ASN1OID_header_destinations))))
+
+# Filter nl_public_WeaveSupport_ASN1OID_header_dirs should it be the
+# same as nl_public_WeaveSupport_header_dirs to avoid make squawking
+# about "target 'nl_public_WeaveSupport_ASN1OID_header_dirs' given
+# more than once in the same rule".
+
+$(nl_public_WeaveSupport_header_dirs) $(filter-out $(nl_public_WeaveSupport_header_dirs),$(nl_public_WeaveSupport_ASN1OID_header_dirs)):
 	$(call create-directory)
 
 $(filter %.h,$(nl_public_WeaveSupport_header_destinations)): $(nl_public_WeaveSupport_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_WeaveSupport_source_dirstem)/%.h | $(nl_public_WeaveSupport_header_dirs)
@@ -443,8 +465,24 @@ $(filter %.h,$(nl_public_WeaveSupport_header_destinations)): $(nl_public_WeaveSu
 $(filter %.hpp,$(nl_public_WeaveSupport_header_destinations)): $(nl_public_WeaveSupport_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveSupport_source_dirstem)/%.hpp | $(nl_public_WeaveSupport_header_dirs)
 	$(call create-link)
 
+# Handle the auto-generated ASN1OID.h independently, since it comes
+# from the build directory which may not be the same as the source
+# directory in a non-colocated build.
+
+$(nl_public_WeaveSupport_destination_dirstem)/ASN1OID.h: $(abs_builddir)/../$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h | $(nl_public_WeaveSupport_ASN1OID_header_dirs)
+	$(call create-link)
+
 weave_support_basedir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)
 dist_weave_support_base_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_base_header_sources))
+
+# Note: we explicitly prefix 'weave_support_ASN1OID_base_HEADERS' with
+# 'nodist_' rather than 'dist_' or just dropping 'dist_' because while
+# 'ASN1OID.h' is installed with 'make install' it should not be
+# included in a distribution with 'make dist' because it is
+# auto-generated.
+
+weave_support_ASN1OID_basedir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)
+nodist_weave_support_ASN1OID_base_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_ASN1OID_base_header_sources))
 
 weave_support_cryptodir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)/crypto
 dist_weave_support_crypto_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_crypto_header_sources))
@@ -912,6 +950,35 @@ weave_commondir = $(includedir)/$(nl_public_WeaveCommon_destination_dirstem)
 dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sources))
 
 #
+# Weave Device Manager
+#
+
+nl_public_WeaveDeviceManager_source_dirstem = device-manager
+nl_public_WeaveDeviceManager_destination_dirstem = Weave/DeviceManager
+
+nl_public_WeaveDeviceManager_header_sources = \
+$(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDeviceManager.h \
+$(NULL)
+
+nl_public_WeaveDeviceManager_header_paths = $(subst $(nl_public_WeaveDeviceManager_source_dirstem)/,,$(nl_public_WeaveDeviceManager_header_sources))
+
+nl_public_WeaveDeviceManager_header_destinations = $(addprefix $(nl_public_WeaveDeviceManager_destination_dirstem)/,$(nl_public_WeaveDeviceManager_header_paths))
+
+nl_public_WeaveDeviceManager_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveDeviceManager_header_destinations))))
+
+$(nl_public_WeaveDeviceManager_header_dirs):
+	$(call create-directory)
+
+$(filter %.h,$(nl_public_WeaveDeviceManager_header_destinations)): $(nl_public_WeaveDeviceManager_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_WeaveDeviceManager_source_dirstem)/%.h | $(nl_public_WeaveDeviceManager_header_dirs)
+	$(call create-link)
+
+$(filter %.hpp,$(nl_public_WeaveDeviceManager_header_destinations)): $(nl_public_WeaveDeviceManager_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveDeviceManager_source_dirstem)/%.hpp | $(nl_public_WeaveDeviceManager_header_dirs)
+	$(call create-link)
+
+device_managerdir = $(includedir)/$(nl_public_WeaveDeviceManager_destination_dirstem)
+dist_device_manager_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceManager_header_sources))
+
+#
 # Weave Device Layer Headers
 #
 
@@ -919,20 +986,46 @@ if WEAVE_DEVICE_LAYER_TARGET_ESP32
 
 nl_public_WeaveDeviceLayer_target_header_sources =                                                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/BLEManagerImpl.h                                 \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/BlePlatformConfig.h                              \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConnectivityManagerImpl.h                        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                                    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Utils.h                                     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/InetPlatformConfig.h                             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h                            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/SystemPlatformConfig.h                           \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WarmPlatformConfig.h                             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformEvent.h                       \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h         \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeavePlatformConfig.h                            \
 $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32
+
+if WEAVE_DEVICE_LAYER_TARGET_NRF5
+
+nl_public_WeaveDeviceLayer_target_header_sources =                                                  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/BLEManagerImpl.h                                  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/BlePlatformConfig.h                               \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConfigurationManagerImpl.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConnectivityManagerImpl.h                         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/GroupKeyStoreImpl.h                               \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/InetPlatformConfig.h                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NetworkProvisioningServerImpl.h                   \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/nRF5Config.h                                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/nRF5Utils.h                                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/PlatformManagerImpl.h                             \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/SystemPlatformConfig.h                            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ThreadStackManagerImpl.h                          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WarmPlatformConfig.h                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformConfig.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformEvent.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeavePlatformConfig.h                             \
+$(NULL)
+
+endif # WEAVE_DEVICE_LAYER_TARGET_NRF5
 
 if CONFIG_DEVICE_LAYER
 
@@ -943,13 +1036,19 @@ nl_public_WeaveDeviceLayer_base_header_sources =                                
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConfigurationManager.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/GeneralUtils.h                           \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/NetworkTelemetryManager.h                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ThreadStackManager.h                     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TraitManager.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceConfig.h                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceError.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceEvent.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceLayer.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkTrait.h     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkWifiTrait.h \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkWpanTrait.h \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.h \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_internal_header_sources =                                                \
@@ -958,14 +1057,24 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceControlServer.h     
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h                     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h               \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                                  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EventLogging.h                                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl.h              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.h          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.ipp        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoBLE.h        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_Thread.h       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_Thread.ipp     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoThread.h     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoTunnel.h     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoWiFi.h       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.h             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.ipp           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.h        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.ipp      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.h                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.ipp                \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkInfo.h                                 \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceNetworkInfo.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkProvisioningServer.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h                     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceProvisioningServer.h                   \
@@ -973,10 +1082,39 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceTunnelAgent.h      
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceLayerInternal.h                    \
 $(NULL)
 
+nl_public_WeaveDeviceLayer_internal_testing_header_sources =                          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/ConfigUnitTest.h        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/GroupKeyStoreUnitTest.h \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/SystemClockUnitTest.h   \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_openthread_header_sources =                                                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.h          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.ipp        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread_LwIP.h     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread_LwIP.ipp   \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/OpenThreadUtils.h                                   \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_freertos_header_sources =                                                \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.h      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.ipp    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp       \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_lwip_header_sources =                                                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/WarmSupport.h                                     \
+$(NULL)
+
 nl_public_WeaveDeviceLayer_header_sources = \
 $(nl_public_WeaveDeviceLayer_base_header_sources) \
 $(nl_public_WeaveDeviceLayer_internal_header_sources) \
+$(nl_public_WeaveDeviceLayer_internal_testing_header_sources) \
 $(nl_public_WeaveDeviceLayer_target_header_sources) \
+$(nl_public_WeaveDeviceLayer_openthread_header_sources) \
+$(nl_public_WeaveDeviceLayer_freertos_header_sources) \
+$(nl_public_WeaveDeviceLayer_lwip_header_sources) \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_header_paths = $(subst $(nl_public_WeaveDeviceLayer_source_dirstem)/,,$(nl_public_WeaveDeviceLayer_header_sources))
@@ -1003,11 +1141,20 @@ dist_weave_device_layer_base_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLa
 weave_device_layer_internaldir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/internal
 dist_weave_device_layer_internal_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_internal_header_sources))
 
+weave_device_layer_internal_testingdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/internal/testing
+dist_weave_device_layer_internal_testing_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_internal_testing_header_sources))
+
 weave_device_layer_targetdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/$(WEAVE_DEVICE_LAYER_TARGET)
 dist_weave_device_layer_target_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_target_header_sources))
 
 weave_device_layer_freertosdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/FreeRTOS
-dist_weave_device_layer_freertos_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_target_header_sources))
+dist_weave_device_layer_freertos_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_freertos_header_sources))
+
+weave_device_layer_openthreaddir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/OpenThread
+dist_weave_device_layer_openthread_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_openthread_header_sources))
+
+weave_device_layer_lwipdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/LwIP
+dist_weave_device_layer_lwip_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_lwip_header_sources))
 
 endif # CONFIG_DEVICE_LAYER
 
@@ -1084,9 +1231,11 @@ nl_public_headers                                           = \
     $(nl_public_Warm_header_destinations)                     \
     $(nl_public_Weave_header_destinations)                    \
     $(nl_public_WeaveSupport_header_destinations)             \
+    $(nl_public_WeaveSupport_ASN1OID_header_destinations)     \
     $(nl_public_WeaveCore_header_destinations)                \
     $(nl_public_WeaveCommon_header_destinations)              \
     $(nl_public_WeaveProfiles_header_destinations)            \
+    $(nl_public_WeaveDeviceManager_header_destinations)       \
     $(nl_public_WeaveDeviceLayer_header_destinations)         \
     $(NULL)
 

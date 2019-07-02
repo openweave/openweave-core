@@ -59,8 +59,7 @@ class test_weave_wdm_next_one_way_subscribe_05(weave_wdm_next_test_base):
         wdm_next_args['server_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] CancelRequestHandler Ref\(\d+\)', wdm_next_args['test_client_iterations'] * 1),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'] * 1)]
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
-        wdm_next_args['test_case_name'] = ['C03: One way Subscribe: Root path, Null Version. Mutate data in Publisher. Client cancels',
-                                           'L05: Stress One way Subscribe: Root path, Null Version. Mutate data in Publisher. Client cancels']
+        wdm_next_args['test_case_name'] = ['L05: Stress One way Subscribe: Root path, Null Version. Mutate data in Publisher. Client cancels']
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test C03 and L05"
         super(test_weave_wdm_next_one_way_subscribe_05, self).weave_wdm_next_test_base(wdm_next_args)

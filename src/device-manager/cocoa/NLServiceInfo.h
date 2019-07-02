@@ -29,12 +29,12 @@ typedef int64_t NLServiceID;
 @interface NLServiceInfo : NSObject
 
 @property (nonatomic) NLServiceID serviceId;
-@property (nonatomic, strong) NSString *accountId;
+@property (nonatomic, strong) NSString * accountId;
 
-@property (nonatomic, strong) NSString *serviceConfig;
+@property (nonatomic, strong) NSString * serviceConfig;
 
-@property (nonatomic, strong) NSString *pairingToken;
-@property (nonatomic, strong) NSString *pairingInitData;
+@property (nonatomic, strong) NSString * pairingToken;
+@property (nonatomic, strong) NSString * pairingInitData;
 
 - (id)initWithServiceId:(NLServiceID)serviceId
               accountId:(NSString *)accountId
@@ -42,8 +42,7 @@ typedef int64_t NLServiceID;
            pairingToken:(NSString *)pairingToken
         pairingInitData:(NSString *)pairingInitData;
 
-- (id)initWithServiceId:(NLServiceID)serviceId
-          serviceConfig:(NSString *)serviceConfig;
+- (id)initWithServiceId:(NLServiceID)serviceId serviceConfig:(NSString *)serviceConfig;
 
 - (NSData *)decodeServiceConfig;
 

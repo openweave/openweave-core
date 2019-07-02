@@ -54,7 +54,7 @@ using namespace nl::ArgParser;
 
 using nl::Weave::ASN1::OID;
 
-#define COPYRIGHT_STRING "Copyright (c) 2013-2017 Nest Labs, Inc.\nAll rights reserved.\n"
+#define COPYRIGHT_STRING "Copyright (c) 2019 Google LLC.\nCopyright (c) 2013-2017 Nest Labs, Inc.\nAll rights reserved.\n"
 
 #define MAX_CERT_SIZE 65536
 #define MAX_KEY_SIZE 65536
@@ -93,6 +93,7 @@ extern bool Cmd_MakeAccessToken(int argc, char *argv[]);
 extern bool Cmd_GenProvisioningData(int argc, char *argv[]);
 extern bool Cmd_ValidateCert(int argc, char *argv[]);
 extern bool Cmd_PrintCert(int argc, char *argv[]);
+extern bool Cmd_PrintSig(int argc, char *argv[]);
 extern bool Cmd_PrintTLV(int argc, char *argv[]);
 
 extern bool ReadCert(const char *fileName, X509 *& cert);
@@ -121,8 +122,10 @@ extern bool X509DERToPEM(uint8_t *cert, uint32_t& certLen, uint32_t bufLen);
 extern CertFormat DetectCertFormat(uint8_t *cert, uint32_t certLen);
 
 extern bool ReadPrivateKey(const char *fileName, const char *prompt, EVP_PKEY *& key);
+extern bool ReadPublicKey(const char *fileName, EVP_PKEY *& key);
 extern bool ReadWeavePrivateKey(const char *fileName, uint8_t *& key, uint32_t &keyLen);
 extern bool DecodePrivateKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, const char *prompt, EVP_PKEY *& key);
+extern bool DecodePublicKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, EVP_PKEY *& key);
 extern bool DetectKeyFormat(FILE *keyFile, KeyFormat& keyFormat);
 extern KeyFormat DetectKeyFormat(const uint8_t *key, uint32_t keyLen);
 extern bool GenerateKeyPair(const char *curveName, EVP_PKEY *& key);
@@ -135,6 +138,7 @@ extern OID NIDToWeaveOID(int nid);
 extern char *Base64Encode(const uint8_t *inData, uint32_t inDataLen);
 extern uint8_t *Base64Encode(const uint8_t *inData, uint32_t inDataLen, uint8_t *outBuf, uint32_t outBufSize, uint32_t& outDataLen);
 extern uint8_t *Base64Decode(const uint8_t *inData, uint32_t inDataLen, uint8_t *outBuf, uint32_t outBufSize, uint32_t& outDataLen);
+extern bool IsBase64String(const char * str, uint32_t strLen);
 extern bool ContainsPEMMarker(const char *marker, const uint8_t *data, uint32_t dataLen);
 extern bool ParseEUI64(const char *str, uint64_t& nodeId);
 extern bool ParseDateTime(const char *str, struct tm& date);

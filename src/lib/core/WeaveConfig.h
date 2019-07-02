@@ -44,8 +44,27 @@
 #error "Weave SDK requires INET_TCP_IDLE_CHECK_INTERVAL > 0"
 #endif // INET_CONFIG_ENABLE_TCP_ENDPOINT && INET_TCP_IDLE_CHECK_INTERVAL <= 0
 
-#if HAVE_WEAVEPROJECTCONFIG_H
-#include "WeaveProjectConfig.h"
+/* Include a project-specific configuration file, if defined.
+ *
+ * An application or module that incorporates Weave can define a project configuration
+ * file to override standard Weave configuration with application-specific values.
+ * The WeaveProjectConfig.h file is typically located outside the OpenWeave source tree,
+ * alongside the source code for the application.
+ */
+#ifdef WEAVE_PROJECT_CONFIG_INCLUDE
+#include WEAVE_PROJECT_CONFIG_INCLUDE
+#endif
+
+/* Include a platform-specific configuration file, if defined.
+ *
+ * A platform configuration file contains overrides to standard Weave configuration
+ * that are specific to the platform or OS on which Weave is running.  It is typically
+ * provided as apart of an adaptation layer that adapts OpenWeave to the target
+ * environment.  This adaptation layer may be included in the OpenWeave source tree
+ * itself or implemented externally.
+ */
+#ifdef WEAVE_PLATFORM_CONFIG_INCLUDE
+#include WEAVE_PLATFORM_CONFIG_INCLUDE
 #endif
 
 // clang-format off
@@ -706,9 +725,8 @@
  *    Enable (1) or disable (0) support for the OpenSSL
  *    implementation of the Weave AES functions.
  *
- *  @note This configuration is mutual exclusive with
- *        #WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM and
- *        #WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_AES_IMPLEMENTATION options.
  *
  */
 #ifndef WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL
@@ -722,9 +740,8 @@
  *    Enable (1) or disable (0) support for an implementation
  *    of the Weave AES functions using Intel AES-NI intrinsics.
  *
- *  @note This configuration is mutual exclusive with
- *        #WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM and
- *        #WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_AES_IMPLEMENTATION options.
  *
  */
 #ifndef WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI
@@ -732,12 +749,30 @@
 #endif // WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI
 
 /**
+ *  @def WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS
+ *
+ *  @brief
+ *    Enable (1) or disable (0) support the mbed TLS
+ *    implementation of the Weave AES functions.
+ *
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_AES_IMPLEMENTATION options.
+ *
+ */
+#ifndef WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS
+#define WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS              0
+#endif // WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS
+
+/**
  *  @}
  */
 
-#if ((WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM + WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL + WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI) != 1)
-#error "Please assert exactly one of WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM, WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL or WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI."
-#endif // ((WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM + WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL + WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI) != 1)
+#if ((WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM + \
+      WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL + \
+      WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI + \
+      WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS) != 1)
+#error "Please assert exactly one WEAVE_CONFIG_AES_IMPLEMENTATION_... option."
+#endif
 
 /**
  *  @def WEAVE_CONFIG_AES_USE_EXPANDED_KEY
@@ -765,6 +800,7 @@
  *      * #WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM
  *      * #WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT
  *      * #WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL
+ *      * #WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
  *
  *    Note that these options are mutually exclusive and only one of
  *    these options should be set.
@@ -779,9 +815,8 @@
  *    Enable (1) or disable (0) support for platform-specific
  *    implementation of the Weave SHA1 and SHA256 hashes.
  *
- *  @note This configuration is mutual exclusive with
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT and
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL.
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_HASH_IMPLEMENTATION options.
  *
  */
 #ifndef WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM
@@ -797,9 +832,8 @@
  *    This implementation is using sha1 and sha256 engines from
  *    mincrypt library of Android core.
  *
- *  @note This configuration is mutual exclusive with
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM and
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL.
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_HASH_IMPLEMENTATION options.
  *
  */
 #ifndef WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT
@@ -813,9 +847,8 @@
  *    Enable (1) or disable (0) support for the OpenSSL
  *    implementation of the Weave SHA1 and SHA256 hash functions.
  *
- *  @note This configuration is mutual exclusive with
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM and
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT.
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_HASH_IMPLEMENTATION options.
  *
  */
 #ifndef WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL
@@ -823,12 +856,30 @@
 #endif // WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL
 
 /**
+ *  @def WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
+ *
+ *  @brief
+ *    Enable (1) or disable (0) support for the mbedTLS
+ *    implementation of the Weave SHA1 and SHA256 hash functions.
+ *
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_HASH_IMPLEMENTATION options.
+ *
+ */
+#ifndef WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
+#define WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS            0
+#endif // WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
+
+/**
  *  @}
  */
 
-#if ((WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM + WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT + WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL) != 1)
-#error "Please assert exactly one of WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM, WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT, or WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL."
-#endif // ((WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM + WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT + WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL) != 1)
+#if ((WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM + \
+      WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT + \
+      WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL  + \
+      WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS) != 1)
+#error "Please assert exactly one WEAVE_CONFIG_HASH_IMPLEMENTATION_... option."
+#endif
 
 
 /**
@@ -1777,7 +1828,7 @@
  *
  */
 #ifndef WEAVE_CONFIG_TEST
-#define WEAVE_CONFIG_TEST                                0
+#define WEAVE_CONFIG_TEST                                   0
 #endif // WEAVE_CONFIG_TEST
 
 /**
@@ -1789,8 +1840,67 @@
  *
  */
 #ifndef WEAVE_CONFIG_SHORT_ERROR_STR
-#define WEAVE_CONFIG_SHORT_ERROR_STR                     0
+#define WEAVE_CONFIG_SHORT_ERROR_STR                        0
 #endif // WEAVE_CONFIG_SHORT_ERROR_STR
+
+/**
+ *  @def WEAVE_CONFIG_ERROR_STR_SIZE
+ *
+ *  @brief
+ *    This defines the size of the buffer to store a formatted error string.
+ *    If the formatting of an error string exceeds this size it will be truncated.
+ *
+ *    The default size varies based on the WEAVE_CONFIG_SHORT_ERROR_STR option.
+ *
+ *    When WEAVE_CONFIG_SHORT_ERROR_STR is 0, a large default buffer size is used
+ *    to accommodate descriptive text summarizing the cause of the error. E.g.:
+ *
+ *         "Weave Error 4047 (0x00000FCF): Invalid Argument"
+ *
+ *    When WEAVE_CONFIG_SHORT_ERROR_STR is 1, the buffer size is set to accommodate
+ *    a minimal error string consisting of a 10 character subsystem name followed
+ *    by an 8 character error number, plus boilerplate. E.g.:
+ *
+ *         "Error Weave:0x00000FCF"
+ *
+ */
+#ifndef WEAVE_CONFIG_ERROR_STR_SIZE
+#if WEAVE_CONFIG_SHORT_ERROR_STR
+#define WEAVE_CONFIG_ERROR_STR_SIZE                         (5 + 1 + 10 + 3 + 8 + 1)
+#else // WEAVE_CONFIG_SHORT_ERROR_STR
+#define WEAVE_CONFIG_ERROR_STR_SIZE                         256
+#endif // WEAVE_CONFIG_SHORT_ERROR_STR
+#endif // WEAVE_CONFIG_ERROR_STR_SIZE
+
+/**
+ *  @def WEAVE_CONFIG_CUSTOM_ERROR_FORMATTER
+ *
+ *  @brief
+ *    If asserted (1), suppress definition of the standard error formatting function
+ *    (#nl::FormatError()) allowing an application-specific implementation to be used.
+ *
+ */
+#ifndef WEAVE_CONFIG_CUSTOM_ERROR_FORMATTER
+#define WEAVE_CONFIG_CUSTOM_ERROR_FORMATTER                 0
+#endif // WEAVE_CONFIG_CUSTOM_ERROR_FORMATTER
+
+/**
+ *  @def WEAVE_CONFIG_SHORT_FORM_ERROR_VALUE_FORMAT
+ *
+ *  @brief
+ *    The printf-style format string used to format error values.
+ *
+ *  On some platforms, the structure of error values makes them more convenient to
+ *  read in either hex or decimal format.  This option can be used to override
+ *  the default hex format.
+ *
+ *  Note that this option only affects short-form error strings (i.e. when
+ *  WEAVE_CONFIG_SHORT_ERROR_STR == 1).  Long form error strings always show both hex
+ *  and decimal values
+ */
+#ifndef WEAVE_CONFIG_SHORT_FORM_ERROR_VALUE_FORMAT
+#define WEAVE_CONFIG_SHORT_FORM_ERROR_VALUE_FORMAT          "0x%08" PRIX32
+#endif // WEAVE_CONFIG_SHORT_FORM_ERROR_VALUE_FORMAT
 
 /**
  *  @def WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE
@@ -1802,7 +1912,7 @@
  *
  */
 #ifndef WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE
-#define WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE               0
+#define WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE                  0
 #endif // WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE
 
 /**
@@ -1814,7 +1924,7 @@
  *
  */
 #ifndef WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS
-#define WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS         1
+#define WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS            1
 #endif // WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS
 
 /**
@@ -2040,6 +2150,23 @@
 #ifndef WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
 #define WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE     1
 #endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+
+/**
+ *  @def WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
+ *
+ *  @brief
+ *    Enable (1) or disable (0) the exclusive use of the depricated
+ *    version of AddNetwork() message in the Network Provisioning
+ *    profile.
+ *    This option should be enabled when exclusively pairing with Nest
+ *    legacy devices that don't have latest SW.
+ *    This option requires that
+ *    WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE is enabled.
+ *
+ */
+#ifndef WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
+#define WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE     0
+#endif // WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
 
 /**
  * @def WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN

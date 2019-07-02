@@ -67,6 +67,17 @@ private:
     friend FabricProvisioningServer & FabricProvisioningSvr(void);
 
     static FabricProvisioningServer sInstance;
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    FabricProvisioningServer() = default;
+    ~FabricProvisioningServer() = default;
+
+    // No copy, move or assignment.
+    FabricProvisioningServer(const FabricProvisioningServer &) = delete;
+    FabricProvisioningServer(const FabricProvisioningServer &&) = delete;
+    FabricProvisioningServer & operator=(const FabricProvisioningServer &) = delete;
 };
 
 /**

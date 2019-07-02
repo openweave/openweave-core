@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2014-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -233,7 +234,7 @@ WEAVE_ERROR WeaveTunnelRoute::DecodeFabricTunnelRoutes(uint64_t *fabricId,
 
         for (int i = 0; i < tunRoutes->numOfPrefixes; i++)
         {
-            IPAddress::ReadAddress(p, tunRoutes->tunnelRoutePrefix[i].IPAddr);
+            IPAddress::ReadAddress(const_cast<const uint8_t *&>(p), tunRoutes->tunnelRoutePrefix[i].IPAddr);
             tunRoutes->tunnelRoutePrefix[i].Length = Read8(p);
             tunRoutes->priority[i] = Read8(p);
         }

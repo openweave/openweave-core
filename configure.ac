@@ -123,7 +123,7 @@ NL_FILTERED_CANONICAL_TARGET
 # Disable silent build rules by either passing --disable-silent-rules to
 # configure or passing V=1 to make
 #
-AM_INIT_AUTOMAKE([1.14 foreign silent-rules subdir-objects tar-pax])
+AM_INIT_AUTOMAKE([1.14 foreign silent-rules subdir-objects tar-pax no-define])
 
 #
 # Silent build rules requires at least automake-1.11. Employ
@@ -280,6 +280,68 @@ AC_PROG_LN_S
 
 AC_PATH_PROG(CMP, cmp)
 AC_PATH_PROG(PERL, perl)
+
+#
+# Python
+#
+# At minimum, a Python interpreter is absolutely required to
+# auto-generate a number of header files (e.g., ASN1OID.h).
+# Additionally, Python support is used for one binding of the
+# Device Manager as well as to run and orchestrate several
+# unit and functional tests.
+#
+
+# In a normal "build-and-install on 'this' machine" context,
+# placing Python packages in the normal pythondir and pyexecdir
+# (typically
+# lib/pythonPYTHON_VERSION/{dist,site}-packages/PACKAGE) makes
+# sense.
+#
+# However, in our case, we're building and 'installing' for
+# standalone distrubution to any number of machines for which we
+# don't know the Python version. In those cases, override
+# pythondir and pyexec dir.
+
+case "${prefix}" in
+
+    /opt|/usr|/usr/local|NONE)
+        ;;
+
+    *)
+        am_cv_python_pythondir="\${prefix}/lib/python"
+        am_cv_python_pyexecdir="\${exec_prefix}/lib/python"
+        ;;
+
+esac
+
+# Check for Python
+
+AM_PATH_PYTHON
+
+# If a Python interpreter of any color cannot be found, error out.
+
+if test "${PYTHON}" = ""; then
+    AC_MSG_ERROR([could not find python: python is required to build this package.])
+fi
+
+# Check for specific Python packages
+
+AC_MSG_CHECKING([for Python setuptools package])
+if ${PYTHON} -c 'import setuptools' >/dev/null 2>&1; then
+    have_python_package_setuptools=yes
+else
+    have_python_package_setuptools=no
+fi
+AC_MSG_RESULT(${have_python_package_setuptools})
+
+AC_MSG_CHECKING([for Python wheel package])
+if ${PYTHON} -c 'import wheel' >/dev/null 2>&1; then
+    have_python_package_wheel=yes
+else
+    have_python_package_wheel=no
+fi
+AC_MSG_RESULT(${have_python_package_wheel})
+
 
 #
 # Checks for specific compiler characteristics
@@ -645,60 +707,6 @@ fi
 AM_CONDITIONAL([WEAVE_WITH_JAVA], [test "${enable_java}" = "yes"])
 
 #
-# Python support
-#
-AC_MSG_CHECKING([whether to build Python support])
-AC_ARG_ENABLE(python,
-    [AS_HELP_STRING([--disable-python],[Disable Python support @<:@default=no@:>@.])],
-    [
-        case "${enableval}" in
-
-        no|yes)
-            enable_python=${enableval}
-            ;;
-
-        *)
-            AC_MSG_ERROR([Invalid value ${enableval} for --enable-python])
-            ;;
-
-        esac
-    ],
-    [enable_python=yes])
-AC_MSG_RESULT(${enable_python})
-
-AM_CONDITIONAL([WEAVE_WITH_PYTHON], [test "${enable_python}" = "yes"])
-
-if test "${enable_python}" = "yes" ; then
-
-    # In a normal "build-and-install on 'this' machine" context,
-    # placing Python packages in the normal pythondir and pyexecdir
-    # (typically
-    # lib/pythonPYTHON_VERSION/{dist,site}-packages/PACKAGE) makes
-    # sense.
-    #
-    # However, in our case, we're building and 'installing' for
-    # standalone distrubution to any number of machines for which we
-    # don't know the Python version. In those cases, override
-    # pythondir and pyexec dir.
-
-    case "${prefix}" in
-
-        /opt|/usr|/usr/local|NONE)
-            ;;
-
-        *)
-            am_cv_python_pythondir="\${prefix}/lib/python"
-            am_cv_python_pyexecdir="\${exec_prefix}/lib/python"
-            ;;
-
-    esac
-
-    # Check for Python
-
-    AM_PATH_PYTHON
-fi
-
-#
 # Debug and profile instances
 #
 AC_MSG_NOTICE([checking whether to build debug and profile instances])
@@ -847,7 +855,7 @@ if test "${with_happy}" != "no"; then
 fi
 if test "${with_happy}" = "yes"; then
     HAPPY_MINIMUM_VERSION="1.1.36"
-    happy_version=`PYTHONPATH=${happy_path}:${PYTHONPATH} python -c 'import happy; print happy.__version__ if "__version__" in dir(happy) else "0.0.0"'`
+    happy_version=`PYTHONPATH=${happy_path}:${PYTHONPATH} ${PYTHON} -c 'import happy; print happy.__version__ if "__version__" in dir(happy) else "0.0.0"'`
     AX_COMPARE_VERSION([${HAPPY_MINIMUM_VERSION}],[gt],[${happy_version}],[AC_MSG_ERROR(["The Nest Labs network functional test framework (Happy) is installed with version ${happy_version}; however, Weave test apps require at least version ${HAPPY_MINIMUM_VERSION}."])],[])
 fi
 AC_MSG_RESULT(${with_happy})
@@ -1034,33 +1042,6 @@ AM_CONDITIONAL([WEAVE_RUN_HAPPY_INET], [test "${HAPPY_TEST_USE_INET}" = 1])
 AM_CONDITIONAL([WEAVE_RUN_HAPPY_BDX], [test "${HAPPY_TEST_USE_BDX}" = 1])
 AM_CONDITIONAL([WEAVE_RUN_HAPPY_SECMGR], [test "${HAPPY_TEST_USE_SECMGR}" = 1])
 AM_CONDITIONAL([WEAVE_RUN_HAPPY_SERVICEDIR], [test "${HAPPY_TEST_USE_SERVICEDIR}" = 1])
-
-#
-# Device Manager
-#
-
-AC_MSG_CHECKING([whether to build Device Manager])
-AC_ARG_ENABLE(device_manager,
-    [AS_HELP_STRING([--disable-device-manager],[Disable building of Device Manager @<:@default=no@:>@.])],
-    [
-        case "${enableval}" in 
-
-        no|yes)
-            build_device_manager=${enableval}
-            ;;
-
-        *)
-            AC_MSG_ERROR([Invalid value ${enableval} for --enable-device-manager])
-            ;;
-
-        esac
-    ],
-    [build_device_manager=yes])
-AC_MSG_RESULT(${build_device_manager})
-AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER], [test "${build_device_manager}" = "yes"])
-
-# Build device manager with dummy implementations of persisted storate Read/Write APIs.
-AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER_WITH_DUMMY_PERSISTED_STORE], [test "${enable_java}" = "yes" || test "${enable_python}" = "yes" || test "${enable_cocoa}" = "yes"])
 
 #
 # WoBle Control Path and Throughput Test  (Woble Test)
@@ -1250,11 +1231,14 @@ AC_DEFINE_UNQUOTED([CONFIG_NETWORK_LAYER_INET],[${CONFIG_NETWORK_LAYER_INET}],[D
 AC_MSG_CHECKING([device layer])
 AC_ARG_WITH(device-layer,
     [AS_HELP_STRING([--with-device-layer=LAYER],
-        [Specify the target environment for the Weave Device Layer.  Choose one of: esp32, or none @<:@default=none@:>@.])],
+        [Specify the target environment for the Weave Device Layer.  Choose one of: esp32, nrf5, or none @<:@default=none@:>@.])],
     [
         case "${with_device_layer}" in
 
         esp32|none)
+            ;;
+
+        nrf5|none)
             ;;
 
         *)
@@ -1271,12 +1255,21 @@ esp32)
       CONFIG_DEVICE_LAYER=1
       WEAVE_DEVICE_LAYER_TARGET=ESP32
       WEAVE_DEVICE_LAYER_TARGET_ESP32=1
+      WEAVE_DEVICE_LAYER_TARGET_NRF5=0
+      ;;
+
+nrf5)
+      CONFIG_DEVICE_LAYER=1
+      WEAVE_DEVICE_LAYER_TARGET=nRF5
+      WEAVE_DEVICE_LAYER_TARGET_NRF5=1
+      WEAVE_DEVICE_LAYER_TARGET_ESP32=0
       ;;
 
 none)
       CONFIG_DEVICE_LAYER=0
       WEAVE_DEVICE_LAYER_TARGET=NONE
       WEAVE_DEVICE_LAYER_TARGET_ESP32=0
+      WEAVE_DEVICE_LAYER_TARGET_NRF5=0
       ;;
 
 esac
@@ -1291,6 +1284,32 @@ AC_DEFINE_UNQUOTED([WEAVE_DEVICE_LAYER_TARGET],[${WEAVE_DEVICE_LAYER_TARGET}],[T
 AC_SUBST(WEAVE_DEVICE_LAYER_TARGET_ESP32)
 AM_CONDITIONAL([WEAVE_DEVICE_LAYER_TARGET_ESP32],    [test "${WEAVE_DEVICE_LAYER_TARGET_ESP32}" = 1])
 AC_DEFINE_UNQUOTED([WEAVE_DEVICE_LAYER_TARGET_ESP32],[${WEAVE_DEVICE_LAYER_TARGET_ESP32}],[Define to 1 if you want to build the OpenWeave Device Layer for the Espressif ESP32.])
+
+AC_SUBST(WEAVE_DEVICE_LAYER_TARGET_NRF5)
+AM_CONDITIONAL([WEAVE_DEVICE_LAYER_TARGET_NRF5],    [test "${WEAVE_DEVICE_LAYER_TARGET_NRF5}" = 1])
+AC_DEFINE_UNQUOTED([WEAVE_DEVICE_LAYER_TARGET_NRF5],[${WEAVE_DEVICE_LAYER_TARGET_NRF5}],[Define to 1 if you want to build the OpenWeave Device Layer for Nordic nRF5* platforms.])
+
+if test "${CONFIG_DEVICE_LAYER}" = 1; then
+    AC_DEFINE_UNQUOTED([BLE_PLATFORM_CONFIG_INCLUDE],
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/BlePlatformConfig.h>],
+                       [Path to BLE platform config header file])
+    AC_DEFINE_UNQUOTED([INET_PLATFORM_CONFIG_INCLUDE],  
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/InetPlatformConfig.h>],
+                       [Path to Inet Layer platform config header file])
+    AC_DEFINE_UNQUOTED([SYSTEM_PLATFORM_CONFIG_INCLUDE],
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/SystemPlatformConfig.h>],
+                       [Path to System Layer platform config header file])
+    AC_DEFINE_UNQUOTED([WARM_PLATFORM_CONFIG_INCLUDE],
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/WarmPlatformConfig.h>],
+                       [Path to WARM platform config header file])
+    AC_DEFINE_UNQUOTED([WEAVE_PLATFORM_CONFIG_INCLUDE],
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/WeavePlatformConfig.h>],
+                       [Path to Weave platform config header file])
+    AC_DEFINE_UNQUOTED([WEAVE_DEVICE_PLATFORM_CONFIG_INCLUDE],
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/WeaveDevicePlatformConfig.h>], 
+                       [Path to Weave Device Layer platform config header file])
+fi
+
 
 #
 # WoBle over Bluez Peripheral support
@@ -1658,6 +1677,94 @@ else
     AC_DEFINE(INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS, 0, [Define to 0 for disabling ASYNC DNS])
 fi
 
+
+#
+# Device Manager
+#
+
+AC_MSG_CHECKING([whether to build Device Manager wrapper libraries])
+AC_ARG_ENABLE(device_manager,
+    [AS_HELP_STRING([--enable-device-manager],[Enable building of Device Manager wrapper libraries @<:@default=yes@:>@.])],
+    [
+        case "${enableval}" in 
+
+        no|yes)
+            build_device_manager=${enableval}
+            ;;
+
+        *)
+            AC_MSG_ERROR([Invalid value ${enableval} for --enable-device-manager])
+            ;;
+
+        esac
+    ],
+    [
+        # Enable building Device Manager wrapper libraries by default UNLESS the "sockets" network
+        # stack is not enabled. 
+        if test ${WEAVE_SYSTEM_CONFIG_USE_SOCKETS} -eq 1; then
+            build_device_manager=yes
+        else
+            build_device_manager=no
+        fi
+    ])
+
+# Fail if Device Manager wrapper libraries are enabled but the "sockets" network stack is not.  This combination is
+# not supported. 
+if test "${build_device_manager}" = "yes"; then
+    if test ${WEAVE_SYSTEM_CONFIG_USE_SOCKETS} -eq 0; then
+        AC_MSG_ERROR([Building Device Manager wrapper libraries requires selecting sockets as a target network stack])
+    fi
+fi    
+
+AC_MSG_RESULT(${build_device_manager})
+AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER], [test "${build_device_manager}" = "yes"])
+
+
+#
+# OpenWeave Python installable package (wheel)
+# 
+
+AC_MSG_CHECKING([whether to build installable Python package for OpenWeave])
+AC_ARG_ENABLE(installable_python_package,
+    [AS_HELP_STRING([--enable-installable-python-package],[Enable building of an installable Python package (wheel) for OpenWeave @<:@default=yes@:>@.])],
+    [
+        case "${enableval}" in 
+
+        no|yes)
+            build_installable_python_package=${enableval}
+            ;;
+
+        *)
+            AC_MSG_ERROR([Invalid value ${enableval} for --enable-installable-python-package])
+            ;;
+
+        esac
+    ],
+    [
+        # By default, enable building an installable Python package iff the setuptools and wheel packages
+        # are available.
+        if test "${have_python_package_setuptools}" == "yes" -a "${have_python_package_wheel}" == "yes"; then
+            build_installable_python_package=yes
+        else
+            build_installable_python_package=no
+        fi
+    ])
+
+# Fail if requested to build an installable Python package but the setuptools and wheel packages
+# are not available
+if test "${build_installable_python_package}" = "yes"; then
+    if test "${have_python_package_setuptools}" != "yes"; then
+        AC_MSG_ERROR([The Python setuptools package must be installed in order to build an installable package for OpenWeave])
+    fi
+    if test "${have_python_package_wheel}" != "yes"; then
+        AC_MSG_ERROR([The Python wheel package must be installed in order to build an installable package for OpenWeave])
+    fi
+fi
+
+AC_MSG_RESULT(${build_installable_python_package})
+AM_CONDITIONAL([WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE], [test "${build_installable_python_package}" = "yes"])
+
+
 #
 # Verhoeff support
 #
@@ -1683,6 +1790,12 @@ AC_ARG_ENABLE(verhoeff,
 AC_MSG_RESULT(${enable_verhoeff})
 
 AM_CONDITIONAL([WEAVE_WITH_VERHOEFF], [test "${enable_verhoeff}" = "yes"])
+
+
+#
+# Fuzzing support
+#
+AC_MSG_CHECKING([whether to enable fuzzing])
 
 AC_ARG_ENABLE(fuzzing,
     [AS_HELP_STRING([--enable-fuzzing],[Enable Fuzzing - Requires clang 6.0 or greater @<:@default=no@:>@.])],
@@ -1817,37 +1930,43 @@ AM_CONDITIONAL([CONFIG_HAVE_VSNPRINTF_EX], [test "${CONFIG_HAVE_VSNPRINTF_EX}" =
 AC_DEFINE_UNQUOTED([CONFIG_HAVE_VSNPRINTF_EX],[${CONFIG_HAVE_VSNPRINTF_EX}],[Define to 1 if you want to use Weave with a system that supports callback-based vcbprintf])
 
 #
-# The user may specify project-specific configuration for the Weave
-# SystemLayer, BleLayer, InetLayer, and Core sub-components.
+# Options for the user to specify project-specific configuration files
+# for various OpenWeave components.
 #
 
 AC_LANG_PUSH([C++])
 
 # SystemLayer
 
-NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-system-project-includes, SystemProjectConfig.h, Weave SystemLayer, ${ac_abs_confdir}/build/config/standalone)
+NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-system-project-includes, SYSTEM_PROJECT_CONFIG_INCLUDE, SystemProjectConfig.h, Weave System Layer, ${ac_abs_confdir}/build/config/standalone)
 
 # BleLayer
 
 if test ${CONFIG_NETWORK_LAYER_BLE} = 1; then
-    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-ble-project-includes, BleProjectConfig.h, Weave BleLayer, ${ac_abs_confdir}/build/config/standalone)
+    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-ble-project-includes, BLE_PROJECT_CONFIG_INCLUDE, BleProjectConfig.h, Weave BLE Layer, ${ac_abs_confdir}/build/config/standalone)
 fi
 
 # InetLayer
 
 if test ${CONFIG_NETWORK_LAYER_INET} = 1; then
-    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-inet-project-includes, InetProjectConfig.h, Weave InetLayer, ${ac_abs_confdir}/build/config/standalone)
+    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-inet-project-includes, INET_PROJECT_CONFIG_INCLUDE, InetProjectConfig.h, Weave Inet Layer, ${ac_abs_confdir}/build/config/standalone)
 fi
 
 # Warm
 
 if test "${build_warm}" = "yes"; then
-    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-warm-project-includes, WarmProjectConfig.h, Weave Warm, ${ac_abs_confdir}/build/config/standalone)
+    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-warm-project-includes, WARM_PROJECT_CONFIG_INCLUDE, WarmProjectConfig.h, WARM, ${ac_abs_confdir}/build/config/standalone)
 fi
 
 # Core
 
-NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-project-includes, WeaveProjectConfig.h, Weave Core, ${ac_abs_confdir}/build/config/standalone)
+NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-project-includes, WEAVE_PROJECT_CONFIG_INCLUDE, WeaveProjectConfig.h, Weave Core, ${ac_abs_confdir}/build/config/standalone)
+
+# Device Layer
+
+if test "${CONFIG_DEVICE_LAYER}" = 1; then 
+    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-device-project-includes, WEAVE_DEVICE_PROJECT_CONFIG_INCLUDE, WeaveDeviceProjectConfig.h, Weave Device Layer,)
+fi
 
 AC_LANG_POP([C++])
 
@@ -2605,7 +2724,6 @@ src/lib/support/verhoeff/Makefile
 src/wrappers/jni/Makefile
 src/wrappers/jni/jni-utils/Makefile
 src/wrappers/jni/security-support/Makefile
-src/device-manager/Makefile
 src/device-manager/cocoa/Makefile
 src/device-manager/java/Makefile
 src/device-manager/python/Makefile
@@ -2681,7 +2799,8 @@ AC_MSG_NOTICE([
   Java Compiler                                    : ${JAVAC:--}
   Java Native Interface (JNI) compile flags        : ${JNI_CPPFLAGS:--}
   Java Archiver                                    : ${JAR:--}
-  Python support                                   : ${enable_python}
+  Python executable                                : ${PYTHON:--}
+  Python version                                   : ${PYTHON_VERSION:--}
   Python script directory                          : ${pythondir:--}
   Python extension directory                       : ${pyexecdir:--}
   Verhoeff support                                 : ${enable_verhoeff}

@@ -28,6 +28,18 @@
 
 #include <Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h>
 
+#if defined(ESP_PLATFORM)
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
+#include "freertos/queue.h"
+#else
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+#include "queue.h"
+#endif
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
@@ -65,6 +77,10 @@ protected:
     WEAVE_ERROR _StartEventLoopTask(void);
     WEAVE_ERROR _StartWeaveTimer(uint32_t durationMS);
 
+    // ===== Methods available to the implementation subclass.
+
+    void PostEventFromISR(const WeaveDeviceEvent * event, BaseType_t & yieldRequired);
+
 private:
 
     // ===== Private members for use by this class only.
@@ -74,6 +90,8 @@ private:
     static void EventLoopTaskMain(void * arg);
 };
 
+// Instruct the compiler to instantiate the template only when explicitly told to do so.
+extern template class GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>;
 
 } // namespace Internal
 } // namespace DeviceLayer

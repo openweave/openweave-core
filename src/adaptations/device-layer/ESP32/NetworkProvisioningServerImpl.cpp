@@ -18,11 +18,12 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
-#include <Weave/DeviceLayer/internal/NetworkInfo.h>
+#include <Weave/DeviceLayer/internal/DeviceNetworkInfo.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
 #include <Weave/DeviceLayer/ESP32/ESP32Utils.h>
+
 #include <Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.ipp>
 
 #include "esp_event.h"
@@ -41,11 +42,12 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-// Explicitly instantiate the GenericNetworkProvisioningServerImpl<> template for use by the
-// ESP32 NetworkProvisioningServerImpl class.
-template class GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>;
-
 NetworkProvisioningServerImpl NetworkProvisioningServerImpl::sInstance;
+
+WEAVE_ERROR NetworkProvisioningServerImpl::_Init(void)
+{
+    return GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>::DoInit();
+}
 
 void NetworkProvisioningServerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
@@ -104,7 +106,7 @@ WEAVE_ERROR NetworkProvisioningServerImpl::GetWiFiStationProvision(NetworkInfo &
     VerifyOrExit(stationConfig.sta.ssid[0] != 0, err = WEAVE_ERROR_INCORRECT_STATE);
 
     netInfo.NetworkId = kWiFiStationNetworkId;
-    netInfo.NetworkIdPresent = true;
+    netInfo.FieldPresent.NetworkId = true;
     netInfo.NetworkType = kNetworkType_WiFi;
     memcpy(netInfo.WiFiSSID, stationConfig.sta.ssid, min(strlen((char *)stationConfig.sta.ssid) + 1, sizeof(netInfo.WiFiSSID)));
     netInfo.WiFiMode = kWiFiMode_Managed;

@@ -19,8 +19,6 @@
 #ifndef WEAVE_DEVICE_INTERNAL_H
 #define WEAVE_DEVICE_INTERNAL_H
 
-#include <Weave/DeviceLayer/WeaveDeviceLayer.h>
-
 namespace nl {
 namespace Weave {
 namespace Logging {
@@ -33,6 +31,8 @@ enum
 } // namespace Logging
 } // namespace Weave
 } // namespace nl
+
+#include <Weave/DeviceLayer/WeaveDeviceLayer.h>
 
 namespace nl {
 namespace Weave {

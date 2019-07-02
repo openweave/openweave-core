@@ -58,14 +58,15 @@ NetworkOptions::NetworkOptions()
 {
     static OptionDef optionDefs[] =
     {
-        { "local-addr",   kArgumentRequired, 'a' },
-        { "node-addr",    kArgumentRequired, kToolCommonOpt_NodeAddr }, /* alias for local-addr */
+        { "local-addr",     kArgumentRequired, 'a' },
+        { "node-addr",      kArgumentRequired, kToolCommonOpt_NodeAddr }, /* alias for local-addr */
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-        { "tap-device",   kArgumentRequired, kToolCommonOpt_TapDevice },
-        { "ipv4-gateway", kArgumentRequired, kToolCommonOpt_IPv4GatewayAddr },
-        { "dns-server",   kArgumentRequired, 'X' },
-        { "debug-lwip",   kNoArgument,       kToolCommonOpt_DebugLwIP },
-        { "event-delay",  kArgumentRequired, kToolCommonOpt_EventDelay },
+        { "tap-device",     kArgumentRequired, kToolCommonOpt_TapDevice },
+        { "ipv4-gateway",   kArgumentRequired, kToolCommonOpt_IPv4GatewayAddr },
+        { "dns-server",     kArgumentRequired, 'X' },
+        { "debug-lwip",     kNoArgument,       kToolCommonOpt_DebugLwIP },
+        { "event-delay",    kArgumentRequired, kToolCommonOpt_EventDelay },
+        { "tap-system-config", kNoArgument,    kToolCommonOpt_TapInterfaceConfig },
 #endif
         { NULL }
     };
@@ -93,19 +94,23 @@ NetworkOptions::NetworkOptions()
         "  --event-delay <int>\n"
         "       Delay event processing by specified number of iterations. Defaults to 0.\n"
         "\n"
+        "  --tap-system-config\n"
+        "       Use configuration on each of the Linux TAP interfaces to configure LwIP's interfaces.\n"
+        "\n"
 #endif
         ;
 
     // Defaults.
-    LocalIPv4Addr = nl::Inet::IPAddress::Any;
-    LocalIPv6Addr = nl::Inet::IPAddress::Any;
+    LocalIPv4Addr.clear();
+    LocalIPv6Addr.clear();
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    TapDeviceName = NULL;
+    TapDeviceName.clear();
     LwIPDebugFlags = 0;
     EventDelay = 0;
-    IPv4GatewayAddr = nl::Inet::IPAddress::Any;
+    IPv4GatewayAddr.clear();
     DNSServerAddr = nl::Inet::IPAddress::Any;
+    TapUseSystemConfig = false;
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 }
 
@@ -125,14 +130,14 @@ bool NetworkOptions::HandleOption(const char *progName, OptionSet *optSet, int i
 #if INET_CONFIG_ENABLE_IPV4
         if (localAddr.IsIPv4())
         {
-            LocalIPv4Addr = localAddr;
+            LocalIPv4Addr.push_back(localAddr);
         }
         else
         {
-            LocalIPv6Addr = localAddr;
+            LocalIPv6Addr.push_back(localAddr);
         }
 #else // INET_CONFIG_ENABLE_IPV4
-        LocalIPv6Addr = localAddr;
+        LocalIPv6Addr.push_back(localAddr);
 #endif // INET_CONFIG_ENABLE_IPV4
         break;
 
@@ -145,14 +150,17 @@ bool NetworkOptions::HandleOption(const char *progName, OptionSet *optSet, int i
         }
         break;
     case kToolCommonOpt_TapDevice:
-        TapDeviceName = arg;
+        TapDeviceName.push_back(arg);
         break;
 
     case kToolCommonOpt_IPv4GatewayAddr:
-        if (!ParseIPAddress(arg, IPv4GatewayAddr) || !IPv4GatewayAddr.IsIPv4())
         {
-            PrintArgError("%s: Invalid value specified for IPv4 gateway address: %s\n", progName, arg);
-            return false;
+            if (!ParseIPAddress(arg, localAddr) || !localAddr.IsIPv4())
+            {
+                PrintArgError("%s: Invalid value specified for IPv4 gateway address: %s\n", progName, arg);
+                return false;
+            }
+            IPv4GatewayAddr.push_back(localAddr);
         }
         break;
 
@@ -167,6 +175,10 @@ bool NetworkOptions::HandleOption(const char *progName, OptionSet *optSet, int i
             PrintArgError("%s: Invalid value specified for event delay: %s\n", progName, arg);
             return false;
         }
+        break;
+
+      case kToolCommonOpt_TapInterfaceConfig:
+        TapUseSystemConfig = true;
         break;
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
@@ -245,6 +257,7 @@ bool WeaveNodeOptions::HandleOption(const char *progName, OptionSet *optSet, int
             PrintArgError("%s: Invalid value specified for fabric id: %s\n", progName, arg);
             return false;
         }
+        FabricIdSet = true;
         break;
     case 'n':
         if (!ParseNodeId(arg, LocalNodeId))
@@ -260,6 +273,7 @@ bool WeaveNodeOptions::HandleOption(const char *progName, OptionSet *optSet, int
             PrintArgError("%s: Invalid value specified for local subnet: %s\n", progName, arg);
             return false;
         }
+        SubnetIdSet = true;
         break;
     case kToolCommonOpt_PairingCode:
         PairingCode = arg;
@@ -804,12 +818,13 @@ WEAVE_ERROR ServiceDirClientOptions::GetRootDirectoryEntry(uint8_t *buf, uint16_
 
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t serverHostLen = (uint8_t)strlen(ServerHost);
+    uint8_t hostPortListLength = 1;
 
     VerifyOrExit(bufSize >= (1 + 8 + 1 + 1 + serverHostLen + 2), err = WEAVE_ERROR_BUFFER_TOO_SMALL);
 
-    Write8(buf, 0x41);                                       // Entry Type = Host/Port List, Host/Port List = 1
+    Write8(buf,  kDirectoryEntryType_HostPortList | (hostPortListLength & kMask_HostPortListLen));
     LittleEndian::Write64(buf, kServiceEndpoint_Directory);  // Service Endpoint Id = Directory Service
-    Write8(buf, 0x80);                                       // Host ID Type = Fully Qualified, Suffix Index Present = false, Port Id Present = true
+    Write8(buf, kHostIdType_FullyQualified |  kMask_PortIdPresent);
     Write8(buf, serverHostLen);
     memcpy(buf, ServerHost, serverHostLen); buf += serverHostLen;
     LittleEndian::Write16(buf, ServerPort);
@@ -1054,6 +1069,26 @@ bool ParseDNSOptions(const char * progName, const char *argName, const char * ar
         }
     }
 
+    return true;
+}
+
+bool ResolveWeaveNetworkOptions(const char *progName, WeaveNodeOptions &weaveOptions, NetworkOptions &networkOptions)
+{
+    if (!networkOptions.LocalIPv6Addr.empty())
+    {
+        if (!networkOptions.LocalIPv6Addr[0].IsIPv6ULA())
+        {
+            PrintArgError("%s: Local address must be an IPv6 ULA\n", progName);
+            return false;
+        }
+
+        if (!weaveOptions.FabricIdSet)
+            weaveOptions.FabricId = networkOptions.LocalIPv6Addr[0].GlobalId();
+        if (!weaveOptions.LocalNodeIdSet)
+            weaveOptions.LocalNodeId = IPv6InterfaceIdToWeaveNodeId(networkOptions.LocalIPv6Addr[0].InterfaceId());
+        if (!weaveOptions.SubnetIdSet)
+            weaveOptions.SubnetId = networkOptions.LocalIPv6Addr[0].Subnet();
+    }
     return true;
 }
 

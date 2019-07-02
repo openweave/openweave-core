@@ -54,9 +54,9 @@ public:
 
     enum UpdateClientState
     {
-        kState_Uninitialized = 0,    //< The update client has not been initialized
-        kState_Initialized,          //< The update client has been initialized and is ready
-        kState_AwaitingResponse,     //< The update client has sent the update request, and pending for response
+        kState_Uninitialized = 0,    ///< The update client has not been initialized
+        kState_Initialized,          ///< The update client has been initialized and is ready
+        kState_AwaitingResponse,     ///< The update client has sent the update request, and pending for response
     };
 
     typedef void (*EventCallback)(void *apAppState, EventType aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);

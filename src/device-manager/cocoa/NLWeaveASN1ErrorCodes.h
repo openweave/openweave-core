@@ -33,7 +33,7 @@ typedef int32_t ASN1_ERROR;
 
 // Macro for defining ASN1 errors
 #define NLASN1_ERROR_BASE 5000
-#define NLASN1_ERROR_MAX  5999
+#define NLASN1_ERROR_MAX 5999
 #define _NLASN1_ERROR(e) (NLASN1_ERROR_BASE + (e))
 
 // clang-format off

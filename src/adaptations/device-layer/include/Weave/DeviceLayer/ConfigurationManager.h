@@ -128,9 +128,14 @@ private:
 
 protected:
 
-    // Access to construction/destruction is limited to subclasses.
+    // Construction/destruction limited to subclasses.
     ConfigurationManager() = default;
     ~ConfigurationManager() = default;
+
+    // No copy, move or assignment.
+    ConfigurationManager(const ConfigurationManager &) = delete;
+    ConfigurationManager(const ConfigurationManager &&) = delete;
+    ConfigurationManager & operator=(const ConfigurationManager &) = delete;
 };
 
 /**

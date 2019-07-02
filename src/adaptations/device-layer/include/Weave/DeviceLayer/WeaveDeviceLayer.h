@@ -28,8 +28,13 @@
 #include <Weave/DeviceLayer/PlatformManager.h>
 #include <Weave/DeviceLayer/ConfigurationManager.h>
 #include <Weave/DeviceLayer/ConnectivityManager.h>
+#if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
 #include <Weave/DeviceLayer/TraitManager.h>
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
 #include <Weave/DeviceLayer/TimeSyncManager.h>
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#include <Weave/DeviceLayer/ThreadStackManager.h>
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 
 namespace nl {
 namespace Weave {

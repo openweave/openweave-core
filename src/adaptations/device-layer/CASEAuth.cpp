@@ -246,7 +246,10 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
     // Otherwise the device has not been service provisioned...
     else
     {
-        // TODO: Only do this for DEBUG/TEST builds
+        // In security test mode, load a predefined set of root and intermediate certificates.
+        // Otherwise fail with a NOT_SERVICE_PROVISIONED error.
+
+#if WEAVE_CONFIG_SECURITY_TEST_MODE
 
         err = certSet.LoadCert(nl::NestCerts::Development::Root::Cert, nl::NestCerts::Development::Root::CertLength, 0, cert);
         SuccessOrExit(err);
@@ -261,6 +264,12 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
 
         err = certSet.LoadCert(nl::NestCerts::Production::DeviceCA::Cert, nl::NestCerts::Production::DeviceCA::CertLength, kDecodeFlag_GenerateTBSHash, cert);
         SuccessOrExit(err);
+
+#else
+
+        ExitNow(err = WEAVE_DEVICE_ERROR_NOT_SERVICE_PROVISIONED);
+
+#endif // WEAVE_CONFIG_SECURITY_TEST_MODE
     }
 
     memset(&validContext, 0, sizeof(validContext));

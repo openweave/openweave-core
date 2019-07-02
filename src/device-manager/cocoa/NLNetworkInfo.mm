@@ -19,7 +19,7 @@
 
 /**
  *    @file
- *      Objective-C representation of NetworkInfo payload communicated via network-provisioning profile. 
+ *      Objective-C representation of NetworkInfo payload communicated via network-provisioning profile.
  *
  */
 
@@ -31,45 +31,50 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiMode;
 using nl::Weave::Profiles::NetworkProvisioning::WiFiRole;
 using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
 
+const int64_t NLNetworkID_NotSpecified = -1LL;
+const int NLThreadPANId_NotSpecified = -1;
+const int NLThreadChannel_NotSpecified = -1;
+
 @implementation NLNetworkInfo
 
-+ (NLNetworkInfo *)createUsing:(NetworkInfo *)pNetworkInfo {
++ (NLNetworkInfo *)createUsing:(NetworkInfo *)pNetworkInfo
+{
     return [[NLNetworkInfo alloc] initWith:pNetworkInfo];
 }
 
-- (id)initWithWiFiSSID:(NSString *)ssid wifiKey:(NSData *)wifiKey securityType:(NLWiFiSecurityType)securityType {
-	if (self = [super init]) {
-		_WiFiSSID = ssid;
+- (id)initWithWiFiSSID:(NSString *)ssid wifiKey:(NSData *)wifiKey securityType:(NLWiFiSecurityType)securityType
+{
+    if (self = [super init]) {
+        _WiFiSSID = ssid;
 
         if (wifiKey)
             _WiFiKey = wifiKey;
 
-		_WiFiSecurityType = securityType;
+        _WiFiSecurityType = securityType;
 
-		_NetworkType = kNLNetworkType_WiFi;
-		_WiFiMode = kNLWiFiMode_Managed;
-		_WiFiRole = kNLWiFiRole_Station;
+        _NetworkType = kNLNetworkType_WiFi;
+        _WiFiMode = kNLWiFiMode_Managed;
+        _WiFiRole = kNLWiFiRole_Station;
 
         _NetworkId = -1;
-	}
-	return self;
+    }
+    return self;
 }
 
-- (id)initWith:(nl::Weave::DeviceManager::NetworkInfo *)pNetworkInfo {
+- (id)initWith:(nl::Weave::DeviceManager::NetworkInfo *)pNetworkInfo
+{
     if (self = [super init]) {
-        _NetworkType = (NLNetworkType)pNetworkInfo->NetworkType;
+        _NetworkType = (NLNetworkType) pNetworkInfo->NetworkType;
         _NetworkId = pNetworkInfo->NetworkId;
 
-        if (pNetworkInfo->WiFiSSID)
-        {
+        if (pNetworkInfo->WiFiSSID) {
             _WiFiSSID = [[NSString alloc] initWithCString:pNetworkInfo->WiFiSSID encoding:NSUTF8StringEncoding];
             _WiFiMode = (NLWiFiMode) pNetworkInfo->WiFiMode;
             _WiFiRole = (NLWiFiRole) pNetworkInfo->WiFiRole;
             _WiFiSecurityType = (NLWiFiSecurityType) pNetworkInfo->WiFiSecurityType;
         }
 
-        if (pNetworkInfo->WiFiKey)
-        {
+        if (pNetworkInfo->WiFiKey) {
             printf("pNetworkInfo->WiFiKey: %s\n", pNetworkInfo->WiFiKey);
             _WiFiKey = [NSData dataWithBytes:pNetworkInfo->WiFiKey length:pNetworkInfo->WiFiKeyLen];
         }
@@ -77,15 +82,14 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
         if (pNetworkInfo->ThreadNetworkName)
             _ThreadNetworkName = [[NSString alloc] initWithCString:pNetworkInfo->ThreadNetworkName encoding:NSUTF8StringEncoding];
 
-        if (pNetworkInfo->ThreadExtendedPANId)
-        {
+        if (pNetworkInfo->ThreadExtendedPANId) {
             _ThreadExtendedPANId = [[NSData alloc] initWithBytes:pNetworkInfo->ThreadExtendedPANId length:8];
         }
 
-        if (pNetworkInfo->ThreadNetworkKey)
-        {
+        if (pNetworkInfo->ThreadNetworkKey) {
             NSLog(@"Copying ThreadNetworkKey with length: %d", pNetworkInfo->ThreadNetworkKeyLen);
-            _ThreadNetworkKey = [[NSData alloc] initWithBytes:pNetworkInfo->ThreadNetworkKey length:pNetworkInfo->ThreadNetworkKeyLen];
+            _ThreadNetworkKey = [[NSData alloc] initWithBytes:pNetworkInfo->ThreadNetworkKey
+                                                       length:pNetworkInfo->ThreadNetworkKeyLen];
             NSLog(@"_ThreadNetworkKey: %@", _ThreadNetworkKey);
         }
         _ThreadPANId = pNetworkInfo->ThreadPANId;
@@ -98,7 +102,7 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
 
 - (id)copyWithZone:(NSZone *)zone
 {
-    NLNetworkInfo *networkInfo = [[NLNetworkInfo allocWithZone:zone] init];
+    NLNetworkInfo * networkInfo = [[NLNetworkInfo allocWithZone:zone] init];
 
     networkInfo.NetworkType = self.NetworkType;
     networkInfo.NetworkId = self.NetworkId;
@@ -124,7 +128,8 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
 
 #pragma mark - Protected methods
 
-- (NetworkInfo)toNetworkInfo {
+- (NetworkInfo)toNetworkInfo
+{
 
     NetworkInfo networkInfo;
 
@@ -139,26 +144,22 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
     networkInfo.WiFiRole = [self toWifiRole:_WiFiRole];
     networkInfo.WiFiSecurityType = [self toWifiSecurityType:_WiFiSecurityType];
 
-    if (_WiFiKey)
-    {
+    if (_WiFiKey) {
         networkInfo.WiFiKeyLen = [_WiFiKey length];
         networkInfo.WiFiKey = (uint8_t *) malloc(networkInfo.WiFiKeyLen);
         assert(networkInfo.WiFiKey != NULL);
         memcpy(networkInfo.WiFiKey, [_WiFiKey bytes], networkInfo.WiFiKeyLen);
-
     }
 
     if (_ThreadNetworkName)
         networkInfo.ThreadNetworkName = strdup([_ThreadNetworkName UTF8String]);
 
-    if (_ThreadExtendedPANId)
-    {
+    if (_ThreadExtendedPANId) {
         networkInfo.ThreadExtendedPANId = (uint8_t *) malloc(8);
         memcpy(networkInfo.ThreadExtendedPANId, [_ThreadExtendedPANId bytes], 8);
     }
 
-    if (_ThreadNetworkKey)
-    {
+    if (_ThreadNetworkKey) {
         networkInfo.ThreadNetworkKeyLen = [_ThreadNetworkKey length];
         networkInfo.ThreadNetworkKey = (uint8_t *) malloc(networkInfo.ThreadNetworkKeyLen);
         memcpy(networkInfo.ThreadNetworkKey, [_ThreadNetworkKey bytes], networkInfo.ThreadNetworkKeyLen);
@@ -174,176 +175,176 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
 - (nl::Weave::Profiles::NetworkProvisioning::NetworkType)toNetworkType:(NLNetworkType)networkType
 {
     switch (networkType) {
-        case kNLNetworkType_WiFi:                       return nl::Weave::Profiles::NetworkProvisioning::kNetworkType_WiFi;
-        case kNLNetworkType_Thread:                     return nl::Weave::Profiles::NetworkProvisioning::kNetworkType_Thread;
-        default:                                        return nl::Weave::Profiles::NetworkProvisioning::kNetworkType_NotSpecified;
+    case kNLNetworkType_WiFi:
+        return nl::Weave::Profiles::NetworkProvisioning::kNetworkType_WiFi;
+    case kNLNetworkType_Thread:
+        return nl::Weave::Profiles::NetworkProvisioning::kNetworkType_Thread;
+    default:
+        return nl::Weave::Profiles::NetworkProvisioning::kNetworkType_NotSpecified;
     }
 }
 
 - (nl::Weave::Profiles::NetworkProvisioning::WiFiMode)toWifiMode:(NLWiFiMode)mode
 {
     switch (mode) {
-        case kNLWiFiMode_AdHoc:                         return nl::Weave::Profiles::NetworkProvisioning::kWiFiMode_AdHoc;
-        case kNLWiFiMode_Managed:                       return nl::Weave::Profiles::NetworkProvisioning::kWiFiMode_Managed;
-        default:                                        return nl::Weave::Profiles::NetworkProvisioning::kWiFiMode_NotSpecified;
+    case kNLWiFiMode_AdHoc:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiMode_AdHoc;
+    case kNLWiFiMode_Managed:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiMode_Managed;
+    default:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiMode_NotSpecified;
     }
 }
 
 - (nl::Weave::Profiles::NetworkProvisioning::WiFiRole)toWifiRole:(NLWiFiRole)role
 {
     switch (role) {
-        case kNLWiFiRole_Station:                       return nl::Weave::Profiles::NetworkProvisioning::kWiFiRole_Station;
-        case kNLWiFiRole_AccessPoint:                   return nl::Weave::Profiles::NetworkProvisioning::kWiFiRole_AccessPoint;
-        default:                                        return nl::Weave::Profiles::NetworkProvisioning::kWiFiRole_NotSpecified;
+    case kNLWiFiRole_Station:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiRole_Station;
+    case kNLWiFiRole_AccessPoint:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiRole_AccessPoint;
+    default:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiRole_NotSpecified;
     }
 }
 
 - (nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType)toWifiSecurityType:(NLWiFiSecurityType)securityType
 {
     switch (securityType) {
-        case kNLWiFiSecurityType_NotSpecified:          return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_NotSpecified;
-        case kNLWiFiSecurityType_None:                  return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_None;
-        case kNLWiFiSecurityType_WEP:                   return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WEP;
-        case kNLWiFiSecurityType_WPAPersonal:           return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPAPersonal;
-        case kNLWiFiSecurityType_WPA2Personal:          return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA2Personal;
-        case kNLWiFiSecurityType_WPA2MixedPersonal:     return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA2MixedPersonal;
-        case kNLWiFiSecurityType_WPAEnterprise:         return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPAEnterprise;
-        case kNLWiFiSecurityType_WPA2Enterprise:        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA2Enterprise;
-        case kNLWiFiSecurityType_WPA2MixedEnterprise:   return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA2MixedEnterprise;
-        default:                                        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_NotSpecified;
+    case kNLWiFiSecurityType_NotSpecified:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_NotSpecified;
+    case kNLWiFiSecurityType_None:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_None;
+    case kNLWiFiSecurityType_WEP:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WEP;
+    case kNLWiFiSecurityType_WPAPersonal:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPAPersonal;
+    case kNLWiFiSecurityType_WPA2Personal:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA2Personal;
+    case kNLWiFiSecurityType_WPA2MixedPersonal:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA2MixedPersonal;
+    case kNLWiFiSecurityType_WPAEnterprise:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPAEnterprise;
+    case kNLWiFiSecurityType_WPA2Enterprise:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA2Enterprise;
+    case kNLWiFiSecurityType_WPA2MixedEnterprise:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA2MixedEnterprise;
+    default:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_NotSpecified;
     }
 }
 
 #pragma mark - Public methods
 
-- (NSString *)WiFiSecurityTypeAsString {
+- (NSString *)WiFiSecurityTypeAsString
+{
     switch (_WiFiSecurityType) {
-        case kNLWiFiSecurityType_NotSpecified:
-            return @"NotSpecified";
-        case kNLWiFiSecurityType_None:
-            return @"None";
-        case kNLWiFiSecurityType_WEP:
-            return @"WEP";
-        case kNLWiFiSecurityType_WPAPersonal:
-            return @"WPAPersonal";
-        case kNLWiFiSecurityType_WPA2Personal:
-            return @"WPA2Personal";
-        case kNLWiFiSecurityType_WPA2MixedPersonal:
-            return @"WPA2MixedPersonal";
-        case kNLWiFiSecurityType_WPAEnterprise:
-            return @"WPAEnterprise";
-        case kNLWiFiSecurityType_WPA2Enterprise:
-            return @"WPA2Enterprise";
-        case kNLWiFiSecurityType_WPA2MixedEnterprise:
-            return @"WPA2MixedEnterprise";
-        default:
-            return @"Unknown NLWiFiSecurityType";
+    case kNLWiFiSecurityType_NotSpecified:
+        return @"NotSpecified";
+    case kNLWiFiSecurityType_None:
+        return @"None";
+    case kNLWiFiSecurityType_WEP:
+        return @"WEP";
+    case kNLWiFiSecurityType_WPAPersonal:
+        return @"WPAPersonal";
+    case kNLWiFiSecurityType_WPA2Personal:
+        return @"WPA2Personal";
+    case kNLWiFiSecurityType_WPA2MixedPersonal:
+        return @"WPA2MixedPersonal";
+    case kNLWiFiSecurityType_WPAEnterprise:
+        return @"WPAEnterprise";
+    case kNLWiFiSecurityType_WPA2Enterprise:
+        return @"WPA2Enterprise";
+    case kNLWiFiSecurityType_WPA2MixedEnterprise:
+        return @"WPA2MixedEnterprise";
+    default:
+        return @"Unknown NLWiFiSecurityType";
     }
 }
 
 #pragma mark - Private methods
 
-- (NSString *)debugDescriptionWithNetworkInfo:(nl::Weave::DeviceManager::NetworkInfo *)pNetworkInfo {
-    NSString *descr = [NSString stringWithFormat:@"(%p), \n"
-                                                         "\tNetworkType: %d\n"
-                                                         "\tNetworkId: %lld\n"
-                                                         "\tWiFiSSID: %s\n"
-                                                         "\tWiFiMode: %d\n"
-                                                         "\tWiFiRole: %d\n"
-                                                         "\tWiFiSecurityType: %d\n"
-                                                         "\tWiFiKey: %s\n"
-                                                         "\tThreadNetworkName: %s\n"
-                                                         "\tThreadPANId: %04x\n"
-                                                         "\tThreadExtendedPANId: %s\n"
-                                                         "\tThreadNetworkKeyLen: %d\n"
-                                                         "\tThreadChannel: %d\n"
-                                                         "\tWirelessSignalStrength: %d",
-                                                 self,
-                                                 pNetworkInfo->NetworkType,
-                                                 pNetworkInfo->NetworkId,
-                                                 pNetworkInfo->WiFiSSID,
-                                                 pNetworkInfo->WiFiMode,
-                                                 pNetworkInfo->WiFiRole,
-                                                 pNetworkInfo->WiFiSecurityType,
-                                                 pNetworkInfo->WiFiKey,
+- (NSString *)debugDescriptionWithNetworkInfo:(nl::Weave::DeviceManager::NetworkInfo *)pNetworkInfo
+{
+    NSString * descr =
+        [NSString stringWithFormat:@"(%p), \n"
+                                    "\tNetworkType: %d\n"
+                                    "\tNetworkId: %lld\n"
+                                    "\tWiFiSSID: %s\n"
+                                    "\tWiFiMode: %d\n"
+                                    "\tWiFiRole: %d\n"
+                                    "\tWiFiSecurityType: %d\n"
+                                    "\tWiFiKey: %s\n"
+                                    "\tThreadNetworkName: %s\n"
+                                    "\tThreadPANId: %04x\n"
+                                    "\tThreadExtendedPANId: %s\n"
+                                    "\tThreadNetworkKeyLen: %d\n"
+                                    "\tThreadChannel: %d\n"
+                                    "\tWirelessSignalStrength: %d",
+                  self, pNetworkInfo->NetworkType, pNetworkInfo->NetworkId, pNetworkInfo->WiFiSSID, pNetworkInfo->WiFiMode,
+                  pNetworkInfo->WiFiRole, pNetworkInfo->WiFiSecurityType, pNetworkInfo->WiFiKey,
 #if NLNETWORKINFO_DEBUG
-                                                 pNetworkInfo->WiFiKey ? "*********" : "none",
+                  pNetworkInfo->WiFiKey ? "*********" : "none",
 #endif
-                                                 pNetworkInfo->ThreadNetworkName,
-                                                 pNetworkInfo->ThreadPANId,
-                                                 pNetworkInfo->ThreadExtendedPANId,
-                                                 pNetworkInfo->ThreadNetworkKeyLen,
-                                                 pNetworkInfo->ThreadChannel,
-                                                 pNetworkInfo->WirelessSignalStrength];
+                  pNetworkInfo->ThreadNetworkName, pNetworkInfo->ThreadPANId, pNetworkInfo->ThreadExtendedPANId,
+                  pNetworkInfo->ThreadNetworkKeyLen, pNetworkInfo->ThreadChannel, pNetworkInfo->WirelessSignalStrength];
 
     return descr;
 }
 
 - (NSString *)debugDescription
 {
-    NSMutableString *descr = [[NSMutableString alloc] init];
-    NSString *line = [NSString stringWithFormat:@"(%p), \n"
-                                                         "\tNetworkType: %ld\n",
-                                                         self,
-                                                 (long)_NetworkType];
+    NSMutableString * descr = [[NSMutableString alloc] init];
+    NSString * line = [NSString stringWithFormat:@"(%p), \n"
+                                                  "\tNetworkType: %ld\n",
+                                self, (long) _NetworkType];
 
     [descr appendString:line];
-    if (_NetworkId != NLNetworkID_NotSpecified)
-    {
+    if (_NetworkId != NLNetworkID_NotSpecified) {
         line = [NSString stringWithFormat:@"\tNetworkId: %lld\n", _NetworkId];
         [descr appendString:line];
     } else {
         [descr appendString:@"NetworkId: -1 (Unspecified)"];
     }
 
-    if (_WiFiSSID)
-    {
+    if (_WiFiSSID) {
         line = [NSString stringWithFormat:@"\tWiFiSSID: %@\n", _WiFiSSID];
         [descr appendString:line];
     }
 
     line = [NSString stringWithFormat:@"\tWiFiMode: %ld\n"
-                                        "\tWiFiRole: %ld\n"
-                                        "\tWiFiSecurityType: %ld\n"
-                                        "\tWirelessSignalStrength: %ld\n",
-                                                 (long)_WiFiMode,
-                                                 (long)_WiFiRole,
-                                                 (long)_WiFiSecurityType,
-                                                 (long)_WirelessSignalStrength];
+                                       "\tWiFiRole: %ld\n"
+                                       "\tWiFiSecurityType: %ld\n"
+                                       "\tWirelessSignalStrength: %ld\n",
+                     (long) _WiFiMode, (long) _WiFiRole, (long) _WiFiSecurityType, (long) _WirelessSignalStrength];
     [descr appendString:line];
 
-    if (_WiFiKey)
-    {
+    if (_WiFiKey) {
         line = [NSString stringWithFormat:@"\tWiFiKey: <exists>\n"];
         [descr appendString:line];
     }
 
-    if (_ThreadNetworkName)
-    {
+    if (_ThreadNetworkName) {
         line = [NSString stringWithFormat:@"\tThreadNetworkName: %@\n", _ThreadNetworkName];
         [descr appendString:line];
     }
 
-    if (_ThreadPANId != NLThreadPANId_NotSpecified)
-    {
+    if (_ThreadPANId != NLThreadPANId_NotSpecified) {
         line = [NSString stringWithFormat:@"\tThreadPANId: %04x\n", _ThreadPANId];
         [descr appendString:line];
     }
 
-    if (_ThreadExtendedPANId)
-    {
+    if (_ThreadExtendedPANId) {
         line = [NSString stringWithFormat:@"\tThreadExtendedPANId: %@\n", _ThreadExtendedPANId];
         [descr appendString:line];
     }
 
-    if (_ThreadNetworkKey)
-    {
+    if (_ThreadNetworkKey) {
         line = [NSString stringWithFormat:@"\tThreadNetworkKey: %@\n", _ThreadNetworkKey];
         [descr appendString:line];
     }
 
-    if (_ThreadChannel != NLThreadChannel_NotSpecified)
-    {
+    if (_ThreadChannel != NLThreadChannel_NotSpecified) {
         line = [NSString stringWithFormat:@"\tThreadChannel: %d\n", _ThreadChannel];
         [descr appendString:line];
     }

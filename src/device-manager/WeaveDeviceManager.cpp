@@ -32,9 +32,6 @@
 #include <errno.h>
 #include <time.h>
 
-// This module uses Legacy WDM (V2)
-#include <Weave/Profiles/data-management/Legacy/WdmManagedNamespace.h>
-
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Support/Base64.h>
 #include <Weave/Support/CodeUtils.h>
@@ -45,14 +42,13 @@
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
 #include <Weave/Profiles/fabric-provisioning/FabricProvisioning.h>
-#include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Profiles/device-description/DeviceDescription.h>
 #include <Weave/Profiles/device-control/DeviceControl.h>
 #include <Weave/Profiles/vendor/nestlabs/device-description/NestProductIdentifiers.hpp>
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/security/WeaveAccessToken.h>
 #include <Weave/Profiles/token-pairing/TokenPairing.h>
-#include "WeaveDeviceManager.h"
+#include <Weave/DeviceManager/WeaveDeviceManager.h>
 #include <Weave/Support/verhoeff/Verhoeff.h>
 #include <Weave/Support/crypto/WeaveCrypto.h>
 #include <Weave/Support/logging/WeaveLogging.h>
@@ -67,7 +63,6 @@ namespace DeviceManager {
 
 using namespace nl::Weave::Encoding;
 using namespace nl::Weave::Profiles;
-using namespace nl::Weave::Profiles::DataManagement;
 using namespace nl::Weave::Profiles::DeviceDescription;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
 using namespace nl::Weave::Profiles::Security;
@@ -140,7 +135,6 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mUseAccessToken = true;
     mConnectedToRemoteDevice = false;
     mIsUnsecuredConnectionListenerSet = false;
-    mActiveLocale = NULL;
     mPingSize = 0;
     mTokenPairingCertificate = NULL;
     mTokenPairingCertificateLen = 0;
@@ -150,15 +144,9 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mEnumeratedNodesMaxLen = 0;
 
     // By default, rendezvous messages are sent to the IPv6 link-local, all-nodes multicast address.
-    mRendezvousAddr = IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+    mRendezvousAddr = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
 
     State = kState_Initialized;
-
-    err = mDMClient.InitClient(this, exchangeMgr);
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceManager, "mDMClient.Init() failed: %s", ErrorStr(err));
-    }
 
     return err;
 }
@@ -1483,6 +1471,7 @@ WEAVE_ERROR WeaveDeviceManager::AddNetwork(const NetworkInfo *netInfo, void* app
 {
     WEAVE_ERROR     err     = WEAVE_NO_ERROR;
     PacketBuffer*   msgBuf  = NULL;
+    uint16_t        msgType = kMsgType_AddNetworkV2;
     TLVWriter       writer;
 
     if (mOpState != kOpState_Idle)
@@ -1507,6 +1496,11 @@ WEAVE_ERROR WeaveDeviceManager::AddNetwork(const NetworkInfo *netInfo, void* app
     mOpState = kOpState_AddNetwork;
 
 #if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+
+#if WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
+    // Revert to the deprecated, legacy msg type
+    msgType = kMsgType_AddNetwork;
+#else
     // Create duplicate of a message buffer.
     // If device returns error indicating that the new message type is not supported
     // this retained message will be re-sent to the device as an old AddNetwork() message type.
@@ -1518,9 +1512,11 @@ WEAVE_ERROR WeaveDeviceManager::AddNetwork(const NetworkInfo *netInfo, void* app
 
     // Identify if this request creates new Thread network.
     mCurReqCreateThreadNetwork = (netInfo->NetworkType == kNetworkType_Thread) && (netInfo->ThreadExtendedPANId == NULL);
+#endif // WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
+
 #endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
 
-    err = SendRequest(kWeaveProfile_NetworkProvisioning, kMsgType_AddNetworkV2, msgBuf,
+    err = SendRequest(kWeaveProfile_NetworkProvisioning, msgType, msgBuf,
             HandleNetworkProvisioningResponse);
     msgBuf = NULL;
 
@@ -1626,7 +1622,8 @@ WEAVE_ERROR WeaveDeviceManager::GetCameraAuthData(const char* nonce, void* appRe
     VerifyOrExit(mCameraNonce == NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Save copy of nonce for HandleGetCameraAuthResponse callback
-    VerifyOrExit(asprintf(&mCameraNonce, "%s", nonce) > 0, err = WEAVE_ERROR_NO_MEMORY);
+    mCameraNonce = strdup(nonce);
+    VerifyOrExit(mCameraNonce != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     err = EncodeCameraAuthDataRequest(msgBuf, nonce);
     SuccessOrExit(err);
@@ -1680,340 +1677,6 @@ exit:
     if (err != WEAVE_NO_ERROR)
         ClearOpState();
     return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::GetActiveLocale(void* appReqState, GetActiveLocaleCompleteFunct onComplete, ErrorFunct onError)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint64_t deviceId = kNodeIdNotSpecified;
-    const uint16_t txnId = 1;
-    const uint32_t timeout = 10000; // milliseconds
-    ReferencedTLVData pathList;
-
-    mAppReqState = appReqState;
-    mOnComplete.GetActiveLocale = onComplete;
-    mOnError = onError;
-    mOpState = kOpState_GetActiveLocale;
-
-    err = GetDeviceId(deviceId);
-    SuccessOrExit(err);
-
-    VerifyOrExit(mDeviceCon != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    err = mDMClient.BindRequest(mDeviceCon);
-    SuccessOrExit(err);
-
-    err = pathList.init(WriteLocaleRequest, this);
-    SuccessOrExit(err);
-
-    err = mDMClient.ViewRequest(pathList, txnId, timeout);
-    SuccessOrExit(err);
-
-exit:
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceManager, "%s failed: %s", __FUNCTION__, ErrorStr(err));
-        ClearOpState();
-    }
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::GetAvailableLocales(void* appReqState, GetAvailableLocalesCompleteFunct onComplete, ErrorFunct onError)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint64_t deviceId = kNodeIdNotSpecified;
-    const uint16_t txnId = 1;
-    const uint32_t timeout = 10000; // milliseconds
-    ReferencedTLVData pathList;
-
-    mAppReqState = appReqState;
-    mOnComplete.GetAvailableLocales = onComplete;
-    mOnError = onError;
-    mOpState = kOpState_GetAvailableLocales;
-
-    err = GetDeviceId(deviceId);
-    SuccessOrExit(err);
-
-    VerifyOrExit(mDeviceCon != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    err = mDMClient.BindRequest(mDeviceCon);
-    SuccessOrExit(err);
-
-    err = pathList.init(WriteLocaleRequest, this);
-    SuccessOrExit(err);
-
-    err = mDMClient.ViewRequest(pathList, txnId, timeout);
-    SuccessOrExit(err);
-
-exit:
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceManager, "%s failed: %s", __FUNCTION__, ErrorStr(err));
-        ClearOpState();
-    }
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::SetActiveLocale(void* appReqState, const char *aLocale, CompleteFunct onComplete, ErrorFunct onError)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint64_t deviceId = kNodeIdNotSpecified;
-    const uint16_t txnId = 1;
-    const uint32_t timeout = 10000; // milliseconds
-    ReferencedTLVData dataList;
-
-    mAppReqState = appReqState;
-    mOnComplete.General = onComplete;
-    mOnError = onError;
-    mOpState = kOpState_SetActiveLocale;
-    mActiveLocale = aLocale;
-
-    err = GetDeviceId(deviceId);
-    SuccessOrExit(err);
-
-    VerifyOrExit(mDeviceCon != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    err = mDMClient.BindRequest(mDeviceCon);
-    SuccessOrExit(err);
-
-    err = dataList.init(WriteLocaleRequest, this);
-    SuccessOrExit(err);
-
-    err = mDMClient.UpdateRequest(dataList, txnId, timeout);
-    SuccessOrExit(err);
-
-exit:
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceManager, "%s failed: %s", __FUNCTION__, ErrorStr(err));
-        ClearOpState();
-    }
-    return err;
-}
-
-void WeaveDeviceManager::WriteLocaleRequest(TLVWriter &aWriter, void *ctx)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    const uint16_t pathLen = 1;
-
-    WeaveDeviceManager *deviceMgr = (WeaveDeviceManager *) ctx;
-
-    switch (deviceMgr->mOpState)
-    {
-        case kOpState_GetActiveLocale:
-            err = StartPathList(aWriter);
-            SuccessOrExit(err);
-
-            err = EncodePath(aWriter,
-                             AnonymousTag,
-                             kWeaveProfile_Locale,
-                             kInstanceIdNotSpecified,
-                             pathLen,
-                             ProfileTag(kWeaveProfile_Locale, Locale::kTag_ActiveLocale)
-                             );
-            SuccessOrExit(err);
-
-            err =  EndList(aWriter);
-            SuccessOrExit(err);
-
-            err = aWriter.Finalize();
-            break;
-
-        case kOpState_SetActiveLocale:
-            WeaveLogProgress(DeviceManager, "Set active locale to %s", deviceMgr->mActiveLocale);
-
-            err = StartDataList(aWriter);
-            SuccessOrExit(err);
-
-            err = StartDataListElement(aWriter);
-            SuccessOrExit(err);
-
-            err = EncodePath(aWriter,
-                             ContextTag(kTag_WDMDataListElementPath),
-                             kWeaveProfile_Locale,
-                             kInstanceIdNotSpecified,
-                             pathLen,
-                             ProfileTag(kWeaveProfile_Locale, Locale::kTag_ActiveLocale)
-                             );
-            SuccessOrExit(err);
-
-            err = aWriter.Put(ContextTag(kTag_WDMDataListElementVersion), (uint64_t)1);
-            SuccessOrExit(err);
-
-            err = aWriter.PutString(ContextTag(kTag_WDMDataListElementData), deviceMgr->mActiveLocale);
-            SuccessOrExit(err);
-
-            err = EndDataListElement(aWriter);
-            SuccessOrExit(err);
-
-            err = EndList(aWriter);
-            SuccessOrExit(err);
-
-            err = aWriter.Finalize();
-            break;
-
-        case kOpState_GetAvailableLocales:
-            err = StartPathList(aWriter);
-            SuccessOrExit(err);
-
-            err = EncodePath(aWriter,
-                             AnonymousTag,
-                             kWeaveProfile_Locale,
-                             kInstanceIdNotSpecified,
-                             pathLen,
-                             ProfileTag(kWeaveProfile_Locale, Locale::kTag_AvailableLocales)
-                             );
-            SuccessOrExit(err);
-
-            err =  EndList(aWriter);
-            SuccessOrExit(err);
-
-            err = aWriter.Finalize();
-            break;
-
-        default:
-            WeaveLogError(DeviceManager, "Incorrect OpState for %s: %d", __FUNCTION__, deviceMgr->mOpState);
-            err = WEAVE_ERROR_INCORRECT_STATE;
-            break;
-    }
-
-exit:
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceManager, "%s failed: %s", __FUNCTION__, ErrorStr(err));
-    }
-}
-
-WEAVE_ERROR WeaveDeviceManager::ThermostatGetEntryKey(void* appReqState, ThermostatGetEntryKeyCompleteFunct onComplete, ErrorFunct onError)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint64_t deviceId = kNodeIdNotSpecified;
-    const uint16_t txnId = 1;
-    const uint32_t timeout = 10000; // milliseconds
-    ReferencedTLVData pathList;
-
-    mAppReqState = appReqState;
-    mOnComplete.ThermostatGetEntryKey = onComplete;
-    mOnError = onError;
-    mOpState = kOpState_ThermostatGetEntryKey;
-
-    err = GetDeviceId(deviceId);
-    SuccessOrExit(err);
-
-    VerifyOrExit(mDeviceCon != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    err = mDMClient.BindRequest(mDeviceCon);
-    SuccessOrExit(err);
-
-    err = pathList.init(WriteThermostatRequest, this);
-    SuccessOrExit(err);
-
-    err = mDMClient.ViewRequest(pathList, txnId, timeout);
-    SuccessOrExit(err);
-
-exit:
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceManager, "%s failed: %s", __FUNCTION__, ErrorStr(err));
-        ClearOpState();
-    }
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::ThermostatSystemTestStatus(void* appReqState, ThermostatSystemTestStatusCompleteFunct onComplete, ErrorFunct onError)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint64_t deviceId = kNodeIdNotSpecified;
-    const uint16_t txnId = 1;
-    const uint32_t timeout = 10000; // milliseconds
-    ReferencedTLVData pathList;
-
-    mAppReqState = appReqState;
-    mOnComplete.ThermostatSystemStatus = onComplete;
-    mOnError = onError;
-    mOpState = kOpState_ThermostatSystemTestStatus;
-
-    err = GetDeviceId(deviceId);
-    SuccessOrExit(err);
-
-    VerifyOrExit(mDeviceCon != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    err = mDMClient.BindRequest(mDeviceCon);
-    SuccessOrExit(err);
-
-    err = pathList.init(WriteThermostatRequest, this);
-    SuccessOrExit(err);
-
-    err = mDMClient.ViewRequest(pathList, txnId, timeout);
-    SuccessOrExit(err);
-
-exit:
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceManager, "%s failed: %s", __FUNCTION__, ErrorStr(err));
-        ClearOpState();
-    }
-    return err;
-}
-
-void WeaveDeviceManager::WriteThermostatRequest(TLVWriter &aWriter, void *ctx)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    const uint16_t pathLen = 1;
-
-    WeaveDeviceManager *deviceMgr = (WeaveDeviceManager *) ctx;
-
-    switch (deviceMgr->mOpState)
-    {
-        case kOpState_ThermostatGetEntryKey:
-            err = StartPathList(aWriter);
-            SuccessOrExit(err);
-
-            err = EncodePath(aWriter,
-                             AnonymousTag,
-                             kWeaveProfile_NestThermostat,
-                             kInstanceIdNotSpecified,
-                             pathLen,
-                             ProfileTag(kWeaveProfile_NestThermostat, Vendor::Nestlabs::Thermostat::kTag_LegacyEntryKey)
-                             );
-            SuccessOrExit(err);
-
-            err =  EndList(aWriter);
-            SuccessOrExit(err);
-
-            err = aWriter.Finalize();
-            break;
-
-        case kOpState_ThermostatSystemTestStatus:
-            err = StartPathList(aWriter);
-            SuccessOrExit(err);
-
-            err = EncodePath(aWriter,
-                             AnonymousTag,
-                             kWeaveProfile_NestThermostat,
-                             kInstanceIdNotSpecified,
-                             pathLen,
-                             ProfileTag(kWeaveProfile_NestThermostat, Vendor::Nestlabs::Thermostat::kTag_SystemTestStatusKey)
-                             );
-            SuccessOrExit(err);
-
-            err =  EndList(aWriter);
-            SuccessOrExit(err);
-
-            err = aWriter.Finalize();
-            break;
-
-        default:
-            WeaveLogError(DeviceManager, "Incorrect OpState for %s: %d", __FUNCTION__, deviceMgr->mOpState);
-            err = WEAVE_ERROR_INCORRECT_STATE;
-            break;
-    }
-
-exit:
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceManager, "%s failed: %s", __FUNCTION__, ErrorStr(err));
-    }
 }
 
 WEAVE_ERROR WeaveDeviceManager::EnableNetwork(uint32_t networkId, void* appReqState, CompleteFunct onComplete,
@@ -2674,7 +2337,7 @@ bool WeaveDeviceManager::IsValidPairingCode(const char *pairingCode)
 WEAVE_ERROR WeaveDeviceManager::SetRendezvousAddress(IPAddress addr)
 {
     if (addr == IPAddress::Any)
-        addr = IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+        addr = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
     mRendezvousAddr = addr;
     return WEAVE_NO_ERROR;
 }
@@ -3731,15 +3394,7 @@ void WeaveDeviceManager::HandleSessionError(WeaveSecurityManager *sm, WeaveConne
     DeviceStatus devStatus;
     DeviceStatus *devStatusArg = NULL;
 
-    // Bail immediately if not in the correct state. May occur if the connection closes abruptly and the
-    // SecurityManager's HandleConnectionClosed callback fires _after_ the DeviceManager's own callback.
-    // In this case, con is already closed and mOnError has already been called, so we should just exit.
-    if (devMgr->mConState != kConnectionState_StartSession)
-    {
-        return;
-    }
-
-    // Report the result.
+    // Log the error.
     if (localErr == WEAVE_ERROR_STATUS_REPORT_RECEIVED && statusReport != NULL)
     {
         WeaveLogProgress(DeviceManager, "Secure session failed: %s", StatusReportStr(statusReport->mProfileId, statusReport->mStatusCode));
@@ -3751,6 +3406,24 @@ void WeaveDeviceManager::HandleSessionError(WeaveSecurityManager *sm, WeaveConne
             localErr = WEAVE_ERROR_DEVICE_AUTH_TIMEOUT;
         }
         WeaveLogProgress(DeviceManager, "Secure session failed: %s", ErrorStr(localErr));
+    }
+
+    // Sanity check that the connection state is expected.
+    //
+    // HandleSessionError() is called by the WeaveSecurityManager when there is a
+    // failure to establish a security session.  This can occur in two cases relative
+    // to the Device Manager's connection state value (mConState):
+    //   1) if the session failed because the underlying connection was closed unexpectedly
+    //      AND the ordering of events in the network caused HandleConnectionClosed() to be
+    //      called before HandleSessionError(), then the connection state will be NotConnected
+    //   2) if the session failed for any other reason, then the connection state will be
+    //      StartSession.
+    // Any other connection state value is unexpected and likely signals a logic bug.
+    if (devMgr->mConState != kConnectionState_StartSession &&
+        devMgr->mConState != kConnectionState_NotConnected)
+    {
+        WeaveLogError(DeviceManager, "Wrong connection state in HandleSessionError()");
+        return;
     }
 
     // If the device returned a Common:Busy response, it likely means it's in a state where it can't perform
@@ -3836,8 +3509,7 @@ void WeaveDeviceManager::RestartRemotePassiveRendezvousListen()
         // Nobody else is allowed to try anything while we're reconnecting to the assisting device.
         mOpState = kOpState_RestartRemotePassiveRendezvous;
 
-        // Reconnect to assisting device and attempt to reuse existing secure session. Establish new secure session from
-        // scratch if necessary.
+        // Reconnect to assisting device.
         err = StartReconnectToAssistingDevice();
     }
 
@@ -5384,300 +5056,6 @@ bool IsProductWildcard(uint16_t productId)
 {
     return (productId >= kProductWildcardId_RangeStart && productId <= kProductWildcardId_RangeEnd);
 }
-
-WeaveDeviceManager::WDMDMClient::WDMDMClient(void)
-{
-    mDeviceMgr = NULL;
-}
-
-WeaveDeviceManager::WDMDMClient::~WDMDMClient(void)
-{
-    mDeviceMgr = NULL;
-}
-
-WEAVE_ERROR WeaveDeviceManager::WDMDMClient::InitClient(WeaveDeviceManager *aDeviceMgr, WeaveExchangeManager *aExchangeMgr)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    err = DMClient::Init(aExchangeMgr);
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceManager, "%s DMClient::Init() failed: %s", __PRETTY_FUNCTION__, ErrorStr(err));
-    }
-    else
-    {
-        mDeviceMgr = aDeviceMgr;
-    }
-
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::WDMDMClient::ViewConfirm(const uint64_t &aResponderId, StatusReport &aStatus, uint16_t aTxnId)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    WeaveLogProgress(DeviceManager, "%s - non-success status", __PRETTY_FUNCTION__);
-
-    if (mDeviceMgr)
-    {
-        mDeviceMgr->ClearOpState();
-        mDeviceMgr->mOnComplete.General(mDeviceMgr, mDeviceMgr->mAppReqState);
-    }
-
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::WDMDMClient::ViewConfirm(const uint64_t &aResponderId, ReferencedTLVData &aDataList, uint16_t aTxnId)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    TLVReader dataListRdr;
-    TLVReader pathRdr;
-    TLVReader containerRdr;
-    TLVType pathContainer;
-    TLVType profileContainer;
-    uint64_t version;
-    uint32_t profileId;
-    uint64_t tagViewed;
-    uint32_t bufSize;
-    char *buf = NULL;
-    uint16_t index;
-    uint16_t localeNum = 0;
-    char **localeList = NULL;
-
-    WeaveLogProgress(DeviceManager, "%s - success status", __PRETTY_FUNCTION__);
-    if (mDeviceMgr)
-    {
-        mDeviceMgr->ClearOpState();
-    }
-
-    OpenDataList(aDataList, dataListRdr);
-    SuccessOrExit(err);
-
-    err = dataListRdr.Next();
-    SuccessOrExit(err);
-
-    err = OpenDataListElement(dataListRdr, pathRdr, version);
-    SuccessOrExit(err);
-
-    VerifyOrExit(pathRdr.GetType() == kTLVType_Path, err = WEAVE_ERROR_WRONG_TLV_TYPE);
-
-    err = ValidateWDMTag(kTag_WDMDataListElementPath, pathRdr);
-    SuccessOrExit(err);
-
-    err = pathRdr.EnterContainer(pathContainer);
-    SuccessOrExit(err);
-
-    err = pathRdr.Next();
-    SuccessOrExit(err);
-
-    VerifyOrExit(pathRdr.GetType() == kTLVType_Structure, err = WEAVE_ERROR_UNEXPECTED_TLV_ELEMENT);
-
-    err = ValidateWDMTag(kTag_WDMPathProfile, pathRdr);
-    SuccessOrExit(err);
-
-    err = pathRdr.EnterContainer(profileContainer);
-    SuccessOrExit(err);
-
-    err = pathRdr.Next();
-    SuccessOrExit(err);
-
-    err = ValidateWDMTag(kTag_WDMPathProfileId, pathRdr);
-    SuccessOrExit(err);
-
-    err = pathRdr.Get(profileId);
-    SuccessOrExit(err);
-
-    err = pathRdr.ExitContainer(profileContainer);
-    SuccessOrExit(err);
-
-    err = pathRdr.Next();
-    SuccessOrExit(err);
-
-    tagViewed = pathRdr.GetTag();
-    switch (profileId)
-    {
-        case kWeaveProfile_NestThermostat:
-            WeaveLogProgress(DeviceManager, "View Nest Thermostat");
-            if (tagViewed == ProfileTag(kWeaveProfile_NestThermostat, Vendor::Nestlabs::Thermostat::kTag_LegacyEntryKey))
-            {
-                bufSize = dataListRdr.GetLength() + 1;
-                buf = (char *)malloc(bufSize);
-                err = dataListRdr.GetString(buf, bufSize);
-                SuccessOrExit(err);
-                WeaveLogProgress(DeviceManager, "entry key = %s", buf);
-                if (mDeviceMgr)
-                {
-                    mDeviceMgr->mOnComplete.ThermostatGetEntryKey(mDeviceMgr, mDeviceMgr->mAppReqState, buf);
-                }
-            }
-            else if (tagViewed == ProfileTag(kWeaveProfile_NestThermostat, Vendor::Nestlabs::Thermostat::kTag_SystemTestStatusKey))
-            {
-                uint64_t status = UINT64_MAX;
-                err = dataListRdr.Get(status);
-                SuccessOrExit(err);
-                WeaveLogProgress(DeviceManager, "system test status = %llu", status);
-                if (mDeviceMgr)
-                {
-                    mDeviceMgr->mOnComplete.ThermostatSystemStatus(mDeviceMgr, mDeviceMgr->mAppReqState, status);
-                }
-            }
-            else
-            {
-                WeaveLogError(DeviceManager, "Unsupported nest thermostat tag: %llu", tagViewed);
-                err = WEAVE_ERROR_INCORRECT_STATE;
-            }
-            break;
-
-        case kWeaveProfile_Locale:
-            WeaveLogProgress(DeviceManager, "View Locale");
-            if (tagViewed == ProfileTag(kWeaveProfile_Locale, Locale::kTag_ActiveLocale))
-            {
-                bufSize = dataListRdr.GetLength() + 1;
-                buf = (char *)malloc(bufSize);
-                err = dataListRdr.GetString(buf, bufSize);
-                SuccessOrExit(err);
-                WeaveLogProgress(DeviceManager, "active locale = %s", buf);
-                if (mDeviceMgr)
-                {
-                    mDeviceMgr->mOnComplete.GetActiveLocale(mDeviceMgr, mDeviceMgr->mAppReqState, buf);
-                }
-            }
-            else if (tagViewed == ProfileTag(kWeaveProfile_Locale, Locale::kTag_AvailableLocales))
-            {
-                err = dataListRdr.OpenContainer(containerRdr);
-                SuccessOrExit(err);
-
-                while (containerRdr.Next() == WEAVE_NO_ERROR)
-                {
-                    localeNum++;
-                }
-                WeaveLogProgress(DeviceManager, "#available locales = %d", localeNum);
-
-                err = dataListRdr.OpenContainer(containerRdr);
-                SuccessOrExit(err);
-
-                localeList = (char **)malloc(sizeof(char *) * localeNum);
-                for (index = 0; containerRdr.Next() == WEAVE_NO_ERROR; index++)
-                {
-                    localeList[index] = (char *)malloc(128);
-                    err = containerRdr.GetString(localeList[index], 128);
-                    SuccessOrExit(err);
-                    WeaveLogProgress(DeviceManager, "\t%s", localeList[index]);
-                }
-
-                err = dataListRdr.CloseContainer(containerRdr);
-                SuccessOrExit(err);
-
-                if (mDeviceMgr)
-                {
-                    mDeviceMgr->mOnComplete.GetAvailableLocales(mDeviceMgr, mDeviceMgr->mAppReqState, localeNum, (const char **)localeList);
-                }
-            }
-            else
-            {
-                WeaveLogError(DeviceManager, "Unsupported nest thermostat tag: %llu", tagViewed);
-                err = WEAVE_ERROR_INCORRECT_STATE;
-            }
-            break;
-
-        default:
-            WeaveLogError(DeviceManager, "Unknown profileId: %llu", profileId);
-            err = WEAVE_ERROR_INCORRECT_STATE;
-            break;
-    }
-
-exit:
-    if (buf != NULL)
-    {
-        free(buf);
-    }
-    if (localeList != NULL && localeNum > 0)
-    {
-        for (index = 0; index < localeNum; index++)
-        {
-            free(localeList[index]);
-        }
-    }
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceManager, "%s failed: %s", __FUNCTION__, ErrorStr(err));
-        if (mDeviceMgr)
-        {
-            mDeviceMgr->mOnError(mDeviceMgr, mDeviceMgr->mAppReqState, err, NULL);
-        }
-    }
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::WDMDMClient::UpdateConfirm(const uint64_t &aResponderId, StatusReport &aStatus, uint16_t aTxnId)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    WeaveLogProgress(DeviceManager, "%s", __PRETTY_FUNCTION__);
-
-    if (mDeviceMgr)
-    {
-        mDeviceMgr->ClearOpState();
-        mDeviceMgr->mOnComplete.General(mDeviceMgr, mDeviceMgr->mAppReqState);
-    }
-
-    return err;
-}
-
-void WeaveDeviceManager::WDMDMClient::IncompleteIndication(const uint64_t &aPeerNodeId, StatusReport &aReport)
-{
-
-/*
- * this was added as a result of the fix to WEAV-142 and related
- * jiras. the code that belongs here is whatever the application wants
- * to do in case of a binding failure. at this point, the main (really
- * only) reason a binding will fail is the unexpected closure of a TCP
- * connection that supports it. in future, other failure scenarios may
- * arise.
- */
-
-}
-
-#if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
-
-WEAVE_ERROR WeaveDeviceManager::WDMDMClient::SubscribeConfirm(const uint64_t &aResponderId, const TopicIdentifier &aTopicId, uint16_t aTxnId)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::WDMDMClient::SubscribeConfirm(const uint64_t &aResponderId, const TopicIdentifier &aTopicId, ReferencedTLVData &aDataList, uint16_t aTxnId)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::WDMDMClient::SubscribeConfirm(const uint64_t &aResponderId, StatusReport &aStatus, uint16_t aTxnId)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::WDMDMClient::UnsubscribeIndication(const uint64_t &aPublisherId, const TopicIdentifier &aTopicId, StatusReport &aReport)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::WDMDMClient::CancelSubscriptionConfirm(const uint64_t &aResponderId, const TopicIdentifier &aTopicId, StatusReport &aStatus, uint16_t aTxnId)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    return err;
-}
-
-WEAVE_ERROR WeaveDeviceManager::WDMDMClient::NotifyIndication(const TopicIdentifier &aTopicId, ReferencedTLVData &aDataList)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    return err;
-}
-
-#endif // WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
 
 } // namespace DeviceManager
 } // namespace Weave

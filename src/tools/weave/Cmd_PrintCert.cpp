@@ -68,8 +68,9 @@ bool Cmd_PrintCert(int argc, char *argv[])
 {
     bool res = true;
     WEAVE_ERROR err;
-    WeaveCertificateSet certSet;
-    uint8_t *certBuf = NULL;
+    WeaveCertificateData certData;
+    uint8_t * certBuf = NULL;
+    uint32_t certLen;
 
     if (argc == 1)
     {
@@ -82,24 +83,29 @@ bool Cmd_PrintCert(int argc, char *argv[])
         ExitNow(res = false);
     }
 
-    err = certSet.Init(1, 2048);
+    if (!ReadWeaveCert(gCertFileName, certBuf, certLen))
+        ExitNow(res = false);
+
+    err = DecodeWeaveCert(certBuf, certLen, certData);
     if (err != WEAVE_NO_ERROR)
     {
         fprintf(stderr, "weave: %s.\n", nl::ErrorStr(err));
         ExitNow(res = false);
     }
 
-    res = LoadWeaveCert(gCertFileName, false, certSet, certBuf);
-    if (!res)
+    err = DetermineCertType(certData);
+    if (err != WEAVE_NO_ERROR)
+    {
+        fprintf(stderr, "weave: %s.\n", nl::ErrorStr(err));
         ExitNow(res = false);
+    }
 
     printf("Weave Certificate:\n");
-    PrintCert(stdout, certSet.Certs[0], NULL, 2, true);
+    PrintCert(stdout, certData, NULL, 2, true);
 
     res = (err == WEAVE_NO_ERROR);
 
 exit:
-    certSet.Release();
     if (certBuf != NULL)
         free(certBuf);
     return res;

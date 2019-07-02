@@ -76,14 +76,14 @@ public:
 
     enum EventType
     {
-        kEvent_UpdateSubscriptionState          = 1,    //< The application is requested to update the subscription state.
+        kEvent_UpdateSubscriptionState          = 1,    ///< The application is requested to update the subscription state.
 
-        kEvent_HeartbeatSent                    = 2,    //< A heartbeat message was successfully sent to the peer. If reliable transmission
-                                                        //  is enabled, this event indicates that the message was acknowledged.
-        kEvent_HeartbeatFailed                  = 3,    //< A heartbeat message failed to be sent to the peer.
+        kEvent_HeartbeatSent                    = 2,    ///< A heartbeat message was successfully sent to the peer. If reliable transmission
+                                                        ///<  is enabled, this event indicates that the message was acknowledged.
+        kEvent_HeartbeatFailed                  = 3,    ///< A heartbeat message failed to be sent to the peer.
 
-        kEvent_DefaultCheck                     = 100,  //< Used to verify correct default event handling in the application.
-                                                        //  Applications should NOT expressly handle this event.
+        kEvent_DefaultCheck                     = 100,  ///< Used to verify correct default event handling in the application.
+                                                        ///<  Applications should NOT expressly handle this event.
     };
 
     typedef void (*EventCallback)(void *appState, EventType eventType, const InEventParam& inParam, OutEventParam& outParam);
@@ -151,7 +151,7 @@ struct WeaveHeartbeatSender::InEventParam
     {
         struct
         {
-            WEAVE_ERROR Reason;                         //< An error describing why the heartbeat message couldn't be sent.
+            WEAVE_ERROR Reason;                         ///< An error describing why the heartbeat message couldn't be sent.
         } HeartbeatFailed;
     };
 

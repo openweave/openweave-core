@@ -130,10 +130,10 @@ public:
 
     enum NotifyRequestBuilderState
     {
-        kNotifyRequestBuilder_Idle = 0,      //< The request has not been opened or has been closed and finalized
-        kNotifyRequestBuilder_Ready,         //< The request has been initialized and is ready for any optional toplevel elements
-        kNotifyRequestBuilder_BuildDataList, //< The request is building the DataList portion of the structure
-        kNotifyRequestBuilder_BuildEventList //< The request is building the EventList portion of the structure
+        kNotifyRequestBuilder_Idle = 0,      ///< The request has not been opened or has been closed and finalized
+        kNotifyRequestBuilder_Ready,         ///< The request has been initialized and is ready for any optional toplevel elements
+        kNotifyRequestBuilder_BuildDataList, ///< The request is building the DataList portion of the structure
+        kNotifyRequestBuilder_BuildEventList ///< The request is building the EventList portion of the structure
     };
 
     /**

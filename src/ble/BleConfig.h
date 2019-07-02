@@ -38,8 +38,27 @@
 
 #include <SystemLayer/SystemConfig.h>
 
-#if HAVE_BLEPROJECTCONFIG_H
-#include "BleProjectConfig.h"
+/* Include a project-specific configuration file, if defined.
+ *
+ * An application or module that incorporates Weave can define a project configuration
+ * file to override standard BLE Layer configuration with application-specific values.
+ * The project config file is typically located outside the OpenWeave source tree,
+ * alongside the source code for the application.
+ */
+#ifdef BLE_PROJECT_CONFIG_INCLUDE
+#include BLE_PROJECT_CONFIG_INCLUDE
+#endif
+
+/* Include a platform-specific configuration file, if defined.
+ *
+ * A platform configuration file contains overrides to standard BLE Layer configuration
+ * that are specific to the platform or OS on which Weave is running.  It is typically
+ * provided as apart of an adaptation layer that adapts OpenWeave to the target
+ * environment.  This adaptation layer may be included in the OpenWeave source tree
+ * itself or implemented externally.
+ */
+#ifdef BLE_PLATFORM_CONFIG_INCLUDE
+#include BLE_PLATFORM_CONFIG_INCLUDE
 #endif
 
 // clang-format off

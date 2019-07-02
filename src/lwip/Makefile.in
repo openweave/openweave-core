@@ -225,7 +225,8 @@ am__liblwip_a_SOURCES_DIST =  \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/ip.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/timeouts.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c \
-	standalone/sys_arch.c standalone/TapInterface.c
+	freertos/sys_arch.c standalone/sys_arch.c \
+	standalone/TapInterface.c
 am__dirstamp = $(am__leading_dot)dirstamp
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_1 = @top_builddir@/third_party/lwip/repo/lwip/src/api/liblwip_a-api_lib.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/api/liblwip_a-api_msg.$(OBJEXT) \
@@ -271,8 +272,9 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-ip.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-timeouts.$(OBJEXT)
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_3 = @top_builddir@/third_party/lwip/repo/lwip/src/netif/liblwip_a-ethernet.$(OBJEXT)
-@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_4 = standalone/liblwip_a-sys_arch.$(OBJEXT) \
-@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@	standalone/liblwip_a-TapInterface.$(OBJEXT)
+@WEAVE_LWIP_TARGET_NRF5_FALSE@@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_4 = standalone/liblwip_a-sys_arch.$(OBJEXT) \
+@WEAVE_LWIP_TARGET_NRF5_FALSE@@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@	standalone/liblwip_a-TapInterface.$(OBJEXT)
+@WEAVE_LWIP_TARGET_NRF5_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_4 = freertos/liblwip_a-sys_arch.$(OBJEXT)
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@am_liblwip_a_OBJECTS =  \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_1) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_2) \
@@ -511,6 +513,7 @@ VISIBILITY_OBJCFLAGS = @VISIBILITY_OBJCFLAGS@
 VISIBILITY_OBJCXXCFLAGS = @VISIBILITY_OBJCXXCFLAGS@
 WEAVE_DEVICE_LAYER_TARGET = @WEAVE_DEVICE_LAYER_TARGET@
 WEAVE_DEVICE_LAYER_TARGET_ESP32 = @WEAVE_DEVICE_LAYER_TARGET_ESP32@
+WEAVE_DEVICE_LAYER_TARGET_NRF5 = @WEAVE_DEVICE_LAYER_TARGET_NRF5@
 WEAVE_LOGGING_STYLE = @WEAVE_LOGGING_STYLE@
 WEAVE_LOGGING_STYLE_ANDROID = @WEAVE_LOGGING_STYLE_ANDROID@
 WEAVE_LOGGING_STYLE_EXTERNAL = @WEAVE_LOGGING_STYLE_EXTERNAL@
@@ -568,6 +571,18 @@ localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
+nl_filtered_build = @nl_filtered_build@
+nl_filtered_build_cpu = @nl_filtered_build_cpu@
+nl_filtered_build_os = @nl_filtered_build_os@
+nl_filtered_build_vendor = @nl_filtered_build_vendor@
+nl_filtered_host = @nl_filtered_host@
+nl_filtered_host_cpu = @nl_filtered_host_cpu@
+nl_filtered_host_os = @nl_filtered_host_os@
+nl_filtered_host_vendor = @nl_filtered_host_vendor@
+nl_filtered_target = @nl_filtered_target@
+nl_filtered_target_cpu = @nl_filtered_target_cpu@
+nl_filtered_target_os = @nl_filtered_target_os@
+nl_filtered_target_vendor = @nl_filtered_target_vendor@
 nlbuild_autotools_stem = @nlbuild_autotools_stem@
 oldincludedir = @oldincludedir@
 openssl_buildstem = @openssl_buildstem@
@@ -646,9 +661,26 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c               \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
+@WEAVE_LWIP_TARGET_NRF5_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_TARGET_SOURCES = \
+@WEAVE_LWIP_TARGET_NRF5_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    freertos/sys_arch.c                                                          \
+@WEAVE_LWIP_TARGET_NRF5_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
+
 @WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_TARGET_SOURCES = \
 @WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/sys_arch.c                                                        \
 @WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/TapInterface.c                                                    \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
+
+@WEAVE_LWIP_TARGET_NRF5_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@EXTRA_DIST = \
+@WEAVE_LWIP_TARGET_NRF5_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    freertos/arch                                                                \
+@WEAVE_LWIP_TARGET_NRF5_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    nrf5/arch                                                                    \
+@WEAVE_LWIP_TARGET_NRF5_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    nrf5/lwipopts.h                                                              \
+@WEAVE_LWIP_TARGET_NRF5_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    nrf5/lwippools.h                                                             \
+@WEAVE_LWIP_TARGET_NRF5_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
+
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@EXTRA_DIST = \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/arch                                                              \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/lwipopts.h                                                        \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/TapInterface.h                                                    \
 @WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_a_SOURCES = \
@@ -661,12 +693,6 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_a_CPPFLAGS = \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(LWIP_CPPFLAGS)                                                             \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
-
-@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@EXTRA_DIST = \
-@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/arch                                                              \
-@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/lwipopts.h                                                        \
-@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/TapInterface.h                                                    \
-@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
 PRETTY_FILES := $(NULL)
 all: all-am
@@ -852,6 +878,14 @@ clean-libLIBRARIES:
 	@: > @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/third_party/lwip/repo/lwip/src/netif/liblwip_a-ethernet.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(am__dirstamp) \
 	@top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR)/$(am__dirstamp)
+freertos/$(am__dirstamp):
+	@$(MKDIR_P) freertos
+	@: > freertos/$(am__dirstamp)
+freertos/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) freertos/$(DEPDIR)
+	@: > freertos/$(DEPDIR)/$(am__dirstamp)
+freertos/liblwip_a-sys_arch.$(OBJEXT): freertos/$(am__dirstamp) \
+	freertos/$(DEPDIR)/$(am__dirstamp)
 standalone/$(am__dirstamp):
 	@$(MKDIR_P) standalone
 	@: > standalone/$(am__dirstamp)
@@ -876,6 +910,7 @@ mostlyclean-compile:
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/*.$(OBJEXT)
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/*.$(OBJEXT)
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/netif/*.$(OBJEXT)
+	-rm -f freertos/*.$(OBJEXT)
 	-rm -f standalone/*.$(OBJEXT)
 
 distclean-compile:
@@ -925,6 +960,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR)/liblwip_a-mld6.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR)/liblwip_a-nd6.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR)/liblwip_a-ethernet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@freertos/$(DEPDIR)/liblwip_a-sys_arch.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@standalone/$(DEPDIR)/liblwip_a-TapInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@standalone/$(DEPDIR)/liblwip_a-sys_arch.Po@am__quote@
 
@@ -1568,6 +1604,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/netif/liblwip_a-ethernet.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c'; fi`
 
+freertos/liblwip_a-sys_arch.o: freertos/sys_arch.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT freertos/liblwip_a-sys_arch.o -MD -MP -MF freertos/$(DEPDIR)/liblwip_a-sys_arch.Tpo -c -o freertos/liblwip_a-sys_arch.o `test -f 'freertos/sys_arch.c' || echo '$(srcdir)/'`freertos/sys_arch.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) freertos/$(DEPDIR)/liblwip_a-sys_arch.Tpo freertos/$(DEPDIR)/liblwip_a-sys_arch.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='freertos/sys_arch.c' object='freertos/liblwip_a-sys_arch.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o freertos/liblwip_a-sys_arch.o `test -f 'freertos/sys_arch.c' || echo '$(srcdir)/'`freertos/sys_arch.c
+
+freertos/liblwip_a-sys_arch.obj: freertos/sys_arch.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT freertos/liblwip_a-sys_arch.obj -MD -MP -MF freertos/$(DEPDIR)/liblwip_a-sys_arch.Tpo -c -o freertos/liblwip_a-sys_arch.obj `if test -f 'freertos/sys_arch.c'; then $(CYGPATH_W) 'freertos/sys_arch.c'; else $(CYGPATH_W) '$(srcdir)/freertos/sys_arch.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) freertos/$(DEPDIR)/liblwip_a-sys_arch.Tpo freertos/$(DEPDIR)/liblwip_a-sys_arch.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='freertos/sys_arch.c' object='freertos/liblwip_a-sys_arch.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o freertos/liblwip_a-sys_arch.obj `if test -f 'freertos/sys_arch.c'; then $(CYGPATH_W) 'freertos/sys_arch.c'; else $(CYGPATH_W) '$(srcdir)/freertos/sys_arch.c'; fi`
+
 standalone/liblwip_a-sys_arch.o: standalone/sys_arch.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT standalone/liblwip_a-sys_arch.o -MD -MP -MF standalone/$(DEPDIR)/liblwip_a-sys_arch.Tpo -c -o standalone/liblwip_a-sys_arch.o `test -f 'standalone/sys_arch.c' || echo '$(srcdir)/'`standalone/sys_arch.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) standalone/$(DEPDIR)/liblwip_a-sys_arch.Tpo standalone/$(DEPDIR)/liblwip_a-sys_arch.Po
@@ -1727,6 +1777,8 @@ distclean-generic:
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(am__dirstamp)
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR)/$(am__dirstamp)
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(am__dirstamp)
+	-rm -f freertos/$(DEPDIR)/$(am__dirstamp)
+	-rm -f freertos/$(am__dirstamp)
 	-rm -f standalone/$(DEPDIR)/$(am__dirstamp)
 	-rm -f standalone/$(am__dirstamp)
 
@@ -1739,7 +1791,7 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf @top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR) standalone/$(DEPDIR)
+	-rm -rf @top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR) freertos/$(DEPDIR) standalone/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1785,7 +1837,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf @top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR) standalone/$(DEPDIR)
+	-rm -rf @top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR) freertos/$(DEPDIR) standalone/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

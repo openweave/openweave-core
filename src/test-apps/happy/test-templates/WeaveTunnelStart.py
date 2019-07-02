@@ -295,6 +295,9 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
                 self.key_file = self.case_key_path if self.case_key_path else os.path.join(self.main_conf['log_directory'], self.gateway_weave_id.upper() + '-key.weave-b64')
                 cmd += ' --node-cert ' + self.cert_file + ' --node-key ' + self.key_file
 
+            if self.customized_tunnel_port:
+                self.service_dir_server = self.service_dir_server + ":%d" % self.customized_tunnel_port
+
             if self.service_dir:
                 cmd += " --service-dir " + str(self.service_weave_id) + ' --service-dir-server ' + self.service_dir_server
             else:

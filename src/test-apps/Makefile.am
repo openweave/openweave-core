@@ -23,6 +23,8 @@
 #
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
+SHELL := /bin/bash
+AM_LOG_DRIVER_FLAGS := --build-num $(shell echo $$PPID|tail -c5)
 
 #
 # Other files we do want to distribute with the Weave source SDK.
@@ -116,6 +118,7 @@ noinst_HEADERS                                             = \
     MockWdmViewServer.h                                      \
     PASEEngineTest.h                                         \
     TAKEOptions.h                                            \
+    TapAddrAutoconf.h                                               \
     TestDRBG.h                                               \
     TestEventLoggingSchemaExamples.h                         \
     TestGroupKeyStore.h                                      \
@@ -202,6 +205,7 @@ libWeaveTestCommon_a_SOURCES                   = \
     TestGroupKeyStore.cpp                        \
     ToolCommon.cpp                               \
     ToolCommonOptions.cpp                        \
+    TapAddrAutoconf.cpp                          \
     PASEEngineTest.cpp                           \
     MockPlatformClocks.cpp                       \
     TestPersistedStorageImplementation.cpp       \
@@ -331,6 +335,7 @@ check_PROGRAMS                                 = \
     TestProvHash                                 \
     TestRetainedPacketBuffer                     \
     TestSerialNumUtils                           \
+    TestSoftwareUpdate                           \
     TestSystemObject                             \
     TestSystemTimer                              \
     TestTAKE                                     \
@@ -342,7 +347,6 @@ check_PROGRAMS                                 = \
     TestWeaveFabricState                         \
     TestWeaveSignature                           \
     infratest                                    \
-    wsuptest                                     \
     TestErrorStr                                 \
     TestStatusReportStr                          \
     TestThermostatStatus                         \
@@ -377,7 +381,7 @@ endif
 
 if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 check_PROGRAMS                                += \
-    TestDNSResolution                            \
+    TestInetLayerDNS                            \
     TestWoble                                    \
     $(NULL)
 endif
@@ -443,6 +447,7 @@ local_test_programs                            = \
     TestProvHash                                 \
     TestRetainedPacketBuffer                     \
     TestSerialNumUtils                           \
+    TestSoftwareUpdate                           \
     TestSystemObject                             \
     TestSystemTimer                              \
     TestTAKE                                     \
@@ -499,7 +504,7 @@ network_test_programs                          = \
     TestWdmNext                                  \
     TestWdmOneWayCommandSender                   \
     TestWdmOneWayCommandReceiver                 \
-    TestDNSResolution                            \
+    TestInetLayerDNS                            \
     TestWoble                                    \
     mock-device                                  \
     mock-weave-bg                                \
@@ -512,7 +517,6 @@ network_test_programs                          = \
     weave-service-dir                            \
     weave-swu-client                             \
     weave-swu-server                             \
-    wsuptest                                     \
     $(NULL)
 
 if WEAVE_BUILD_LEGACY_WDM
@@ -1117,6 +1121,7 @@ endif # WEAVE_RUN_HAPPY_CORE
 if WEAVE_RUN_HAPPY_INET
 check_SCRIPTS                                                           += \
     happy/tests/standalone/inet/test_inet_01.py                            \
+    happy/tests/standalone/inet/test_inet_dns_01.py                        \
     happy/tests/standalone/inet/test_inet_multicast_01.py                  \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_INET
@@ -1330,6 +1335,10 @@ TestRetainedPacketBuffer_LDADD           = libWeaveTestCommon.a $(COMMON_LDADD)
 TestSerialNumUtils_SOURCES               = TestSerialNumUtils.cpp
 TestSerialNumUtils_LDADD                 = $(COMMON_LDADD)
 
+TestSoftwareUpdate_SOURCES               = TestSoftwareUpdate.cpp
+TestSoftwareUpdate_LDFLAGS               = $(AM_CPPFLAGS)
+TestSoftwareUpdate_LDADD                 = $(COMMON_LDADD)
+
 TestSystemObject_SOURCES                 = TestSystemObject.cpp
 TestSystemObject_CPPFLAGS                = $(AM_CPPFLAGS) $(PTHREAD_CFLAGS)
 TestSystemObject_LDFLAGS                 = $(PTHREAD_CFLAGS)
@@ -1502,9 +1511,9 @@ TestPairingCodeUtils_LDADD               = $(COMMON_LDADD)
 TestResourceIdentifier_SOURCES           = TestResourceIdentifier.cpp
 TestResourceIdentifier_LDADD             = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 
-TestDNSResolution_SOURCES                = TestDNSResolution.cpp
-TestDNSResolution_LDFLAGS                = $(AM_CPPFLAGS)
-TestDNSResolution_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD)
+TestInetLayerDNS_SOURCES                = TestInetLayerDNS.cpp
+TestInetLayerDNS_LDFLAGS                = $(AM_CPPFLAGS)
+TestInetLayerDNS_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD)
 
 mock_device_CPPFLAGS                     = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 mock_device_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD)
@@ -1587,9 +1596,6 @@ weave_swu_server_SOURCES                 = weave-swu-server.cpp  \
                                            MockSWUServer.cpp
 weave_swu_server_LDFLAGS                 = ${AM_CPPFLAGS}
 weave_swu_server_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD)
-
-wsuptest_SOURCES                         = wsuptest.cpp
-wsuptest_LDADD                           = $(COMMON_LDADD)
 
 if WEAVE_BUILD_COVERAGE
 CLEANFILES                               = $(wildcard *.gcda *.gcno)

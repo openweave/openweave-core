@@ -19,6 +19,8 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/DeviceDescriptionServer.h>
 
+#include <Weave/Support/TimeUtils.h>
+
 using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::Profiles::DeviceDescription;
@@ -41,8 +43,55 @@ WEAVE_ERROR DeviceDescriptionServer::Init()
     // Set the pointer to the HandleIdentifyRequest function.
     OnIdentifyRequestReceived = HandleIdentifyRequest;
 
+    // Initialize various members.
+    mUserSelectedModeEndTime = 0;
+    mUserSelectedModeTimeoutSec = WEAVE_DEVICE_CONFIG_USER_SELECTED_MODE_TIMEOUT_SEC;
+
 exit:
     return err;
+}
+
+bool DeviceDescriptionServer::IsUserSelectedModeActive(void)
+{
+    if (mUserSelectedModeEndTime != 0)
+    {
+        uint32_t nowShifted = static_cast<uint32_t>(System::Platform::Layer::GetClock_MonotonicMS() >> kUserSelectedModeTimeShift);
+        return nowShifted <= mUserSelectedModeEndTime;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void DeviceDescriptionServer::SetUserSelectedMode(bool val)
+{
+    if (val)
+    {
+        WeaveLogProgress(DeviceLayer, "User selected mode %s (timeout %" PRId16 " seconds)",
+                IsUserSelectedModeActive() ? "extended" : "activated",
+                mUserSelectedModeTimeoutSec);
+
+        uint32_t timeoutMS = mUserSelectedModeTimeoutSec * kMillisecondPerSecond;
+        uint64_t endTimeMS = System::Platform::Layer::GetClock_MonotonicMS() + timeoutMS;
+        mUserSelectedModeEndTime = static_cast<uint32_t>(endTimeMS >> kUserSelectedModeTimeShift);
+    }
+    else
+    {
+        WeaveLogProgress(DeviceLayer, "User selected mode deactivated");
+
+        mUserSelectedModeEndTime = 0;
+    }
+}
+
+uint16_t DeviceDescriptionServer::GetUserSelectedModeTimeout(void)
+{
+    return mUserSelectedModeTimeoutSec;
+}
+
+void DeviceDescriptionServer::SetUserSelectedModeTimeout(uint16_t val)
+{
+    mUserSelectedModeTimeoutSec = val;
 }
 
 void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nodeAddr,
@@ -72,7 +121,8 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
         sendResp = false;
     }
 
-    if (reqMsg.TargetModes != kTargetDeviceMode_Any && (reqMsg.TargetModes & kTargetDeviceMode_UserSelectedMode) == 0)
+    if ((reqMsg.TargetModes & ~kTargetDeviceMode_UserSelectedMode) != 0 ||
+        ((reqMsg.TargetModes & kTargetDeviceMode_UserSelectedMode) != 0 && !sInstance.IsUserSelectedModeActive()))
     {
         WeaveLogProgress(DeviceLayer, "IdentifyRequest target mode does not match device mode");
         sendResp = false;
@@ -120,6 +170,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
+        WeaveLogProgress(DeviceLayer, "HandleIdentifyRequest failed: %s", ErrorStr(err));
         sendResp = false;
     }
 }

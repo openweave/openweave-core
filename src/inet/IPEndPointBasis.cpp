@@ -24,6 +24,9 @@
  *
  */
 
+// define to ensure we have the IPV6_PKTINFO
+#define __APPLE_USE_RFC_3542
+
 #include <InetLayer/IPEndPointBasis.h>
 
 #include <string.h>

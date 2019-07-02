@@ -26,14 +26,16 @@
 
 #import "NLWeaveDeviceManagerTypes.h"
 
-
 @interface NLProfileStatusError : NSObject
 
 @property (nonatomic) NSInteger profileId;
 @property (nonatomic) NSInteger statusCode;
 @property (nonatomic) NSInteger errorCode;
 
-- (id)initWithProfileId:(uint32_t)profileId statusCode:(uint16_t)statusCode errorCode:(uint32_t)errorCode statusReport:(NSString*)statusReport;
+- (id)initWithProfileId:(uint32_t)profileId
+             statusCode:(uint16_t)statusCode
+              errorCode:(uint32_t)errorCode
+           statusReport:(NSString *)statusReport;
 - (NSInteger)translateErrorCode;
 
 @end

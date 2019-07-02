@@ -22,6 +22,16 @@
  *      Functions in this file are platform specific and their various custom
  *      implementations can be enabled.
  *
+ *      Platforms that wish to provide their own implementation of AES
+ *      functions should assert #WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM
+ *      and create a platform-specific header file containing the necessary
+ *      declarations.  The name of the platform-specific header file must be
+ *      specified via the #WEAVE_AES_BLOCK_CIPHER_PLATFORM_INCLUDE macro.
+ *
+ *      Platforms that that require specific AES context data should define
+ *      the #WEAVE_AES_128_CTX_PLATFORM and #WEAVE_AES_256_CTX_PLATFORM macros
+ *      accordingly.
+ *
  */
 
 #ifndef AES_H_
@@ -42,6 +52,16 @@
 #if WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI
 #include <wmmintrin.h>
 #endif
+
+#if WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS
+#include <mbedtls/aes.h>
+#endif
+
+#if WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM && defined(WEAVE_AES_BLOCK_CIPHER_PLATFORM_INCLUDE)
+#include WEAVE_AES_BLOCK_CIPHER_PLATFORM_INCLUDE
+#endif
+
+
 
 namespace nl {
 namespace Weave {
@@ -69,8 +89,12 @@ protected:
     AES_KEY mKey;
 #elif WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI
     __m128i mKey[kRoundCount + 1];
+#elif WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS
+    mbedtls_aes_context mCtx;
 #elif WEAVE_CONFIG_AES_USE_EXPANDED_KEY
     uint8_t mKey[kBlockLength * (kRoundCount + 1)];
+#elif defined(WEAVE_AES_128_CTX_PLATFORM)
+    WEAVE_AES_128_CTX_PLATFORM mCtx;
 #else
     uint8_t mKey[kKeyLength];
 #endif
@@ -111,8 +135,12 @@ protected:
     AES_KEY mKey;
 #elif WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI
     __m128i mKey[kRoundCount + 1];
+#elif WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS
+    mbedtls_aes_context mCtx;
 #elif WEAVE_CONFIG_AES_USE_EXPANDED_KEY
     uint8_t mKey[kBlockLength * (kRoundCount + 1)];
+#elif defined(WEAVE_AES_256_CTX_PLATFORM)
+    WEAVE_AES_256_CTX_PLATFORM mCtx;
 #else
     uint8_t mKey[kKeyLength];
 #endif

@@ -19,10 +19,19 @@
 #ifndef CONNECTIVITY_MANAGER_IMPL_H
 #define CONNECTIVITY_MANAGER_IMPL_H
 
+#include <Weave/DeviceLayer/ConnectivityManager.h>
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl.h>
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_BLE.h>
+#else
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoBLE.h>
+#endif
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoThread.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelCommon.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelConnectionMgr.h>
 #include <Weave/Support/FlagUtils.hpp>
+
 #include "esp_event.h"
 
 namespace nl {
@@ -48,7 +57,14 @@ template<class ImplClass> class GenericNetworkProvisioningServerImpl;
  * Concrete implementation of the ConnectivityManager singleton object for the ESP32 platform.
  */
 class ConnectivityManagerImpl final
-    : public ConnectivityManager
+    : public ConnectivityManager,
+      public Internal::GenericConnectivityManagerImpl<ConnectivityManagerImpl>,
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+      public Internal::GenericConnectivityManagerImpl_BLE<ConnectivityManagerImpl>,
+#else
+      public Internal::GenericConnectivityManagerImpl_NoBLE<ConnectivityManagerImpl>,
+#endif
+      public Internal::GenericConnectivityManagerImpl_NoThread<ConnectivityManagerImpl>
 {
     using TunnelConnNotifyReasons = ::nl::Weave::Profiles::WeaveTunnel::WeaveTunnelConnectionMgr::TunnelConnNotifyReasons;
 
@@ -78,22 +94,15 @@ private:
     void _MaintainOnDemandWiFiAP(void);
     uint32_t _GetWiFiAPIdleTimeoutMS(void);
     void _SetWiFiAPIdleTimeoutMS(uint32_t val);
+    WEAVE_ERROR _GetAndLogWifiStatsCounters(void);
     bool _HaveIPv4InternetConnectivity(void);
     bool _HaveIPv6InternetConnectivity(void);
     ServiceTunnelMode _GetServiceTunnelMode(void);
     WEAVE_ERROR _SetServiceTunnelMode(ServiceTunnelMode val);
     bool _IsServiceTunnelConnected(void);
     bool _IsServiceTunnelRestricted(void);
+    bool _HaveServiceConnectivityViaTunnel(void);
     bool _HaveServiceConnectivity(void);
-    WoBLEServiceMode _GetWoBLEServiceMode(void);
-    WEAVE_ERROR _SetWoBLEServiceMode(WoBLEServiceMode val);
-    bool _IsBLEAdvertisingEnabled(void);
-    WEAVE_ERROR _SetBLEAdvertisingEnabled(bool val);
-    bool _IsBLEFastAdvertisingEnabled(void);
-    WEAVE_ERROR _SetBLEFastAdvertisingEnabled(bool val);
-    WEAVE_ERROR _GetBLEDeviceName(char * buf, size_t bufSize);
-    WEAVE_ERROR _SetBLEDeviceName(const char * deviceName);
-    uint16_t _NumBLEConnections(void);
     WEAVE_ERROR _Init(void);
     void _OnPlatformEvent(const WeaveDeviceEvent * event);
     bool _CanStartWiFiScan();
@@ -102,7 +111,6 @@ private:
     static const char * _WiFiStationModeToStr(WiFiStationMode mode);
     static const char * _WiFiAPModeToStr(WiFiAPMode mode);
     static const char * _ServiceTunnelModeToStr(ServiceTunnelMode mode);
-    static const char * _WoBLEServiceModeToStr(WoBLEServiceMode mode);
 
     // ===== Members for internal use by the following friends.
 
@@ -230,6 +238,12 @@ inline bool ConnectivityManagerImpl::_CanStartWiFiScan()
 {
     return mWiFiStationState != kWiFiStationState_Connecting;
 }
+
+inline bool ConnectivityManagerImpl::_HaveServiceConnectivity(void)
+{
+    return HaveServiceConnectivityViaTunnel() || HaveServiceConnectivityViaThread();
+}
+
 
 /**
  * Returns the public interface of the ConnectivityManager singleton object.

@@ -47,7 +47,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  * make no further provisions to expunge it from the log.
  * The importance level serves to prioritize event storage. If an
  * event of high importance is added to a full buffer, events are
- * dropped in order of importance (and age) to accomodate it. As such,
+ * dropped in order of importance (and age) to accommodate it. As such,
  * importance levels only have relative value. If a system is
  * using only one importance level, events are dropped only in order
  * of age, like a ring buffer.
@@ -105,9 +105,9 @@ typedef enum ImportanceType
  */
 struct EventSchema
 {
-    uint32_t mProfileId;        //!< ID of profile
-    uint32_t mStructureType;    //!< Type of structure
-    ImportanceType mImportance; //!< Importance
+    uint32_t mProfileId;        ///< ID of profile
+    uint32_t mStructureType;    ///< Type of structure
+    ImportanceType mImportance; ///< Importance
     SchemaVersion mDataSchemaVersion;
     SchemaVersion mMinCompatibleDataSchemaVersion;
 };
@@ -191,8 +191,8 @@ union Timestamp
      */
     Timestamp(timestamp_t aSystem) : systemTimestamp(aSystem) { };
 
-    timestamp_t systemTimestamp;  //< System timestamp.
-    utc_timestamp_t utcTimestamp; //< UTC timestamp.
+    timestamp_t systemTimestamp;  ///< System timestamp.
+    utc_timestamp_t utcTimestamp; ///< UTC timestamp.
 };
 
 /**

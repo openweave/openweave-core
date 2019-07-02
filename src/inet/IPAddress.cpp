@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -268,6 +269,12 @@ bool IPAddress::IsIPv6Multicast(void) const
     return (ntohl(Addr[0]) & 0xFF000000U) == 0xFF000000U;
 }
 
+// Is address an IPv6 Global Unicast Address?
+bool IPAddress::IsIPv6GlobalUnicast(void) const
+{
+    return (ntohl(Addr[0]) & 0xE0000000U) == 0x20000000U;
+}
+
 // Is address an IPv6 Unique Local Address?
 bool IPAddress::IsIPv6ULA() const
 {
@@ -334,7 +341,7 @@ void IPAddress::WriteAddress(uint8_t *&p) const
 }
 
 // Decode IPAddress from buffer in network byte order. Must infer IP address type from context.
-void IPAddress::ReadAddress(uint8_t *&p, IPAddress &output)
+void IPAddress::ReadAddress(const uint8_t *&p, IPAddress &output)
 {
     // Since we want to store the address in the output array in network byte order, a simple
     // memcpy of the entire array is used to retrieve from the buffer.
@@ -374,16 +381,83 @@ IPAddress IPAddress::MakeLLA(uint64_t interfaceId)
     return addr;
 }
 
-IPAddress IPAddress::MakeIPv6Multicast(uint8_t scope, uint32_t groupId)
+IPAddress IPAddress::MakeIPv6Multicast(uint8_t aFlags, uint8_t aScope, const uint8_t aGroupId[NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES])
 {
+    const uint32_t lFlagsAndScope = (((aFlags & 0xF) << 20) |
+                                     ((aScope & 0xF) << 16));
     IPAddress addr;
 
-    addr.Addr[0] = htonl(0xFF000000 | ((scope & 0xF) << 16));
-    addr.Addr[1] = 0;
-    addr.Addr[2] = 0;
-    addr.Addr[3] = htonl(groupId);
+    addr.Addr[0] = htonl((0xFF000000U | lFlagsAndScope) |
+                         (aGroupId[ 0] <<  8) |
+                         (aGroupId[ 1] <<  0));
+    addr.Addr[1] = htonl((aGroupId[ 2] << 24) |
+                         (aGroupId[ 3] << 16) |
+                         (aGroupId[ 4] <<  8) |
+                         (aGroupId[ 5] <<  0));
+    addr.Addr[2] = htonl((aGroupId[ 6] << 24) |
+                         (aGroupId[ 7] << 16) |
+                         (aGroupId[ 8] <<  8) |
+                         (aGroupId[ 9] <<  0));
+    addr.Addr[3] = htonl((aGroupId[10] << 24) |
+                         (aGroupId[11] << 16) |
+                         (aGroupId[12] <<  8) |
+                         (aGroupId[13] <<  0));
 
     return addr;
+}
+
+IPAddress IPAddress::MakeIPv6Multicast(uint8_t aFlags, uint8_t aScope, uint32_t aGroupId)
+{
+    const uint8_t lGroupId[NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES] =
+    {
+        0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0,
+        (uint8_t)((aGroupId & 0xFF000000U) >> 24),
+        (uint8_t)((aGroupId & 0x00FF0000U) >> 16),
+        (uint8_t)((aGroupId & 0x0000FF00U) >>  8),
+        (uint8_t)((aGroupId & 0x000000FFU) >>  0)
+    };
+
+    return (MakeIPv6Multicast(aFlags, aScope, lGroupId));
+}
+
+IPAddress IPAddress::MakeIPv6WellKnownMulticast(uint8_t aScope, uint32_t aGroupId)
+{
+    const uint8_t lFlags = 0;
+
+    return (MakeIPv6Multicast(lFlags, aScope, aGroupId));
+}
+
+IPAddress IPAddress::MakeIPv6TransientMulticast(uint8_t aFlags, uint8_t aScope, const uint8_t aGroupId[NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES])
+{
+    const uint8_t lFlags = (aFlags | kIPv6MulticastFlag_Transient);
+
+    return (MakeIPv6Multicast(lFlags, aScope, aGroupId));
+}
+
+IPAddress IPAddress::MakeIPv6PrefixMulticast(uint8_t aScope, uint8_t aPrefixLength, const uint64_t &aPrefix, uint32_t aGroupId)
+{
+    const uint8_t lReserved    = 0;
+    const uint8_t lFlags       = kIPv6MulticastFlag_Prefix;
+    const uint8_t lGroupId[NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES] =
+    {
+        lReserved,
+        aPrefixLength,
+        (uint8_t)((aPrefix  & 0xFF00000000000000ULL) >> 56),
+        (uint8_t)((aPrefix  & 0x00FF000000000000ULL) >> 48),
+        (uint8_t)((aPrefix  & 0x0000FF0000000000ULL) >> 40),
+        (uint8_t)((aPrefix  & 0x000000FF00000000ULL) >> 32),
+        (uint8_t)((aPrefix  & 0x00000000FF000000ULL) >> 24),
+        (uint8_t)((aPrefix  & 0x0000000000FF0000ULL) >> 16),
+        (uint8_t)((aPrefix  & 0x000000000000FF00ULL) >>  8),
+        (uint8_t)((aPrefix  & 0x00000000000000FFULL) >>  0),
+        (uint8_t)((aGroupId & 0xFF000000U)           >> 24),
+        (uint8_t)((aGroupId & 0x00FF0000U)           >> 16),
+        (uint8_t)((aGroupId & 0x0000FF00U)           >>  8),
+        (uint8_t)((aGroupId & 0x000000FFU)           >>  0)
+    };
+
+    return (MakeIPv6TransientMulticast(lFlags, aScope, lGroupId));
 }
 
 } // namespace Inet

@@ -30,7 +30,7 @@
 
 using nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor;
 
-@interface NLWeaveDeviceDescriptor()
+@interface NLWeaveDeviceDescriptor ()
 
 + (NLWeaveDeviceDescriptor *)createUsing:(WeaveDeviceDescriptor)deviceDescriptor;
 

@@ -1118,9 +1118,9 @@ public:
     /// current state of this Time Sync Client
     enum ClientState
     {
-        kClientState_Idle,      //< Initialized, waiting for Time Change Notification, but no actual time sync operation is happening
-        kClientState_Sync_1,    //< Working on the first time sync attempt
-        kClientState_Sync_2,    //< Working on the second time sync attempt
+        kClientState_Idle,      ///< Initialized, waiting for Time Change Notification, but no actual time sync operation is happening
+        kClientState_Sync_1,    ///< Working on the first time sync attempt
+        kClientState_Sync_2,    ///< Working on the second time sync attempt
     };
 
     /**

@@ -217,6 +217,7 @@ am__libInetLayer_a_SOURCES_DIST =  \
 	@top_builddir@/src/inet/IPAddress.cpp \
 	@top_builddir@/src/inet/IPEndPointBasis.cpp \
 	@top_builddir@/src/inet/IPPrefix.cpp \
+	@top_builddir@/src/inet/InetError.cpp \
 	@top_builddir@/src/inet/InetInterface.cpp \
 	@top_builddir@/src/inet/InetLayer.cpp \
 	@top_builddir@/src/inet/InetLayerBasis.cpp \
@@ -242,6 +243,7 @@ am__objects_8 = @top_builddir@/src/inet/libInetLayer_a-EndPointBasis.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-IPAddress.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-IPPrefix.$(OBJEXT) \
+	@top_builddir@/src/inet/libInetLayer_a-InetError.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-InetInterface.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-InetLayer.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-InetLayerBasis.$(OBJEXT) \
@@ -484,6 +486,7 @@ VISIBILITY_OBJCFLAGS = @VISIBILITY_OBJCFLAGS@
 VISIBILITY_OBJCXXCFLAGS = @VISIBILITY_OBJCXXCFLAGS@
 WEAVE_DEVICE_LAYER_TARGET = @WEAVE_DEVICE_LAYER_TARGET@
 WEAVE_DEVICE_LAYER_TARGET_ESP32 = @WEAVE_DEVICE_LAYER_TARGET_ESP32@
+WEAVE_DEVICE_LAYER_TARGET_NRF5 = @WEAVE_DEVICE_LAYER_TARGET_NRF5@
 WEAVE_LOGGING_STYLE = @WEAVE_LOGGING_STYLE@
 WEAVE_LOGGING_STYLE_ANDROID = @WEAVE_LOGGING_STYLE_ANDROID@
 WEAVE_LOGGING_STYLE_EXTERNAL = @WEAVE_LOGGING_STYLE_EXTERNAL@
@@ -541,6 +544,18 @@ localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
+nl_filtered_build = @nl_filtered_build@
+nl_filtered_build_cpu = @nl_filtered_build_cpu@
+nl_filtered_build_os = @nl_filtered_build_os@
+nl_filtered_build_vendor = @nl_filtered_build_vendor@
+nl_filtered_host = @nl_filtered_host@
+nl_filtered_host_cpu = @nl_filtered_host_cpu@
+nl_filtered_host_os = @nl_filtered_host_os@
+nl_filtered_host_vendor = @nl_filtered_host_vendor@
+nl_filtered_target = @nl_filtered_target@
+nl_filtered_target_cpu = @nl_filtered_target_cpu@
+nl_filtered_target_os = @nl_filtered_target_os@
+nl_filtered_target_vendor = @nl_filtered_target_vendor@
 nlbuild_autotools_stem = @nlbuild_autotools_stem@
 oldincludedir = @oldincludedir@
 openssl_buildstem = @openssl_buildstem@
@@ -570,6 +585,7 @@ nl_InetLayer_sources = @top_builddir@/src/inet/EndPointBasis.cpp \
 	@top_builddir@/src/inet/IPAddress.cpp \
 	@top_builddir@/src/inet/IPEndPointBasis.cpp \
 	@top_builddir@/src/inet/IPPrefix.cpp \
+	@top_builddir@/src/inet/InetError.cpp \
 	@top_builddir@/src/inet/InetInterface.cpp \
 	@top_builddir@/src/inet/InetLayer.cpp \
 	@top_builddir@/src/inet/InetLayerBasis.cpp \
@@ -689,6 +705,9 @@ clean-libLIBRARIES:
 @top_builddir@/src/inet/libInetLayer_a-IPPrefix.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/inet/libInetLayer_a-InetError.$(OBJEXT):  \
+	@top_builddir@/src/inet/$(am__dirstamp) \
+	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/inet/libInetLayer_a-InetInterface.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
@@ -745,6 +764,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPAddress.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPEndPointBasis.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPPrefix.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetError.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetLayer.Po@am__quote@
@@ -849,6 +869,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/IPPrefix.cpp' object='@top_builddir@/src/inet/libInetLayer_a-IPPrefix.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-IPPrefix.obj `if test -f '@top_builddir@/src/inet/IPPrefix.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/IPPrefix.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/IPPrefix.cpp'; fi`
+
+@top_builddir@/src/inet/libInetLayer_a-InetError.o: @top_builddir@/src/inet/InetError.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-InetError.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetError.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-InetError.o `test -f '@top_builddir@/src/inet/InetError.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetError.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetError.Tpo @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetError.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/InetError.cpp' object='@top_builddir@/src/inet/libInetLayer_a-InetError.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-InetError.o `test -f '@top_builddir@/src/inet/InetError.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetError.cpp
+
+@top_builddir@/src/inet/libInetLayer_a-InetError.obj: @top_builddir@/src/inet/InetError.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-InetError.obj -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetError.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-InetError.obj `if test -f '@top_builddir@/src/inet/InetError.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetError.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetError.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetError.Tpo @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetError.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/InetError.cpp' object='@top_builddir@/src/inet/libInetLayer_a-InetError.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-InetError.obj `if test -f '@top_builddir@/src/inet/InetError.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetError.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetError.cpp'; fi`
 
 @top_builddir@/src/inet/libInetLayer_a-InetInterface.o: @top_builddir@/src/inet/InetInterface.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-InetInterface.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetInterface.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-InetInterface.o `test -f '@top_builddir@/src/inet/InetInterface.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetInterface.cpp

@@ -166,8 +166,8 @@ am__weave_SOURCES_DIST = Cmd_ConvertCert.cpp \
 	Cmd_GenDeviceCert.cpp Cmd_GenGeneralCert.cpp \
 	Cmd_GenProvisioningData.cpp Cmd_GenServiceEndpointCert.cpp \
 	Cmd_MakeAccessToken.cpp Cmd_MakeServiceConfig.cpp \
-	Cmd_PrintCert.cpp Cmd_PrintTLV.cpp Cmd_ValidateCert.cpp \
-	Cmd_ResignCert.cpp weave-tool.cpp
+	Cmd_PrintCert.cpp Cmd_PrintSig.cpp Cmd_PrintTLV.cpp \
+	Cmd_ValidateCert.cpp Cmd_ResignCert.cpp weave-tool.cpp
 @WEAVE_BUILD_TOOLS_TRUE@am_weave_OBJECTS =  \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_ConvertCert.$(OBJEXT) \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_ConvertProvisioningData.$(OBJEXT) \
@@ -181,6 +181,7 @@ am__weave_SOURCES_DIST = Cmd_ConvertCert.cpp \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_MakeAccessToken.$(OBJEXT) \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_MakeServiceConfig.$(OBJEXT) \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_PrintCert.$(OBJEXT) \
+@WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_PrintSig.$(OBJEXT) \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_PrintTLV.$(OBJEXT) \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_ValidateCert.$(OBJEXT) \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_ResignCert.$(OBJEXT) \
@@ -425,6 +426,7 @@ VISIBILITY_OBJCFLAGS = @VISIBILITY_OBJCFLAGS@
 VISIBILITY_OBJCXXCFLAGS = @VISIBILITY_OBJCXXCFLAGS@
 WEAVE_DEVICE_LAYER_TARGET = @WEAVE_DEVICE_LAYER_TARGET@
 WEAVE_DEVICE_LAYER_TARGET_ESP32 = @WEAVE_DEVICE_LAYER_TARGET_ESP32@
+WEAVE_DEVICE_LAYER_TARGET_NRF5 = @WEAVE_DEVICE_LAYER_TARGET_NRF5@
 WEAVE_LOGGING_STYLE = @WEAVE_LOGGING_STYLE@
 WEAVE_LOGGING_STYLE_ANDROID = @WEAVE_LOGGING_STYLE_ANDROID@
 WEAVE_LOGGING_STYLE_EXTERNAL = @WEAVE_LOGGING_STYLE_EXTERNAL@
@@ -482,6 +484,18 @@ localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
+nl_filtered_build = @nl_filtered_build@
+nl_filtered_build_cpu = @nl_filtered_build_cpu@
+nl_filtered_build_os = @nl_filtered_build_os@
+nl_filtered_build_vendor = @nl_filtered_build_vendor@
+nl_filtered_host = @nl_filtered_host@
+nl_filtered_host_cpu = @nl_filtered_host_cpu@
+nl_filtered_host_os = @nl_filtered_host_os@
+nl_filtered_host_vendor = @nl_filtered_host_vendor@
+nl_filtered_target = @nl_filtered_target@
+nl_filtered_target_cpu = @nl_filtered_target_cpu@
+nl_filtered_target_os = @nl_filtered_target_os@
+nl_filtered_target_vendor = @nl_filtered_target_vendor@
 nlbuild_autotools_stem = @nlbuild_autotools_stem@
 oldincludedir = @oldincludedir@
 openssl_buildstem = @openssl_buildstem@
@@ -544,6 +558,7 @@ top_srcdir = @top_srcdir@
 @WEAVE_BUILD_TOOLS_TRUE@    Cmd_MakeAccessToken.cpp               \
 @WEAVE_BUILD_TOOLS_TRUE@    Cmd_MakeServiceConfig.cpp             \
 @WEAVE_BUILD_TOOLS_TRUE@    Cmd_PrintCert.cpp                     \
+@WEAVE_BUILD_TOOLS_TRUE@    Cmd_PrintSig.cpp                      \
 @WEAVE_BUILD_TOOLS_TRUE@    Cmd_PrintTLV.cpp                      \
 @WEAVE_BUILD_TOOLS_TRUE@    Cmd_ValidateCert.cpp                  \
 @WEAVE_BUILD_TOOLS_TRUE@    Cmd_ResignCert.cpp                    \
@@ -700,6 +715,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_MakeAccessToken.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_MakeServiceConfig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_PrintCert.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_PrintSig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_PrintTLV.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_ResignCert.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_ValidateCert.Po@am__quote@
@@ -938,6 +954,20 @@ weave-Cmd_PrintCert.obj: Cmd_PrintCert.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Cmd_PrintCert.cpp' object='weave-Cmd_PrintCert.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -c -o weave-Cmd_PrintCert.obj `if test -f 'Cmd_PrintCert.cpp'; then $(CYGPATH_W) 'Cmd_PrintCert.cpp'; else $(CYGPATH_W) '$(srcdir)/Cmd_PrintCert.cpp'; fi`
+
+weave-Cmd_PrintSig.o: Cmd_PrintSig.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -MT weave-Cmd_PrintSig.o -MD -MP -MF $(DEPDIR)/weave-Cmd_PrintSig.Tpo -c -o weave-Cmd_PrintSig.o `test -f 'Cmd_PrintSig.cpp' || echo '$(srcdir)/'`Cmd_PrintSig.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/weave-Cmd_PrintSig.Tpo $(DEPDIR)/weave-Cmd_PrintSig.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Cmd_PrintSig.cpp' object='weave-Cmd_PrintSig.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -c -o weave-Cmd_PrintSig.o `test -f 'Cmd_PrintSig.cpp' || echo '$(srcdir)/'`Cmd_PrintSig.cpp
+
+weave-Cmd_PrintSig.obj: Cmd_PrintSig.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -MT weave-Cmd_PrintSig.obj -MD -MP -MF $(DEPDIR)/weave-Cmd_PrintSig.Tpo -c -o weave-Cmd_PrintSig.obj `if test -f 'Cmd_PrintSig.cpp'; then $(CYGPATH_W) 'Cmd_PrintSig.cpp'; else $(CYGPATH_W) '$(srcdir)/Cmd_PrintSig.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/weave-Cmd_PrintSig.Tpo $(DEPDIR)/weave-Cmd_PrintSig.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Cmd_PrintSig.cpp' object='weave-Cmd_PrintSig.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -c -o weave-Cmd_PrintSig.obj `if test -f 'Cmd_PrintSig.cpp'; then $(CYGPATH_W) 'Cmd_PrintSig.cpp'; else $(CYGPATH_W) '$(srcdir)/Cmd_PrintSig.cpp'; fi`
 
 weave-Cmd_PrintTLV.o: Cmd_PrintTLV.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -MT weave-Cmd_PrintTLV.o -MD -MP -MF $(DEPDIR)/weave-Cmd_PrintTLV.Tpo -c -o weave-Cmd_PrintTLV.o `test -f 'Cmd_PrintTLV.cpp' || echo '$(srcdir)/'`Cmd_PrintTLV.cpp

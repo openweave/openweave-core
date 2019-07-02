@@ -155,16 +155,16 @@
  */
 #define WEAVE_SYSTEM_ERROR_ACCESS_DENIED _WEAVE_SYSTEM_ERROR(7)
 
+//                        !!!!! IMPORTANT !!!!!
+//
+// If you add new Weave System Layer errors, please update the translation of error
+// codes to strings in SystemError.cpp, and add them to unittest in test-apps/TestErrorStr.cpp
+
 #endif // _WEAVE_SYSTEM_CONFIG_ERROR
 
 /**
  *  @}
  */
-
-//                        !!!!! IMPORTANT !!!!!
-//
-// If you add new Weave System Layer errors, please update the translation of error
-// codes to strings in support/ErrorStr.cpp, and add them to unittest in test-apps/TestErrorStr.cpp
 
 
 #ifdef __cplusplus
@@ -180,15 +180,22 @@ namespace System {
  */
 typedef WEAVE_SYSTEM_CONFIG_ERROR_TYPE Error;
 
+extern void RegisterSystemLayerErrorFormatter(void);
+extern bool FormatSystemLayerError(char * buf, uint16_t bufSize, int32_t err);
+
 extern Error MapErrorPOSIX(int code);
 extern const char* DescribeErrorPOSIX(Error code);
 extern bool IsErrorPOSIX(Error code);
+extern void RegisterPOSIXErrorFormatter(void);
+extern bool FormatPOSIXError(char * buf, uint16_t bufSize, int32_t err);
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 extern Error MapErrorLwIP(err_t code);
 extern const char* DescribeErrorLwIP(Error code);
 extern bool IsErrorLwIP(Error code);
+extern void RegisterLwIPErrorFormatter(void);
+extern bool FormatLwIPError(char * buf, uint16_t bufSize, int32_t err);
 
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 

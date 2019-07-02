@@ -660,7 +660,7 @@ IPAddress WeaveFabricState::SelectNodeAddress(uint64_t nodeId, uint16_t subnetId
     // Translate 'any' node id to the IPv6 link-local all-nodes multicast address.
     if (nodeId == kAnyNodeId)
     {
-        return IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+        return IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
     }
     else
     {

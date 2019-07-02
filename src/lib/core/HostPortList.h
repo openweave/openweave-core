@@ -65,12 +65,12 @@ class HostPortList
 private:
     enum
     {
-        kHostPortControl_TypeMask       = 0x03,  //!< Mask for the type of entry flags.
-        kHostPortControl_HasSuffixIndex = 0x04,  //!< Flag indicating whether the host port tuple has an associated suffix index.
-        kHostPortControl_HasPort        = 0x08,  //!< Flag indicating whether the host port tuple has a port number.
+        kHostPortControl_TypeMask       = 0x03,  ///< Mask for the type of entry flags.
+        kHostPortControl_HasSuffixIndex = 0x04,  ///< Flag indicating whether the host port tuple has an associated suffix index.
+        kHostPortControl_HasPort        = 0x08,  ///< Flag indicating whether the host port tuple has a port number.
 
-        kHostPortType_FullyQualified    = 0x00,  //!< Flag indicating whether the host name is fully-qualified.
-        kHostPortType_Indexed           = 0x01,  //!< Flag indicating whether the host name is index (i.e. has a suffix).
+        kHostPortType_FullyQualified    = 0x00,  ///< Flag indicating whether the host name is fully-qualified.
+        kHostPortType_Indexed           = 0x01,  ///< Flag indicating whether the host name is index (i.e. has a suffix).
     };
 
     WEAVE_ERROR Get(const uint8_t *& elem, char *hostBuf, uint32_t hostBufSize, uint16_t& port) const;
@@ -78,10 +78,10 @@ private:
     WEAVE_ERROR GetSuffix(uint8_t index, char *buf, uint32_t bufSize, uint8_t& suffixLen) const;
 
  private:
-    const uint8_t  *mElements;     //!< A read-only pointer to the host and port tuples list.
-    const uint8_t  *mSuffixTable;  //!< A read-only pointer to the host suffix list.
-    uint8_t         mCount;        //!< The number of host and port tuples in the list.
-    uint8_t         mSuffixCount;  //!< The number of host suffixes in the list.
+    const uint8_t  *mElements;     ///< A read-only pointer to the host and port tuples list.
+    const uint8_t  *mSuffixTable;  ///< A read-only pointer to the host suffix list.
+    uint8_t         mCount;        ///< The number of host and port tuples in the list.
+    uint8_t         mSuffixCount;  ///< The number of host suffixes in the list.
 };
 
 } /* namespace Weave */

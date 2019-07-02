@@ -40,7 +40,7 @@ BLUEZ                          ?= 0
 USE_FUZZING                    ?= 0
 
 HOSTOS                          = $(shell uname -s |tr [:upper:] [:lower:])
-ARCH                            = $(shell uname -i |tr [:upper:] [:lower:])
+ARCH                            = $(shell uname -m |tr [:upper:] [:lower:])
 
 ECHO                           := @echo
 MAKE                           := make
@@ -64,9 +64,15 @@ AbsTopResultDir                 = $(CURDIR)/$(TopResultDir)
 
 TargetTuple                     = $(shell ${AbsTopSourceDir}/third_party/nlbuild-autotools/repo/third_party/autoconf/config.guess | sed -e 's/[[:digit:].]*$$//g')
 
+ifeq ($(HOSTOS),darwin)
+ProjectConfigDir               ?= $(AbsTopSourceDir)/build/config/standalone/darwin
+else
 ProjectConfigDir               ?= $(AbsTopSourceDir)/build/config/standalone
+endif
 
+ifeq ($(ARCH),x86_64)
 configure_OPTIONS               = CPPFLAGS="-maes"
+endif
 
 # NOTE: Mac OS SDKs generated on OS X Sierra (or higher) seem to have trouble
 #       running on El Capitan (or earlier) due to issues with clock_gettime: 
@@ -85,22 +91,36 @@ ifeq ($(HOSTOS),darwin)
 configure_OPTIONS              += ac_cv_func_clock_gettime=no  ac_cv_have_decl_clock_gettime=no
 endif
 
-# By default, build using the system's OpenSSL library, except on OSX which needs
-# the Weave internal OpenSSL.
-# However, if NO_OPENSSL = 1, build with an alternate configuration that avoids the
-# use of OpenSSL.  Note that building with NO_OPENSSL = 1 automatically suppresses
-# the building of various command line tools that depend on OpenSSL (e.g. the weave tool).
+# By default, attempt use the system's OpenSSL library, falling back to building the internal
+# copy of OpenSSL (in third_party/openssl) when necessary.
+#
+# On Linux, the logic uses pkg-config to determine if the OpenSSL development package (libssl-dev)
+# has been installed.  If not, the internal copy of OpenSSL is built.
+#
+# On OS X, the logic uses homebrew to determine if OpenSSL has been installed.  If not, the
+# internal copy of OpenSSL will be built.
+#
+# The variable OPENSSL can be used to override the above logic and specify a particular root
+# directory in which to find the OpenSSL headers and libraries.
+#
+# Setting OPENSSL=no or NO_OPENSSL=1 will cause OpenWeave to be built without OpenSSL.  Note that
+# building without OpenSSL automatically suppresses the building of various command line tools that
+# have a hard dependency on OpenSSL (e.g. the weave tool).
 
 ifeq ($(NO_OPENSSL),1)
-ProjectConfigDir                = $(AbsTopSourceDir)/build/config/standalone/no-openssl
-configure_OPTIONS              += --with-openssl=no --disable-tools
+OPENSSL                         = no
 else
 ifeq ($(HOSTOS),darwin)
-ProjectConfigDir                = $(AbsTopSourceDir)/build/config/standalone/darwin
-configure_OPTIONS              += --with-openssl=internal
+OSX_OPENSSL_DIR                 = /usr/local/opt/openssl
+OPENSSL                        ?= $(shell if which brew > /dev/null && brew ls --versions openssl > /dev/null; then echo $(OSX_OPENSSL_DIR); else echo "internal"; fi) 
 else
-configure_OPTIONS              += --with-openssl=
+OPENSSL                        ?= $(shell if which pkg-config > /dev/null && pkg-config --exists openssl; then echo ""; else echo "internal"; fi)
 endif
+endif
+configure_OPTIONS              += --with-openssl=$(OPENSSL)
+ifeq ($(OPENSSL),no)
+configure_OPTIONS              += --disable-tools
+ProjectConfigDir                = $(AbsTopSourceDir)/build/config/standalone/no-openssl
 endif
 
 # If the user has asserted USE_FUZZING enable fuzzing build
@@ -435,46 +455,59 @@ clean:
 	@$(RM_F) -r $(CLEAN_DIRS)
 
 help:
-	$(ECHO) "Simply type 'make -f $(firstword $(MAKEFILE_LIST))' to build Weave for the following "
-	$(ECHO) "target:"
-	$(ECHO) ""
-	$(ECHO) "    $(TargetTuple)"
-	$(ECHO) ""
-	$(ECHO) "You may want or need to override the following make variables either on the "
-	$(ECHO) "command line or in the environment: "
-	$(ECHO) ""
-	$(ECHO) "  DEBUG                   Enable Weave debug code and logging (default: '$(DEBUG)')."
-	$(ECHO) ""
-	$(ECHO) "  COVERAGE                Enable generation of code coverage information "
-	$(ECHO) "                          (default: '$(COVERAGE)')."
-	$(ECHO) ""
-	$(ECHO) "  TIMESTAMP               Configure standalone logging module to output "
-	$(ECHO) "                          timestamps (default: '$(TIMESTAMP)')."
-	$(ECHO) ""
-	$(ECHO) "  USE_LWIP                Build the standalone configuration against the LwIP "
-	$(ECHO) "                          library rather than against sockets (default '$(USE_LWIP)')."
-	$(ECHO) "  "
-	$(ECHO) "  BLUEZ                   Enable support for BLE peripheral using BlueZ bindings"
-	$(ECHO) ""
-	$(ECHO) "  NO_OPENSSL              Build an alternate configuration that does not depend"
-	$(ECHO) "                          on the use of OpenSSL (default: '$(NO_OPENSSL)'.  Note"
-	$(ECHO) "                          that the various command line tools that depend on"
-	$(ECHO) "                          OpenSSL (e.g., the weave tool) will not be built in"
-	$(ECHO) "                          this configuration."
-	$(ECHO) ""
-	$(ECHO) "  TUNNEL_FAILOVER         Build support for redundant VPN to the Weave service "
-	$(ECHO) "                          (default: '$(TUNNEL_FAILOVER)')."
-	$(ECHO) ""
-	$(ECHO) "  I686TARGET              On a properly configured 64-bit Linux with multilib "
-	$(ECHO) "                          support, build a 32-bit target (default: '$(I686TARGET)')."
-	$(ECHO) ""
-	$(ECHO) "  DOCS                    Build Doxygen-generated documentation (default: '$(DOCS)')."
-	$(ECHO) "                          Note this flag only has an effect when Doxygen is"
-	$(ECHO) "                          installed."
-	$(ECHO) ""
-	$(ECHO) "  HAPPY                   When set to 0, skip the functional tests that require"
-	$(ECHO) "                          Happy orchestration tool.  When set to 1, pick the"
-	$(ECHO) "                          default location to the Happy tool.  When set to any"
-	$(ECHO) "                          other value, the value is treated as the location of"
-	$(ECHO) "                          the Happy tool."
-	$(ECHO) ""
+	@echo "$${HelpText}"
+
+export HelpText
+define HelpText
+Simply type 'make -f $(firstword $(MAKEFILE_LIST))' to build Weave for the following 
+target:
+
+    $(TargetTuple)
+
+You may want or need to override the following make variables either on the 
+command line or in the environment: 
+
+  DEBUG=[1|0]             Enable/disable Weave debug code and logging (default: '$(DEBUG)').
+
+  COVERAGE=[1|0]          Enable/disable generation of code coverage information 
+                          (default: '$(COVERAGE)').
+
+  TIMESTAMP=[1|0]         Enable/disable logging module timestamp output (default: '$(TIMESTAMP)').
+
+  USE_LWIP=[1|0]          Build the standalone configuration against the LwIP 
+                          library rather than against sockets (default '$(USE_LWIP)').
+
+  BLUEZ=[1|0]             Enable support for BLE peripheral using BlueZ bindings 
+
+  OPENSSL=<dir>           Use the prebuilt version of OpenSSL located in the given 
+                          directory. Note that the directory is expected to contain 
+                          include and lib subdirectories containing the necessary header 
+                          and libraries. 
+
+  OPENSSL=internal        Build the internal copy of OpenSSL as part of the OpenWeave
+                          build.
+
+  OPENSSL=no              Build an alternate configuration that does not depend
+  NO_OPENSSL=1            on the use of OpenSSL (default: '$(NO_OPENSSL)'.  Note
+                          that the various command line tools that depend on
+                          OpenSSL (e.g., the weave tool) will not be built in
+                          this configuration.
+
+  TUNNEL_FAILOVER=[1|0]   Enable/disabled support for redundant VPN to the Weave service 
+                          (default: '$(TUNNEL_FAILOVER)').
+
+  I686TARGET=[1|0]        Enable/disable building a 32-bit target.  Requires a properly
+                          configured 64-bit Linux with multilib support (default: '$(I686TARGET)').
+
+  DOCS=[1|0]              Enable/disable Doxygen-generated documentation (default: '$(DOCS)').
+                          Note this flag only has an effect when Doxygen is
+                          installed.
+
+  HAPPY=[1|0]             When set to 0, skip the functional tests that require
+                          Happy orchestration tool.  When set to 1, pick the
+                          default location to the Happy tool.  When set to any
+                          other value, the value is treated as the location of
+                          the Happy tool.
+
+endef
+	

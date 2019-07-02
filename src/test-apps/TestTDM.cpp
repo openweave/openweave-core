@@ -747,9 +747,9 @@ private:
 
     SubscriptionEngine mSubscriptionEngine;
     WeaveExchangeManager mExchangeMgr;
-    SingleResourceSourceTraitCatalog::CatalogItem mSourceCatalogStore[4];
+    SingleResourceSourceTraitCatalog::CatalogItem mSourceCatalogStore[5];
     SingleResourceSourceTraitCatalog mSourceCatalog;
-    SingleResourceSinkTraitCatalog::CatalogItem mSinkCatalogStore[4];
+    SingleResourceSinkTraitCatalog::CatalogItem mSinkCatalogStore[5];
     SingleResourceSinkTraitCatalog mSinkCatalog;
     TestTdmSource mTestTdmSource;
     TestTdmSource mTestTdmSource1;
@@ -770,8 +770,8 @@ private:
 };
 
 TestTdm::TestTdm()
-    : mSourceCatalog(ResourceIdentifier(ResourceIdentifier::SELF_NODE_ID), mSourceCatalogStore, 4),
-      mSinkCatalog(ResourceIdentifier(ResourceIdentifier::SELF_NODE_ID), mSinkCatalogStore, 4),
+    : mSourceCatalog(ResourceIdentifier(ResourceIdentifier::SELF_NODE_ID), mSourceCatalogStore, 5),
+      mSinkCatalog(ResourceIdentifier(ResourceIdentifier::SELF_NODE_ID), mSinkCatalogStore, 5),
       mClientBinding(NULL)
 {
     mTestCase = 0;

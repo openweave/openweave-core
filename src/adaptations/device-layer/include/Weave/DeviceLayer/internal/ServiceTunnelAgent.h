@@ -22,6 +22,8 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
 
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
@@ -35,5 +37,7 @@ extern WEAVE_ERROR InitServiceTunnelAgent();
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
+
+#endif // WEAVE_CONFIG_ENABLE_TUNNELING
 
 #endif // TUNNEL_AGENT_H

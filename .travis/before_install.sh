@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-#    Copyright 2018 Google LLC All Rights Reserved.
+#    Copyright 2018-2019 Google LLC All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -21,6 +21,14 @@
 #      This file is the script for Travis CI hosted, distributed continuous 
 #      integration 'before_install' trigger of the 'install' step.
 #
+
+NORDIC_SDK_FOR_THREAD_URL=https://www.nordicsemi.com/-/media/Software-and-other-downloads/SDKs/nRF5-SDK-for-Thread/nRF5-SDK-for-Thread-and-Zigbee/nRF5SDKforThreadandZigbee20029775ac.zip
+
+NORDIC_COMMAND_LINE_TOOLS_URL=https://www.nordicsemi.com/-/media/Software-and-other-downloads/Desktop-software/nRF5-command-line-tools/sw/nRF-Command-Line-Tools_9_8_1_Linux-x86_64.tar
+
+ARM_GCC_TOOLCHAIN_URL=https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
+
+TMPDIR=${TMPDIR-/tmp}
 
 die()
 {
@@ -61,12 +69,45 @@ installdeps()
             # OpenWeave Core may use OpenSSL for cryptography. The
             # OpenSSL version included in package depends on the
             # perl Text::Template mmodule.
-
             curl -L https://cpanmin.us | sudo perl - --sudo App::cpanminus
             sudo cpanm "Text::Template"
 
             ;;
 
+        nrf5-sdk)
+            # Install Nordic nRF52840 SDK for Thread and Zigbee
+            wget -O ${TMPDIR}/nordic_sdk_for_thread.zip -nv ${NORDIC_SDK_FOR_THREAD_URL} || exit 1
+            unzip -d ${TRAVIS_BUILD_DIR}/nRF5x-SDK-for-Thread-and-Zigbee -q ${TMPDIR}/nordic_sdk_for_thread.zip || exit 1
+            rm ${TMPDIR}/nordic_sdk_for_thread.zip
+            
+            ;;
+        
+        nrf5-tools)
+            # Install Nordic nRF5x Command Line Tools
+            wget -O ${TMPDIR}/nordic_command_line_tools.tar -nv ${NORDIC_COMMAND_LINE_TOOLS_URL} || exit 1
+            mkdir ${TRAVIS_BUILD_DIR}/nRF5x-Command-Line-Tools
+            tar -C ${TRAVIS_BUILD_DIR}/nRF5x-Command-Line-Tools -xf ${TMPDIR}/nordic_command_line_tools.tar || exit 1
+            rm ${TMPDIR}/nordic_command_line_tools.tar
+
+            ;;
+
+        arm-gcc)
+            # Install ARM GCC Toolchain
+            wget -O ${TMPDIR}/arm_gcc_toolchain.tar.bz2 -nv ${ARM_GCC_TOOLCHAIN_URL} || exit 1
+            mkdir ${TRAVIS_BUILD_DIR}/arm
+            tar -jxf ${TMPDIR}/arm_gcc_toolchain.tar.bz2 --directory ${TRAVIS_BUILD_DIR}/arm || exit 1
+            rm ${TMPDIR}/arm_gcc_toolchain.tar.bz2
+
+            ;;
+
+        osx-autotools)
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install automake libtool
+            ;;
+            
+        osx-openssl)
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install openssl
+            ;;
+        
     esac
 }
 
@@ -94,16 +135,17 @@ case "${BUILD_TARGET}" in
 
         ;;
 
-    osx-auto-clang|osx-lwip-clang)
-        # By default, OpenWeave Core uses OpenSSL for cryptography on
-        # OS X and the OpenSSL version included in package depends
-        # on the perl Text::Template mmodule.
-        
-        installdeps "openssl-deps"
+    nrf52840)
+        .travis/prepare_nrf52840.sh
 
         ;;
 
-    linux-auto-gcc-check-happy)
+    osx-*)
+        installdeps "osx-autotools"
+        installdeps "osx-openssl"
+        ;;
+
+    linux-auto-gcc-check-happy|linux-lwip-gcc-check-happy)
         # By default, the BLE layer is enabled in OpenWeave Core and,
         # by default on Linux, the BLE layer is implemented by
         # BlueZ. Satisfy its dependencies.
@@ -120,15 +162,9 @@ case "${BUILD_TARGET}" in
 
         cd $HOME
         git clone https://github.com/openweave/happy.git
-
-        mkdir -p ve
-        cd ve
-        virtualenv happy
-        ls ./happy/bin/activate
-        . ./happy/bin/activate
         cd ${HOME}/happy
+        make install
         python pip_packages.py
-        python setup.py develop
         pip install pexpect
         sudo apt install python-gobject
         sudo apt install python-dbus

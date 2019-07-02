@@ -1,7 +1,7 @@
 #! /bin/bash
 # test-driver - basic testsuite driver script.
 
-scriptversion=2017-06-20.23; # UTC
+scriptversion=2019-05-31.23; # UTC
 
 # Copyright (C) 2011-2013 Free Software Foundation, Inc.
 #
@@ -56,6 +56,7 @@ trs_file=  # Where to save the metadata of the test run.
 expect_failure=no
 color_tests=no
 enable_hard_errors=yes
+build_num=
 while test $# -gt 0; do
   case $1 in
   --help) print_usage; exit $?;;
@@ -66,6 +67,7 @@ while test $# -gt 0; do
   --color-tests) color_tests=$2; shift;;
   --expect-failure) expect_failure=$2; shift;;
   --enable-hard-errors) enable_hard_errors=$2; shift;;
+  --build-num) build_num=$2; shift;;
   --) shift; break;;
   -*) usage_error "invalid option: '$1'";;
    *) break;;
@@ -113,12 +115,16 @@ lock_path="/tmp/fabric_offset"
 FABRIC_OFFSET=0
 
 if [ -z ${SERVICE+"mock"} ]; then
-    TIER="mock"
+    TIER="mck"
 else
 TIER=$(echo $SERVICE | cut -d "." -f 4 | cut -c1-3)
 if [ -z "$TIER" ]; then
-    TIER="test"
+    TIER="tst"
 fi
+fi
+
+if [ x${build_num} != x ]; then
+TIER=${build_num}${TIER}
 fi
 
 WAS_KILLED=0
@@ -155,7 +161,8 @@ fi
 
 # Temporary fix for flaky tests: give them up to 3 chances to succeed
 for ((i=0; i < ${NUM_GRACE_RUNS}; i++)); do
-    HAPPY_STATE_ID=happy${TIER}${FABRIC_OFFSET} FABRIC_OFFSET=$FABRIC_OFFSET "$@" >$log_file 2>&1
+    abslogfile=`readlink -f $log_file`
+    HAPPY_STATE_ID=h${TIER}${FABRIC_OFFSET} FABRIC_OFFSET=$FABRIC_OFFSET HAPPY_LOG_DIR=`dirname $abslogfile` "$@" >$log_file 2>&1
     estatus=$?
     if test $enable_hard_errors = no && test $estatus -eq 99; then
         estatus=1

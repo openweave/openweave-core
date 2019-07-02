@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #
 #    Copyright (c) 2013-2018 Nest Labs, Inc.
@@ -19,7 +19,7 @@
 
 #
 #    @file
-#      This file implements a CLI for the Python-based Weave Device Manager
+#      This file implements the Python-based Weave Device Manager Shell.
 #
 
 import sys
@@ -32,70 +32,39 @@ import shlex
 import base64
 import random
 import textwrap
+import traceback
 import string
 from copy import copy
 from cmd import Cmd
 from string import lower
 
-# Attempt to import the Weave Device Manager Python module. We might
-# be lucky and find the module sitting in the same directory. More
-# than likely, however, Python will need to look for it relative to
-# the directory this script is in or relative to the WEAVE_HOME
-# environment variable.
+# Extend sys.path with one or more directories, relative to the location of the
+# running script, in which the openweave package might be found .  This makes it
+# possible to run the device manager shell from a non-standard install location,
+# as well as directly from its location the OpenWeave source tree.
 #
-# The relative path will either likely be in:
-#
-#     lib/python/PACKAGE
-#
-# or:
-#
-#     lib/pythonPYTHON_VERSION/dist-packages/PACKAGE
-#
-# or:
-#
-#     lib/pythonPYTHON_VERSION/site-packages/PACKAGE
+# Note that relative package locations are prepended to sys.path so as to give
+# the local version of the package higher priority over any version installed in
+# a standard location. 
+# 
+scriptDir = os.path.dirname(os.path.abspath(__file__))
+relWeavePackageInstallDirs = [
+    ".",
+    "../lib/python",
+    "../lib/python%s.%s" % (sys.version_info.major, sys.version_info.minor),
+    "../lib/Python%s%s" % (sys.version_info.major, sys.version_info.minor),
+]
+for relInstallDir in relWeavePackageInstallDirs:
+    absInstallDir = os.path.realpath(os.path.join(scriptDir, relInstallDir))
+    if os.path.isdir(os.path.join(absInstallDir, 'openweave')):
+        sys.path.insert(0, absInstallDir)
 
-try:
-    import WeaveDeviceMgr
-except Exception:
-    pyversion = sys.version[:3]
-
-    pkgpythondirs = [ "python",
-                      "lib/python/weave",
-                      "lib/python" + pyversion + "/dist-packages/weave",
-                      "lib/python" + pyversion + "/site-packages/weave" ]
-
-    for pkgpythondir in pkgpythondirs:
-        if os.environ.has_key("WEAVE_HOME"):
-            pyweavepath = os.path.normpath(os.path.join(os.environ["WEAVE_HOME"], pkgpythondir))
-        else:
-            pyweavepath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", pkgpythondir))
-
-        if os.path.exists(pyweavepath):
-            # The path exists in the current SDK, go ahead and append it to
-            # the Python module search path.
-
-            sys.path.append(pyweavepath)
-
-    # At this point, we've added any possible paths to search for
-    # Python modules. Give it one last try.
-
-    try:
-        import WeaveDeviceMgr
-    except Exception:
-        print "Could not find the WeaveDeviceMgr module!"
-
-        sys.exit(1)
-
-# After solving the path problem for WeaveDeviceMgr above now try and import WeaveBleMgr.
+from openweave import WeaveDeviceMgr
 if platform.system() == 'Darwin':
-    from WeaveCoreBluetoothMgr import CoreBluetoothManager as BleManager
-    from WeaveBleUtility import FAKE_CONN_OBJ_VALUE
-
-if sys.platform.startswith('linux'):
-    from WeaveBluezMgr import BluezManager as BleManager
-    from WeaveBleUtility import FAKE_CONN_OBJ_VALUE
-
+    from openweave.WeaveCoreBluetoothMgr import CoreBluetoothManager as BleManager
+elif sys.platform.startswith('linux'):
+    from openweave.WeaveBluezMgr import BluezManager as BleManager
+from openweave.WeaveBleUtility import FAKE_CONN_OBJ_VALUE
 
 # Dummy Service Configuration
 #
@@ -267,11 +236,6 @@ class DeviceMgrCmd(Cmd):
         'ble-connect',
         'ble-disconnect',
         'ble-read',
-        'get-active-locale',
-        'set-active-locale',
-        'get-available-locales',
-        'thermostat-get-entry-key',
-        'thermostat-system-test-status',
         'start-system-test',
         'stop-system-test',
         'ble-scan-connect',
@@ -2336,72 +2300,6 @@ class DeviceMgrCmd(Cmd):
 
         self.bleMgr.send(line)
 
-    def do_getactivelocale(self, line):
-        """
-          get-active-locale
-
-          Get the device's active locale
-        """
-
-        args = shlex.split(line)
-
-        if (len(args) != 0):
-            print "Usage:"
-            self.do_help('get-active-locale')
-            return
-
-        try:
-            getResult = self.devMgr.GetActiveLocale()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
-            return
-
-        print "Get active locale complete: %s" % getResult
-
-    def do_getavailablelocales(self, line):
-        """
-          get-available-locales
-
-          Get the device's available locales.
-        """
-
-        args = shlex.split(line)
-
-        if (len(args) != 0):
-            print "Usage:"
-            self.do_help('get-available-locales')
-            return
-
-        try:
-            getResult = self.devMgr.GetAvailableLocales()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
-            return
-
-        print "Get active locales complete: %s" % getResult
-
-    def do_setactivelocale(self, line):
-        """
-          set-active-locale <locale>
-
-          Set the device's active locale.
-        """
-
-        args = shlex.split(line)
-
-        if (len(args) != 1):
-            print "Usage:"
-            self.do_help('set-active-locale')
-            return
-
-        try:
-            self.devMgr.SetActiveLocale(args[0])
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
-            return
-
-        print "Set active locale complete"
-
     def do_startsystemtest(self, line):
         """
           start-system-test <product-name> <test-id>
@@ -2457,50 +2355,6 @@ class DeviceMgrCmd(Cmd):
             return
 
         print "Stop system test complete"
-
-    def do_thermostatgetentrykey(self, line):
-        """
-          thermostat-get-entry-key
-
-          Get the thermostat's 6-character entry key.
-        """
-
-        args = shlex.split(line)
-
-        if (len(args) != 0):
-            print "Usage:"
-            self.do_help('thermostat-get-entry-key')
-            return
-
-        try:
-            getResult = self.devMgr.ThermostatGetEntryKey()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
-            return
-
-        print "Thermostat get entry key complete: %s" % getResult
-
-    def do_thermostatsystemteststatus(self, line):
-        """
-          thermostat-system-test-status
-
-          Get the thermostat system test status.
-        """
-
-        args = shlex.split(line)
-
-        if (len(args) != 0):
-            print "Usage:"
-            self.do_help('thermostat-system-test-status')
-            return
-
-        try:
-            getResult = self.devMgr.ThermostatSystemTestStatus()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
-            return
-
-        print "Thermostat system test status complete: %s" % getResult
 
     def do_history(self, line):
         """
@@ -2568,25 +2422,27 @@ class DeviceMgrCmd(Cmd):
             print "Invalid argument: " + val
             return None
 
+def main():
+    optParser = OptionParser()
+    optParser.add_option("-r", "--rendezvous-addr", action="store", dest="rendezvousAddr", help="Device rendezvous address", metavar='<ip-address>')
+    (options, remainingArgs) = optParser.parse_args(sys.argv[1:])
+    
+    if len(remainingArgs) != 0:
+        print 'Unexpected argument: %s' % remainingArgs[0]
+        sys.exit(-1)
+    
+    devMgrCmd = DeviceMgrCmd(rendezvousAddr=options.rendezvousAddr)
+    print "Weave Device Manager Shell"
+    if options.rendezvousAddr:
+        print "Rendezvous address set to %s" % options.rendezvousAddr
+    print
+    
+    try:
+        devMgrCmd.cmdloop()
+    except KeyboardInterrupt:
+        print '\nQuitting'
+    
+    sys.exit(0)
 
-
-optParser = OptionParser()
-optParser.add_option("-r", "--rendezvous-addr", action="store", dest="rendezvousAddr", help="Device rendezvous address", metavar='<ip-address>')
-(options, remainingArgs) = optParser.parse_args(sys.argv[1:])
-
-if len(remainingArgs) != 0:
-    print 'Unexpected argument: %s' % remainingArgs[0]
-    sys.exit(-1)
-
-devMgrCmd = DeviceMgrCmd(rendezvousAddr=options.rendezvousAddr)
-print "Weave Device Manager Shell"
-if options.rendezvousAddr:
-    print "Rendezvous address set to %s" % options.rendezvousAddr
-print
-
-try:
-    devMgrCmd.cmdloop()
-except KeyboardInterrupt:
-    print '\nQuitting'
-
-sys.exit(0)
+if __name__ == "__main__":
+    main()

@@ -78,6 +78,21 @@ PersistedCounter::Advance(void)
     return IncrementCount();
 }
 
+WEAVE_ERROR
+PersistedCounter::AdvanceEpochRelative(uint32_t aValue)
+{
+    WEAVE_ERROR ret;
+
+    mStartingCounterValue = (aValue / mEpoch) * mEpoch;  // Start of enclosing epoch
+    mCounterValue = mStartingCounterValue + mEpoch - 1;  // Move to end of enclosing epoch
+    ret = IncrementCount(); // Force to next epoch
+#if WEAVE_CONFIG_PERSISTED_COUNTER_DEBUG_LOGGING
+    WeaveLogError(EventLogging, "Advanced counter to 0x%x (relative to 0x%x)", mCounterValue, aValue);
+#endif
+
+    return ret;
+}
+
 bool
 PersistedCounter::GetNextValue(uint32_t &aValue)
 {

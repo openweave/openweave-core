@@ -133,7 +133,8 @@ int main(int argc, char *argv[])
     }
 
     if (!ParseArgsFromEnvVar(TOOL_NAME, TOOL_OPTIONS_ENV_VAR_NAME, gToolOptionSets, NULL, true) ||
-        !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets))
+        !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets) ||
+        !ResolveWeaveNetworkOptions(TOOL_NAME, gWeaveNodeOptions, gNetworkOptions))
     {
         exit(EXIT_FAILURE);
     }
@@ -142,19 +143,6 @@ int main(int argc, char *argv[])
     printf("ERROR: Running BDX server with WEAVE_CONFIG_BDX_SERVER_SUPPORT disabled does not make sense.\n");
     exit(EXIT_FAILURE);
 #endif
-
-    if (gNetworkOptions.LocalIPv6Addr != IPAddress::Any)
-    {
-        if (!gNetworkOptions.LocalIPv6Addr.IsIPv6ULA())
-        {
-            printf("ERROR: Local address must be an IPv6 ULA\n");
-            exit(EXIT_FAILURE);
-        }
-
-        gWeaveNodeOptions.FabricId = gNetworkOptions.LocalIPv6Addr.GlobalId();
-        gWeaveNodeOptions.LocalNodeId = IPv6InterfaceIdToWeaveNodeId(gNetworkOptions.LocalIPv6Addr.InterfaceId());
-        gWeaveNodeOptions.SubnetId = gNetworkOptions.LocalIPv6Addr.Subnet();
-    }
 
     InitSystemLayer();
     InitNetwork();

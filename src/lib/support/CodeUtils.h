@@ -389,6 +389,10 @@ inline void WeaveDie(void)
 #define __OVERRIDE override
 #endif
 
+#ifndef __CONSTEXPR
+#define __CONSTEXPR constexpr
+#endif
+
 #else
 
 #ifndef __FINAL
@@ -397,6 +401,10 @@ inline void WeaveDie(void)
 
 #ifndef __OVERRIDE
 #define __OVERRIDE
+#endif
+
+#ifndef __CONSTEXPR
+#define __CONSTEXPR constexpr
 #endif
 
 #endif // defined(__cplusplus) && (__cplusplus >= 201103L)

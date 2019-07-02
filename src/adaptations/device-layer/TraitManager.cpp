@@ -24,6 +24,9 @@
 
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
+
 #include <Weave/DeviceLayer/TraitManager.h>
 #include <Weave/Profiles/security/ApplicationKeysTraitDataSink.h>
 #include <Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h>
@@ -841,3 +844,5 @@ nl::Weave::Profiles::DataManagement::SubscriptionEngine * nl::Weave::Profiles::D
 {
     return &WdmSubscriptionEngine;
 }
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER

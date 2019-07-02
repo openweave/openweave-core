@@ -124,7 +124,7 @@ DynamicLib                                              = $(Framework)/$(Dynamic
 FrameworkName                                           = $(DynamicLibName).framework
 Framework                                               = $(TopTargetLibDir)/$(FrameworkName)
 
-DynamicLibSourceFiles                                   = $(TopTargetLibDir)/libWeave.a $(TopTargetLibDir)/libWeaveDeviceManager.a $(TopTargetLibDir)/libNLWeaveWrapper.a
+DynamicLibSourceFiles                                   = $(TopTargetLibDir)/libWeave.a $(TopTargetLibDir)/libNLWeaveWrapper.a
 
 FrameworkHeaderDirName                                  = Headers
 FrameworkModulesDirName                                 = Modules
@@ -456,7 +456,6 @@ lint pretty-check: $(PRETTY_CHECK_TARGETS)
 
 stage: stage-combine | $(TopResultDir)/$(TargetTuple)/lib
 	$(call combine-archs,$(TargetTupleStemIOS),$(ARCHS),libWeave.a,libWeave.a)
-	$(call combine-archs,$(TargetTupleStemIOS),$(ARCHS),libWeaveDeviceManager.a,libWeaveDeviceManager.a)
 	$(call combine-archs,$(TargetTupleStemIOS),$(ARCHS),libNLWeaveDeviceManager.a,libNLWeaveWrapper.a)
 
 $(Framework): $(DynamicLib) $(FrameworkHeaderDir) $(FrameworkModulesDir) $(FrameworkModuleMap) $(FrameworkPlist)

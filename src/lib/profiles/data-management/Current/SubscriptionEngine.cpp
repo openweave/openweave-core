@@ -499,10 +499,24 @@ WEAVE_ERROR SubscriptionEngine::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
         SchemaVersionRange versionRange;
 
         err = aCatalog->AddressToHandle(pathReader, handle, versionRange);
+
+        if (err == WEAVE_ERROR_INVALID_PROFILE_ID)
+        {
+            // AddressToHandle() can return an error if the sink has been removed from the catalog. In that case,
+            // continue to next entry
+            err = WEAVE_NO_ERROR;
+            continue;
+        }
+
         SuccessOrExit(err);
 
-        err = aCatalog->Locate(handle, &dataSink);
-        SuccessOrExit(err);
+        if (aCatalog->Locate(handle, &dataSink) != WEAVE_NO_ERROR)
+        {
+            // Ideally, this code will not be reached as Locate() should find the entry in the catalog.
+            // Otherwise, the earlier AddressToHandle() call would have continued.
+            // However, keeping this check here for consistency and code safety
+            continue;
+        }
 
         err = dataSink->GetSchemaEngine()->MapPathToHandle(pathReader, pathHandle);
 #if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE

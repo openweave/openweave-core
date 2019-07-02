@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -32,7 +33,6 @@ if WEAVE_BUILD_TOOLS
 bin_SCRIPTS                             = \
     $(NULL)
 
-if WEAVE_WITH_PYTHON
 bin_SCRIPTS                            += \
     gen-qr-code                           \
     $(NULL)
@@ -52,8 +52,6 @@ CLEANFILES                              = \
 
 %: %.py
 	$(AM_V_LN_S)$(LN_S) $(<) $(@)
-
-endif # WEAVE_WITH_PYTHON
 
 endif # WEAVE_BUILD_TOOLS
 

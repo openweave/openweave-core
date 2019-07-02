@@ -61,6 +61,19 @@
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 
+#if HAVE_NEW
+#include <new>
+#else
+inline void * operator new(size_t, void * p) throw()
+{
+    return p;
+}
+inline void * operator new[](size_t, void * p) throw()
+{
+    return p;
+}
+#endif // HAVE_NEW
+
 using namespace ::nl::Inet;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::Encoding;
@@ -541,9 +554,61 @@ exit:
 /**
  * @brief This method looks up directory information for a service endpoint.
  *
+ * If the service directory has been resolved, i.e. if there has been a
+ * successful connect() operation, then this method will populate the supplied
+ * HostPortList object.
+ *
+ * Note: The HostPortList is bound to the WeaveServiceManager object; it remains
+ * valid until the service directory cache is cleared or until another service
+ * directory lookup occurs.
+ *
+ * @param [in] aServiceEp       The identifier of the service endpoint to
+ *   look up.
+ *
+ * @param [out] outHostPortList The pointer to the HostPortList that will be
+ *   populated on successful lookup of the directory entry.  Must not be NULL.
+ *
+ * @retval #WEAVE_NO_ERROR on success; otherwise, a respective error code.
+ *
+ * @retval #WEAVE_ERROR_INVALID_SERVICE_EP if the given service endpoint is
+ *   not found.
+ *
+ * @retval #WEAVE_ERROR_INVALID_DIRECTORY_ENTRY_TYPE if directory contains an
+ *   unknown directory entry type.
+ */
+
+WEAVE_ERROR WeaveServiceManager::lookup(uint64_t aServiceEp, HostPortList *outHostPortList)
+{
+    WEAVE_ERROR err;
+    uint8_t itemCount;
+    uint8_t ctrlByte;
+    uint8_t* entry = NULL;
+
+    VerifyOrExit(outHostPortList != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = lookup(aServiceEp, &ctrlByte, &entry);
+    SuccessOrExit(err);
+
+    VerifyOrExit((ctrlByte & kMask_DirectoryEntryType) == kDirectoryEntryType_HostPortList, err = WEAVE_ERROR_HOST_PORT_LIST_EMPTY);
+
+    itemCount = ctrlByte & kMask_HostPortListLen;
+
+    new (outHostPortList) HostPortList(entry, itemCount,  mSuffixTable.base, mSuffixTable.length);
+
+exit:
+    return err;
+}
+
+/**
+ * @brief This method looks up directory information for a service endpoint.
+ *
  * If the service directory has been resolved, i.e. if there has been
  * a successful connect() operation, then this method will return a
  * directory entry given a service endpoint identifier.
+ *
+ * This method exposes the details of the internal implementation of the service
+ * directory, implementations should strongly favor using the variant of this
+ * method that generates the HostPortList.
  *
  * @param [in] aServiceEp       The identifier of the service endpoint to
  *   look up.
@@ -1464,18 +1529,11 @@ WEAVE_ERROR WeaveServiceManager::lookupAndConnect(WeaveConnection *aConnection,
 {
     WEAVE_ERROR err;
 
-    uint8_t ctrlByte;
-    uint8_t *entry = NULL;
-    uint8_t itemCount;
-
+    HostPortList hostPortList;
     WeaveLogProgress(ServiceDirectory, "lookupAndConnect(%llx...)", aServiceEp);
 
-    err = lookup(aServiceEp, &ctrlByte, &entry);
+    err = lookup(aServiceEp, &hostPortList);
     SuccessOrExit(err);
-
-    VerifyOrExit((ctrlByte & kMask_DirectoryEntryType) == kDirectoryEntryType_HostPortList, err = WEAVE_ERROR_HOST_PORT_LIST_EMPTY);
-
-    itemCount = ctrlByte & kMask_HostPortListLen;
 
     aConnection->AppState = aAppState;
     aConnection->OnConnectionComplete = aHandler;
@@ -1483,7 +1541,6 @@ WEAVE_ERROR WeaveServiceManager::lookupAndConnect(WeaveConnection *aConnection,
     aConnection->SetConnectTimeout(aConnectTimeoutMsecs);
 
     {
-        HostPortList hostPortList(entry, itemCount, mSuffixTable.base, mSuffixTable.length);
         ServiceConnectBeginArgs connectBeginArgs
             (
             aServiceEp,

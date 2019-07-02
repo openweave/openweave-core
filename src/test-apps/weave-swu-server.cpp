@@ -319,8 +319,6 @@ int main(int argc, char *argv[])
 
     InitToolCommon();
 
-    gWeaveNodeOptions.LocalNodeId = 0;
-
     SetSIGUSR1Handler();
 
     if (argc == 1)
@@ -330,7 +328,8 @@ int main(int argc, char *argv[])
     }
 
     if (!ParseArgsFromEnvVar(TOOL_NAME, TOOL_OPTIONS_ENV_VAR_NAME, gToolOptionSets, NULL, true) ||
-        !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets))
+        !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets) ||
+        !ResolveWeaveNetworkOptions(TOOL_NAME, gWeaveNodeOptions, gNetworkOptions))
     {
         exit(EXIT_FAILURE);
     }
@@ -340,23 +339,6 @@ int main(int argc, char *argv[])
         printf("Please specify either a node id or --listen\n");
         exit(EXIT_FAILURE);
     }
-
-    if (gNetworkOptions.LocalIPv6Addr != IPAddress::Any)
-    {
-        if (!gNetworkOptions.LocalIPv6Addr.IsIPv6ULA())
-        {
-            printf("ERROR: Local address must be an IPv6 ULA\n");
-            exit(EXIT_FAILURE);
-        }
-
-        if (gWeaveNodeOptions.LocalNodeId == 0)
-            gWeaveNodeOptions.LocalNodeId = IPv6InterfaceIdToWeaveNodeId(gNetworkOptions.LocalIPv6Addr.InterfaceId());
-        gWeaveNodeOptions.SubnetId = gNetworkOptions.LocalIPv6Addr.Subnet();
-    }
-
-    // Default LocalNodeId to 1 if not set explicitly, or by means of setting the node address.
-    if (gWeaveNodeOptions.LocalNodeId == 0)
-        gWeaveNodeOptions.LocalNodeId = 1;
 
     InitSystemLayer();
 

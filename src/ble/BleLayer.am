@@ -29,6 +29,7 @@ nl_BleLayer_sources                                       = \
     @top_builddir@/src/ble/BLEEndPoint.cpp                  \
     @top_builddir@/src/ble/WoBle.cpp                        \
     @top_builddir@/src/ble/BleUUID.cpp                      \
+    @top_builddir@/src/ble/BleError.cpp                     \
     $(NULL)
 
 if WEAVE_ENABLE_WOBLE_TEST

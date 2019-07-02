@@ -24,12 +24,15 @@
 #
 # NL_CHECK_PROJECT_CONFIG_INCLUDES(option, header, description, default)
 #
-#   option      - The stem of the option advertised via AC_ARG_WITH.
-#   header      - The project-specific configuration header to check for.
-#   description - The short description of the project-specific configuration
-#                 header.
-#   default     - [optional] The default location to search for project-specific
-#                 configuration headers.
+#   option          - The stem of the option advertised via AC_ARG_WITH.
+#   header-define   - The pre-processor macro that will be defined with the
+#                     with the name of the header file.
+#   header          - The name of the header file to search for when a directory
+#                     is given. 
+#   description     - The short description of the project-specific configuration
+#                     header.
+#   default-dir     - [optional] The default directory to search for project-specific
+#                     configuration headers.
 #
 # Create a configuration option that allows the user to specify the place to
 # search for the named project-specific configuration header.
@@ -37,40 +40,54 @@
 AC_DEFUN([NL_CHECK_PROJECT_CONFIG_INCLUDES],
 [
 AC_ARG_WITH($1,
-    [AS_HELP_STRING([--with-$1=DIR],[Specify $3 project-specific configuration header ($2) search directory @<:@default=$4@:>@.])],
+    [AS_HELP_STRING([--with-$1=FILE|DIR],
+                    [Specify a project-specific configuration header for $4. If a directory is given, it is searched for the file $3. @<:@default=$5@:>@])],
     [
-        if test "x${withval}" != "x"; then
-            if test -d "${withval}/include"; then
-                _nl_tmp_includes="${withval}/include"
+        # If a file or directory was specified...
+        if test "x${withval}" != "x" -a "x${withval}" != "xno"; then
+        
+            # Attempt to find the specified file, or a directory containing the default 
+            # file name.  NOTE: We do not use AC_CHECK_HEADERS here because the supplied
+            # file may not be compilable out of context of the full OpenWeave build.
+            if test -f "${withval}"; then
+                _nl_tmp_project_file="${withval}"
+                _nl_tmp_project_dir=
+            elif test -f "${withval}/include/$3"; then
+                _nl_tmp_project_file="$3"
+                _nl_tmp_project_dir="${withval}/include/"
+            elif test -f "${withval}/$3"; then
+                _nl_tmp_project_file="$3"
+                _nl_tmp_project_dir="${withval}/"
             else
-                _nl_tmp_includes="${withval}"
+                AC_MSG_ERROR([Project-specific configuration for %4 not found: ${withval}".])
             fi
 
-            CPPFLAGS="-I${_nl_tmp_includes} ${CPPFLAGS}"
+            # If a directory was given, include it in the header search paths.
+            if test "x${_nl_tmp_project_dir}" != "x"; then
+                CPPFLAGS="-I${_nl_tmp_project_dir} ${CPPFLAGS}"
+            fi
 
-            AC_CHECK_HEADERS([$2],
-            [
-                # Accumulate a list of the project config files that have been selected.
-                NL_PROJECT_CONFIG_INCLUDES="$NL_PROJECT_CONFIG_INCLUDES ${_nl_tmp_includes}/$2"
-            ],
-            [
-                AC_MSG_ERROR([$3 project-specific configuration was requested, but "$ac_header" could not be found in "${_nl_tmp_includes}".])
-            ])
+            # Define a pre-processor macro containing the name of the located header file in angle brackets
+            # (e.g. <WeaveProjectConfig.h>).
+            AC_DEFINE_UNQUOTED([$2], [<${_nl_tmp_project_file}>], [Path to $4 platform config header file])
+
+            # Accumulate a list of the project config files that have been selected.
+            NL_PROJECT_CONFIG_INCLUDES="$NL_PROJECT_CONFIG_INCLUDES ${_nl_tmp_project_dir}${_nl_tmp_project_file}"
         fi
     ],
     [
-        # If default location specified...
-        if test "x$4" != "x"; then
-        
-            # Add it to the include paths.
-            CPPFLAGS="-I$4 ${CPPFLAGS}"
+        # If a default location was specified and it contains the expected header file...
+        if test "x$5" != "x" -a -f "$5/$3"; then
+            
+            # Include the default directory in the header search paths.
+            CPPFLAGS="-I$5 ${CPPFLAGS}"
+            
+            # Define a pre-processor macro containing the default header name in angle brackets
+            # (e.g. <WeaveProjectConfig.h>).
+            AC_DEFINE_UNQUOTED([$2], [<$3>], [Path to $4 platform config header file])
 
-            # Check for specified header, but do not fail if not found.
-            AC_CHECK_HEADERS([$2],
-            [
-                # Accumulate a list of the project config files that have been selected.
-                NL_PROJECT_CONFIG_INCLUDES="$NL_PROJECT_CONFIG_INCLUDES $4/$2"
-            ])
+            # Accumulate a list of the project config files that have been selected.
+            NL_PROJECT_CONFIG_INCLUDES="$NL_PROJECT_CONFIG_INCLUDES $5/$3"
         fi
     ])
 ])

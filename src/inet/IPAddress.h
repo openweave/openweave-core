@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -50,6 +51,7 @@
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #define NL_INET_IPV6_ADDR_LEN_IN_BYTES               (16)
+#define NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES        (14)
 
 /**
  * @brief   Adaptation for LwIP ip4_addr_t type.
@@ -98,6 +100,24 @@ typedef enum
 } IPAddressType;
 
 /**
+ * @brief   Internet protocol v6 multicast flags
+ *
+ * @details
+ *  Values of the \c IPv6MulticastFlag type are used to call the
+ *  <tt>IPAddress::MakeIPv6Multicast()</tt> methods. They indicate the
+ *  type of IPv6 multicast address to create. These numbers are
+ *  registered by IETF with IANA.
+ */
+typedef enum
+{
+    /** The multicast address is (1) transient (i.e., dynamically-assigned) rather than (0) well-known (i.e, IANA-assigned). */
+    kIPv6MulticastFlag_Transient = 0x01,
+
+    /** The multicast address is (1) based on a network prefix. */
+    kIPv6MulticastFlag_Prefix    = 0x02
+} IPv6MulticastFlag;
+
+/**
  * @brief   Internet protocol address
  *
  * @details
@@ -118,6 +138,18 @@ public:
      *  address in network byte order.
      */
     uint32_t Addr[4];
+
+    /**
+     * @brief   Test whether address is IPv6 global unicast address.
+     *
+     * @details
+     *  Use this method to check if the address belongs to the IPv6 address
+     *  family and has the global unicast address prefix.
+     *
+     * @retval true  Address is IPv6 global unicast
+     * @retval false Otherwise
+     */
+    bool IsIPv6GlobalUnicast(void) const;
 
     /**
      * @brief   Test whether address is IPv6 unique-local address (ULA).
@@ -328,7 +360,7 @@ public:
      *  Use <tt>ReadAddress(uint8_t *&p, IPAddress &output)</tt> to decode
      *  the IP address at \c p to the object \c output.
      */
-    static void ReadAddress(uint8_t *&p, IPAddress &output);
+    static void ReadAddress(const uint8_t *&p, IPAddress &output);
 
     /**
      * @brief   Test whether address is IPv4 compatible.
@@ -536,17 +568,69 @@ public:
     static IPAddress MakeLLA(uint64_t interfaceId);
 
     /**
-     * @brief   Construct an IPv6 multicast address (LL) from its parts.
+     * @brief   Construct an IPv6 multicast address from its parts.
      *
      * @details
-     *  Use <tt>MakeIPv6Multicast(uint8_t scope, uint32_t groupId)</tt>
-     *  to construct an IPv6 multicast address for routing scope \c scope and
-     *  group identifier \c groupId.
+     *  Use <tt>MakeIPv6Multicast(uint8_t flags, uint8_t scope,
+     *  uint8_t groupId[14])</tt> to construct an IPv6 multicast
+     *  address with \c flags for routing scope \c scope and group
+     *  identifier octets \c groupId.
      *
      * @return  The constructed IP address.
      */
-    static IPAddress MakeIPv6Multicast(uint8_t scope, uint32_t groupId);
+    static IPAddress MakeIPv6Multicast(uint8_t aFlags, uint8_t aScope, const uint8_t aGroupId[NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES]);
 
+    /**
+     * @brief   Construct an IPv6 multicast address from its parts.
+     *
+     * @details
+     *  Use <tt>MakeIPv6Multicast(uint8_t flags, uint8_t scope,
+     *  uint32_t groupId)</tt> to construct an IPv6 multicast
+     *  address with \c flags for routing scope \c scope and group
+     *  identifier \c groupId.
+     *
+     * @return  The constructed IP address.
+     */
+    static IPAddress MakeIPv6Multicast(uint8_t aFlags, uint8_t aScope, uint32_t aGroupId);
+
+    /**
+     * @brief   Construct a well-known IPv6 multicast address from its parts.
+     *
+     * @details
+     *  Use <tt>MakeIPv6WellKnownMulticast(uint8_t scope, uint32_t
+     *  groupId)</tt> to construct an IPv6 multicast address for
+     *  routing scope \c scope and group identifier \c groupId.
+     *
+     * @return  The constructed IP address.
+     */
+    static IPAddress MakeIPv6WellKnownMulticast(uint8_t aScope, uint32_t aGroupId);
+
+    /**
+     * @brief   Construct a transient IPv6 multicast address from its parts.
+     *
+     * @details
+     *  Use <tt>MakeIPv6TransientMulticast(uint8_t flags, uint8_t scope,
+     *  uint8_t groupId[14])</tt> to construct a transient IPv6
+     *  multicast address with \c flags for routing scope \c scope and
+     *  group identifier octets \c groupId.
+     *
+     * @return  The constructed IP address.
+     */
+    static IPAddress MakeIPv6TransientMulticast(uint8_t aFlags, uint8_t aScope, const uint8_t aGroupId[NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES]);
+
+    /**
+     * @brief   Construct a transient, prefix IPv6 multicast address from its parts.
+     *
+     * @details
+     *  Use <tt>MakeIPv6PrefixMulticast(uint8_t scope, uint8_t
+     *  prefixlen, const uint64_t prefix, uint32_t groupId)</tt> to
+     *  construct a transient, prefix IPv6 multicast address with for
+     *  routing scope \c scope and group identifier octets \c groupId,
+     *  qualified by the prefix \c prefix of length \c prefixlen bits.
+     *
+     * @return  The constructed IP address.
+     */
+    static IPAddress MakeIPv6PrefixMulticast(uint8_t aScope, uint8_t aPrefixLength, const uint64_t &aPrefix, uint32_t aGroupId);
 
     /**
      * @brief   The distinguished unspecified IP address object.

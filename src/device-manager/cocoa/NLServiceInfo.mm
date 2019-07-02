@@ -33,29 +33,28 @@
            pairingToken:(NSString *)pairingToken
         pairingInitData:(NSString *)pairingInitData
 {
-	if (self = [super init]) {
-		_serviceId = serviceId;
-		_accountId = accountId;
+    if (self = [super init]) {
+        _serviceId = serviceId;
+        _accountId = accountId;
 
-		_serviceConfig = serviceConfig;
+        _serviceConfig = serviceConfig;
 
-		_pairingToken = pairingToken;
-		_pairingInitData = pairingInitData;
+        _pairingToken = pairingToken;
+        _pairingInitData = pairingInitData;
+    }
 
-	}
-
-	return self;
+    return self;
 }
 
-- (id)initWithServiceId:(NLServiceID)serviceId
-          serviceConfig:(NSString *)serviceConfig
+- (id)initWithServiceId:(NLServiceID)serviceId serviceConfig:(NSString *)serviceConfig
 {
-	return [self initWithServiceId:serviceId accountId:nil serviceConfig:serviceConfig pairingToken:nil pairingInitData:nil];
+    return [self initWithServiceId:serviceId accountId:nil serviceConfig:serviceConfig pairingToken:nil pairingInitData:nil];
 }
 
-- (NSData *)decodeServiceConfig {
-	Base64Encoding *base64coder = [Base64Encoding createBase64StringEncoding];
-	return [base64coder decode:_serviceConfig];
+- (NSData *)decodeServiceConfig
+{
+    Base64Encoding * base64coder = [Base64Encoding createBase64StringEncoding];
+    return [base64coder decode:_serviceConfig];
 }
 
 @end

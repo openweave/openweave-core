@@ -253,7 +253,7 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         case SoftwareUpdate::kMsgType_ImageQuery                            : return "ImageQuery";
         case SoftwareUpdate::kMsgType_ImageQueryResponse                    : return "ImageQueryResponse";
         case SoftwareUpdate::kMsgType_DownloadNotify                        : return "DownloadNotify";
-        case SoftwareUpdate::kMsgType_NotifyRepsponse                       : return "NotifyRepsponse";
+        case SoftwareUpdate::kMsgType_NotifyResponse                        : return "NotifyResponse";
         case SoftwareUpdate::kMsgType_UpdateNotify                          : return "UpdateNotify";
         case SoftwareUpdate::kMsgType_ImageQueryStatus                      : return "ImageQueryStatus";
         }
@@ -294,12 +294,14 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         case ServiceProvisioning::kMsgType_PairDeviceToAccount              : return "PairDeviceToAccount";
         }
         break;
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     case kWeaveProfile_ServiceDirectory:
         switch (msgType) {
         case ServiceDirectory::kMsgType_ServiceEndpointQuery                : return "ServiceEndpointQuery";
         case ServiceDirectory::kMsgType_ServiceEndpointResponse             : return "ServiceEndpointResponse";
         }
         break;
+#endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 #if WEAVE_CONFIG_ENABLE_TUNNELING
     case kWeaveProfile_Tunneling:
         switch (msgType) {

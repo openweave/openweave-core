@@ -39,7 +39,7 @@ gScenarios = [ "UpdateResponseDelay", "UpdateResponseTimeout", "UpdateResponseBu
                "UpdateRequestSendError", "UpdateRequestSendErrorInline", "UpdateRequestBadProfile", "UpdateRequestBadProfileBeforeSub",
                "PartialUpdateRequestSendError", "PartialUpdateRequestSendErrorInline", "DiscardUpdatesOnNoResponse", "DiscardUpdatesOnStatusReport",
                "UpdateResponseMultipleTimeout", "UpdateResponseMultipleTimeoutBeforeSub",
-               "FailBindingBeforeSub", "PathStoreFullOnSendError", "PathStoreFullOnSendErrorInline"]
+               "FailBindingBeforeSub", "PathStoreFullOnSendError", "PathStoreFullOnSendErrorInline", "UpdateRequestMutateDictAndFailSendBeforeSub"]
 gConditionalities = [ "Conditional", "Unconditional", "Mixed" ]
 gFaultopts = WeaveUtilities.FaultInjectionOptions()
 gOpts = { "conditionality" : None,
@@ -399,6 +399,23 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
                 client_log_check = [
                         ("Received StatusReport.*Common.*Internal error", 1),
                         ('Update: path result: success', 0),
+                        ]
+            else:
+                return False
+
+        if scenario == "UpdateRequestMutateDictAndFailSendBeforeSub":
+            fault_config = "Weave_WDMUpdateRequestDropMessage_s0_f2"
+
+            wdm_next_args['client_update_mutation'] = "WholeDictionary"
+            wdm_next_args['client_update_num_traits'] = 1
+
+            # This fault makes the service reply with an InternalError status.
+            # Internal Error means the update should not be retried, and so there is no success.
+            wdm_next_args['client_update_timing'] = "BeforeSub"
+            if conditionality == "Unconditional":
+                client_log_check = [
+                        ('Update: path result: success', 1),
+                        ("Potential data loss set for traitDataHandle", 1),
                         ]
             else:
                 return False

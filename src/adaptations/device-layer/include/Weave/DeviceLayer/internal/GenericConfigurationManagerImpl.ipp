@@ -34,6 +34,9 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+// Fully instantiate the generic implementation class in whatever compilation unit includes this file.
+template class GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
+
 template<class ImplClass>
 WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_Init()
 {
@@ -151,7 +154,23 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreDeviceId(uint64_t 
 template<class ImplClass>
 WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetSerialNumber(char * buf, size_t bufSize, size_t & serialNumLen)
 {
-    return Impl()->ReadConfigValueStr(ImplClass::kConfigKey_SerialNum, buf, bufSize, serialNumLen);
+    WEAVE_ERROR err;
+
+    err = Impl()->ReadConfigValueStr(ImplClass::kConfigKey_SerialNum, buf, bufSize, serialNumLen);
+#ifdef WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER
+    if (WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER[0] != 0 && err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    {
+        VerifyOrExit(sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER) <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+        memcpy(buf, WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER, sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER));
+        serialNumLen = sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER) - 1;
+        WeaveLogProgress(DeviceLayer, "Serial Number not found; using default: %s", WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER);
+        err = WEAVE_NO_ERROR;
+    }
+#endif // WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 
 template<class ImplClass>
@@ -295,17 +314,16 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetPairingCode(char * b
     WEAVE_ERROR err;
 
     err = Impl()->ReadConfigValueStr(ImplClass::kConfigKey_PairingCode, buf, bufSize, pairingCodeLen);
-    // TODO: change to WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE??
-#ifdef CONFIG_USE_TEST_PAIRING_CODE
-    if (CONFIG_USE_TEST_PAIRING_CODE[0] != 0 && err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+#ifdef WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE
+    if (WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE[0] != 0 && err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
-        VerifyOrExit(sizeof(CONFIG_USE_TEST_PAIRING_CODE) <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
-        memcpy(buf, CONFIG_USE_TEST_PAIRING_CODE, sizeof(CONFIG_USE_TEST_PAIRING_CODE));
-        pairingCodeLen = sizeof(CONFIG_USE_TEST_PAIRING_CODE) - 1;
-        WeaveLogProgress(DeviceLayer, "Pairing code not found; using default: %s", CONFIG_USE_TEST_PAIRING_CODE);
+        VerifyOrExit(sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE) <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+        memcpy(buf, WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE, sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE));
+        pairingCodeLen = sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE) - 1;
+        WeaveLogProgress(DeviceLayer, "Pairing code not found; using default: %s", WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE);
         err = WEAVE_NO_ERROR;
     }
-#endif // CONFIG_USE_TEST_PAIRING_CODE
+#endif // WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE
     SuccessOrExit(err);
 
 exit:
@@ -492,35 +510,35 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceDescriptor(::n
     SuccessOrExit(err);
 
     err = Impl()->_GetPrimaryWiFiMACAddress(deviceDesc.PrimaryWiFiMACAddress);
-    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || err == WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
     err = Impl()->_GetPrimary802154MACAddress(deviceDesc.Primary802154MACAddress);
-    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || err == WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
     err = Impl()->_GetWiFiAPSSID(deviceDesc.RendezvousWiFiESSID, sizeof(deviceDesc.RendezvousWiFiESSID));
-    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || err == WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
     err = Impl()->_GetSerialNumber(deviceDesc.SerialNumber, sizeof(deviceDesc.SerialNumber), outLen);
-    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || err == WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
     err = Impl()->_GetFirmwareRevision(deviceDesc.SoftwareVersion, sizeof(deviceDesc.SoftwareVersion), outLen);
-    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || err == WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE)
     {
         err = WEAVE_NO_ERROR;
     }
@@ -545,7 +563,6 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceDescriptorTLV(
         SuccessOrExit(err);
         encodedLen = tmp;
     }
-
 
 exit:
     return err;
@@ -650,12 +667,12 @@ void GenericConfigurationManagerImpl<ImplClass>::LogDeviceConfig()
         {
             productId = 0;
         }
-        WeaveLogProgress(DeviceLayer, "  Product Id: %" PRId16 " (0x%" PRIX16 ")", productId, productId);
+        WeaveLogProgress(DeviceLayer, "  Product Id: %" PRIu16 " (0x%" PRIX16 ")", productId, productId);
     }
 
     if (FabricState.FabricId != kFabricIdNotSpecified)
     {
-        WeaveLogProgress(DeviceLayer, "  Fabric Id: %" PRIX64, FabricState.FabricId);
+        WeaveLogProgress(DeviceLayer, "  Fabric Id: %016" PRIX64, FabricState.FabricId);
     }
     else
     {

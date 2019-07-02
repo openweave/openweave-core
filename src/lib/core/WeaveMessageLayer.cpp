@@ -508,6 +508,12 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress &destAddr, uint16_t d
     //Check if drop flag is set; If so, do not send message; return WEAVE_NO_ERROR;
     VerifyOrExit(!mDropMessage, err = WEAVE_NO_ERROR);
 
+    // Drop the message and return. Free the buffer if it does not need to be
+    // retained(e.g., for WRM retransmissions).
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_DropOutgoingUDPMsg,
+            ExitNow(err = WEAVE_NO_ERROR);
+            );
+
 #if INET_CONFIG_ENABLE_IPV4
     if (destAddr.IsIPv4())
     {
@@ -1979,7 +1985,7 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
         // associated with the listening IPv6 address.
         if (listenIPv6 && mIPv6UDPMulticastRcv == NULL)
         {
-            IPAddress ipv6LinkLocalAllNodes = IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+            IPAddress ipv6LinkLocalAllNodes = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
 
 #if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
             ipv6LinkLocalAllNodes.ToString(ipAddrStr, sizeof(ipAddrStr));

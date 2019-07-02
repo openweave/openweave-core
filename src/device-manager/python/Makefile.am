@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -17,49 +18,61 @@
 
 #
 #    Description:
-#      This file is the GNU automake template for the Nest Weave
-#      Device Manager Python script binding module.
-#
-#      NOTE: The Python module loader cannot differentiate between
-#            WeaveDeviceMgr.py and WeaveDeviceMgr.so when attempting
-#            to import WeaveDeviceMgr. Consequently, we follow typical
-#            Python convention and name the DLL/DSO with a leading
-#            underscore (_) to disambiguate them when they are sitting
-#            in the same directory during development.
+#      Automake template for building/installing the OpenWeave python
+#      package and the Weave Device Manager Shell script.
 #
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
-define set-relocation-path
-	$(AM_V_at)if [[ "$(target_os)" == darwin* ]]; then \
-	    install_name_tool -change `otool -L $(1) | grep -Eo '.*$(2)'` $(call Slashify,$(3))$(2) $(1) ; \
-	fi
-endef # change-library-paths
+# ------------------------------------------------------------
+# "openweave" Python Package
+# ------------------------------------------------------------
 
-
-EXTRA_DIST                                        = \
-    weave-device-mgr.py                             \
+openweave_PYTHON                                  = \
+    openweave/__init__.py                           \
+    openweave/WeaveDeviceMgr.py                     \
+    openweave/WeaveBleBase.py                       \
+    openweave/WeaveCoreBluetoothMgr.py              \
+    openweave/WeaveBluezMgr.py                      \
+    openweave/WeaveBleUtility.py                    \
     $(NULL)
 
-if WEAVE_WITH_PYTHON
-pyexec_LTLIBRARIES                                = _WeaveDeviceMgr.la
+# Location into which the "openweave" python package will be installed.
+openweavedir                                      = $(pyexecdir)/openweave
 
-noinst_HEADERS                                    = \
-    $(NULL)
+
+# ------------------------------------------------------------
+# DLL wrapper for Weave Device Manager 
+# ------------------------------------------------------------
+
+openweave_LTLIBRARIES                             = _WeaveDeviceMgr.la
 
 _WeaveDeviceMgr_la_SOURCES                        = \
     WeaveDeviceManager-ScriptBinding.cpp            \
     $(NULL)
 
+if CONFIG_NETWORK_LAYER_BLE
+
+_WeaveDeviceMgr_la_SOURCES                       += \
+    WeaveDeviceManager-BlePlatformDelegate.cpp      \
+    WeaveDeviceManager-BleApplicationDelegate.cpp   \
+    $(NULL)
+
+endif # CONFIG_NETWORK_LAYER_BLE
+
 _WeaveDeviceMgr_la_CPPFLAGS                       = \
     -I$(srcdir)/..                                  \
-    $(LWIP_CPPFLAGS)                                \
     $(SOCKETS_CPPFLAGS)                             \
     $(NULL)
 
+_WeaveDeviceMgr_la_CXXFLAGS                       = \
+    $(PTHREAD_CFLAGS)                               \
+    $(NULL)
+
 _WeaveDeviceMgr_la_LIBADD                         = \
-    ../libWeaveDeviceManager.la                     \
     -L$(top_builddir)/src/lib -lWeave               \
+    $(SOCKETS_LDFLAGS) $(SOCKETS_LIBS)              \
+    $(PTHREAD_LIBS)                                 \
     $(NULL)
 
 _WeaveDeviceMgr_la_DEPENDENCIES                   = \
@@ -69,128 +82,63 @@ _WeaveDeviceMgr_la_DEPENDENCIES                   = \
 _WeaveDeviceMgr_la_LDFLAGS                        = \
     -avoid-version                                  \
     -module                                         \
-    -no-undefined                                   \
+    -export-dynamic                                 \
     $(NULL)
 
-weavedir                                          = $(pyexecdir)/weave
-
-modules                                           = \
-    WeaveDeviceMgr.py                               \
-    $(NULL)
-
-if CONFIG_NETWORK_LAYER_BLE
-
-noinst_HEADERS                                   += \
+noinst_HEADERS                                    = \
     WeaveDeviceManager-BleApplicationDelegate.h     \
     WeaveDeviceManager-BlePlatformDelegate.h        \
     $(NULL)
 
-_WeaveDeviceMgr_la_SOURCES                       += \
-    WeaveDeviceManager-BlePlatformDelegate.cpp      \
-    WeaveDeviceManager-BleApplicationDelegate.cpp   \
-    $(NULL)
-
-modules                                          += \
-    WeaveBleBase.py                                    \
-    WeaveCoreBluetoothMgr.py                        \
-    WeaveBluezMgr.py                                \
-    WeaveBleUtility.py                              \
-    $(NULL)
-
-endif # CONFIG_NETWORK_LAYER_BLE
-
-srcmodules                                        = $(addprefix $(srcdir)/,$(modules))
-buildmodules                                      = $(addprefix $(builddir)/,$(modules))
-cleanmodules                                      = $(if $(call IsRealPath,$(buildmodules)),,$(buildmodules))
-
-weave_SCRIPTS                                     = \
-    $(modules)                                      \
-    $(NULL)
-
-weave_PYTHON                                      = \
-    $(weave_SCRIPTS)                                \
-    $(NULL)
-
-# Tool scripts that should be installed when the 'install' target is run.
-#
-# These will be part of the externally-consumable SDK.
-#
-# These need to go in libexec since they need to be "trampolined"
-# through the 'weave-run' script due to runtime dependencies on
-# DLLs/DSOs that the runtime linker / loader will need to resolve when
-# they invoked.
-
-libexec_SCRIPTS                                   = \
-    weave-device-mgr                                \
-    $(NULL)
-
-# Create a convenience link between the suffixed script and the actual
-# name by which the script will be installed for non-co-located build
-# and source directories.
-
-%: %.py
-	$(AM_V_LN_S)$(LN_S) $(<) $(@)
-
-# The bin_LINKS variable enumerates programs that need to be
-# "trampolined" through the 'weave-run' script due to runtime
-# dependencies on DLLs/DSOs that the runtime linker / loader will need
-# to resolve when they invoked.
-
-bin_LINKS                                         = \
-    $(libexec_SCRIPTS)                              \
-    $(NULL)
-
-CLEANFILES                                        = \
-    $(libexec_SCRIPTS)                              \
-    _WeaveDeviceMgr.so                              \
-    $(cleanmodule)                                  \
-    $(NULL)
-
-# Create convenience links so that those that are doing Weave Device
-# Manager development can run the script right from this directory,
-# picking up both the Python module and the DLL/DSO, without having to
-# do a 'make install'.
-#
-# Because of automake's VPATH getting in our way, we need to play a
-# "trick" to get the "buildmodule" DLL/DSO link to work.
-
-all-local: _WeaveDeviceMgr.so $(buildmodule)
-
-_WeaveDeviceMgr.so: _WeaveDeviceMgr.la
-	$(AM_V_LN_S)$(LN_S) -f .libs/$(@) $(@)
-	$(AM_V_at)if test "${srcmodule}" != "${buildmodule}" && \
-           ! test -L "${buildmodule}"; then \
-	    echo "  LN       ${buildmodule}"; \
-	    $(LN_S) "${srcmodule}" "${buildmodule}"; \
-        fi
-	$(call set-relocation-path,$(@),libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../.libs/)
-
-install-exec-local: install-exec-binLINKS
-
-uninstall-local: uninstall-exec-binLINKS
-
-install-exec-binLINKS: $(bin_LINKS)
-	@$(NORMAL_INSTALL)
-	@list='$(bin_LINKS)'; test -n "$(bindir)" || list=; \
-	if test -n "$$list"; then \
-          echo "  MKDIR    $(DESTDIR)$(bindir)"; \
-	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
-	fi; \
-	for link in $${list}; do \
-            echo "  LN       $${link}"; \
-	    $(LN_S) -f "../`echo ${libexecdir} | sed -e 's,${exec_prefix}/,,g'`/weave-run" "$(DESTDIR)$(bindir)/$${link}"; \
-        done
-
-uninstall-exec-binLINKS: $(bin_LINKS)
-	@$(NORMAL_UNINSTALL)
-	@list='$(bin_LINKS)'; test -n "$(bindir)" || exit 0; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	       sed -e 's,.*/,,;$(transform)'`; \
-	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
-
+# After installation, remove the extraneous .a and .la files from
+# the install directory.
 install-exec-hook:
-	$(call set-relocation-path,$(DESTDIR)$(pyexecdir)/_WeaveDeviceMgr.so,libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../)
+	rm -f $(DESTDIR)$(openweavedir)/_WeaveDeviceMgr.la
+	rm -f $(DESTDIR)$(openweavedir)/_WeaveDeviceMgr.a
 
-endif # WEAVE_WITH_PYTHON
+
+# ------------------------------------------------------------
+# Weave Device Manager Shell Script 
+# ------------------------------------------------------------
+
+EXTRA_DIST =										\
+    $(srcdir)/weave-device-mgr.py					\
+    $(NULL)
+
+bin_SCRIPTS = weave-device-mgr
+
+weave-device-mgr: $(srcdir)/weave-device-mgr.py
+	cp $(srcdir)/weave-device-mgr.py weave-device-mgr
+
+CLEANFILES = weave-device-mgr
+
+
+# ------------------------------------------------------------
+# "openweave" Python Wheel
+# ------------------------------------------------------------
+
+if WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE
+
+EXTRA_DIST +=										\
+    $(srcdir)/build-openweave-wheel.py				\
+    $(NULL)
+
+.openweave-wheel: $(srcdir)/build-openweave-wheel.py weave-device-mgr _WeaveDeviceMgr.la $(shell find $(srcdir) -type f -name '*.py')
+	rm -f openweave-*.whl
+	$(PYTHON) $(srcdir)/build-openweave-wheel.py
+	touch .openweave-wheel
+
+install-exec-local: .openweave-wheel
+	mkdir -p $(DESTDIR)$(pyexecdir)
+	rm -f $(DESTDIR)$(pyexecdir)/openweave-*.whl
+	cp openweave-*.whl $(DESTDIR)$(pyexecdir)
+
+uninstall-local:
+	rm -f $(DESTDIR)$(pyexecdir)/openweave-*.whl
+
+clean-local:
+	rm -f .openweave-wheel openweave-*.whl
+
+endif # WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

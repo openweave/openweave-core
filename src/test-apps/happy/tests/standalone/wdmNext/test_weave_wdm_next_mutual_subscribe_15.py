@@ -65,8 +65,7 @@ class test_weave_wdm_next_mutual_subscribe_15(weave_wdm_next_test_base):
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
-        wdm_next_args['test_case_name'] = ['F11: Mutual Subscribe: Root path. Null Version. Notification in responder. Client in initiator aborts',
-                                           'M15: Stress Mutual Subscribe: Root path. Null Version. Notification in responder. Client in initiator aborts']
+        wdm_next_args['test_case_name'] = ['M15: Stress Mutual Subscribe: Root path. Null Version. Notification in responder. Client in initiator aborts']
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test F11 and M15"
         super(test_weave_wdm_next_mutual_subscribe_15, self).weave_wdm_next_test_base(wdm_next_args)

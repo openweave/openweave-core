@@ -29,7 +29,7 @@
 
 using nl::Weave::Profiles::DeviceDescription::IdentifyDeviceCriteria;
 
-@interface NLIdentifyDeviceCriteria()
+@interface NLIdentifyDeviceCriteria ()
 
 + (NLIdentifyDeviceCriteria *)create;
 
