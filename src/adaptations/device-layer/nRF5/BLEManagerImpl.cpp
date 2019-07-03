@@ -24,6 +24,7 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/BLEManager.h>
+#include <BleLayer/WeaveBleServiceData.h>
 #include <new>
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
@@ -48,16 +49,6 @@ namespace DeviceLayer {
 namespace Internal {
 
 namespace {
-
-struct WeaveServiceData
-{
-    uint8_t MajorVersion;
-    uint8_t MinorVersion;
-    uint8_t DeviceVendorId[2];
-    uint8_t DeviceProductId[2];
-    uint8_t DeviceId[8];
-    uint8_t PairingStatus;
-};
 
 const uint16_t UUID16_WoBLEService = 0xFEAF;
 const ble_uuid_t UUID_WoBLEService = { UUID16_WoBLEService, BLE_UUID_TYPE_BLE };
@@ -519,7 +510,7 @@ WEAVE_ERROR BLEManagerImpl::EncodeAdvertisingData(ble_gap_adv_data_t & gapAdvDat
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     ble_advdata_t advData;
     ble_advdata_service_data_t serviceData;
-    WeaveServiceData weaveServiceData;
+    WeaveBLEDeviceIdentificationInfo deviceIdInfo;
 
     // Form the contents of the advertising packet.
     memset(&advData, 0, sizeof(advData));
@@ -533,20 +524,16 @@ WEAVE_ERROR BLEManagerImpl::EncodeAdvertisingData(ble_gap_adv_data_t & gapAdvDat
     err = ble_advdata_encode(&advData, mAdvDataBuf, &gapAdvData.adv_data.len);
     SuccessOrExit(err);
 
-    // Construct the Weave Service Data structure that will be sent in the scan response packet.
-    memset(&weaveServiceData, 0, sizeof(weaveServiceData));
-    weaveServiceData.MajorVersion = 0;
-    weaveServiceData.MinorVersion = 1;
-    Encoding::LittleEndian::Put16(weaveServiceData.DeviceVendorId, (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_VENDOR_ID);
-    Encoding::LittleEndian::Put16(weaveServiceData.DeviceProductId, (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_ID);
-    Encoding::LittleEndian::Put64(weaveServiceData.DeviceId, FabricState.LocalNodeId);
-    weaveServiceData.PairingStatus = ConfigurationMgr().IsPairedToAccount() ? 1 : 0;
+    // Initialize the Weave BLE Device Identification Information block that will be sent as payload
+    // within the BLE service advertisement data.
+    err = ConfigurationMgr().GetBLEDeviceIdentificationInfo(deviceIdInfo);
+    SuccessOrExit(err);
 
     // Form the contents of the scan response packet.
     memset(&serviceData, 0, sizeof(serviceData));
     serviceData.service_uuid = UUID16_WoBLEService;
-    serviceData.data.size = sizeof(weaveServiceData);
-    serviceData.data.p_data = (uint8_t *)&weaveServiceData;
+    serviceData.data.size = sizeof(deviceIdInfo);
+    serviceData.data.p_data = (uint8_t *)&deviceIdInfo;
     memset(&advData, 0, sizeof(advData));
     advData.name_type = BLE_ADVDATA_NO_NAME;
     advData.include_appearance = false;

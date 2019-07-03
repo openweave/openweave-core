@@ -29,6 +29,12 @@
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 
 namespace nl {
+namespace Ble {
+struct WeaveBLEDeviceIdentificationInfo;
+}
+}
+
+namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
@@ -97,6 +103,8 @@ public:
     WEAVE_ERROR GetQRCodeString(char * buf, size_t bufSize);
 
     WEAVE_ERROR GetWiFiAPSSID(char * buf, size_t bufSize);
+
+    WEAVE_ERROR GetBLEDeviceIdentificationInfo(Ble::WeaveBLEDeviceIdentificationInfo & deviceIdInfo);
 
     bool IsServiceProvisioned();
     bool IsPairedToAccount();
@@ -360,6 +368,11 @@ inline WEAVE_ERROR ConfigurationManager::GetQRCodeString(char * buf, size_t bufS
 inline WEAVE_ERROR ConfigurationManager::GetWiFiAPSSID(char * buf, size_t bufSize)
 {
     return static_cast<ImplClass*>(this)->_GetWiFiAPSSID(buf, bufSize);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetBLEDeviceIdentificationInfo(Ble::WeaveBLEDeviceIdentificationInfo & deviceIdInfo)
+{
+    return static_cast<ImplClass*>(this)->_GetBLEDeviceIdentificationInfo(deviceIdInfo);
 }
 
 inline bool ConfigurationManager::IsServiceProvisioned()

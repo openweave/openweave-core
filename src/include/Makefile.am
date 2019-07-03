@@ -81,6 +81,7 @@ $(nl_public_BleLayer_ble_source_dirstem)/BleLayer.h \
 $(nl_public_BleLayer_ble_source_dirstem)/BlePlatformDelegate.h \
 $(nl_public_BleLayer_ble_source_dirstem)/BleUUID.h \
 $(nl_public_BleLayer_ble_source_dirstem)/WoBle.h \
+$(nl_public_BleLayer_ble_source_dirstem)/WeaveBleServiceData.h \
 $(NULL)
 
 dist_ble_ble_HEADERS = $(addprefix ../,$(nl_public_BleLayer_ble_header_sources))
