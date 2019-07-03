@@ -863,40 +863,38 @@ void InitNetwork()
         {
             CollectTapAddresses(addrsVec, gNetworkOptions.TapDeviceName[j]);
         }
+
 #if INET_CONFIG_ENABLE_IPV4
-#if LWIP_VERSION_MAJOR > 1
-        ip4_addr_t ip4Addr, ip4Netmask, ip4Gateway;
-#else // LWIP_VERSION_MAJOR <= 1
-        ip_addr_t ip4Addr, ip4Netmask, ip4Gateway;
-#endif // LWIP_VERSION_MAJOR <= 1
-        ip4Addr = nl::Inet::IPAddress::Any.ToIPv4();
+
+        IPAddress ip4Addr = (j < gNetworkOptions.LocalIPv4Addr.size())
+            ? gNetworkOptions.LocalIPv4Addr[j]
+            : IPAddress::Any;
         for (size_t n = 0; n < addrsVec.size(); n++)
         {
             IPAddress auto_addr;
             if (IPAddress::FromString(addrsVec[n], auto_addr) && auto_addr.IsIPv4())
             {
-                ip4Addr = auto_addr.ToIPv4();
+                ip4Addr = auto_addr;
             }
         }
 
-        if ((IPAddress::FromIPv4(ip4Addr) == nl::Inet::IPAddress::Any) &&
-            (j < gNetworkOptions.LocalIPv4Addr.size()))
+        IPAddress ip4Gateway = (j < gNetworkOptions.IPv4GatewayAddr.size())
+            ? gNetworkOptions.IPv4GatewayAddr[j]
+            : IPAddress::Any;
+
         {
-            ip4Addr = gNetworkOptions.LocalIPv4Addr[j].ToIPv4();
+#if LWIP_VERSION_MAJOR > 1
+            ip4_addr_t ip4AddrLwIP, ip4NetmaskLwIP, ip4GatewayLwIP;
+#else // LWIP_VERSION_MAJOR <= 1
+            ip_addr_t ip4AddrLwIP, ip4NetmaskLwIP, ip4GatewayLwIP;
+#endif // LWIP_VERSION_MAJOR <= 1
+
+            ip4AddrLwIP = ip4Addr.ToIPv4();
+            IP4_ADDR(&ip4NetmaskLwIP, 255, 255, 255, 0);
+            ip4GatewayLwIP = ip4Gateway.ToIPv4();
+            netif_add(&(netIFs[j]), &ip4AddrLwIP, &ip4NetmaskLwIP, &ip4GatewayLwIP, &(tapIFs[j]), TapInterface_SetupNetif, tcpip_input);
         }
 
-        IP4_ADDR(&ip4Netmask, 255, 255, 255, 0);
-
-        if (j < gNetworkOptions.IPv4GatewayAddr.size())
-        {
-            ip4Gateway = gNetworkOptions.IPv4GatewayAddr[j].ToIPv4();
-        }
-        else
-        {
-            ip4Gateway = nl::Inet::IPAddress::Any.ToIPv4();
-        }
-
-        netif_add(&(netIFs[j]), &ip4Addr, &ip4Netmask, &ip4Gateway, &(tapIFs[j]), TapInterface_SetupNetif, tcpip_input);
 #endif // INET_CONFIG_ENABLE_IPV4
 
         netif_create_ip6_linklocal_address(&(netIFs[j]), 1);
