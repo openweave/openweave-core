@@ -3113,7 +3113,7 @@ WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo, jobje
         SuccessOrExit(err);
     }
 
-    makeMethod = env->GetStaticMethodID(sNetworkInfoCls, "Make", "(IJLjava/lang/String;III[BLjava/lang/String;[B[BS)Lnl/Weave/DeviceManager/NetworkInfo;");
+    makeMethod = env->GetStaticMethodID(sNetworkInfoCls, "Make", "(IJLjava/lang/String;III[BLjava/lang/String;[B[BSII)Lnl/Weave/DeviceManager/NetworkInfo;");
     VerifyOrExit(makeMethod != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
 
     env->ExceptionClear();
@@ -3130,7 +3130,7 @@ WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo, jobje
                                                  threadKey,
                                                  (jshort)inNetworkInfo.WirelessSignalStrength,
                                                  (jint)inNetworkInfo.ThreadPANId,
-                                                 (jbyte)inNetworkInfo.ThreadChannel);
+                                                 (jint)inNetworkInfo.ThreadChannel);
     VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
 
 exit:
