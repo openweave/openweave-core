@@ -181,6 +181,7 @@ public:
     WEAVE_ERROR EnableConnectionMonitor(uint16_t interval, uint16_t timeout, void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
     WEAVE_ERROR DisableConnectionMonitor(void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
     WEAVE_ERROR SetRendezvousAddress(IPAddress addr);
+    WEAVE_ERROR SetRendezvousAddress(IPAddress addr, InterfaceId rendezvousIntf);
     WEAVE_ERROR SetAutoReconnect(bool autoReconnect);
     WEAVE_ERROR SetUseAccessToken(bool useAccessToken);
     WEAVE_ERROR SetRendezvousLinkLocal(bool RendezvousLinkLocal);
@@ -388,6 +389,7 @@ private:
     IPAddress mRemoteDeviceAddr;
     InterfaceId mDeviceIntf;
     InterfaceId mAssistingDeviceIntf;
+    InterfaceId mRendezvousIntf;
     IdentifyDeviceCriteria mDeviceCriteria;
     uint64_t mDeviceId;
     uint64_t mAssistingDeviceId;

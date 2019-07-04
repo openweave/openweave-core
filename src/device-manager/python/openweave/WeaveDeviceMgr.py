@@ -580,11 +580,12 @@ class WeaveDeviceManager:
             lambda: _dmLib.nl_Weave_DeviceManager_DeviceAddress(self.devMgr)
         )
 
-    def SetRendezvousAddress(self, addr):
+    def SetRendezvousAddress(self, addr, intf = None):
         if addr is not None and "\x00" in addr:
             raise ValueError("Unexpected NUL character in addr");
+
         res = self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress(self.devMgr, addr)
+            lambda: _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress(self.devMgr, addr, intf)
         )
         if (res != 0):
             raise self._ErrorToException(res)
@@ -1254,7 +1255,7 @@ class WeaveDeviceManager:
             _dmLib.nl_Weave_DeviceManager_Ping.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
             _dmLib.nl_Weave_DeviceManager_Ping.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress.argtypes = [ c_void_p, c_char_p ]
+            _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress.argtypes = [ c_void_p, c_char_p, c_char_p ]
             _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress.restype = c_uint32
 
             _dmLib.nl_Weave_DeviceManager_SetConnectTimeout.argtypes = [ c_void_p, c_uint32 ]

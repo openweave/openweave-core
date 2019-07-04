@@ -109,6 +109,7 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mAssistingDeviceAddr = IPAddress::Any;
     mDeviceIntf = INET_NULL_INTERFACEID;
     mAssistingDeviceIntf = INET_NULL_INTERFACEID;
+    mRendezvousIntf = INET_NULL_INTERFACEID;
     mDeviceId = kNodeIdNotSpecified;
     mAssistingDeviceId = kNodeIdNotSpecified;
     mConTimeout = secondsToMilliseconds(60);
@@ -395,7 +396,7 @@ WEAVE_ERROR WeaveDeviceManager::InitiateDeviceEnumeration()
     // Construct an exchange context if necessary. Otherwise, reuse existing multicast ExchangeContext.
     if (NULL == mCurReq)
     {
-        mCurReq = mExchangeMgr->NewContext(kAnyNodeId, mRendezvousAddr, this);
+        mCurReq = mExchangeMgr->NewContext(kAnyNodeId, mRendezvousAddr, WEAVE_PORT, mRendezvousIntf, this);
         VerifyOrExit(NULL != mCurReq, err = WEAVE_ERROR_NO_MEMORY);
         mCurReq->OnMessageReceived = HandleDeviceEnumerationIdentifyResponse;
     }
@@ -2339,6 +2340,16 @@ WEAVE_ERROR WeaveDeviceManager::SetRendezvousAddress(IPAddress addr)
     if (addr == IPAddress::Any)
         addr = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
     mRendezvousAddr = addr;
+    mRendezvousIntf = INET_NULL_INTERFACEID;
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR WeaveDeviceManager::SetRendezvousAddress(IPAddress addr, InterfaceId rendezvousIntf)
+{
+    if (addr == IPAddress::Any)
+        addr = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+    mRendezvousAddr = addr;
+    mRendezvousIntf = rendezvousIntf;
     return WEAVE_NO_ERROR;
 }
 
@@ -2702,6 +2713,10 @@ WEAVE_ERROR WeaveDeviceManager::InitiateConnection()
     if (mCurReq == NULL)
     {
         InterfaceId targetIntf = (mDeviceAddr.IsIPv6LinkLocal()) ? mDeviceIntf : INET_NULL_INTERFACEID;
+
+        if (mOpState == kOpState_RendezvousDevice && targetIntf == INET_NULL_INTERFACEID)
+            targetIntf = mRendezvousIntf;
+
         mCurReq = mExchangeMgr->NewContext(mDeviceId, mDeviceAddr, WEAVE_PORT, targetIntf, this);
         VerifyOrExit(mCurReq != NULL, err = WEAVE_ERROR_NO_MEMORY);
         mCurReq->OnMessageReceived = HandleConnectionIdentifyResponse;
