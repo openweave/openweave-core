@@ -35,48 +35,10 @@ after_success:
 
 matrix:
   include:
-    - name: "Linux with Defaults against GCC Distribution Sanity Check"
-      env: BUILD_TARGET="linux-auto-gcc-distcheck" CC="gcc"
-      os: linux
-      compiler: gcc
-    - name: "Linux with Defaults against GCC Coding Style Check"
-      env: BUILD_TARGET="linux-auto-gcc-lint" CC="gcc"
-      os: linux
-      compiler: gcc
-    - name: "Linux with Defaults against clang/LLVM"
-      env: BUILD_TARGET="linux-auto-clang" CC="clang"
-      os: linux
-      compiler: clang
-    - name: "Linux with LWIP against clang/LLVM"
-      env: BUILD_TARGET="linux-lwip-clang" CC="clang"
-      os: linux
-      compiler: clang
-    - name: "OS X with Defaults against clang/LLVM"
-      env: BUILD_TARGET="osx-auto-clang" CC="clang"
-      os: osx
-      compiler: clang
-    - name: "OS X with LwIP against clang/LLVM"
-      env: BUILD_TARGET="osx-lwip-clang" CC="clang"
-      os: osx
-      compiler: clang
-    - name: "ESP32 (openweave-esp32-demo)"
-      env: BUILD_TARGET="esp32"
-    - name: "Linux with Defaults against GCC Functional and Unit Tests"
-      env: BUILD_TARGET="linux-auto-gcc-check" CC="gcc"
-      os: linux
-      compiler: gcc
-    - name: "Linux with LwIP against GCC Functional and Unit Tests"
-      env: BUILD_TARGET="linux-lwip-gcc-check" CC="gcc"
-      os: linux
-      compiler: gcc
     - name: "Linux with Defaults against GCC Network and Service Tests"
       os: linux
       compiler: gcc
       env: BUILD_TARGET="linux-auto-gcc-check-happy" TRAVIS_TAG="true"
-    - name: "Linux with LwIP against GCC Network and Service Tests"
-      os: linux
-      compiler: gcc
-      env: BUILD_TARGET="linux-lwip-gcc-check-happy" TRAVIS_TAG="true"
 
 #
 #   deploy description:
