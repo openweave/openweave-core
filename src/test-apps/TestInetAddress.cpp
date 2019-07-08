@@ -160,8 +160,8 @@ static const struct IPAddressExpandedContext sIPAddressContext[] = {
         0x0, 0x0, 0x0
     },
     {
-        { { 0x26200000, 0x10e70400, 0xe83fb28f, 0x9c3a1941 }, kIPAddressType_IPv6,
-                                                                  "2620:0:10e7:400:e83f:b28f:9c3a:1941" } ,
+        { { 0x26200001, 0x10e70400, 0xe83fb28f, 0x9c3a1941 }, kIPAddressType_IPv6,
+                                                                  "2620:1:10e7:400:e83f:b28f:9c3a:1941" } ,
         kTestIsIPv6, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
@@ -553,13 +553,13 @@ static const IPAddressContext sIPv6PrefixMulticastContext[] = {
 
     // 56-bit Prefix with Short Group in Various Scopes
 
-    { { 0xff310038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff31:38:373a:cba4:d2ad:8d00:0:1" },
-    { { 0xff320038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff32:38:373a:cba4:d2ad:8d00:0:1" },
-    { { 0xff330038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff33:38:373a:cba4:d2ad:8d00:0:1" },
-    { { 0xff340038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff34:38:373a:cba4:d2ad:8d00:0:1" },
-    { { 0xff350038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff35:38:373a:cba4:d2ad:8d00:0:1" },
-    { { 0xff380038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff38:38:373a:cba4:d2ad:8d00:0:1" },
-    { { 0xff3e0038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff3e:38:373a:cba4:d2ad:8d00:0:1" },
+    { { 0xff310038, 0x373acba4, 0xd2ad8d00, 0x00010001 }, kIPAddressType_IPv6, "ff31:38:373a:cba4:d2ad:8d00:1:1" },
+    { { 0xff320038, 0x373acba4, 0xd2ad8d00, 0x00010001 }, kIPAddressType_IPv6, "ff32:38:373a:cba4:d2ad:8d00:1:1" },
+    { { 0xff330038, 0x373acba4, 0xd2ad8d00, 0x00010001 }, kIPAddressType_IPv6, "ff33:38:373a:cba4:d2ad:8d00:1:1" },
+    { { 0xff340038, 0x373acba4, 0xd2ad8d00, 0x00010001 }, kIPAddressType_IPv6, "ff34:38:373a:cba4:d2ad:8d00:1:1" },
+    { { 0xff350038, 0x373acba4, 0xd2ad8d00, 0x00010001 }, kIPAddressType_IPv6, "ff35:38:373a:cba4:d2ad:8d00:1:1" },
+    { { 0xff380038, 0x373acba4, 0xd2ad8d00, 0x00010001 }, kIPAddressType_IPv6, "ff38:38:373a:cba4:d2ad:8d00:1:1" },
+    { { 0xff3e0038, 0x373acba4, 0xd2ad8d00, 0x00010001 }, kIPAddressType_IPv6, "ff3e:38:373a:cba4:d2ad:8d00:1:1" },
 
     // 56-bit Prefix with Long Group in Various Scopes
 
@@ -573,13 +573,13 @@ static const IPAddressContext sIPv6PrefixMulticastContext[] = {
 
     // 64-bit Prefix with Short Group in Various Scopes
 
-    { { 0xff310040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff31:40:6664:3dfb:afa4:385b:0:1" },
-    { { 0xff320040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff32:40:6664:3dfb:afa4:385b:0:1" },
-    { { 0xff330040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff33:40:6664:3dfb:afa4:385b:0:1" },
-    { { 0xff340040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff34:40:6664:3dfb:afa4:385b:0:1" },
-    { { 0xff350040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff35:40:6664:3dfb:afa4:385b:0:1" },
-    { { 0xff380040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff38:40:6664:3dfb:afa4:385b:0:1" },
-    { { 0xff3e0040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff3e:40:6664:3dfb:afa4:385b:0:1" },
+    { { 0xff310040, 0x66643dfb, 0xafa4385b, 0x00010001 }, kIPAddressType_IPv6, "ff31:40:6664:3dfb:afa4:385b:1:1" },
+    { { 0xff320040, 0x66643dfb, 0xafa4385b, 0x00010001 }, kIPAddressType_IPv6, "ff32:40:6664:3dfb:afa4:385b:1:1" },
+    { { 0xff330040, 0x66643dfb, 0xafa4385b, 0x00010001 }, kIPAddressType_IPv6, "ff33:40:6664:3dfb:afa4:385b:1:1" },
+    { { 0xff340040, 0x66643dfb, 0xafa4385b, 0x00010001 }, kIPAddressType_IPv6, "ff34:40:6664:3dfb:afa4:385b:1:1" },
+    { { 0xff350040, 0x66643dfb, 0xafa4385b, 0x00010001 }, kIPAddressType_IPv6, "ff35:40:6664:3dfb:afa4:385b:1:1" },
+    { { 0xff380040, 0x66643dfb, 0xafa4385b, 0x00010001 }, kIPAddressType_IPv6, "ff38:40:6664:3dfb:afa4:385b:1:1" },
+    { { 0xff3e0040, 0x66643dfb, 0xafa4385b, 0x00010001 }, kIPAddressType_IPv6, "ff3e:40:6664:3dfb:afa4:385b:1:1" },
 
     // 64-bit Prefix with Long Group in Various Scopes
 
@@ -1596,7 +1596,7 @@ static void CheckMakeIPv6PrefixMulticast(nlTestSuite *inSuite, void *inContext)
 
         lPrefixLength = 56;
         lPrefix       = 0x373acba4d2ad8d00;
-        lGroup        = 0x1;
+        lGroup        = 0x00010001;
 
         for (lScopeIndex = 0; lScopeIndex < NUM_MCAST_SCOPES && (lCurrent != lEnd); lScopeIndex++)
         {
@@ -1630,7 +1630,7 @@ static void CheckMakeIPv6PrefixMulticast(nlTestSuite *inSuite, void *inContext)
 
         lPrefixLength = 64;
         lPrefix       = 0x66643dfbafa4385b;
-        lGroup        = 0x1;
+        lGroup        = 0x00010001;
 
         for (lScopeIndex = 0; lScopeIndex < NUM_MCAST_SCOPES && (lCurrent != lEnd); lScopeIndex++)
         {
