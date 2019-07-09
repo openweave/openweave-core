@@ -434,7 +434,7 @@ static WEAVE_ERROR ConvertExtension(ASN1Reader& reader, TLVWriter& writer)
 
                 if (critical)
                 {
-                    err = writer.PutBoolean(ContextTag(kTag_SubjectKeyIdentifier_Critical), critical);
+                    err = writer.PutBoolean(ContextTag(kTag_KeyUsage_Critical), critical);
                     SuccessOrExit(err);
                 }
 
