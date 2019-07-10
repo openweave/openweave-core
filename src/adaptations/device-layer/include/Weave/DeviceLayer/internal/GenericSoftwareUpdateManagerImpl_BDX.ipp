@@ -53,7 +53,6 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::DoInit(void)
     err = mBDXClient.Init(&ExchangeMgr);
 
     mBDXTransfer = NULL;
-    mTotalTranferLength = 0;
     mStartOffset = 0;
     mURI = NULL;
 
@@ -114,11 +113,13 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::StartDownload(void)
     mBDXTransfer->mMaxBlockSize = WEAVE_DEVICE_CONFIG_SWU_BDX_BLOCK_SIZE;
     mBDXTransfer->mStartOffset  = mStartOffset;
 
-    // This implementation only supports downloading a software image from an offset
-    // provided by the application till the end of file. The 0 value below indicates
-    // that expected length of the transfer is unknown by the initiator at this point
-    // and hence the entire remainder of the file starting from the offset mentioned
-    // above is expected to be downloaded in the transfer.
+    /**
+     * This implementation only supports downloading a software image from an offset
+     * provided by the application till the end of file. The 0 value below indicates
+     * that expected length of the transfer is unknown by the initiator at this point
+     * and hence the remainder of the file starting from the offset mentioned
+     * above is expected to be downloaded in the transfer.
+     */
     mBDXTransfer->mLength       = 0;
 
     err = mBDXClient.InitBdxReceive(*mBDXTransfer, true, false, false, NULL);
@@ -131,30 +132,29 @@ exit:
 template<class ImplClass>
 WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::ReceiveAcceptHandler(BDXTransfer * aXfer, ReceiveAccept * aReceiveAcceptMsg)
 {
-    GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
-
-    self->mTotalTranferLength = aReceiveAcceptMsg->mLength;
-
     return WEAVE_NO_ERROR;
 }
 
 template<class ImplClass>
 void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::ReceiveRejectHandler(BDXTransfer * aXfer, StatusReport * aReport)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
 
-    if (aReport->mError == WEAVE_NO_ERROR)
+    /**
+     * If the BDX transfer was rejected by the server with a status report containing status code
+     * kStatus_LengthMismatch, it specifically means that the start offset requested by the application
+     * in the BDX request is greater than or equal to the length of the file being downloaded. In the context
+     * of this implementation, it means that file download is complete since the end of file has already been
+     * reached.
+     */
+    if (aReport->mProfileId == kWeaveProfile_BDX && aReport->mStatusCode == kStatus_LengthMismatch)
     {
-        err = WEAVE_ERROR_STATUS_REPORT_RECEIVED;
+        self->Impl()->DownloadComplete();
     }
     else
     {
-        err = aReport->mError;
+        self->Impl()->SoftwareUpdateFailed(WEAVE_ERROR_STATUS_REPORT_RECEIVED, aReport);
     }
-
-    self->Impl()->SoftwareUpdateFailed(err, aReport);
 }
 
 template<class ImplClass>
@@ -163,9 +163,14 @@ void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::BlockReceiveHandler(BDXTra
     WEAVE_ERROR err;
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
 
-    err = self->Impl()->StoreDataBlock(aLength, aDataBlock, self->mTotalTranferLength);
-    if (err != WEAVE_NO_ERROR)
+    err = self->Impl()->StoreImageBlock(aLength, aDataBlock);
+    if (err == WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED)
     {
+        return ;
+    }
+    else if (err != WEAVE_NO_ERROR)
+    {
+        self->AbortDownload();
         self->Impl()->SoftwareUpdateFailed(err, NULL);
     }
 }
@@ -174,15 +179,13 @@ template<class ImplClass>
 void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::XferErroHandler(BDXTransfer * aXfer, StatusReport * aReport)
 {
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
-
-    self->Impl()->SoftwareUpdateFailed(aReport->mError, aReport);
+    self->Impl()->SoftwareUpdateFailed(WEAVE_ERROR_STATUS_REPORT_RECEIVED, aReport);
 }
 
 template<class ImplClass>
 void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::XferDoneHandler(BDXTransfer * aXfer)
 {
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
-
     self->Impl()->DownloadComplete();
 }
 
@@ -190,7 +193,6 @@ template<class ImplClass>
 void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::ErrorHandler(BDXTransfer * aXfer, WEAVE_ERROR aErrorCode)
 {
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
-
     self->Impl()->SoftwareUpdateFailed(aErrorCode, NULL);
 }
 
@@ -205,18 +207,18 @@ void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::HandleBindingEvent(void * 
     switch (aEvent)
     {
         case nl::Weave::Binding::kEvent_PrepareFailed:
-            WeaveLogProgress(DeviceLayer, "Failed to prepare software Update BDX binding: %s", ErrorStr(aInParam.PrepareFailed.Reason));
+            WeaveLogProgress(DeviceLayer, "Failed to prepare Software Update BDX binding: %s", ErrorStr(aInParam.PrepareFailed.Reason));
             statusReport = aInParam.PrepareFailed.StatusReport;
             err = aInParam.PrepareFailed.Reason;
             break;
 
         case nl::Weave::Binding::kEvent_BindingFailed:
-            WeaveLogProgress(DeviceLayer, "Software Update binding failed: %s", ErrorStr(aInParam.BindingFailed.Reason));
+            WeaveLogProgress(DeviceLayer, "Software Update BDX binding failed: %s", ErrorStr(aInParam.BindingFailed.Reason));
             err = aInParam.PrepareFailed.Reason;
             break;
 
         case nl::Weave::Binding::kEvent_BindingReady:
-            WeaveLogProgress(DeviceLayer, "Software Update Download binding ready");
+            WeaveLogProgress(DeviceLayer, "Software Update BDX binding ready");
             err = self->StartDownload();
             break;
 
@@ -231,7 +233,7 @@ void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::HandleBindingEvent(void * 
 }
 
 template<class ImplClass>
-void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::_Abort(void)
+WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::AbortDownload(void)
 {
     if (mBDXTransfer)
     {
@@ -244,12 +246,17 @@ void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::_Abort(void)
 
         mBDXTransfer = NULL;
     }
+
+    return WEAVE_NO_ERROR;
 }
 
 template<class ImplClass>
-bool GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::_IsDownloading(void)
+WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::GetUpdateSchemeList(::nl::Weave::Profiles::SoftwareUpdate::UpdateSchemeList * aUpdateSchemeList)
 {
-    return (Impl()->GetState() == SoftwareUpdateManager::kState_Downloading) ? true : false ;
+    uint8_t supportedSchemes[] = { Profiles::SoftwareUpdate::kUpdateScheme_BDX };
+    aUpdateSchemeList->init(ARRAY_SIZE(supportedSchemes), supportedSchemes);
+
+    return WEAVE_NO_ERROR;
 }
 
 } // namespace Internal

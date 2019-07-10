@@ -806,7 +806,7 @@
  * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_ENDPOINT_ID
  *
  * Specifies the service endpoint id of the Weave Software Update service.  When a device
- * attemps software update, this is the endpoint to which it will send its Software Update
+ * attempts software update, this is the endpoint to which it will send its Software Update
  * Query request.
  */
 #ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_ENDPOINT_ID
@@ -817,7 +817,7 @@
  * WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_ENDPOINT_ID
  *
  * Specifies the service endpoint id of the Weave File Download service.  When a device
- * attemps file download over BDX, this is the endpoint to which it will send its BDX request.
+ * attempts file download over BDX, this is the endpoint to which it will send its BDX request.
  */
 #ifndef WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_ENDPOINT_ID
 #define WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_ENDPOINT_ID 0x18B4300200000013ULL
@@ -846,53 +846,50 @@
 #endif
 
 /**
- * WEAVE_DEVICE_CONFIG_SWU_RETRY_WAIT_TIME_MULTIPLIER_MS
+ * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_RETRIES
  *
- * If scheduled software update check is enabled & default retry policy is used,
- * specify the multiplier that multiplies the result of a fibonacci computation
- * based on a specific index to provide a max wait time for a step.
+ * Specifies the maximum number of times a failed software is retried.
  *
  */
-#ifndef WEAVE_DEVICE_CONFIG_SWU_RETRY_WAIT_TIME_MULTIPLIER_MS
-#define WEAVE_DEVICE_CONFIG_SWU_RETRY_WAIT_TIME_MULTIPLIER_MS 10000
+#ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_RETRIES
+#define WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_RETRIES 5
 #endif
 
 /**
- * WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_FIBONACCI_STEP_INDEX
+ * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_WAIT_TIME_INTERVAL_MS
  *
- * If scheduled software update check is enabled & default retry policy is used,
- * specify the max fibonacci step index.
- * This index must satisfy below conditions:
- * 1 . Fibonacci(MAX_FIBONACCI_STEP_INDEX + 1) * MAX_WAIT_INTERVAL_MS > MAX_WAIT_INTERVAL_MS
- * 2 . Fibonacci(MAX_FIBONACCI_STEP_INDEX) * WAIT_TIME_MULTIPLIER_MS < MAX_WAIT_INTERVAL_MS
- *
+ * If scheduled software update check is disabled & default retry policy is used,
+ * specify the max wait time interval to be used (in milliseconds)
  */
-#ifndef WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_FIBONACCI_STEP_INDEX
-#define WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_FIBONACCI_STEP_INDEX 14
+#ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_WAIT_TIME_INTERVAL_MS
+#define WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_WAIT_TIME_INTERVAL_MS 1*60*60*1000 // 1 hour
 #endif
 
 /**
- * WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_WAIT_INTERVAL_MS
+ *  @def WEAVE_DEVICE_CONFIG_SWU_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP
  *
- * If scheduled software update check is enabled & default retry policy is used,
- * specify the max wait time.
- * This value was chosen so that the average wait time is 3600000
- * ((100 - MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP) % of MAX_WAIT_INTERVAL_MS) / 2 +
- * (MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP % of MAX_RETRY_WAIT_INTERVAL_MS) = average wait is 3600000
+ *  @brief
+ *    If default software update retry policy is used,
+ *    specify the minimum wait
+ *    time as a percentage of the max wait interval for that step.
+ *
  */
-#ifndef WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_WAIT_INTERVAL_MS
-#define WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_WAIT_INTERVAL_MS 5538000
+#ifndef WEAVE_DEVICE_CONFIG_SWU_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP
+#define WEAVE_DEVICE_CONFIG_SWU_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP 50
 #endif
 
 /**
- * WEAVE_DEVICE_CONFIG_SWU_RETRY_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP
+ *  @def WEAVE_DEVICE_CONFIG_SWU_WAIT_TIME_MULTIPLIER_MS
  *
- * If scheduled software update check is enabled & default retry policy is used,
- * specify the minimum wait time as a percentage of the max wait interval for that step.
+ *  @brief
+ *    If default software update retry policy is used,
+ *    specify the multiplier that multiplies the result of a Fibonacci computation
+ *    based on a specific index to provide a max wait time for
+ *    a step.
  *
  */
-#ifndef WEAVE_DEVICE_CONFIG_SWU_RETRY_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP
-#define WEAVE_DEVICE_CONFIG_SWU_RETRY_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP 30
+#ifndef WEAVE_DEVICE_CONFIG_SWU_WAIT_TIME_MULTIPLIER_MS
+#define WEAVE_DEVICE_CONFIG_SWU_WAIT_TIME_MULTIPLIER_MS 1*60*1000	// 1 minute
 #endif
 
 #endif // WEAVE_DEVICE_CONFIG_H

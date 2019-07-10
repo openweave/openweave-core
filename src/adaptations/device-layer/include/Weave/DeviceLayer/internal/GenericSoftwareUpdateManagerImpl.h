@@ -46,58 +46,70 @@ template<class ImplClass>
 class GenericSoftwareUpdateManagerImpl
 {
     using StatusReport = ::nl::Weave::Profiles::StatusReporting::StatusReport;
-public:
-
-    // ===== Methods that implement the SoftwareUpdateManager abstract interface.
-    void _CheckNow(void);
-    void _OnPlatformEvent(const WeaveDeviceEvent * event);
-    void _SetQueryIntervalWindow(uint32_t aMinWaitTimeInSecs, uint32_t aMaxWaitTimeInSecs);
-    void _SetRetryPolicyCallback(const SoftwareUpdateManager::RetryPolicyCallback aRetryPolicyCallback);
-    void _SetEventCallback(void * const aAppState, const SoftwareUpdateManager::EventCallback aEventCallback);
-
-    SoftwareUpdateManager::State _GetState(void);
-
-    WEAVE_ERROR _Abort(void);
-    WEAVE_ERROR _StoreDataBlock(uint64_t aLength, uint8_t *aData, uint64_t aTotalTransferLength);
-
-    bool _IsInProgress(void);
 
 protected:
+    // ===== Methods that implement the SoftwareUpdateManager abstract interface.
+
+    bool _IsInProgress(void);
+    SoftwareUpdateManager::State _GetState(void);
+
+    void _OnPlatformEvent(const WeaveDeviceEvent * event);
+    void _SetRetryPolicyCallback(const SoftwareUpdateManager::RetryPolicyCallback aRetryPolicyCallback);
+
+    static void _DefaultEventHandler(void *apAppState, SoftwareUpdateManager::EventType aEvent,
+                             const SoftwareUpdateManager::InEventParam& aInParam,
+                             SoftwareUpdateManager::OutEventParam& aOutParam);
+
+    WEAVE_ERROR _Abort(void);
+    WEAVE_ERROR _CheckNow(void);
+    WEAVE_ERROR _ImageInstallComplete(void);
+    WEAVE_ERROR _SetQueryIntervalWindow(uint32_t aMinWaitTimeMs, uint32_t aMaxWaitTimeMs);
+    WEAVE_ERROR _SetEventCallback(void * const aAppState, const SoftwareUpdateManager::EventCallback aEventCallback);
+
+    // ===== Members for use by the implementation subclass.
 
     void DoInit();
+    void DownloadComplete(void);
+    void SoftwareUpdateFailed(WEAVE_ERROR aError, StatusReport * aStatusReport);
+    void SoftwareUpdateFinished(WEAVE_ERROR aError);
+
+    WEAVE_ERROR InstallImage(void);
+    WEAVE_ERROR StoreImageBlock(uint32_t aLength, uint8_t *aData);
+    WEAVE_ERROR GetIntegrityTypeList(::nl::Weave::Profiles::SoftwareUpdate::IntegrityTypeList * aIntegrityTypeList);
+
+private:
+    // ===== Private members reserved for use by this class only.
+
     void Cleanup(void);
     void CheckImageState(void);
     void CheckImageIntegrity(void);
     void DriveState(SoftwareUpdateManager::State aNextState);
-    void HandleImageQueryResponse(PacketBuffer * payload);
-    void HandleStatusReport(PacketBuffer * payload);
+    void HandleImageQueryResponse(PacketBuffer * aPayload);
+    void HandleStatusReport(PacketBuffer * aPayload);
     void SendQuery(void);
     void StartImageInstall(void);
     void StartingDownload(void);
 
-    void DownloadComplete(void);
-    void SoftwareUpdateFailed(WEAVE_ERROR aReason, StatusReport * aStatusReport);
-    void SoftwareUpdateFinished(WEAVE_ERROR aReason);
-
-    WEAVE_ERROR InstallImage(void);
-    WEAVE_ERROR StoreDataBlock(uint64_t aLength, uint8_t *aData, uint64_t aTotalTransferLength);
-
     WEAVE_ERROR PrepareQuery(void);
     WEAVE_ERROR PrepareBinding(void);
 
-    uint32_t ComputeNextWaitTimeInterval();
+    uint32_t GetNextWaitTimeInterval(void);
+    uint32_t ComputeNextScheduledWaitTimeInterval(void);
 
     static void DoPrepare(intptr_t arg);
-    static void DefaultEventHandler(void *apAppState, SoftwareUpdateManager::EventType aEvent,
-                             const SoftwareUpdateManager::InEventParam& aInParam,
-                             SoftwareUpdateManager::OutEventParam& aOutParam);
-    static void HandleHoldOffTimerExpired(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
+    static void HandleHoldOffTimerExpired(::nl::Weave::System::Layer * aLayer,
+                                          void * aAppState,
+                                          ::nl::Weave::System::Error aError);
     static void HandleServiceBindingEvent(void * appState, ::nl::Weave::Binding::EventType eventType,
-        const ::nl::Weave::Binding::InEventParam & inParam, ::nl::Weave::Binding::OutEventParam & outParam);
-    static void HandleResponse(ExchangeContext * ec, const IPPacketInfo * pktInfo, const WeaveMessageInfo * msgInfo,
-                                                                 uint32_t profileId, uint8_t msgType, PacketBuffer * payload);
+                                          const ::nl::Weave::Binding::InEventParam & inParam,
+                                          ::nl::Weave::Binding::OutEventParam & outParam);
+    static void HandleResponse(ExchangeContext * ec,
+                               const IPPacketInfo * pktInfo,
+                               const WeaveMessageInfo * msgInfo,
+                               uint32_t profileId,
+                               uint8_t msgType,
+                               PacketBuffer * payload);
     static void OnKeyError(ExchangeContext *aEc, WEAVE_ERROR aKeyError);
-    static void OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext);
     static void OnResponseTimeout(ExchangeContext * aEC);
     static void DefaultRetryPolicyCallback(void * const aAppState,
                                            SoftwareUpdateManager::RetryParam & aRetryParam,
@@ -120,12 +132,13 @@ private:
     bool mHaveServiceConnectivity;
     bool mScheduledCheckEnabled;
     bool mShouldRetry;
+    bool mWasAborted;
 
     uint64_t mNumBytesToDownload;
     uint64_t mStartOffset;
 
-    uint32_t mMinWaitTimeInSecs;
-    uint32_t mMaxWaitTimeInSecs;
+    uint32_t mMinWaitTimeMs;
+    uint32_t mMaxWaitTimeMs;
 
     uint16_t mRetryCounter;
 

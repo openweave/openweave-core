@@ -33,17 +33,11 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
-namespace Internal {
-    template<class ImplClass> class GenericSoftwareUpdateManagerImpl;
-    template<class ImplClass> class GenericSoftwareUpdateManagerImpl_BDX;
-};
-
 class SoftwareUpdateManagerImpl;
 
 class SoftwareUpdateManager
 {
     typedef ::nl::Weave::TLV::TLVWriter TLVWriter;
-    typedef ::nl::Weave::Profiles::ReferencedString ReferencedString;
     typedef ::nl::Weave::Profiles::SoftwareUpdate::UpdatePriority UpdatePriority;
     typedef ::nl::Weave::Profiles::SoftwareUpdate::UpdateCondition UpdateCondition;
 
@@ -57,13 +51,13 @@ public:
     enum State
     {
         kState_Idle                 = 1,
-        kState_Scheduled_Holdoff    = 2,
-        kState_Preparing            = 3,
-        kState_Querying             = 4,
-        kState_CheckingImageState   = 5,
-        kState_Downloading          = 6,
-        kState_CheckingIntegrity    = 7,
-        kState_Installing           = 8,
+        kState_ScheduledHoldoff     = 2,
+        kState_Prepare              = 3,
+        kState_Query                = 4,
+        kState_Download             = 5,
+        kState_Install              = 6,
+
+        kState_ApplicationManaged   = 7,
 
         kState_MaxState
     };
@@ -71,222 +65,185 @@ public:
     enum EventType
     {
         /**
-         * Generated when a software update check has been triggered. Provides
-         * an oppurtunity for the application to supply product related information
-         * to the image query.
-        */
+         *  Generated when a software update check has been triggered. Provides
+         *  an opportunity for the application to supply product related information
+         *  to the image query.
+         */
         kEvent_PrepareQuery,
 
         /**
-         * Provides an opputunity for the application to append additional metadata
-         * to the software update query if needed. Generated when implementaion is ready
-         * to get metadata from the application.
-        */
+         *  Provides an opportunity for the application to append additional meta-data
+         *  to the software update query if needed. Generated when implementation is ready
+         *  to get meta-data from the application.
+         */
         kEvent_PrepareQuery_Metadata,
 
         /**
-         * Generated when the implementation encounters an error while
-         * preparing to send out a software update query.
-        */
+         *  Generated when the implementation encounters an error while
+         *  preparing to send out a software update query.
+         */
         kEvent_QueryPrepareFailed,
 
         /**
-         * Informational event to signal that a software update query
-         * has been sent.
-        */
+         *  Informational event to signal that a software update query
+         *  has been sent.
+         */
         kEvent_QuerySent,
 
         /**
-         * Generated when a ImageQueryResponse is received in response to
-         * a query containing information of the available update.
-        */
+         *  Generated when a ImageQueryResponse is received in response to
+         *  a query containing information of the available update.
+         */
         kEvent_SoftwareUpdateAvailable,
 
         /**
-         * Provides an oppurtunity for the application to disclose information
-         * of a partial or full image previously downloaded so that the download
-         * may be continued from the point where it last stopped as long as the URI
-         * of the images are identical.
-        */
-        kEvent_FetchDownloadImageState,
+         *  Provides an opportunity for the application to disclose information
+         *  of a partial image previously downloaded so that the download
+         *  may be continued from the point where it last stopped. URI of the available
+         *  software update is provided as an input parameter that the application can use
+         *  to compare if the image being downloaded is the same as the partial image.
+         *  Application can set output parameter PartialImageLenInBytes to 0 to indicate
+         *  non-existence of a partial image for the URI provided as a input parameter.
+         */
+        kEvent_FetchPartialImageInfo,
 
         /**
-         * Information event to signal the application to clear a previous partial
-         * image download from their storage since a new but different image is
-         * avaiable for download.
-        */
-        kEvent_ClearDownloadImageState,
+         *  Information event to signal the application to clear a previous partial
+         *  image download from their storage since a new but different image is
+         *  available for download.
+         */
+        kEvent_ClearImageFromStorage,
 
         /**
-         * Informational event to signal the start of an image download
-         * transaction.
-        */
+         *  Informational event to signal the start of an image download
+         *  transaction.
+         */
         kEvent_StartImageDownload,
 
         /**
-         * Generated whenever a data block is received from the
-         * file download server. Parameters included with this event
-         * provide the data and the length of the data.
-        */
-        kEvent_StoreDataBlock,
+         *  Generated whenever a data block is received from the
+         *  file download server. Parameters included with this event
+         *  provide the data and the length of the data.
+         */
+        kEvent_StoreImageBlock,
 
         /**
-         * Informational event to signal the successful completion of a
-         * download transaction.
-        */
-        kEvent_DownloadComplete,
-
-        /**
-         * Event to request application to compute image integrity
-         * over the downloaded image. Sent after download is
-         * complete and application is ready to compute integrity.
-        */
+         *  Event to request application to compute image integrity
+         *  over the downloaded image. Sent after download is
+         *  complete.
+         */
         kEvent_ComputeImageIntegrity,
 
         /**
-         * Informational event to signal that image is ready to be installed.
-         * Sent when image integrity check was successful.
-        */
+         *  Informational event to signal that image is ready to be installed.
+         *  Sent when image integrity check was successful.
+         */
         kEvent_ReadyToInstall,
 
         /**
-         * Informational event to signal the start of an image install to the
-         * application.
-        */
+         *  Informational event to signal the start of an image install to the
+         *  application.
+         */
         kEvent_StartInstallImage,
 
         /**
-         * Generated when a software update check has finished with or without
-         * errors. Parameters included with this event provide the reason for failure
-         * if the attempt finished due to a failure.
-        */
+         *  Generated when a software update check has finished with or without
+         *  errors. Parameters included with this event provide the reason for failure
+         *  if the attempt finished due to a failure.
+         */
         kEvent_Finished,
-    };
 
+        /**
+         *  Used to verify correct default event handling in the application.
+         */
+        kEvent_DefaultCheck                         = 100,
+
+    };
 
     /**
-     * Incoming parameters sent with events generated directly from this component
+     *  When a software update is available, the application can chose one of
+     *  the following actions as part of the SoftwareUpdateAvailable API event
+     *  callback. The default action will be set to kAction_Now.
+     */
+    enum ActionType
+    {
+        /**
+         *  Ignore the download completely. A kEvent_Finished API event callback will
+         *  be generated with error WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_CANCELLED if
+         *  this option is selected and the retry logic will not be invoked.
+         */
+        kAction_Ignore,
+
+        /**
+         *  Start the download right away. A kEvent_FetchPartialImageInfo API event
+         *  callback will be generated right after.
+         */
+        kAction_DownloadNow,
+
+        /**
+         *  Pause download on start. Scheduled software update checks (if enabled) will be suspended.
+         *  State machine will remain in Download state. When ready, application can
+         *  call the resume download API to proceed with download or call Abort to cancel.
+         */
+        kAction_DownloadLater,
+
+        /**
+         *  Allows application to manage the rest of the phases of software update such as
+         *  download, image integrity validation and install. Software update manager
+         *  state machine will move to the ApplicationManaged state. Scheduled software update checks (if enabled)
+         *  will be suspended till application calls Abort or InstallationComplete API.
+         */
+        kAction_Defer_To_Application,
+    };
+
+    /**
+     *  Incoming parameters sent with events generated directly from this component
      *
      */
-    union InEventParam
-    {
-        void Clear(void) { memset(this, 0, sizeof(*this)); }
-
-        struct
-        {
-            WEAVE_ERROR Reason;
-            StatusReport * Report;
-        } QueryPrepareFailed;
-
-        struct
-        {
-            UpdatePriority Priority;
-            UpdateCondition Condition;
-            ReferencedString * Version;
-            uint8_t IntegrityType;
-        } SoftwareUpdateAvailable;
-
-        struct
-        {
-            char* URI;
-        } FetchDownloadImageState;
-
-        struct
-        {
-            uint8_t *DataBlock;
-            uint64_t DataBlockLenInBytes;
-            uint64_t TotalImageLength;
-        } StoreDataBlock;
-
-        struct
-        {
-            uint8_t IntegrityType;
-        } ClearDownloadImageState;
-
-        struct
-        {
-            uint8_t IntegrityType;
-        } ComputeImageIntegrity;
-
-        struct
-        {
-            WEAVE_ERROR Reason;
-            StatusReport * Report;
-            uint64_t TimeTillNextQueryInMs;
-        } Finished;
-    };
+    union InEventParam;
 
    /**
-     * Outgoing parameters sent with events generated directly from this component
+     *  Outgoing parameters sent with events generated directly from this component
      *
      */
-    union OutEventParam
-    {
-        void Clear(void) { memset(this, 0, sizeof(*this)); }
-
-        struct
-        {
-            char * PackageSpecification;
-            char * DesiredLocale;
-            bool HaveSufficientBattery;
-            uint8_t CertBodyId;
-        } PrepareQuery;
-
-        struct
-        {
-            TLVWriter * MetaDataWriter;
-        } PrepareQuery_Metadata;
-
-        struct
-        {
-            bool CanDownload;
-        } SoftwareUpdateAvailable;
-
-        struct
-        {
-            bool IsPartialImageAvailable;
-            bool IsFullImageAvailable;
-            uint64_t PartialImageLenInBytes;
-        } FetchDownloadImageState;
-
-        struct
-        {
-            WEAVE_ERROR Reason;
-        } StoreDataBlock;
-
-        struct
-        {
-            bool CanInstallImage;
-        } ReadyToInstall;
-
-        struct
-        {
-            uint8_t *IntegrityValue;
-            uint8_t IntegrityLength;
-        } ComputeImageIntegrity;
-    };
+    union OutEventParam;
 
     struct RetryParam
     {
-        uint32_t mNumRetries;     ///< Number of retries, reset on a successful attempt
+        /**
+         *  Specifies the retry attempt number.
+         *  It is reset on a successful software update attempt.
+         */
+        uint32_t NumRetries;
     };
 
     typedef void (*EventCallback)(void *apAppState, EventType aEvent, const InEventParam& aInParam, OutEventParam& aOutParam);
     typedef void (*RetryPolicyCallback)(void *aAppState, RetryParam& aRetryParam, uint32_t& aOutIntervalMsec);
 
-    WEAVE_ERROR Init(void);
     WEAVE_ERROR Abort(void);
+    WEAVE_ERROR CheckNow(void);
+    WEAVE_ERROR ImageInstallComplete(void);
+    WEAVE_ERROR SetEventCallback(void * const aAppState, const EventCallback aEventCallback);
+    WEAVE_ERROR SetQueryIntervalWindow(uint32_t aMinWaitTimeMs, uint32_t aMaxWaitTimeMs);
 
     bool IsInProgress(void);
-    bool IsDownloading(void);
 
-    void CheckNow(void);
-    void OnPlatformEvent(const WeaveDeviceEvent * event);
-    void SetQueryIntervalWindow(uint32_t aMinWaitTimeInSecs, uint32_t aMaxWaitTimeInSecs);
     void SetRetryPolicyCallback(const RetryPolicyCallback aRetryPolicyCallback);
-    void SetEventCallback(void * const aAppState, const EventCallback aEventCallback);
 
     State GetState(void);
+
+    static void DefaultEventHandler(void *apAppState, EventType aEvent,
+                                    const InEventParam& aInParam,
+                                    OutEventParam& aOutParam);
+
+private:
+    // ===== Members for internal use by the following friends.
+
+    // friend class SoftwareUpdateManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl;
+
+    WEAVE_ERROR Init(void);
+    void OnPlatformEvent(const WeaveDeviceEvent * event);
 
 protected:
 
@@ -334,14 +291,112 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
+union SoftwareUpdateManager::InEventParam
+{
+    void Clear(void) { memset(this, 0, sizeof(*this)); }
+
+    SoftwareUpdateManager * Source;
+    struct
+    {
+        TLVWriter * MetaDataWriter;
+    } PrepareQuery_Metadata;
+
+    struct
+    {
+        WEAVE_ERROR Error;
+        Profiles::StatusReporting::StatusReport *StatusReport;
+    } QueryPrepareFailed;
+
+    struct
+    {
+        UpdatePriority Priority;
+        UpdateCondition Condition;
+        uint8_t IntegrityType;
+        const char *URI;
+        const char *Version;
+    } SoftwareUpdateAvailable;
+
+    struct
+    {
+        const char *URI;
+    } FetchPartialImageInfo;
+
+    struct
+    {
+        uint8_t *DataBlock;
+        uint32_t DataBlockLen;
+    } StoreImageBlock;
+
+    struct
+    {
+        uint8_t IntegrityType;
+    } ClearImageFromStorage;
+
+    struct
+    {
+        uint8_t IntegrityType;
+        uint8_t *IntegrityValueBuf;     // Pointer to the buffer for the app to copy Integrity Value into.
+        uint8_t IntegrityValueBufLen;   // Length of the provided buffer.
+    } ComputeImageIntegrity;
+
+    struct
+    {
+        WEAVE_ERROR Error;
+        Profiles::StatusReporting::StatusReport *StatusReport;
+    } Finished;
+};
+
+union SoftwareUpdateManager::OutEventParam
+{
+    void Clear(void) { memset(this, 0, sizeof(*this)); }
+
+    bool DefaultHandlerCalled;
+    struct
+    {
+        const char *PackageSpecification;
+        const char *DesiredLocale;
+        WEAVE_ERROR Error;
+    } PrepareQuery;
+
+    struct
+    {
+        WEAVE_ERROR Error;
+    } PrepareQuery_Metadata;
+
+    struct
+    {
+        ActionType Action;
+    } SoftwareUpdateAvailable;
+
+    struct
+    {
+        uint64_t PartialImageLen;
+    } FetchPartialImageInfo;
+
+    struct
+    {
+        WEAVE_ERROR Error;
+    } StoreImageBlock;
+
+    struct
+    {
+        WEAVE_ERROR Error;
+    } ComputeImageIntegrity;
+};
+
 inline WEAVE_ERROR SoftwareUpdateManager::Init(void)
 {
     return static_cast<ImplClass*>(this)->_Init();
 }
 
-inline void SoftwareUpdateManager::CheckNow(void)
+inline WEAVE_ERROR SoftwareUpdateManager::CheckNow(void)
 {
-    static_cast<ImplClass*>(this)->_CheckNow();
+    return static_cast<ImplClass*>(this)->_CheckNow();
+}
+
+inline WEAVE_ERROR SoftwareUpdateManager::ImageInstallComplete(void)
+{
+    return static_cast<ImplClass*>(this)->_ImageInstallComplete();
 }
 
 inline void SoftwareUpdateManager::OnPlatformEvent(const WeaveDeviceEvent * event)
@@ -364,14 +419,9 @@ inline bool SoftwareUpdateManager::IsInProgress(void)
     return static_cast<ImplClass*>(this)->_IsInProgress();
 }
 
-inline bool SoftwareUpdateManager::IsDownloading(void)
+inline WEAVE_ERROR SoftwareUpdateManager::SetQueryIntervalWindow(uint32_t aMinRangeSecs, uint32_t aMaxRangeSecs)
 {
-    return static_cast<ImplClass*>(this)->_IsDownloading();
-}
-
-inline void SoftwareUpdateManager::SetQueryIntervalWindow(uint32_t aMinRangeSecs, uint32_t aMaxRangeSecs)
-{
-    static_cast<ImplClass*>(this)->_SetQueryIntervalWindow(aMinRangeSecs, aMaxRangeSecs);
+    return static_cast<ImplClass*>(this)->_SetQueryIntervalWindow(aMinRangeSecs, aMaxRangeSecs);
 }
 
 inline void SoftwareUpdateManager::SetRetryPolicyCallback(const RetryPolicyCallback aRetryPolicyCallback)
@@ -379,9 +429,16 @@ inline void SoftwareUpdateManager::SetRetryPolicyCallback(const RetryPolicyCallb
     static_cast<ImplClass*>(this)->_SetRetryPolicyCallback(aRetryPolicyCallback);
 }
 
-inline void SoftwareUpdateManager::SetEventCallback(void * const aAppState, const EventCallback aEventCallback)
+inline WEAVE_ERROR SoftwareUpdateManager::SetEventCallback(void * const aAppState, const EventCallback aEventCallback)
 {
-    static_cast<ImplClass*>(this)->_SetEventCallback(aAppState, aEventCallback);
+    return static_cast<ImplClass*>(this)->_SetEventCallback(aAppState, aEventCallback);
+}
+
+inline void SoftwareUpdateManager::DefaultEventHandler(void *apAppState, EventType aEvent,
+                                                       const InEventParam& aInParam,
+                                                       OutEventParam& aOutParam)
+{
+    ImplClass::_DefaultEventHandler(apAppState, aEvent, aInParam, aOutParam);
 }
 
 } // namespace DeviceLayer

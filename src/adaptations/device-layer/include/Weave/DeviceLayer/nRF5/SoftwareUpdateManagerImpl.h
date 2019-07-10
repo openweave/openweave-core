@@ -51,11 +51,6 @@ class SoftwareUpdateManagerImpl final
 
 public:
 
-    // ===== Members that implement the SoftwareUpdateManager public interface.
-
-    WEAVE_ERROR _Init(void);
-    WEAVE_ERROR _Abort(void);
-
     // ===== Members for internal use by the following friends.
 
     friend ::nl::Weave::DeviceLayer::SoftwareUpdateManager & SoftwareUpdateMgr(void);
@@ -63,11 +58,11 @@ public:
 
     static SoftwareUpdateManagerImpl sInstance;
 
-protected:
+private:
+    // ===== Members that implement the SoftwareUpdateManager abstract interface.
 
-    WEAVE_ERROR InstallImage(void);
-    WEAVE_ERROR GetUpdateSchemeList(::nl::Weave::Profiles::SoftwareUpdate::UpdateSchemeList * aUpdateSchemeList);
-    WEAVE_ERROR GetIntegrityTypeList(::nl::Weave::Profiles::SoftwareUpdate::IntegrityTypeList * aIntegrityTypeList);
+    WEAVE_ERROR _Init(void);
+
 };
 
 /**

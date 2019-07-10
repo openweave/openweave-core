@@ -52,22 +52,19 @@ class GenericSoftwareUpdateManagerImpl_BDX
     using BDXNode = ::nl::Weave::Profiles::BulkDataTransfer::BdxNode;
     using ReceiveAccept = ::nl::Weave::Profiles::BulkDataTransfer::ReceiveAccept;
 
-public:
-    // ===== Methods that implement the SoftwareUpdateManager abstract interface.
-
-    void _Abort(void);
-
-    bool _IsDownloading(void);
-
 protected:
     // ===== Members for use by the implementation subclass.
 
     WEAVE_ERROR DoInit(void);
+    WEAVE_ERROR AbortDownload(void);
+    WEAVE_ERROR StartImageDownload(char *aURI, uint64_t aStartOffset);
+    WEAVE_ERROR GetUpdateSchemeList(::nl::Weave::Profiles::SoftwareUpdate::UpdateSchemeList * aUpdateSchemeList);
+
+private:
+    // ===== Private members reserved for use by this class only.
 
     WEAVE_ERROR PrepareBinding(void);
     WEAVE_ERROR StartDownload(void);
-
-    WEAVE_ERROR StartImageDownload(char *aURI, uint64_t aStartOffset);
 
     static void BlockReceiveHandler(BDXTransfer * aXfer, uint64_t alength, uint8_t * aDataBlock,
                                     bool aIsLastBlock);
@@ -81,10 +78,6 @@ protected:
                                    const ::nl::Weave::Binding::InEventParam & aInParam,
                                    ::nl::Weave::Binding::OutEventParam & aOutParam);
 
-private:
-
-    // ===== Private members reserved for use by this class only.
-
     ImplClass * Impl() { return static_cast<ImplClass *>(this); }
 
     ::nl::Weave::Binding * mBinding;
@@ -94,7 +87,6 @@ private:
     BDXTransfer * mBDXTransfer;
 
     uint64_t mStartOffset;
-    uint64_t mTotalTranferLength;
 };
 
 // Instruct the compiler to instantiate the template only when explicitly told to do so.

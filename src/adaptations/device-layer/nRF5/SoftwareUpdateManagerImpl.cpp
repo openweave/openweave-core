@@ -41,35 +41,6 @@ WEAVE_ERROR SoftwareUpdateManagerImpl::_Init(void)
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR SoftwareUpdateManagerImpl::_Abort(void)
-{
-    Internal::GenericSoftwareUpdateManagerImpl<SoftwareUpdateManagerImpl>::_Abort();
-    Internal::GenericSoftwareUpdateManagerImpl_BDX<SoftwareUpdateManagerImpl>::_Abort();
-
-    return WEAVE_NO_ERROR;
-}
-
-WEAVE_ERROR SoftwareUpdateManagerImpl::GetUpdateSchemeList(::nl::Weave::Profiles::SoftwareUpdate::UpdateSchemeList * aUpdateSchemeList)
-{
-    uint8_t supportedSchemes[] = { Profiles::SoftwareUpdate::kUpdateScheme_BDX };
-    aUpdateSchemeList->init(ARRAY_SIZE(supportedSchemes), supportedSchemes);
-
-    return WEAVE_NO_ERROR;
-}
-
-WEAVE_ERROR SoftwareUpdateManagerImpl::GetIntegrityTypeList(::nl::Weave::Profiles::SoftwareUpdate::IntegrityTypeList * aIntegrityTypeList)
-{
-    uint8_t supportedTypes[] = { Profiles::SoftwareUpdate::kIntegrityType_SHA256 };
-    aIntegrityTypeList->init(ARRAY_SIZE(supportedTypes), supportedTypes);
-
-    return WEAVE_NO_ERROR;
-}
-
-WEAVE_ERROR SoftwareUpdateManagerImpl::InstallImage(void)
-{
-    return WEAVE_ERROR_NOT_IMPLEMENTED;
-}
-
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
