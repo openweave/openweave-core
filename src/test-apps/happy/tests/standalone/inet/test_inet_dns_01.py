@@ -40,11 +40,13 @@ class test_inet_dns(unittest.TestCase):
     def setUp(self):
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.using_lwip = True
+            topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
+            "/topology/two_nodes_on_tap_wifi.sh"
         else:
             self.using_lwip = False
+            topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
+            "/topology/two_nodes_wifi.sh"
 
-        topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
-            "/topology/two_nodes_on_tap_wifi.sh"
         output = subprocess.call([topology_shell_script])
 
     def tearDown(self):
