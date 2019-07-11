@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Google LLC.
+ *    Copyright (c) 2018-2019 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -519,8 +519,6 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::Init(
     mSinkAddressList[kBoltLockSettingTraitSinkIndex] = &mBoltLockSettingsTraitDataSink;
     mSinkAddressList[kApplicationKeysTraitSinkIndex] = &mApplicationKeysTraitDataSink;
 
-    //onCompleteTest = NULL;
-
 exit:
     return err;
 }
@@ -666,17 +664,30 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::StartTesting(const uint64_t aPubli
     }
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-     if (mTestCaseId == kTestCase_TestUpdatableTraits &&
-             mUpdateTiming == MockWdmNodeOptions::kTiming_BeforeSub)
+     if (mTestCaseId == kTestCase_TestUpdatableTraits)
      {
-         WeaveLogDetail(DataManagement, "Mutating traits before the subscription");
-         (void)ApplyWdmUpdateMutations();
-         gInitiatorState.mDataflipCount++;
+         switch (mUpdateTiming)
+         {
+         case MockWdmNodeOptions::kTiming_BeforeSub:
+             gInitiatorState.mDataflipCount++;
+         case MockWdmNodeOptions::kTiming_NoSub:
+             (void)ApplyWdmUpdateMutations();
+         default:
+              WeaveLogDetail(DataManagement, "update timing mode is %d", mUpdateTiming);
+              break;
+         }
      }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
-    // TODO: EVENT-DEMO
-    mSubscriptionClient->InitiateSubscription();
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    if (mUpdateTiming != MockWdmNodeOptions::kTiming_NoSub)
+    {
+#endif
+        mSubscriptionClient->InitiateSubscription();
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    }
+#endif
 
 exit:
     WeaveLogFunctError(err);
@@ -1337,7 +1348,14 @@ void MockWdmSubscriptionInitiatorImpl::HandleMutationTimeout(nl::Weave::System::
 {
     MockWdmSubscriptionInitiatorImpl * const initiator = reinterpret_cast<MockWdmSubscriptionInitiatorImpl *>(aAppState);
 
-    initiator->ApplyWdmUpdateMutations();
+    if (initiator->mUpdateMutationCounter < initiator->mUpdateNumMutations)
+    {
+        initiator->ApplyWdmUpdateMutations();
+    }
+    else if (initiator->mUpdateTiming == MockWdmNodeOptions::kTiming_NoSub)
+    {
+        aSystemLayer->StartTimer(kMonitorCurrentStateInterval, MonitorClientCurrentState, initiator);
+    }
 }
 
 WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::ApplyWdmUpdateMutations()
@@ -1392,7 +1410,8 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::ApplyWdmUpdateMutations()
             SuccessOrExit(err);
             break;
         default:
-            WeaveDie();
+            err = initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient, otherTraitsConditional, initiator->mUpdateMutation);
+            SuccessOrExit(err);
             break;
     }
     err = initiator->mSubscriptionClient->FlushUpdate();
@@ -1408,11 +1427,8 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::ApplyWdmUpdateMutations()
 
     SuccessOrExit(err);
 
-    if (mUpdateMutationCounter < initiator->mUpdateNumMutations)
-    {
-        err = initiator->mExchangeMgr->MessageLayer->SystemLayer->StartTimer(5, HandleMutationTimeout, initiator);
-        SuccessOrExit(err);
-    }
+    err = initiator->mExchangeMgr->MessageLayer->SystemLayer->StartTimer(5, HandleMutationTimeout, initiator);
+    SuccessOrExit(err);
 
 exit:
     return err;
@@ -1557,9 +1573,9 @@ void MockWdmSubscriptionInitiatorImpl::MonitorClientCurrentState (nl::Weave::Sys
     {
         if (
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-                false == initiator->mSubscriptionClient->IsUpdatePendingOrInProgress() &&
+                false == initiator->mSubscriptionClient->IsUpdatePendingOrInProgress() && initiator->mUpdateTiming == MockWdmNodeOptions::kTiming_NoSub ||
 #endif
-                initiator->mSubscriptionClient->IsEstablishedIdle() && (gIsMutualSubscription == false || gSubscriptionHandler->IsEstablishedIdle()))
+                (initiator->mSubscriptionClient->IsEstablishedIdle() && (gIsMutualSubscription == false || gSubscriptionHandler->IsEstablishedIdle())))
         {
             WeaveLogDetail(DataManagement, "state transitions to idle within %d msec", kMonitorCurrentStateInterval * kMonitorCurrentStateCnt);
             gInitiatorState.mClientStateCount = 1;

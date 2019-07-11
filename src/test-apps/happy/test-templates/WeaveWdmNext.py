@@ -328,9 +328,6 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         elif self.wdm_option == "mutual_subscribe":
             self.wdm_client_option = " --wdm-init-mutual-sub"
             self.wdm_server_option = " --wdm-resp-mutual-sub"
-        elif self.wdm_option == "update":
-            self.wdm_client_option = " --wdm-simple-update-client"
-            self.wdm_server_option = " --wdm-simple-update-server"
         elif self.wdm_option == "subless_notify":
             self.wdm_client_option = " --wdm-simple-subless-notify-client"
             self.wdm_server_option = " --wdm-simple-subless-notify-server"
@@ -340,8 +337,6 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
             sys.exit(1)
 
     def __process_results(self, client_output, server_output, client_info):
-        kevents = re.findall(r"WEAVE:.+kEvent_\w+", client_output)
-        smoke_check = False
         client_parser_error = None
         client_leak_detected = None
         server_parser_error = None
@@ -354,43 +349,10 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
             server_parser_error, server_leak_detected = WeaveUtilities.scan_for_leaks_and_parser_errors(server_output)
             result["no_server_parser_error"] = not client_parser_error
             result["no_server_leak_detected"] = not server_leak_detected
-        if self.wdm_option == "view":
-            if any("kEvent_ViewResponseReceived" in s for s in kevents) and \
-                            kevents[-1] == "kEvent_ViewResponseConsumed":
-                smoke_check = True
-            else:
-                smoke_check = False
-        elif self.wdm_option == "one_way_subscribe":
-            if any("Client->kEvent_OnSubscriptionEstablished" in s for s in kevents) \
-                    and "Closing endpoints" in client_output:
-                smoke_check = True
-            else:
-                smoke_check = False
-        elif self.wdm_option == "mutual_subscribe":
-            if any("Publisher->kEvent_OnSubscriptionEstablished" in s for s in kevents) \
-                    and "Closing endpoints" in client_output:
-                smoke_check = True
-            else:
-                smoke_check = False
-        elif self.wdm_option == "subless_notify":
-            if any("kEvent_SubscriptionlessNotificationProcessingComplete" in s for s in kevents):
-                smoke_check = True
-            else:
-                smoke_check = False
-
-        result["smoke_check"] = smoke_check
 
         if self.quiet is False:
             print "weave-wdm-next %s from node %s (%s) to node %s (%s) : "\
                   % (self.wdm_option, client_info["client_node_id"], client_info["client_ip"], self.server_node_id, self.server_ip)
-            if smoke_check is True:
-                for kevent in kevents:
-                    print hgreen(kevent)
-                print hgreen("weave-wdm-next %s success" % self.wdm_option)
-            else:
-                for kevent in kevents:
-                    print hred(kevent)
-                print hred("weave-wdm-next %s failure" % self.wdm_option)
 
             if client_parser_error is True:
                 print hred("client parser error")
@@ -684,11 +646,8 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
 
             success_dic = self.__process_results(client_output_data, server_output_data, client_info)
 
-            smoke_check_ghost = success_dic["smoke_check"]
-            if self.client_faults or self.server_faults:
-                success_dic["smoke_check"] = True
             success = reduce(lambda x, y: x and y, success_dic.values())
-            success_dic["smoke_check"] = smoke_check_ghost
+
 
             data = {}
             data.update(client_info)

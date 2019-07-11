@@ -2,6 +2,7 @@
 
 
 #
+#    Copyright (c) 2019 Google, LLC.
 #    Copyright (c) 2016-2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -21,7 +22,8 @@
 #
 #    @file
 #       Calls Weave WDM Update between nodes.
-#       O02: Update: Client send unconditional update request to publisher, and receive status report
+#       Update 02: Client creates mutual subscription, sends unconditional update request to publisher,
+#       and receives notification and status report
 #
 
 import unittest
@@ -32,17 +34,19 @@ import WeaveUtilities
 
 class test_weave_wdm_next_update_02(weave_wdm_next_test_base):
 
-    def test_weave_wdm_next_mutual_subscribe_01(self):
+    def test_weave_wdm_next_mutual_subscribe_02(self):
         wdm_next_args = {}
         wdm_next_args['wdm_option'] = "mutual_subscribe"
 
-        wdm_next_args['total_client_count'] = 16
+        wdm_next_args['total_client_count'] = 1
         wdm_next_args['final_client_status'] = 0
         wdm_next_args['timer_client_period'] = 10000
-        wdm_next_args['test_client_iterations'] = 2
+        wdm_next_args['test_client_iterations'] = 1
         wdm_next_args['test_client_delay'] = 2000
         wdm_next_args['enable_client_flip'] = 1
-        wdm_next_args['test_client_case'] = 11 # kTestCase_TestUpdatableTrait_OneTraitUnconditional
+        wdm_next_args['test_client_case'] = 10 # kTestCase_TestUpdatableTrait
+
+        wdm_next_args['enable_retry'] = True
 
         wdm_next_args['total_server_count'] = 0
         wdm_next_args['final_server_status'] = 4
@@ -53,12 +57,17 @@ class test_weave_wdm_next_update_02(weave_wdm_next_test_base):
         wdm_next_args['client_clear_state_between_iterations'] = False
         wdm_next_args['server_clear_state_between_iterations'] = False
 
-        wdm_next_args['client_log_check'] = [('Update: Good Iteration', wdm_next_args['test_client_iterations'] * wdm_next_args['total_client_count'])]
+        wdm_next_args['client_update_mutation'] = "OneLeaf"
+        wdm_next_args['client_update_conditionality'] = "Unconditional"
+        wdm_next_args['client_update_num_mutations'] = 1
+        wdm_next_args['client_update_timing'] = "AfterSub"
+
+        wdm_next_args['client_log_check'] = [('Update: path result: success', wdm_next_args['test_client_iterations'] * wdm_next_args['total_client_count'])]
         wdm_next_args['server_log_check'] = []
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
-        wdm_next_args['test_case_name'] = ['O02: Update: Client creates mutual subscription, sends unconditional update request to publisher, and receives status report']
+        wdm_next_args['test_case_name'] = ['Update 02: Client creates mutual subscription, sends unconditional update request to publisher, and receives notification and status report']
         print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next update test O02"
+        print "weave-wdm-next update test 02"
         super(test_weave_wdm_next_update_02, self).weave_wdm_next_test_base(wdm_next_args)
 
 
