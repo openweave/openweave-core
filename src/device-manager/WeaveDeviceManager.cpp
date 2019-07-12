@@ -3003,7 +3003,11 @@ WEAVE_ERROR WeaveDeviceManager::FilterIdentifyResponse(IdentifyResponseMessage &
             else if (criteria.TargetProductId == kProductWildcardId_NestProtect)
             {
                 if (respMsg.DeviceDesc.ProductId != kNestWeaveProduct_Topaz &&
-                    respMsg.DeviceDesc.ProductId != kNestWeaveProduct_Topaz2)
+                    respMsg.DeviceDesc.ProductId != kNestWeaveProduct_Topaz2 &&
+                    respMsg.DeviceDesc.ProductId != kNestWeaveProduct_Topaz1LinePowered &&
+                    respMsg.DeviceDesc.ProductId != kNestWeaveProduct_Topaz1BatteryPowered &&
+                    respMsg.DeviceDesc.ProductId != kNestWeaveProduct_Topaz2LinePowered &&
+                    respMsg.DeviceDesc.ProductId != kNestWeaveProduct_Topaz2BatteryPowered)
                     ExitNow();
             }
             else if (criteria.TargetProductId == kProductWildcardId_NestCam)
