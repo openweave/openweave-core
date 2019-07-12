@@ -50,11 +50,9 @@
 #error "WiFi AP support must be enabled when building for ESP32"
 #endif
 
-#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
 #include <Weave/Support/TraitEventUtils.h>
 #include <nest/trait/network/TelemetryNetworkTrait.h>
 #include <nest/trait/network/TelemetryNetworkWifiTrait.h>
-#endif
 
 using namespace ::nl;
 using namespace ::nl::Weave;

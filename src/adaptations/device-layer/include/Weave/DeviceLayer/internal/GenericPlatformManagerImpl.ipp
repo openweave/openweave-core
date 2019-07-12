@@ -255,6 +255,11 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     SuccessOrExit(err);
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
 
+    // Initialize the Network Telemetry Manager object.
+#if WEAVE_DEVICE_CONFIG_ENABLE_NETWORK_TELEMETRY
+    NetworkTelemetryMgr().Init();
+#endif
+
     // Initialize the Time Sync Manager object.
     err = TimeSyncMgr().Init();
     if (err != WEAVE_NO_ERROR)
