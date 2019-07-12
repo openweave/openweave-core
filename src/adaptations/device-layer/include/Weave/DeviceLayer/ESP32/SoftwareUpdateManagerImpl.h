@@ -30,7 +30,7 @@ namespace DeviceLayer {
 
 /**
  * Concrete implementation of the SoftwareUpdateManager singleton object for the
- * nRF52 platforms.
+ * ESP32 platforms.
  */
 class SoftwareUpdateManagerImpl final
     : public SoftwareUpdateManager,
@@ -80,7 +80,7 @@ inline SoftwareUpdateManager & SoftwareUpdateMgr(void)
  * Returns the platform-specific implementation of the SoftwareUpdateManager singleton object.
  *
  * Internal components can use this to gain access to features of the SoftwareUpdateManager
- * that are specific to the nRF5 platform.
+ * that are specific to the ESP32 platform.
  */
 inline SoftwareUpdateManagerImpl & SoftwareUpdateMgrImpl(void)
 {

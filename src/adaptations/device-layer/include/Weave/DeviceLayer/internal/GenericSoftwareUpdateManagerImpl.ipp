@@ -473,7 +473,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::HandleImageQueryResponse(Packe
     VerifyOrExit(imageQueryResponse.uri.theLength < WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_URI_LEN, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
     strncpy(mURI, imageQueryResponse.uri.theString, imageQueryResponse.uri.theLength);
 
-    VerifyOrExit(imageQueryResponse.versionSpec.theLength < ARRAY_SIZE(versionString), err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+    VerifyOrExit(imageQueryResponse.versionSpec.theLength < ArraySize(versionString), err = WEAVE_ERROR_BUFFER_TOO_SMALL);
     strncpy(versionString, imageQueryResponse.versionSpec.theString, imageQueryResponse.versionSpec.theLength);
 
     mIntegritySpec = imageQueryResponse.integritySpec;
@@ -1026,7 +1026,7 @@ template<class ImplClass>
 WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::GetIntegrityTypeList(::nl::Weave::Profiles::SoftwareUpdate::IntegrityTypeList * aIntegrityTypeList)
 {
     uint8_t supportedTypes[] = { Profiles::SoftwareUpdate::kIntegrityType_SHA256 };
-    aIntegrityTypeList->init(ARRAY_SIZE(supportedTypes), supportedTypes);
+    aIntegrityTypeList->init(ArraySize(supportedTypes), supportedTypes);
 
     return WEAVE_NO_ERROR;
 }

@@ -55,7 +55,6 @@ const ESP32Config::Key ESP32Config::kConfigKey_GroupKeyIndex           = { kConf
 const ESP32Config::Key ESP32Config::kConfigKey_LastUsedEpochKeyId      = { kConfigNamespace_WeaveConfig,  "last-ek-id"         };
 const ESP32Config::Key ESP32Config::kConfigKey_FailSafeArmed           = { kConfigNamespace_WeaveConfig,  "fail-safe-armed"    };
 const ESP32Config::Key ESP32Config::kConfigKey_WiFiStationSecType      = { kConfigNamespace_WeaveConfig,  "sta-sec-type"       };
-const ESP32Config::Key ESP32Config::kConfigKey_CertBodyId              = { kConfigNamespace_WeaveConfig,  "cert-body-id"       };
 
 // Prefix used for NVS keys that contain Weave group encryption keys.
 const char ESP32Config::kGroupKeyNamePrefix[]                        = "gk-";

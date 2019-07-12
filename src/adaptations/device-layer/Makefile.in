@@ -126,6 +126,7 @@ target_triplet = @target@
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/LwIPCoreLock.cpp                      \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/NetworkProvisioningServerImpl.cpp     \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/PlatformManagerImpl.cpp               \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/SoftwareUpdateManagerImpl.cpp         \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/SystemTimeSupport.cpp                 \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    LwIP/WarmSupport.cpp                        \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    $(NULL)
@@ -242,10 +243,11 @@ am__libDeviceLayer_a_SOURCES_DIST = CASEAuth.cpp \
 	ESP32/ESP32Config.cpp ESP32/ESP32Utils.cpp \
 	ESP32/GroupKeyStoreImpl.cpp ESP32/Logging.cpp \
 	ESP32/LwIPCoreLock.cpp ESP32/NetworkProvisioningServerImpl.cpp \
-	ESP32/PlatformManagerImpl.cpp ESP32/SystemTimeSupport.cpp \
-	LwIP/WarmSupport.cpp nRF5/BLEManagerImpl.cpp \
-	nRF5/ConfigurationManagerImpl.cpp nRF5/PlatformManagerImpl.cpp \
-	nRF5/ConnectivityManagerImpl.cpp \
+	ESP32/PlatformManagerImpl.cpp \
+	ESP32/SoftwareUpdateManagerImpl.cpp \
+	ESP32/SystemTimeSupport.cpp LwIP/WarmSupport.cpp \
+	nRF5/BLEManagerImpl.cpp nRF5/ConfigurationManagerImpl.cpp \
+	nRF5/PlatformManagerImpl.cpp nRF5/ConnectivityManagerImpl.cpp \
 	nRF5/NetworkProvisioningServerImpl.cpp \
 	nRF5/ThreadStackManagerImpl.cpp nRF5/GroupKeyStoreImpl.cpp \
 	nRF5/nRF5Config.cpp nRF5/nRF5Utils.cpp nRF5/Entropy.cpp \
@@ -264,6 +266,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-LwIPCoreLock.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-PlatformManagerImpl.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-SystemTimeSupport.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	LwIP/libDeviceLayer_a-WarmSupport.$(OBJEXT)
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@am__objects_2 = nRF5/libDeviceLayer_a-BLEManagerImpl.$(OBJEXT) \
@@ -662,6 +665,7 @@ noinst_HEADERS = \
     include/Weave/DeviceLayer/ESP32/BLEManagerImpl.h \
     include/Weave/DeviceLayer/ESP32/ConfigurationManagerImpl.h \
     include/Weave/DeviceLayer/ESP32/PlatformManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/SoftwareUpdateManagerImpl.h \
     include/Weave/DeviceLayer/ESP32/WeaveDevicePlatformEvent.h \
     include/Weave/DeviceLayer/ESP32/NetworkProvisioningServerImpl.h \
     include/Weave/DeviceLayer/nRF5/ConfigurationManagerImpl.h \
@@ -870,6 +874,8 @@ ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-PlatformManagerImpl.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.$(OBJEXT):  \
+	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-SystemTimeSupport.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 LwIP/$(am__dirstamp):
@@ -979,6 +985,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-LwIPCoreLock.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-PlatformManagerImpl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-SoftwareUpdateManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@FreeRTOS/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@LwIP/$(DEPDIR)/libDeviceLayer_a-WarmSupport.Po@am__quote@
@@ -1542,6 +1549,20 @@ ESP32/libDeviceLayer_a-PlatformManagerImpl.obj: ESP32/PlatformManagerImpl.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/PlatformManagerImpl.cpp' object='ESP32/libDeviceLayer_a-PlatformManagerImpl.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-PlatformManagerImpl.obj `if test -f 'ESP32/PlatformManagerImpl.cpp'; then $(CYGPATH_W) 'ESP32/PlatformManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/PlatformManagerImpl.cpp'; fi`
+
+ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.o: ESP32/SoftwareUpdateManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-SoftwareUpdateManagerImpl.Tpo -c -o ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.o `test -f 'ESP32/SoftwareUpdateManagerImpl.cpp' || echo '$(srcdir)/'`ESP32/SoftwareUpdateManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-SoftwareUpdateManagerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-SoftwareUpdateManagerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/SoftwareUpdateManagerImpl.cpp' object='ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.o `test -f 'ESP32/SoftwareUpdateManagerImpl.cpp' || echo '$(srcdir)/'`ESP32/SoftwareUpdateManagerImpl.cpp
+
+ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.obj: ESP32/SoftwareUpdateManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-SoftwareUpdateManagerImpl.Tpo -c -o ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.obj `if test -f 'ESP32/SoftwareUpdateManagerImpl.cpp'; then $(CYGPATH_W) 'ESP32/SoftwareUpdateManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/SoftwareUpdateManagerImpl.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-SoftwareUpdateManagerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-SoftwareUpdateManagerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/SoftwareUpdateManagerImpl.cpp' object='ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-SoftwareUpdateManagerImpl.obj `if test -f 'ESP32/SoftwareUpdateManagerImpl.cpp'; then $(CYGPATH_W) 'ESP32/SoftwareUpdateManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/SoftwareUpdateManagerImpl.cpp'; fi`
 
 ESP32/libDeviceLayer_a-SystemTimeSupport.o: ESP32/SystemTimeSupport.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-SystemTimeSupport.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Tpo -c -o ESP32/libDeviceLayer_a-SystemTimeSupport.o `test -f 'ESP32/SystemTimeSupport.cpp' || echo '$(srcdir)/'`ESP32/SystemTimeSupport.cpp

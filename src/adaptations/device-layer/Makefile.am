@@ -44,6 +44,7 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/ESP32/BLEManagerImpl.h \
     include/Weave/DeviceLayer/ESP32/ConfigurationManagerImpl.h \
     include/Weave/DeviceLayer/ESP32/PlatformManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/SoftwareUpdateManagerImpl.h \
     include/Weave/DeviceLayer/ESP32/WeaveDevicePlatformEvent.h \
     include/Weave/DeviceLayer/ESP32/NetworkProvisioningServerImpl.h \
     include/Weave/DeviceLayer/nRF5/ConfigurationManagerImpl.h \
@@ -147,6 +148,7 @@ libDeviceLayer_a_SOURCES               +=       \
     ESP32/LwIPCoreLock.cpp                      \
     ESP32/NetworkProvisioningServerImpl.cpp     \
     ESP32/PlatformManagerImpl.cpp               \
+    ESP32/SoftwareUpdateManagerImpl.cpp         \
     ESP32/SystemTimeSupport.cpp                 \
     LwIP/WarmSupport.cpp                        \
     $(NULL)

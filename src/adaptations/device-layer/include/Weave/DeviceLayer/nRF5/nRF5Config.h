@@ -90,7 +90,6 @@ public:
     static constexpr Key kConfigKey_LastUsedEpochKeyId          = NRF5ConfigKey(kFileId_WeaveConfig,  0x000C);
     static constexpr Key kConfigKey_FailSafeArmed               = NRF5ConfigKey(kFileId_WeaveConfig,  0x000D);
     static constexpr Key kConfigKey_GroupKey                    = NRF5ConfigKey(kFileId_WeaveConfig,  0x000E);
-    static constexpr Key kConfigKey_CertBodyId                  = NRF5ConfigKey(kFileId_WeaveConfig,  0x000F);
 
     // Range of FDS record keys used to store Weave persisted counter values.
     static constexpr uint16_t kPersistedCounterRecordKeyBase    = kFDSRecordKeyMin;

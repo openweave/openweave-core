@@ -995,6 +995,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h          
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/InetPlatformConfig.h                             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h                            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/SoftwareUpdateManagerImpl.h                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/SystemPlatformConfig.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WarmPlatformConfig.h                             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h                      \

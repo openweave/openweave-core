@@ -1377,6 +1377,7 @@ dist_device_manager_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceManager_hea
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/InetPlatformConfig.h                             \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h                  \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h                            \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/SoftwareUpdateManagerImpl.h                      \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/SystemPlatformConfig.h                           \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WarmPlatformConfig.h                             \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h                      \

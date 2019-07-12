@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -179,6 +179,8 @@ template<class ImplClass>
 void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::XferErroHandler(BDXTransfer * aXfer, StatusReport * aReport)
 {
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
+
+    self->AbortDownload();
     self->Impl()->SoftwareUpdateFailed(WEAVE_ERROR_STATUS_REPORT_RECEIVED, aReport);
 }
 
@@ -193,6 +195,8 @@ template<class ImplClass>
 void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::ErrorHandler(BDXTransfer * aXfer, WEAVE_ERROR aErrorCode)
 {
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
+
+    self->AbortDownload();
     self->Impl()->SoftwareUpdateFailed(aErrorCode, NULL);
 }
 
@@ -254,7 +258,7 @@ template<class ImplClass>
 WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::GetUpdateSchemeList(::nl::Weave::Profiles::SoftwareUpdate::UpdateSchemeList * aUpdateSchemeList)
 {
     uint8_t supportedSchemes[] = { Profiles::SoftwareUpdate::kUpdateScheme_BDX };
-    aUpdateSchemeList->init(ARRAY_SIZE(supportedSchemes), supportedSchemes);
+    aUpdateSchemeList->init(ArraySize(supportedSchemes), supportedSchemes);
 
     return WEAVE_NO_ERROR;
 }
