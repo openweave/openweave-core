@@ -66,6 +66,7 @@ public:
     WEAVE_ERROR GetAndLogThreadStatsCounters(void);
     WEAVE_ERROR GetAndLogThreadTopologyMinimal(void);
     WEAVE_ERROR GetAndLogThreadTopologyFull(void);
+    WEAVE_ERROR GetPrimary802154MACAddress(uint8_t *buf);
 
 private:
 
@@ -75,6 +76,7 @@ private:
     friend class ConfigurationManagerImpl;
     friend class Internal::DeviceControlServer;
     template<class> friend class Internal::GenericPlatformManagerImpl;
+    template<class> friend class Internal::GenericConfigurationManagerImpl;
     template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
     template<class> friend class Internal::GenericConnectivityManagerImpl_Thread;
     template<class> friend class Internal::GenericThreadStackManagerImpl_OpenThread;
@@ -234,6 +236,11 @@ inline WEAVE_ERROR ThreadStackManager::GetAndLogThreadTopologyMinimal(void)
 inline WEAVE_ERROR ThreadStackManager::GetAndLogThreadTopologyFull(void)
 {
     return static_cast<ImplClass*>(this)->_GetAndLogThreadTopologyFull();
+}
+
+inline WEAVE_ERROR ThreadStackManager::GetPrimary802154MACAddress(uint8_t * buf)
+{
+    return static_cast<ImplClass*>(this)->_GetPrimary802154MACAddress(buf);
 }
 
 } // namespace DeviceLayer
