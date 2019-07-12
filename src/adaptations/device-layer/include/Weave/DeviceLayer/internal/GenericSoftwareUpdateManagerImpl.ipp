@@ -77,12 +77,12 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::_SetEventCallback(void 
     mEventHandlerCallback = aEventCallback;
 
 #if DEBUG
-    // Verify that the application's event callback function correctly calls the default handler.
-    //
-    // NOTE: If your code receives WEAVE_ERROR_DEFAULT_EVENT_HANDLER_NOT_CALLED it means that the event handler
-    // function you supplied for the software update manager does not properly call SoftwareUpdateManager::DefaultEventHandler
-    // for unrecognized/unhandled events.
-    //
+    /* Verify that the application's event callback function correctly calls the default handler.
+     *
+     * NOTE: If your code receives WEAVE_ERROR_DEFAULT_EVENT_HANDLER_NOT_CALLED it means that the event handler
+     * function you supplied for the software update manager does not properly call SoftwareUpdateManager::DefaultEventHandler
+     * for unrecognized/unhandled events.
+     */
     {
         SoftwareUpdateManager::InEventParam inParam;
         SoftwareUpdateManager::OutEventParam outParam;
@@ -268,7 +268,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::SoftwareUpdateFailed(WEAVE_ERR
 
     if (aError == WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED)
     {
-        /**
+        /*
          *  No need to do anything since an abort by the application would have already
          *  called SoftwareUpdateFinished with WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED error
          *  and moved to Idle state.
@@ -400,10 +400,11 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::HandleResponse(ExchangeContext
 {
     GenericSoftwareUpdateManagerImpl<ImplClass> * self = &SoftwareUpdateMgrImpl();
 
-    // We expect to receive one of two possible responses:
-    // 1. An Image Query Response message under the weave software update profile indicating
-    //    an update might be available or
-    // 2. A status report indicating no software update available or a problem with the query.
+    /* We expect to receive one of two possible responses:
+     * 1. An Image Query Response message under the weave software update profile indicating
+     *    an update might be available or
+     * 2. A status report indicating no software update available or a problem with the query.
+     */
     if (profileId == kWeaveProfile_SWU && msgType == kMsgType_ImageQueryResponse)
     {
         self->HandleImageQueryResponse(payload);
@@ -541,10 +542,12 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::DriveState(SoftwareUpdateManag
     {
     case SoftwareUpdateManager::kState_Idle:
         {
-            // If scheduled software update check is enabled and service connectivity is present,
-            // compute the next wait time interval and start the timer. Software Update Check
-            // will trigger on expiration of the timer unless service connectivity was lost or
-            // the application request a manual software update check.
+            /* Compute the next wait time interval only if scheduled software update checks are
+             * enabled or when the previous attempt failed provided service connectivity is
+             * present. Start the timer once we have a valid interval. A Software Update Check
+             * will trigger on expiration of the timer unless service connectivity was lost or
+             * the application requested a manual software update check.
+             */
             if ((mScheduledCheckEnabled || mShouldRetry) && mHaveServiceConnectivity)
             {
                 uint32_t timeToNextQueryMS = GetNextWaitTimeInterval();
@@ -827,6 +830,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::CheckImageIntegrity(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     int result = 0;
+    uint8_t typeLength = 0;
 
     SoftwareUpdateManager::InEventParam inParam;
     SoftwareUpdateManager::OutEventParam outParam;
@@ -834,11 +838,21 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::CheckImageIntegrity(void)
     inParam.Clear();
     outParam.Clear();
 
-
-    const uint8_t typeLength = (mIntegritySpec.type == kIntegrityType_SHA160) ? kLength_SHA160 :
-                               (mIntegritySpec.type == kIntegrityType_SHA256) ? kLength_SHA256 :
-                               (mIntegritySpec.type == kIntegrityType_SHA512) ? kLength_SHA512 :
-                                0;
+    switch(mIntegritySpec.type)
+    {
+        case kIntegrityType_SHA160:
+            typeLength = kLength_SHA160;
+            break;
+        case kIntegrityType_SHA256:
+            typeLength = kLength_SHA256;
+            break;
+        case kIntegrityType_SHA512:
+            typeLength = kLength_SHA512;
+            break;
+        default:
+            typeLength = 0;
+            break;
+    }
 
     uint8_t computedIntegrityValue[typeLength];
 
@@ -865,9 +879,10 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::CheckImageIntegrity(void)
 exit:
     if (err != WEAVE_NO_ERROR && err != WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED)
     {
-        // Since Image Integrity Validation failed, notify the application using an API event
-        // to clear/invalidate the image from storage. This will make sure the image is downloaded from
-        // scratch on the next attempt.
+        /* Since Image Integrity Validation failed, notify the application using an API event
+         * to clear/invalidate the image from storage. This will make sure the image is downloaded from
+         * scratch on the next attempt.
+         */
         inParam.Clear();
         outParam.Clear();
 
@@ -897,16 +912,21 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::StartImageInstall(void)
     VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
     err = Impl()->InstallImage();
+    if (err == WEAVE_ERROR_NOT_IMPLEMENTED)
+    {
+        /*
+         * Since the platform does not provide a way to install the image, it is uptp
+         * the application to do the install and call ImageInstallComplete API
+         * to mark completion of image installation.
+         */
+        err = WEAVE_NO_ERROR;
+    }
     SuccessOrExit(err);
 
 exit:
     if (err != WEAVE_NO_ERROR)
     {
         Impl()->SoftwareUpdateFailed(err, NULL);
-    }
-    else
-    {
-        Impl()->SoftwareUpdateFinished(WEAVE_NO_ERROR);
     }
 }
 
@@ -1009,16 +1029,19 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::DefaultRetryPolicyCallback(voi
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::_ImageInstallComplete(void)
+WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::_ImageInstallComplete(WEAVE_ERROR aError)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit(mState == SoftwareUpdateManager::kState_ApplicationManaged, err = WEAVE_ERROR_INCORRECT_STATE);
+    if (mState == SoftwareUpdateManager::kState_ApplicationManaged || mState == SoftwareUpdateManager::kState_Install)
+    {
+        Impl()->SoftwareUpdateFinished(aError);
+    }
+    else
+    {
+        err = WEAVE_ERROR_INCORRECT_STATE;
+    }
 
-    Impl()->SoftwareUpdateFinished(WEAVE_NO_ERROR);
-
-    DriveState(SoftwareUpdateManager::kState_Idle);
-exit:
     return err;
 }
 

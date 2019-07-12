@@ -222,7 +222,7 @@ public:
 
     WEAVE_ERROR Abort(void);
     WEAVE_ERROR CheckNow(void);
-    WEAVE_ERROR ImageInstallComplete(void);
+    WEAVE_ERROR ImageInstallComplete(WEAVE_ERROR aError);
     WEAVE_ERROR SetEventCallback(void * const aAppState, const EventCallback aEventCallback);
     WEAVE_ERROR SetQueryIntervalWindow(uint32_t aMinWaitTimeMs, uint32_t aMaxWaitTimeMs);
 
@@ -394,9 +394,9 @@ inline WEAVE_ERROR SoftwareUpdateManager::CheckNow(void)
     return static_cast<ImplClass*>(this)->_CheckNow();
 }
 
-inline WEAVE_ERROR SoftwareUpdateManager::ImageInstallComplete(void)
+inline WEAVE_ERROR SoftwareUpdateManager::ImageInstallComplete(WEAVE_ERROR aError)
 {
-    return static_cast<ImplClass*>(this)->_ImageInstallComplete();
+    return static_cast<ImplClass*>(this)->_ImageInstallComplete(aError);
 }
 
 inline void SoftwareUpdateManager::OnPlatformEvent(const WeaveDeviceEvent * event)

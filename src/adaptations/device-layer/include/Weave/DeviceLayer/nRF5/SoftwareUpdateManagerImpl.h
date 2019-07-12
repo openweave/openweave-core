@@ -62,7 +62,6 @@ private:
     // ===== Members that implement the SoftwareUpdateManager abstract interface.
 
     WEAVE_ERROR _Init(void);
-
 };
 
 /**

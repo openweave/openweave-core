@@ -110,16 +110,15 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::StartDownload(void)
     mBinding->Release();
     mBinding = NULL;
 
+    /*
+     * This implementation only supports downloading a software image from an offset
+     * provided by the application till the end of file. The 0 value in mLength field
+     * below indicates that expected length of the transfer is unknown by the initiator
+     * at this point and hence the remainder of the file starting from the offset
+     * mentioned above is expected to be downloaded in the transfer.
+     */
     mBDXTransfer->mMaxBlockSize = WEAVE_DEVICE_CONFIG_SWU_BDX_BLOCK_SIZE;
     mBDXTransfer->mStartOffset  = mStartOffset;
-
-    /**
-     * This implementation only supports downloading a software image from an offset
-     * provided by the application till the end of file. The 0 value below indicates
-     * that expected length of the transfer is unknown by the initiator at this point
-     * and hence the remainder of the file starting from the offset mentioned
-     * above is expected to be downloaded in the transfer.
-     */
     mBDXTransfer->mLength       = 0;
 
     err = mBDXClient.InitBdxReceive(*mBDXTransfer, true, false, false, NULL);

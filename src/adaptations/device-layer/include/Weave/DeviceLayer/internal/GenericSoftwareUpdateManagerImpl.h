@@ -62,7 +62,7 @@ protected:
 
     WEAVE_ERROR _Abort(void);
     WEAVE_ERROR _CheckNow(void);
-    WEAVE_ERROR _ImageInstallComplete(void);
+    WEAVE_ERROR _ImageInstallComplete(WEAVE_ERROR aError);
     WEAVE_ERROR _SetQueryIntervalWindow(uint32_t aMinWaitTimeMs, uint32_t aMaxWaitTimeMs);
     WEAVE_ERROR _SetEventCallback(void * const aAppState, const SoftwareUpdateManager::EventCallback aEventCallback);
 

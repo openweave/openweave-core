@@ -892,4 +892,11 @@
 #define WEAVE_DEVICE_CONFIG_SWU_WAIT_TIME_MULTIPLIER_MS 1*60*1000	// 1 minute
 #endif
 
+/**
+ * WEAVE_DEVICE_CONFIG_SWU_BDX_BLOCK_SIZE
+ *
+ * Specifies the block size to be used during software download over BDX.
+ */
+#define WEAVE_DEVICE_CONFIG_SWU_BDX_BLOCK_SIZE		1024
+
 #endif // WEAVE_DEVICE_CONFIG_H
