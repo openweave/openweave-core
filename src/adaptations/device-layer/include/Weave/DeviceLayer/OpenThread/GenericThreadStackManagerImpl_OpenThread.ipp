@@ -807,6 +807,14 @@ exit:
 }
 
 template<class ImplClass>
+WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetPrimary802154MACAddress(uint8_t *buf)
+{
+    const otExtAddress *extendedAddr = otLinkGetExtendedAddress(mOTInst);
+    memcpy(buf, extendedAddr, sizeof(otExtAddress));
+    return WEAVE_NO_ERROR;
+};
+
+template<class ImplClass>
 WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::DoInit(otInstance * otInst)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -870,7 +878,6 @@ bool GenericThreadStackManagerImpl_OpenThread<ImplClass>::IsThreadAttachedNoLock
     otDeviceRole curRole = otThreadGetDeviceRole(mOTInst);
     return (curRole != OT_DEVICE_ROLE_DISABLED && curRole != OT_DEVICE_ROLE_DETACHED);
 }
-
 
 } // namespace Internal
 } // namespace DeviceLayer

@@ -77,6 +77,7 @@ protected:
     WEAVE_ERROR _GetAndLogThreadStatsCounters(void);
     WEAVE_ERROR _GetAndLogThreadTopologyMinimal(void);
     WEAVE_ERROR _GetAndLogThreadTopologyFull(void);
+    WEAVE_ERROR _GetPrimary802154MACAddress(uint8_t *buf);
 
     // ===== Members available to the implementation subclass.
 
