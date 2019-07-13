@@ -44,11 +44,13 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/ESP32/BLEManagerImpl.h \
     include/Weave/DeviceLayer/ESP32/ConfigurationManagerImpl.h \
     include/Weave/DeviceLayer/ESP32/PlatformManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/SoftwareUpdateManagerImpl.h \
     include/Weave/DeviceLayer/ESP32/WeaveDevicePlatformEvent.h \
     include/Weave/DeviceLayer/ESP32/NetworkProvisioningServerImpl.h \
     include/Weave/DeviceLayer/nRF5/ConfigurationManagerImpl.h \
     include/Weave/DeviceLayer/nRF5/PlatformManagerImpl.h \
     include/Weave/DeviceLayer/nRF5/nRF5Config.h \
+    include/Weave/DeviceLayer/nRF5/SoftwareUpdateManagerImpl.h \
     include/Weave/DeviceLayer/nRF5/WeaveDevicePlatformConfig.h \
     include/Weave/DeviceLayer/nRF5/WeaveDevicePlatformEvent.h \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h \
@@ -56,6 +58,7 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/GeneralUtils.h \
     include/Weave/DeviceLayer/NetworkTelemetryManager.h \
     include/Weave/DeviceLayer/PlatformManager.h \
+    include/Weave/DeviceLayer/SoftwareUpdateManager.h \
     include/Weave/DeviceLayer/TimeSyncManager.h \
     include/Weave/DeviceLayer/TraitManager.h \
     include/Weave/DeviceLayer/WeaveDeviceConfig.h \
@@ -76,6 +79,10 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.ipp \
     include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h \
     include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.ipp \
+    include/Weave/DeviceLayer/internal/GenericSoftwareUpdateManagerImpl.h \
+    include/Weave/DeviceLayer/internal/GenericSoftwareUpdateManagerImpl.ipp \
+    include/Weave/DeviceLayer/internal/GenericSoftwareUpdateManagerImpl_BDX.h \
+    include/Weave/DeviceLayer/internal/GenericSoftwareUpdateManagerImpl_BDX.ipp \
     include/Weave/DeviceLayer/internal/NetworkProvisioningServer.h \
     include/Weave/DeviceLayer/internal/ServiceDirectoryManager.h \
     include/Weave/DeviceLayer/internal/ServiceProvisioningServer.h \
@@ -141,6 +148,7 @@ libDeviceLayer_a_SOURCES               +=       \
     ESP32/LwIPCoreLock.cpp                      \
     ESP32/NetworkProvisioningServerImpl.cpp     \
     ESP32/PlatformManagerImpl.cpp               \
+    ESP32/SoftwareUpdateManagerImpl.cpp         \
     ESP32/SystemTimeSupport.cpp                 \
     LwIP/WarmSupport.cpp                        \
     $(NULL)
@@ -161,6 +169,7 @@ libDeviceLayer_a_SOURCES               +=       \
     nRF5/nRF5Utils.cpp                          \
     nRF5/Entropy.cpp                            \
     nRF5/Logging.cpp                            \
+    nRF5/SoftwareUpdateManagerImpl.cpp          \
     FreeRTOS/SystemTimeSupport.cpp              \
     OpenThread/OpenThreadUtils.cpp              \
     LwIP/WarmSupport.cpp                        \

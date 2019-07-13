@@ -996,6 +996,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h          
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/InetPlatformConfig.h                             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h                            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/SoftwareUpdateManagerImpl.h                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/SystemPlatformConfig.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WarmPlatformConfig.h                             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h                      \
@@ -1018,6 +1019,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NetworkProvisioningServerImpl.
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/nRF5Config.h                                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/nRF5Utils.h                                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/PlatformManagerImpl.h                             \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/SoftwareUpdateManagerImpl.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/SystemPlatformConfig.h                            \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ThreadStackManagerImpl.h                          \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WarmPlatformConfig.h                              \
@@ -1039,6 +1041,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h              
 $(nl_public_WeaveDeviceLayer_source_dirstem)/GeneralUtils.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/NetworkTelemetryManager.h                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/SoftwareUpdateManager.h                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ThreadStackManager.h                     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TraitManager.h                           \
@@ -1075,6 +1078,10 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioning
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.ipp      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.h                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.ipp                \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericSoftwareUpdateManagerImpl.h            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericSoftwareUpdateManagerImpl.ipp          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericSoftwareUpdateManagerImpl_BDX.h        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericSoftwareUpdateManagerImpl_BDX.ipp      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceNetworkInfo.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkProvisioningServer.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h                     \

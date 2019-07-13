@@ -779,5 +779,124 @@
 #define WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_DEBUG_EIDC_KEY  "debug-eidc"
 #endif
 
+// -------------------- Software Update Manager Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER
+ *
+ * Enable or disable the Weave Software Update Manager.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER
+#define WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER 1
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_URI_LEN
+ *
+ * Specifies the size in bytes of the buffer that stores the
+ * URI
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_URI_LEN
+#define WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_URI_LEN 128
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_ENDPOINT_ID
+ *
+ * Specifies the service endpoint id of the Weave Software Update service.  When a device
+ * attempts software update, this is the endpoint to which it will send its Software Update
+ * Query request.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_ENDPOINT_ID
+#define WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_ENDPOINT_ID 0x18B4300200000002ULL
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_ENDPOINT_ID
+ *
+ * Specifies the service endpoint id of the Weave File Download service.  When a device
+ * attempts file download over BDX, this is the endpoint to which it will send its BDX request.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_ENDPOINT_ID
+#define WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_ENDPOINT_ID 0x18B4300200000013ULL
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_RESPOSNE_TIMEOUT
+ *
+ * Specifies the maximum amount of time (in milliseconds) to wait for a response from a
+ * Weave Software Update service.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_RESPOSNE_TIMEOUT
+#define WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_RESPOSNE_TIMEOUT 10000
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_RESPOSNE_TIMEOUT
+ *
+ * Specifies the maximum amount of time (in milliseconds) to wait for a response from a
+ * Weave File Download service.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_RESPOSNE_TIMEOUT
+#define WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_RESPOSNE_TIMEOUT 10000
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_RETRIES
+ *
+ * Specifies the maximum number of times a failed software is retried.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_RETRIES
+#define WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_RETRIES 5
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_WAIT_TIME_INTERVAL_MS
+ *
+ * If scheduled software update check is disabled & default retry policy is used,
+ * specify the max wait time interval to be used (in milliseconds)
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_WAIT_TIME_INTERVAL_MS
+#define WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_MAX_WAIT_TIME_INTERVAL_MS 1*60*60*1000 // 1 hour
+#endif
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_SWU_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP
+ *
+ *  @brief
+ *    If default software update retry policy is used,
+ *    specify the minimum wait
+ *    time as a percentage of the max wait interval for that step.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SWU_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP
+#define WEAVE_DEVICE_CONFIG_SWU_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP 50
+#endif
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_SWU_WAIT_TIME_MULTIPLIER_MS
+ *
+ *  @brief
+ *    If default software update retry policy is used,
+ *    specify the multiplier that multiplies the result of a Fibonacci computation
+ *    based on a specific index to provide a max wait time for
+ *    a step.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SWU_WAIT_TIME_MULTIPLIER_MS
+#define WEAVE_DEVICE_CONFIG_SWU_WAIT_TIME_MULTIPLIER_MS 1*60*1000	// 1 minute
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SWU_BDX_BLOCK_SIZE
+ *
+ * Specifies the block size to be used during software download over BDX.
+ */
+#define WEAVE_DEVICE_CONFIG_SWU_BDX_BLOCK_SIZE		1024
 
 #endif // WEAVE_DEVICE_CONFIG_H
