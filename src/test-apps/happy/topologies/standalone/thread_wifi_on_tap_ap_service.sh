@@ -23,6 +23,9 @@
 # - one access-point router onhub
 # - one service node instance cloud
 
+# There is no need to set IP and Route for tap devices here, since it will be 
+# assigned from lwip stack
+export PATH=$PATH:$(dirname $(readlink -f "$0"))/../../bin
 happy-network-add HomeThread thread
 happy-network-address HomeThread 2001:db8:111:1::
 
@@ -45,10 +48,7 @@ happy-node-join onhub HomeWiFi
 happy-node-join onhub Internet
 
 happy-node-add --service cloud
-happy-node-join cloud Internet
-
-happy-network-route HomeThread BorderRouter
-happy-network-route --prefix 10.0.1.0 HomeWiFi onhub
+happy-node-join --tap cloud Internet
 
 weave-fabric-add fab1
 weave-node-configure

@@ -133,13 +133,14 @@ class WeaveServiceDir(HappyNode, HappyNetwork, WeaveTest):
         self.client_ip = self.getNodeWeaveIPAddress(self.client)
 
         # Check if all unknowns were found
-
-        if self.service_ip == None:
+        # If device is tap device, IP will be assigned from lwip stack, 
+        # so no need to check IP here for tap devices
+        if self.service_ip == None and not self.use_lwip:
             emsg = "Could not find IP address of the service."
             self.logger.error("[localhost] WeaveServiceDir: %s" % (emsg))
             self.exit()
 
-        if self.client_ip == None:
+        if self.client_ip == None and not self.use_lwip:
             emsg = "Could not find IP address of the client."
             self.logger.error("[localhost] WeaveServiceDir: %s" % (emsg))
             self.exit()
@@ -197,8 +198,8 @@ class WeaveServiceDir(HappyNode, HappyNetwork, WeaveTest):
         if not cmd:
             return
 
-        cmd += " --node-addr " + self.client_ip
-        cmd += " --service-dir-url " + self.service_ip
+        self.client_weave_id = self.getWeaveNodeID(self.client)
+        cmd += " --node-id " + str(self.client_weave_id)
         cmd += " --debug-resource-usage"
         cmd += " --print-fault-counters"
 
@@ -207,15 +208,21 @@ class WeaveServiceDir(HappyNode, HappyNetwork, WeaveTest):
 
         cmd += " --iterations " + str(self.iterations)
 
-        if self.tap:
-            cmd += " --tap-device " + self.tap
+        # if device is tap device, we need to provide tap interface and ipv4 gateway 
+        if self.use_lwip:
+            cmd += " --tap-device " + self.client_tap
+            cmd += " --ipv4-gateway " + self.client_ipv4_gateway
+            cmd += " --node-addr " + self.client_node_addr
+            cmd += " --service-dir-server " + self.service_node_addr
+        else:
+            cmd += " --node-addr " + self.client_ip
+            cmd += " --service-dir-server " + self.service_ip
 
         custom_env = {}
         if self.use_plaid:
             custom_env = self.plaid.getPlaidClientLibEnv(self.client)
 
         self.start_weave_process(self.client, cmd, self.client_process_tag, strace=self.strace, env=custom_env)
-
 
     def __wait_for_client(self):
         self.wait_for_test_to_end(self.client, self.client_process_tag)
@@ -243,8 +250,10 @@ class WeaveServiceDir(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --node-id " + str(self.service_weave_id)
         cmd += " --fabric-id " + str(self.fabric_id)
 
-        if self.tap:
-            cmd += " --tap-device " + self.tap
+        if self.use_lwip:
+            cmd += " --tap-device " + self.service_tap
+            cmd += " --ipv4-gateway " + self.service_ipv4_gateway
+            cmd += " --node-addr " + self.service_node_addr
 
         if self.service_faults:
             cmd += " --faults " + self.service_faults
