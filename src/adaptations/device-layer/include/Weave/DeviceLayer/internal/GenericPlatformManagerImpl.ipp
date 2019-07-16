@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -28,6 +29,7 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/PlatformManager.h>
+#include <Weave/DeviceLayer/internal/CertificateProvisioningClient.h>
 #include <Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h>
 #include <Weave/DeviceLayer/internal/DeviceControlServer.h>
 #include <Weave/DeviceLayer/internal/DeviceDescriptionServer.h>
@@ -72,6 +74,27 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
         WeaveLogError(DeviceLayer, "Configuration Manager initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+    if (!ConfigurationMgr().DeviceCredentialsProvisioned())
+    {
+        // If paired to account keep using device manufacturing credentials as operational.
+        if (ConfigurationMgr().IsServiceProvisioned() && ConfigurationMgr().IsPairedToAccount())
+        {
+	    ConfigurationMgr().UseManufAttestCredentialsAsOperational(true);
+        }
+        // Otherwise, generate and store new device credentials.
+        else
+        {
+            err = GenerateAndStoreOperationalDeviceCredentials();
+            if (err != WEAVE_NO_ERROR)
+            {
+                WeaveLogError(DeviceLayer, "GenerateAndStoreOperationalDeviceCredentials() failed: %s", ErrorStr(err));
+            }
+            SuccessOrExit(err);
+        }
+    }
+#endif
 
     // Initialize the Weave system layer.
     new (&SystemLayer) System::Layer();

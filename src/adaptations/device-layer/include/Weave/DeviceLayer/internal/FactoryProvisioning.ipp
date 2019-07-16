@@ -176,7 +176,7 @@ WEAVE_ERROR FactoryProvisioningBase<DerivedClass>::StoreProvisioningValue(uint8_
         uint64_t deviceId;
         err = reader.Get(deviceId);
         SuccessOrExit(err);
-        err = ConfigurationMgr().StoreDeviceId(deviceId);
+        err = ConfigurationMgr().StoreManufAttestDeviceId(deviceId);
         SuccessOrExit(err);
         break;
     }
@@ -186,7 +186,17 @@ WEAVE_ERROR FactoryProvisioningBase<DerivedClass>::StoreProvisioningValue(uint8_
         const uint8_t * cert;
         err = reader.GetDataPtr(cert);
         SuccessOrExit(err);
-        err = ConfigurationMgr().StoreDeviceCertificate(cert, reader.GetLength());
+        err = ConfigurationMgr().StoreManufAttestDeviceCertificate(cert, reader.GetLength());
+        SuccessOrExit(err);
+        break;
+    }
+
+    case FactoryProvisioningData::kTag_DeviceICACerts:
+    {
+        const uint8_t * certs;
+        err = reader.GetDataPtr(certs);
+        SuccessOrExit(err);
+        err = ConfigurationMgr().StoreManufAttestDeviceICACerts(certs, reader.GetLength());
         SuccessOrExit(err);
         break;
     }
@@ -196,7 +206,7 @@ WEAVE_ERROR FactoryProvisioningBase<DerivedClass>::StoreProvisioningValue(uint8_
         const uint8_t * privKey;
         err = reader.GetDataPtr(privKey);
         SuccessOrExit(err);
-        err = ConfigurationMgr().StoreDevicePrivateKey(privKey, reader.GetLength());
+        err = ConfigurationMgr().StoreManufAttestDevicePrivateKey(privKey, reader.GetLength());
         SuccessOrExit(err);
         break;
     }

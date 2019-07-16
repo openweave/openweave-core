@@ -216,13 +216,13 @@ am__v_AR_1 =
 libDeviceLayer_a_AR = $(AR) $(ARFLAGS)
 libDeviceLayer_a_LIBADD =
 am__libDeviceLayer_a_SOURCES_DIST = CASEAuth.cpp \
-	DeviceControlServer.cpp DeviceDescriptionServer.cpp \
-	DeviceIdentityTraitDataSource.cpp DeviceNetworkInfo.cpp \
-	EchoServer.cpp EventLogging.cpp FabricProvisioningServer.cpp \
-	GeneralUtils.cpp Globals.cpp NetworkTelemetryManager.cpp \
-	PersistedStorage.cpp ServiceDirectoryManager.cpp \
-	ServiceProvisioningServer.cpp ServiceTunnelAgent.cpp \
-	SystemEventSupport.cpp SystemTimerSupport.cpp \
+	CertificateProvisioningClient.cpp DeviceControlServer.cpp \
+	DeviceDescriptionServer.cpp DeviceIdentityTraitDataSource.cpp \
+	DeviceNetworkInfo.cpp EchoServer.cpp EventLogging.cpp \
+	FabricProvisioningServer.cpp GeneralUtils.cpp Globals.cpp \
+	NetworkTelemetryManager.cpp PersistedStorage.cpp \
+	ServiceDirectoryManager.cpp ServiceProvisioningServer.cpp \
+	ServiceTunnelAgent.cpp SystemEventSupport.cpp SystemTimerSupport.cpp \
 	TestDeviceIds.cpp TimeSyncManager.cpp TraitManager.cpp \
 	trait-support/nest/trait/firmware/SoftwareUpdateTrait.cpp \
 	trait-support/nest/trait/network/TelemetryNetworkTrait.cpp \
@@ -280,6 +280,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	LwIP/libDeviceLayer_a-WarmSupport.$(OBJEXT)
 @CONFIG_DEVICE_LAYER_TRUE@am_libDeviceLayer_a_OBJECTS =  \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-CASEAuth.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-CertificateProvisioningClient.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceControlServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceDescriptionServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceIdentityTraitDataSource.$(OBJEXT) \
@@ -679,6 +680,7 @@ noinst_HEADERS = \
     include/Weave/DeviceLayer/WeaveDeviceEvent.h \
     include/Weave/DeviceLayer/WeaveDeviceLayer.h \
     include/Weave/DeviceLayer/internal/BLEManager.h \
+    include/Weave/DeviceLayer/internal/CertificateProvisioningClient.h \
     include/Weave/DeviceLayer/internal/DeviceControlServer.h \
     include/Weave/DeviceLayer/internal/DeviceDescriptionServer.h \
     include/Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h \
@@ -720,6 +722,7 @@ noinst_HEADERS = \
 @CONFIG_DEVICE_LAYER_TRUE@    $(NULL)
 
 @CONFIG_DEVICE_LAYER_TRUE@libDeviceLayer_a_SOURCES = CASEAuth.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	CertificateProvisioningClient.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceControlServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceDescriptionServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceIdentityTraitDataSource.cpp \
@@ -973,6 +976,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-CASEAuth.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-CertificateProvisioningClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceControlServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceDescriptionServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTraitDataSource.Po@am__quote@
@@ -1066,6 +1070,20 @@ libDeviceLayer_a-CASEAuth.obj: CASEAuth.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='CASEAuth.cpp' object='libDeviceLayer_a-CASEAuth.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-CASEAuth.obj `if test -f 'CASEAuth.cpp'; then $(CYGPATH_W) 'CASEAuth.cpp'; else $(CYGPATH_W) '$(srcdir)/CASEAuth.cpp'; fi`
+
+libDeviceLayer_a-CertificateProvisioningClient.o: CertificateProvisioningClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-CertificateProvisioningClient.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-CertificateProvisioningClient.Tpo -c -o libDeviceLayer_a-CertificateProvisioningClient.o `test -f 'CertificateProvisioningClient.cpp' || echo '$(srcdir)/'`CertificateProvisioningClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-CertificateProvisioningClient.Tpo $(DEPDIR)/libDeviceLayer_a-CertificateProvisioningClient.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='CertificateProvisioningClient.cpp' object='libDeviceLayer_a-CertificateProvisioningClient.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-CertificateProvisioningClient.o `test -f 'CertificateProvisioningClient.cpp' || echo '$(srcdir)/'`CertificateProvisioningClient.cpp
+
+libDeviceLayer_a-CertificateProvisioningClient.obj: CertificateProvisioningClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-CertificateProvisioningClient.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-CertificateProvisioningClient.Tpo -c -o libDeviceLayer_a-CertificateProvisioningClient.obj `if test -f 'CertificateProvisioningClient.cpp'; then $(CYGPATH_W) 'CertificateProvisioningClient.cpp'; else $(CYGPATH_W) '$(srcdir)/CertificateProvisioningClient.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-CertificateProvisioningClient.Tpo $(DEPDIR)/libDeviceLayer_a-CertificateProvisioningClient.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='CertificateProvisioningClient.cpp' object='libDeviceLayer_a-CertificateProvisioningClient.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-CertificateProvisioningClient.obj `if test -f 'CertificateProvisioningClient.cpp'; then $(CYGPATH_W) 'CertificateProvisioningClient.cpp'; else $(CYGPATH_W) '$(srcdir)/CertificateProvisioningClient.cpp'; fi`
 
 libDeviceLayer_a-DeviceControlServer.o: DeviceControlServer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-DeviceControlServer.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-DeviceControlServer.Tpo -c -o libDeviceLayer_a-DeviceControlServer.o `test -f 'DeviceControlServer.cpp' || echo '$(srcdir)/'`DeviceControlServer.cpp

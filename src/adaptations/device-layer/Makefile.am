@@ -66,6 +66,7 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/WeaveDeviceEvent.h \
     include/Weave/DeviceLayer/WeaveDeviceLayer.h \
     include/Weave/DeviceLayer/internal/BLEManager.h \
+    include/Weave/DeviceLayer/internal/CertificateProvisioningClient.h \
     include/Weave/DeviceLayer/internal/DeviceControlServer.h \
     include/Weave/DeviceLayer/internal/DeviceDescriptionServer.h \
     include/Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h \
@@ -111,6 +112,7 @@ libDeviceLayer_a_CPPFLAGS               = \
 
 libDeviceLayer_a_SOURCES                = \
     CASEAuth.cpp                          \
+    CertificateProvisioningClient.cpp     \
     DeviceControlServer.cpp               \
     DeviceDescriptionServer.cpp           \
     DeviceIdentityTraitDataSource.cpp     \

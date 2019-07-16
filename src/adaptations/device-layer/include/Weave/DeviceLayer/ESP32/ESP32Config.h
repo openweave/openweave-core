@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -53,9 +54,10 @@ public:
 
     // Key definitions for well-known keys.
     static const Key kConfigKey_SerialNum;
-    static const Key kConfigKey_DeviceId;
-    static const Key kConfigKey_DeviceCert;
-    static const Key kConfigKey_DevicePrivateKey;
+    static const Key kConfigKey_ManufAttestDeviceId;
+    static const Key kConfigKey_ManufAttestDeviceCert;
+    static const Key kConfigKey_ManufAttestDeviceICACerts;
+    static const Key kConfigKey_ManufAttestDevicePrivateKey;
     static const Key kConfigKey_ProductRevision;
     static const Key kConfigKey_ManufacturingDate;
     static const Key kConfigKey_PairingCode;
@@ -68,6 +70,10 @@ public:
     static const Key kConfigKey_LastUsedEpochKeyId;
     static const Key kConfigKey_FailSafeArmed;
     static const Key kConfigKey_WiFiStationSecType;
+    static const Key kConfigKey_OperationalDeviceId;
+    static const Key kConfigKey_OperationalDeviceCert;
+    static const Key kConfigKey_OperationalDeviceICACerts;
+    static const Key kConfigKey_OperationalDevicePrivateKey;
 
     static const char kGroupKeyNamePrefix[];
 

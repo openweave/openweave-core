@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -36,6 +37,7 @@ class ConfigurationManagerImpl;
 class TraitManager;
 class TimeSyncManager;
 namespace Internal {
+class CertificateProvisioningClient;
 class FabricProvisioningServer;
 class ServiceProvisioningServer;
 class BLEManagerImpl;
@@ -81,6 +83,7 @@ private:
     friend class ConfigurationManagerImpl;
     friend class TraitManager;
     friend class TimeSyncManager;
+    friend class Internal::CertificateProvisioningClient;
     friend class Internal::FabricProvisioningServer;
     friend class Internal::ServiceProvisioningServer;
     friend class Internal::BLEManagerImpl;

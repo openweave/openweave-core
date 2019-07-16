@@ -769,13 +769,13 @@ void NRF5Config::RunConfigUnitTest()
 
         for (int i = 0; i < 100; i++)
         {
-            err = WriteConfigValueBin(kConfigKey_DeviceCert, kTestData, sizeof(kTestData));
+            err = WriteConfigValueBin(kConfigKey_ManufAttestDeviceCert, kTestData, sizeof(kTestData));
             VerifyOrDie(err == WEAVE_NO_ERROR);
 
             vTaskDelay(pdMS_TO_TICKS(50));
         }
 
-        err = ReadConfigValueBin(kConfigKey_DeviceCert, buf, sizeof(buf), dataLen);
+        err = ReadConfigValueBin(kConfigKey_ManufAttestDeviceCert, buf, sizeof(buf), dataLen);
         VerifyOrDie(err == WEAVE_NO_ERROR);
 
         VerifyOrDie(dataLen == sizeof(kTestData));

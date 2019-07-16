@@ -480,6 +480,56 @@
 #define WEAVE_DEVICE_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT 10000
 #endif
 
+// -------------------- Operational Device Credentials Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+ *
+ * Enable the ephemeral operational device credentials feature.
+ *
+ * When enabled device creates and uses its ephemeral operational credentials:
+ *   - operational device id
+ *   - operational device certificate
+ *   - operational device private key
+ * Device uses these credentials to authenticate and communicate to other Weave nodes.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+#define WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS 1
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_CERTIFICATE_PROVISIONING_ENDPOINT_ID
+ *
+ * Specifies the service endpoint id of the Weave Certificate Provisioning service.  When a device
+ * undergoes certificate provisioning, this is the endpoint to which it will send its Get Certificate
+ * request.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_CERTIFICATE_PROVISIONING_ENDPOINT_ID
+#define WEAVE_DEVICE_CONFIG_CERTIFICATE_PROVISIONING_ENDPOINT_ID 0x18B4300200000016ULL
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_CERTIFICATE_PROVISIONING_CONNECTIVITY_TIMEOUT
+ *
+ * The maximum amount of time (in milliseconds) to wait for service connectivity during the device
+ * certificate provisioning step.  More specifically, this is the maximum amount of time the device will
+ * wait for connectivity to be established with the service at the point where the device waiting
+ * to send a Get Certificate request to the Certificate Provisioning service.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_CERTIFICATE_PROVISIONING_CONNECTIVITY_TIMEOUT
+#define WEAVE_DEVICE_CONFIG_CERTIFICATE_PROVISIONING_CONNECTIVITY_TIMEOUT 10000
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_GET_CERTIFICATE_REQUEST_TIMEOUT
+ *
+ * Specifies the maximum amount of time (in milliseconds) to wait for a response from the Certificate
+ * Provisioning service.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_GET_CERTIFICATE_REQUEST_TIMEOUT
+#define WEAVE_DEVICE_CONFIG_GET_CERTIFICATE_REQUEST_TIMEOUT 10000
+#endif
+
 // -------------------- Thread Configuration --------------------
 
 /**

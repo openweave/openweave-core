@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -69,8 +70,20 @@ public:
     WEAVE_ERROR _StoreManufacturingDate(const char * mfgDate, size_t mfgDateLen);
     WEAVE_ERROR _GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
     WEAVE_ERROR _StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR _GetDeviceICACerts(uint8_t * buf, size_t bufSize, size_t & certsLen);
+    WEAVE_ERROR _StoreDeviceICACerts(const uint8_t * certs, size_t certsLen);
     WEAVE_ERROR _GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
     WEAVE_ERROR _StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
+    WEAVE_ERROR _StoreDeviceCredentials(uint64_t deviceId, const uint8_t * cert, size_t certLen, const uint8_t * key, size_t keyLen);
+    WEAVE_ERROR _ClearDeviceCredentials(void);
+    WEAVE_ERROR _GetManufAttestDeviceId(uint64_t & deviceId);
+    WEAVE_ERROR _StoreManufAttestDeviceId(uint64_t deviceId);
+    WEAVE_ERROR _GetManufAttestDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
+    WEAVE_ERROR _StoreManufAttestDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR _GetManufAttestDeviceICACerts(uint8_t * buf, size_t bufSize, size_t & certsLen);
+    WEAVE_ERROR _StoreManufAttestDeviceICACerts(const uint8_t * certs, size_t certsLen);
+    WEAVE_ERROR _GetManufAttestDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
+    WEAVE_ERROR _StoreManufAttestDevicePrivateKey(const uint8_t * key, size_t keyLen);
     WEAVE_ERROR _GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen);
     WEAVE_ERROR _StorePairingCode(const char * pairingCode, size_t pairingCodeLen);
     WEAVE_ERROR _GetFabricId(uint64_t & fabricId);
@@ -95,14 +108,21 @@ public:
     bool _IsPairedToAccount();
     bool _IsFullyProvisioned();
     WEAVE_ERROR _ComputeProvisioningHash(uint8_t * hashBuf, size_t hashBufSize);
+    bool _DeviceCredentialsProvisioned();
+    bool _DeviceICACertsProvisioned();
+    bool _ManufAttestDeviceICACertsProvisioned();
+    bool _UseManufAttestCredentialsAsOperational();
+    void _UseManufAttestCredentialsAsOperational(bool val);
 
 protected:
 
     enum
     {
-        kFlag_IsServiceProvisioned      = 0x01,
-        kFlag_IsMemberOfFabric          = 0x02,
-        kFlag_IsPairedToAccount         = 0x04,
+        kFlag_IsServiceProvisioned                   = 0x01,
+        kFlag_IsMemberOfFabric                       = 0x02,
+        kFlag_IsPairedToAccount                      = 0x04,
+        kFlag_DeviceCredentialsProvisioned           = 0x08,
+        kFlag_UseManufAttestCredentialsAsOperational = 0x10,
     };
 
     uint8_t mFlags;
@@ -143,4 +163,3 @@ inline WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetProductId(uin
 } // namespace nl
 
 #endif // GENERIC_CONFIGURATION_MANAGER_IMPL_H
-

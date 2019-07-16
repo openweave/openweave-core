@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -109,6 +110,21 @@ WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
             ThreadStackMgr().ClearThreadProvision();
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
         }
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+        // If a credentials config request has been requested, clear the credential
+        // data, if present.
+        if ((resetFlags & kResetConfigFlag_Credentials) != 0)
+        {
+            WeaveLogProgress(DeviceLayer, "Reset credentials");
+            tmpErr = ConfigurationMgr().ClearDeviceCredentials();
+            if (tmpErr != WEAVE_NO_ERROR)
+            {
+                WeaveLogProgress(DeviceLayer, "ConfigurationMgr().ClearDeviceCredentials() failed: %s", ErrorStr(tmpErr));
+                err = (err == WEAVE_NO_ERROR) ? tmpErr : err;
+            }
+        }
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
     }
 
     return err;
@@ -171,7 +187,8 @@ bool DeviceControlServer::IsResetAllowed(uint16_t resetFlags)
     }
 
     const uint16_t supportedResetOps =
-            (kResetConfigFlag_NetworkConfig | kResetConfigFlag_FabricConfig | kResetConfigFlag_ServiceConfig);
+            (kResetConfigFlag_NetworkConfig | kResetConfigFlag_FabricConfig |
+             kResetConfigFlag_ServiceConfig | kResetConfigFlag_Credentials);
 
     // Otherwise, verify the requested reset operation is supported.
     return (resetFlags == kResetConfigFlag_All || (resetFlags & ~supportedResetOps) == 0);
@@ -213,5 +230,3 @@ void DeviceControlServer::OnPlatformEvent(const WeaveDeviceEvent * event)
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
-
-

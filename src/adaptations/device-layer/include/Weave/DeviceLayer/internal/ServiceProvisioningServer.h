@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -26,6 +27,7 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
+#include <Weave/DeviceLayer/internal/CertificateProvisioningClient.h>
 
 namespace nl {
 namespace Weave {
@@ -84,14 +86,19 @@ private:
 
     ::nl::Weave::Binding * mProvServiceBinding;
     bool mWaitingForServiceConnectivity;
+#if WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+    CertificateProvisioningClient * mCertProvClient;
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
 
     void StartPairDeviceToAccount(void);
     void SendPairDeviceToAccountRequest(void);
 
+    static void AsyncStartCertificateProvisioning(intptr_t arg);
     static void AsyncStartPairDeviceToAccount(intptr_t arg);
     static void HandleServiceConnectivityTimeout(::nl::Weave::System::Layer * layer, void * appState, ::nl::Weave::System::Error err);
     static void HandleProvServiceBindingEvent(void * appState, nl::Weave::Binding::EventType eventType,
             const nl::Weave::Binding::InEventParam & inParam, nl::Weave::Binding::OutEventParam & outParam);
+    static WEAVE_ERROR EncodeGetCertificateRequestAuthInfo(TLVWriter &writer);
 
 protected:
 

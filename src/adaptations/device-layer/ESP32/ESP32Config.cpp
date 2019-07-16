@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -40,27 +41,32 @@ const char ESP32Config::kConfigNamespace_WeaveConfig[]                     = "we
 const char ESP32Config::kConfigNamespace_WeaveCounters[]                   = "weave-counters";
 
 // Keys stored in the weave-factory namespace
-const ESP32Config::Key ESP32Config::kConfigKey_SerialNum               = { kConfigNamespace_WeaveFactory, "serial-num"         };
-const ESP32Config::Key ESP32Config::kConfigKey_DeviceId                = { kConfigNamespace_WeaveFactory, "device-id"          };
-const ESP32Config::Key ESP32Config::kConfigKey_DeviceCert              = { kConfigNamespace_WeaveFactory, "device-cert"        };
-const ESP32Config::Key ESP32Config::kConfigKey_DevicePrivateKey        = { kConfigNamespace_WeaveFactory, "device-key"         };
-const ESP32Config::Key ESP32Config::kConfigKey_ProductRevision         = { kConfigNamespace_WeaveFactory, "product-rev"        };
-const ESP32Config::Key ESP32Config::kConfigKey_ManufacturingDate       = { kConfigNamespace_WeaveFactory, "mfg-date"           };
-const ESP32Config::Key ESP32Config::kConfigKey_PairingCode             = { kConfigNamespace_WeaveFactory, "pairing-code"       };
+const ESP32Config::Key ESP32Config::kConfigKey_SerialNum                   = { kConfigNamespace_WeaveFactory, "serial-num"         };
+const ESP32Config::Key ESP32Config::kConfigKey_ManufAttestDeviceId         = { kConfigNamespace_WeaveFactory, "ma-device-id"       };
+const ESP32Config::Key ESP32Config::kConfigKey_ManufAttestDeviceCert       = { kConfigNamespace_WeaveFactory, "ma-device-cert"     };
+const ESP32Config::Key ESP32Config::kConfigKey_ManufAttestDeviceICACerts   = { kConfigNamespace_WeaveFactory, "ma-device-ca-certs" };
+const ESP32Config::Key ESP32Config::kConfigKey_ManufAttestDevicePrivateKey = { kConfigNamespace_WeaveFactory, "ma-device-key"      };
+const ESP32Config::Key ESP32Config::kConfigKey_ProductRevision             = { kConfigNamespace_WeaveFactory, "product-rev"        };
+const ESP32Config::Key ESP32Config::kConfigKey_ManufacturingDate           = { kConfigNamespace_WeaveFactory, "mfg-date"           };
+const ESP32Config::Key ESP32Config::kConfigKey_PairingCode                 = { kConfigNamespace_WeaveFactory, "pairing-code"       };
 
 // Keys stored in the weave-config namespace
-const ESP32Config::Key ESP32Config::kConfigKey_FabricId                = { kConfigNamespace_WeaveConfig,  "fabric-id"          };
-const ESP32Config::Key ESP32Config::kConfigKey_ServiceConfig           = { kConfigNamespace_WeaveConfig,  "service-config"     };
-const ESP32Config::Key ESP32Config::kConfigKey_PairedAccountId         = { kConfigNamespace_WeaveConfig,  "account-id"         };
-const ESP32Config::Key ESP32Config::kConfigKey_ServiceId               = { kConfigNamespace_WeaveConfig,  "service-id"         };
-const ESP32Config::Key ESP32Config::kConfigKey_FabricSecret            = { kConfigNamespace_WeaveConfig,  "fabric-secret"      };
-const ESP32Config::Key ESP32Config::kConfigKey_GroupKeyIndex           = { kConfigNamespace_WeaveConfig,  "group-key-index"    };
-const ESP32Config::Key ESP32Config::kConfigKey_LastUsedEpochKeyId      = { kConfigNamespace_WeaveConfig,  "last-ek-id"         };
-const ESP32Config::Key ESP32Config::kConfigKey_FailSafeArmed           = { kConfigNamespace_WeaveConfig,  "fail-safe-armed"    };
-const ESP32Config::Key ESP32Config::kConfigKey_WiFiStationSecType      = { kConfigNamespace_WeaveConfig,  "sta-sec-type"       };
+const ESP32Config::Key ESP32Config::kConfigKey_FabricId                    = { kConfigNamespace_WeaveConfig,  "fabric-id"          };
+const ESP32Config::Key ESP32Config::kConfigKey_ServiceConfig               = { kConfigNamespace_WeaveConfig,  "service-config"     };
+const ESP32Config::Key ESP32Config::kConfigKey_PairedAccountId             = { kConfigNamespace_WeaveConfig,  "account-id"         };
+const ESP32Config::Key ESP32Config::kConfigKey_ServiceId                   = { kConfigNamespace_WeaveConfig,  "service-id"         };
+const ESP32Config::Key ESP32Config::kConfigKey_FabricSecret                = { kConfigNamespace_WeaveConfig,  "fabric-secret"      };
+const ESP32Config::Key ESP32Config::kConfigKey_GroupKeyIndex               = { kConfigNamespace_WeaveConfig,  "group-key-index"    };
+const ESP32Config::Key ESP32Config::kConfigKey_LastUsedEpochKeyId          = { kConfigNamespace_WeaveConfig,  "last-ek-id"         };
+const ESP32Config::Key ESP32Config::kConfigKey_FailSafeArmed               = { kConfigNamespace_WeaveConfig,  "fail-safe-armed"    };
+const ESP32Config::Key ESP32Config::kConfigKey_WiFiStationSecType          = { kConfigNamespace_WeaveConfig,  "sta-sec-type"       };
+const ESP32Config::Key ESP32Config::kConfigKey_OperationalDeviceId         = { kConfigNamespace_WeaveConfig,  "op-device-id"       };
+const ESP32Config::Key ESP32Config::kConfigKey_OperationalDeviceCert       = { kConfigNamespace_WeaveConfig,  "op-device-cert"     };
+const ESP32Config::Key ESP32Config::kConfigKey_OperationalDeviceICACerts   = { kConfigNamespace_WeaveConfig,  "op-device-ca-certs" };
+const ESP32Config::Key ESP32Config::kConfigKey_OperationalDevicePrivateKey = { kConfigNamespace_WeaveConfig,  "op-device-key"      };
 
 // Prefix used for NVS keys that contain Weave group encryption keys.
-const char ESP32Config::kGroupKeyNamePrefix[]                        = "gk-";
+const char ESP32Config::kGroupKeyNamePrefix[]                              = "gk-";
 
 
 WEAVE_ERROR ESP32Config::ReadConfigValue(Key key, bool & val)
@@ -126,15 +132,15 @@ WEAVE_ERROR ESP32Config::ReadConfigValue(Key key, uint64_t & val)
     SuccessOrExit(err);
     needClose = true;
 
-    // Special case the DeviceId value, optionally allowing it to be read as a blob containing a 64-bit
-    // big-endian integer, instead of a u64 value.
+    // Special case the ManufAttestDeviceId value, optionally allowing it to be read as a blob containing
+    // a 64-bit big-endian integer, instead of a u64 value.
     //
     // The ESP32 development environment provides a tool for pre-populating the NVS partition using
     // values from a CSV file.  This tool is convenient for provisioning devices during manufacturing.
-    // However currently the tool does not support pre-populating u64 values such as DeviceId.  Thus
-    // we allow DeviceId to be stored as a blob instead.
+    // However currently the tool does not support pre-populating u64 values such as ManufAttestDeviceId.
+    // Thus we allow ManufAttestDeviceId to be stored as a blob instead.
     //
-    if (key == kConfigKey_DeviceId)
+    if (key == kConfigKey_ManufAttestDeviceId)
     {
         uint8_t deviceIdBytes[sizeof(uint64_t)];
         size_t deviceIdLen = sizeof(deviceIdBytes);

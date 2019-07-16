@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -79,9 +80,9 @@ public:
 
     // Key definitions for well-known configuration values.
     static constexpr Key kConfigKey_SerialNum                   = NRF5ConfigKey(kFileId_WeaveFactory, 0x0001);
-    static constexpr Key kConfigKey_DeviceId                    = NRF5ConfigKey(kFileId_WeaveFactory, 0x0002);
-    static constexpr Key kConfigKey_DeviceCert                  = NRF5ConfigKey(kFileId_WeaveFactory, 0x0003);
-    static constexpr Key kConfigKey_DevicePrivateKey            = NRF5ConfigKey(kFileId_WeaveFactory, 0x0004);
+    static constexpr Key kConfigKey_ManufAttestDeviceId         = NRF5ConfigKey(kFileId_WeaveFactory, 0x0002);
+    static constexpr Key kConfigKey_ManufAttestDeviceCert       = NRF5ConfigKey(kFileId_WeaveFactory, 0x0003);
+    static constexpr Key kConfigKey_ManufAttestDevicePrivateKey = NRF5ConfigKey(kFileId_WeaveFactory, 0x0004);
     static constexpr Key kConfigKey_ManufacturingDate           = NRF5ConfigKey(kFileId_WeaveFactory, 0x0005);
     static constexpr Key kConfigKey_PairingCode                 = NRF5ConfigKey(kFileId_WeaveFactory, 0x0006);
     static constexpr Key kConfigKey_FabricId                    = NRF5ConfigKey(kFileId_WeaveConfig,  0x0007);
@@ -93,6 +94,11 @@ public:
     static constexpr Key kConfigKey_FailSafeArmed               = NRF5ConfigKey(kFileId_WeaveConfig,  0x000D);
     static constexpr Key kConfigKey_GroupKey                    = NRF5ConfigKey(kFileId_WeaveConfig,  0x000E);
     static constexpr Key kConfigKey_ProductRevision             = NRF5ConfigKey(kFileId_WeaveFactory, 0x000F);
+    static constexpr Key kConfigKey_ManufAttestDeviceICACerts   = NRF5ConfigKey(kFileId_WeaveFactory, 0x0010);
+    static constexpr Key kConfigKey_OperationalDeviceId         = NRF5ConfigKey(kFileId_WeaveConfig,  0x0011);
+    static constexpr Key kConfigKey_OperationalDeviceCert       = NRF5ConfigKey(kFileId_WeaveConfig,  0x0012);
+    static constexpr Key kConfigKey_OperationalDeviceICACerts   = NRF5ConfigKey(kFileId_WeaveConfig,  0x0013);
+    static constexpr Key kConfigKey_OperationalDevicePrivateKey = NRF5ConfigKey(kFileId_WeaveConfig,  0x0014);
 
     // Range of FDS record keys used to store Weave persisted counter values.
     static constexpr uint16_t kPersistedCounterRecordKeyBase    = kFDSRecordKeyMin;

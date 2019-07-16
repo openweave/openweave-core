@@ -1423,6 +1423,7 @@ dist_device_manager_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceManager_hea
 
 @CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_internal_header_sources = \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/BLEManager.h                                  \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/CertificateProvisioningClient.h               \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceControlServer.h                         \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h                     \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h               \

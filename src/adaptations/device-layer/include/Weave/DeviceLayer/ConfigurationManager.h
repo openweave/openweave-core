@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -77,7 +78,12 @@ public:
             uint8_t & hour, uint8_t & minute, uint8_t & second);
     WEAVE_ERROR GetDeviceId(uint64_t & deviceId);
     WEAVE_ERROR GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
+    WEAVE_ERROR GetDeviceICACerts(uint8_t * buf, size_t bufSize, size_t & certsLen);
     WEAVE_ERROR GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
+    WEAVE_ERROR GetManufAttestDeviceId(uint64_t & deviceId);
+    WEAVE_ERROR GetManufAttestDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
+    WEAVE_ERROR GetManufAttestDeviceICACerts(uint8_t * buf, size_t bufSize, size_t & certsLen);
+    WEAVE_ERROR GetManufAttestDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
     WEAVE_ERROR GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen);
     WEAVE_ERROR GetServiceId(uint64_t & serviceId);
     WEAVE_ERROR GetFabricId(uint64_t & fabricId);
@@ -92,7 +98,14 @@ public:
     WEAVE_ERROR StoreProductRevision(uint16_t productRev);
     WEAVE_ERROR StoreFabricId(uint64_t fabricId);
     WEAVE_ERROR StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR StoreDeviceICACerts(const uint8_t * certs, size_t certsLen);
     WEAVE_ERROR StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
+    WEAVE_ERROR StoreDeviceCredentials(uint64_t deviceId, const uint8_t * cert, size_t certLen, const uint8_t * key, size_t keyLen);
+    WEAVE_ERROR ClearDeviceCredentials(void);
+    WEAVE_ERROR StoreManufAttestDeviceId(uint64_t deviceId);
+    WEAVE_ERROR StoreManufAttestDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR StoreManufAttestDeviceICACerts(const uint8_t * certs, size_t certsLen);
+    WEAVE_ERROR StoreManufAttestDevicePrivateKey(const uint8_t * key, size_t keyLen);
     WEAVE_ERROR StorePairingCode(const char * pairingCode, size_t pairingCodeLen);
     WEAVE_ERROR StoreServiceProvisioningData(uint64_t serviceId, const uint8_t * serviceConfig, size_t serviceConfigLen, const char * accountId, size_t accountIdLen);
     WEAVE_ERROR ClearServiceProvisioningData();
@@ -111,6 +124,11 @@ public:
     bool IsPairedToAccount();
     bool IsMemberOfFabric();
     bool IsFullyProvisioned();
+    bool DeviceCredentialsProvisioned();
+    bool DeviceICACertsProvisioned();
+    bool ManufAttestDeviceICACertsProvisioned();
+    bool UseManufAttestCredentialsAsOperational();
+    void UseManufAttestCredentialsAsOperational(bool val);
 
     void InitiateFactoryReset();
 
@@ -249,9 +267,34 @@ inline WEAVE_ERROR ConfigurationManager::GetDeviceCertificate(uint8_t * buf, siz
     return static_cast<ImplClass*>(this)->_GetDeviceCertificate(buf, bufSize, certLen);
 }
 
+inline WEAVE_ERROR ConfigurationManager::GetDeviceICACerts(uint8_t * buf, size_t bufSize, size_t & certsLen)
+{
+    return static_cast<ImplClass*>(this)->_GetDeviceICACerts(buf, bufSize, certsLen);
+}
+
 inline WEAVE_ERROR ConfigurationManager::GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen)
 {
     return static_cast<ImplClass*>(this)->_GetDevicePrivateKey(buf, bufSize, keyLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetManufAttestDeviceId(uint64_t & deviceId)
+{
+    return static_cast<ImplClass*>(this)->_GetManufAttestDeviceId(deviceId);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetManufAttestDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen)
+{
+    return static_cast<ImplClass*>(this)->_GetManufAttestDeviceCertificate(buf, bufSize, certLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetManufAttestDeviceICACerts(uint8_t * buf, size_t bufSize, size_t & certsLen)
+{
+    return static_cast<ImplClass*>(this)->_GetManufAttestDeviceICACerts(buf, bufSize, certsLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetManufAttestDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen)
+{
+    return static_cast<ImplClass*>(this)->_GetManufAttestDevicePrivateKey(buf, bufSize, keyLen);
 }
 
 inline WEAVE_ERROR ConfigurationManager::GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen)
@@ -319,9 +362,44 @@ inline WEAVE_ERROR ConfigurationManager::StoreDeviceCertificate(const uint8_t * 
     return static_cast<ImplClass*>(this)->_StoreDeviceCertificate(cert, certLen);
 }
 
+inline WEAVE_ERROR ConfigurationManager::StoreDeviceICACerts(const uint8_t * certs, size_t certsLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreDeviceICACerts(certs, certsLen);
+}
+
 inline WEAVE_ERROR ConfigurationManager::StoreDevicePrivateKey(const uint8_t * key, size_t keyLen)
 {
     return static_cast<ImplClass*>(this)->_StoreDevicePrivateKey(key, keyLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreDeviceCredentials(uint64_t deviceId, const uint8_t * cert, size_t certLen, const uint8_t * key, size_t keyLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreDeviceCredentials(deviceId, cert, certLen, key, keyLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::ClearDeviceCredentials(void)
+{
+    return static_cast<ImplClass*>(this)->_ClearDeviceCredentials();
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreManufAttestDeviceId(uint64_t deviceId)
+{
+    return static_cast<ImplClass*>(this)->_StoreManufAttestDeviceId(deviceId);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreManufAttestDeviceCertificate(const uint8_t * cert, size_t certLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreManufAttestDeviceCertificate(cert, certLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreManufAttestDeviceICACerts(const uint8_t * certs, size_t certsLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreManufAttestDeviceICACerts(certs, certsLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreManufAttestDevicePrivateKey(const uint8_t * key, size_t keyLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreManufAttestDevicePrivateKey(key, keyLen);
 }
 
 inline WEAVE_ERROR ConfigurationManager::StorePairingCode(const char * pairingCode, size_t pairingCodeLen)
@@ -402,6 +480,31 @@ inline bool ConfigurationManager::IsMemberOfFabric()
 inline bool ConfigurationManager::IsFullyProvisioned()
 {
     return static_cast<ImplClass*>(this)->_IsFullyProvisioned();
+}
+
+inline bool ConfigurationManager::DeviceCredentialsProvisioned()
+{
+    return static_cast<ImplClass*>(this)->_DeviceCredentialsProvisioned();
+}
+
+inline bool ConfigurationManager::DeviceICACertsProvisioned()
+{
+    return static_cast<ImplClass*>(this)->_DeviceICACertsProvisioned();
+}
+
+inline bool ConfigurationManager::ManufAttestDeviceICACertsProvisioned()
+{
+    return static_cast<ImplClass*>(this)->_ManufAttestDeviceICACertsProvisioned();
+}
+
+inline bool ConfigurationManager::UseManufAttestCredentialsAsOperational()
+{
+    return static_cast<ImplClass*>(this)->_UseManufAttestCredentialsAsOperational();
+}
+
+inline void ConfigurationManager::UseManufAttestCredentialsAsOperational(bool val)
+{
+    static_cast<ImplClass*>(this)->_UseManufAttestCredentialsAsOperational(val);
 }
 
 inline void ConfigurationManager::InitiateFactoryReset()

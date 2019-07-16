@@ -97,7 +97,8 @@ enum
     kTag_DevicePrivateKey       = 3,    // [ byte string ] Manufacturer-assigned device key
     kTag_PairingCode            = 4,    // [ utf-8 string ] Pairing code
     kTag_ProductRev             = 5,    // [ uint, 16-bit max ] Product revision
-    kTag_MfgDate                = 6     // [ utf-8 string ] Manufacturing date
+    kTag_MfgDate                = 6,    // [ utf-8 string ] Manufacturing date
+    kTag_DeviceICACerts         = 7,    // [ byte string ] Manufacturer-assigned device intermediate CA certificates
 };
 
 /**

@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -52,6 +53,7 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_Init()
     SetFlag(mFlags, kFlag_IsServiceProvisioned, Impl()->ConfigValueExists(ImplClass::kConfigKey_ServiceConfig));
     SetFlag(mFlags, kFlag_IsMemberOfFabric, Impl()->ConfigValueExists(ImplClass::kConfigKey_FabricId));
     SetFlag(mFlags, kFlag_IsPairedToAccount, Impl()->ConfigValueExists(ImplClass::kConfigKey_PairedAccountId));
+    SetFlag(mFlags, kFlag_DeviceCredentialsProvisioned, Impl()->ConfigValueExists(ImplClass::kConfigKey_OperationalDeviceCert));
 
     return WEAVE_NO_ERROR;
 }
@@ -154,11 +156,11 @@ exit:
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceId(uint64_t & deviceId)
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetManufAttestDeviceId(uint64_t & deviceId)
 {
     WEAVE_ERROR err;
 
-    err = Impl()->ReadConfigValue(ImplClass::kConfigKey_DeviceId, deviceId);
+    err = Impl()->ReadConfigValue(ImplClass::kConfigKey_ManufAttestDeviceId, deviceId);
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
@@ -172,9 +174,9 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceId(uint64_t & 
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreDeviceId(uint64_t deviceId)
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreManufAttestDeviceId(uint64_t deviceId)
 {
-    return Impl()->WriteConfigValue(ImplClass::kConfigKey_DeviceId, deviceId);
+    return Impl()->WriteConfigValue(ImplClass::kConfigKey_ManufAttestDeviceId, deviceId);
 }
 
 template<class ImplClass>
@@ -299,11 +301,11 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreManufacturingDate(
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen)
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetManufAttestDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen)
 {
     WEAVE_ERROR err;
 
-    err = Impl()->ReadConfigValueBin(ImplClass::kConfigKey_DeviceCert, buf, bufSize, certLen);
+    err = Impl()->ReadConfigValueBin(ImplClass::kConfigKey_ManufAttestDeviceCert, buf, bufSize, certLen);
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
@@ -326,17 +328,50 @@ exit:
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreDeviceCertificate(const uint8_t * cert, size_t certLen)
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreManufAttestDeviceCertificate(const uint8_t * cert, size_t certLen)
 {
-    return Impl()->WriteConfigValueBin(ImplClass::kConfigKey_DeviceCert, cert, certLen);
+    return Impl()->WriteConfigValueBin(ImplClass::kConfigKey_ManufAttestDeviceCert, cert, certLen);
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen)
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetManufAttestDeviceICACerts(uint8_t * buf, size_t bufSize, size_t & certsLen)
 {
     WEAVE_ERROR err;
 
-    err = Impl()->ReadConfigValueBin(ImplClass::kConfigKey_DevicePrivateKey, buf, bufSize, keyLen);
+    err = Impl()->ReadConfigValueBin(ImplClass::kConfigKey_ManufAttestDeviceICACerts, buf, bufSize, certsLen);
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    {
+        certsLen = TestDeviceICACertLength;
+        VerifyOrExit(buf != NULL, err = WEAVE_NO_ERROR);
+        VerifyOrExit(TestDeviceICACertLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+        WeaveLogProgress(DeviceLayer, "Device certificate not found; using default");
+        memcpy(buf, TestDeviceICACert, TestDeviceICACertLength);
+        err = WEAVE_NO_ERROR;
+    }
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreManufAttestDeviceICACerts(const uint8_t * certs, size_t certsLen)
+{
+    return Impl()->WriteConfigValueBin(ImplClass::kConfigKey_ManufAttestDeviceICACerts, certs, certsLen);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetManufAttestDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen)
+{
+    WEAVE_ERROR err;
+
+    err = Impl()->ReadConfigValueBin(ImplClass::kConfigKey_ManufAttestDevicePrivateKey, buf, bufSize, keyLen);
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
@@ -359,9 +394,169 @@ exit:
 }
 
 template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreManufAttestDevicePrivateKey(const uint8_t * key, size_t keyLen)
+{
+    return Impl()->WriteConfigValueBin(ImplClass::kConfigKey_ManufAttestDevicePrivateKey, key, keyLen);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceId(uint64_t & deviceId)
+{
+    WEAVE_ERROR err;
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+    if (!_UseManufAttestCredentialsAsOperational())
+    {
+        err = Impl()->ReadConfigValue(ImplClass::kConfigKey_OperationalDeviceId, deviceId);
+    }
+    else
+#endif
+    {
+        err = Impl()->_GetManufAttestDeviceId(deviceId);
+    }
+
+    return err;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreDeviceId(uint64_t deviceId)
+{
+    return Impl()->WriteConfigValue(ImplClass::kConfigKey_OperationalDeviceId, deviceId);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen)
+{
+    WEAVE_ERROR err;
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+    if (!_UseManufAttestCredentialsAsOperational())
+    {
+        err = Impl()->ReadConfigValueBin(ImplClass::kConfigKey_OperationalDeviceCert, buf, bufSize, certLen);
+    }
+    else
+#endif
+    {
+        err = Impl()->_GetManufAttestDeviceCertificate(buf, bufSize, certLen);
+    }
+
+    return err;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreDeviceCertificate(const uint8_t * cert, size_t certLen)
+{
+    return Impl()->WriteConfigValueBin(ImplClass::kConfigKey_OperationalDeviceCert, cert, certLen);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceICACerts(uint8_t * buf, size_t bufSize, size_t & certsLen)
+{
+    WEAVE_ERROR err;
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+    if (!_UseManufAttestCredentialsAsOperational())
+    {
+        err = Impl()->ReadConfigValueBin(ImplClass::kConfigKey_OperationalDeviceICACerts, buf, bufSize, certsLen);
+    }
+    else
+#endif
+    {
+        err = Impl()->_GetManufAttestDeviceICACerts(buf, bufSize, certsLen);
+    }
+
+    return err;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreDeviceICACerts(const uint8_t * certs, size_t certsLen)
+{
+    return Impl()->WriteConfigValueBin(ImplClass::kConfigKey_OperationalDeviceICACerts, certs, certsLen);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen)
+{
+    WEAVE_ERROR err;
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+    if (!_UseManufAttestCredentialsAsOperational())
+    {
+        err = Impl()->ReadConfigValueBin(ImplClass::kConfigKey_OperationalDevicePrivateKey, buf, bufSize, keyLen);
+    }
+    else
+#endif
+    {
+        err = Impl()->_GetManufAttestDevicePrivateKey(buf, bufSize, keyLen);
+    }
+
+    return err;
+}
+
+template<class ImplClass>
 WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreDevicePrivateKey(const uint8_t * key, size_t keyLen)
 {
-    return Impl()->WriteConfigValueBin(ImplClass::kConfigKey_DevicePrivateKey, key, keyLen);
+    return Impl()->WriteConfigValueBin(ImplClass::kConfigKey_OperationalDevicePrivateKey, key, keyLen);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreDeviceCredentials(uint64_t deviceId, const uint8_t * cert, size_t certLen, const uint8_t * key, size_t keyLen)
+{
+    WEAVE_ERROR err;
+
+    err = Impl()->_StoreDeviceId(deviceId);
+    SuccessOrExit(err);
+
+    err = Impl()->_StoreDeviceCertificate(cert, certLen);
+    SuccessOrExit(err);
+
+    err = Impl()->_StoreDevicePrivateKey(key, keyLen);
+    SuccessOrExit(err);
+
+    Impl()->ClearConfigValue(ImplClass::kConfigKey_OperationalDeviceICACerts);
+
+    SetFlag(mFlags, kFlag_DeviceCredentialsProvisioned);
+
+    // Post an event alerting other subsystems that the device now new credentials.
+    {
+        WeaveDeviceEvent event;
+        event.Type = DeviceEventType::kDeviceCredentialsChange;
+        event.DeviceCredentialsChange.AreCredentialsProvisioned = true;
+        PlatformMgr().PostEvent(&event);
+    }
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        Impl()->ClearConfigValue(ImplClass::kConfigKey_OperationalDeviceId);
+        Impl()->ClearConfigValue(ImplClass::kConfigKey_OperationalDeviceCert);
+        Impl()->ClearConfigValue(ImplClass::kConfigKey_OperationalDevicePrivateKey);
+        ClearFlag(mFlags, kFlag_DeviceCredentialsProvisioned);
+    }
+    return err;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_ClearDeviceCredentials(void)
+{
+    Impl()->ClearConfigValue(ImplClass::kConfigKey_OperationalDeviceId);
+    Impl()->ClearConfigValue(ImplClass::kConfigKey_OperationalDeviceCert);
+    Impl()->ClearConfigValue(ImplClass::kConfigKey_OperationalDeviceICACerts);
+    Impl()->ClearConfigValue(ImplClass::kConfigKey_OperationalDevicePrivateKey);
+
+    // If necessary, post an event alerting other subsystems to the change in
+    // the certificate state.
+    if (_DeviceCredentialsProvisioned())
+    {
+        WeaveDeviceEvent event;
+        event.Type = DeviceEventType::kDeviceCredentialsChange;
+        event.DeviceCredentialsChange.AreCredentialsProvisioned = false;
+        PlatformMgr().PostEvent(&event);
+    }
+
+    ClearFlag(mFlags, kFlag_DeviceCredentialsProvisioned);
+
+    return WEAVE_NO_ERROR;
 }
 
 template<class ImplClass>
@@ -728,6 +923,9 @@ bool GenericConfigurationManagerImpl<ImplClass>::_IsFullyProvisioned()
 #if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
             Impl()->IsPairedToAccount() &&
 #endif
+#if WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+            (!Impl()->UseManufAttestCredentialsAsOperational() && Impl()->DeviceCredentialsProvisioned()) &&
+#endif
             Impl()->IsMemberOfFabric();
 }
 
@@ -770,7 +968,7 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_ComputeProvisioningHash
         constexpr uint16_t kDeviceIdLen = 16; // 16 hex characters
         char inputBuf[kLenFieldLen + kDeviceIdLen + 1]; // +1 for terminator
 
-        err = Impl()->_GetDeviceId(deviceId);
+        err = Impl()->_GetManufAttestDeviceId(deviceId);
         SuccessOrExit(err);
 
         snprintf(inputBuf, sizeof(inputBuf), "0010%016" PRIX64, deviceId);
@@ -783,7 +981,7 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_ComputeProvisioningHash
         size_t certLen;
 
         // Determine the length of the device certificate.
-        err = Impl()->_GetDeviceCertificate((uint8_t *)NULL, 0, certLen);
+        err = Impl()->_GetManufAttestDeviceCertificate((uint8_t *)NULL, 0, certLen);
         SuccessOrExit(err);
 
         // Create a temporary buffer to hold the certificate.  (This will also be used for
@@ -793,11 +991,39 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_ComputeProvisioningHash
         VerifyOrExit(dataBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
         // Read the certificate.
-        err = Impl()->_GetDeviceCertificate(dataBuf, certLen, certLen);
+        err = Impl()->_GetManufAttestDeviceCertificate(dataBuf, certLen, certLen);
         SuccessOrExit(err);
 
         // Hash the length and value of the device certificate in base-64 form.
         HashLengthAndBase64Value(hash, dataBuf, (uint16_t)certLen);
+    }
+
+    // Hash the device intermediate CA certificates
+    if (Impl()->ConfigValueExists(ImplClass::kConfigKey_ManufAttestDeviceICACerts))
+    {
+        size_t certsLen;
+
+        // Determine the length of the device certificate.
+        err = Impl()->_GetManufAttestDeviceICACerts((uint8_t *)NULL, 0, certsLen);
+        SuccessOrExit(err);
+
+        // Allocate larger buffer to hold the intermediate CA certificates.
+	// (This will also be used for the private key).
+	if (certsLen > dataBufSize)
+	{
+            Platform::Security::MemoryFree(dataBuf);
+
+            dataBufSize = certsLen;
+            dataBuf = (uint8_t *)Platform::Security::MemoryAlloc(dataBufSize);
+            VerifyOrExit(dataBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+        }
+
+        // Read the certificate.
+        err = Impl()->_GetManufAttestDeviceICACerts(dataBuf, certsLen, certsLen);
+        SuccessOrExit(err);
+
+        // Hash the length and value of the device certificate in base-64 form.
+        HashLengthAndBase64Value(hash, dataBuf, (uint16_t)certsLen);
     }
 
     // Hash the device private key
@@ -805,13 +1031,13 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_ComputeProvisioningHash
         size_t keyLen;
 
         // Determine the length of the device private key.
-        err = Impl()->_GetDevicePrivateKey((uint8_t *)NULL, 0, keyLen);
+        err = Impl()->_GetManufAttestDevicePrivateKey((uint8_t *)NULL, 0, keyLen);
         SuccessOrExit(err);
 
         // Read the private key.  (Note that we presume the buffer allocated to hold the certificate
         // is big enough to hold the private key.  _GetDevicePrivateKey() will return an error in the
         // unlikely event that this is not the case.)
-        err = Impl()->_GetDevicePrivateKey(dataBuf, dataBufSize, keyLen);
+        err = Impl()->_GetManufAttestDevicePrivateKey(dataBuf, dataBufSize, keyLen);
         SuccessOrExit(err);
 
         // Hash the length and value of the private key in base-64 form.
@@ -871,6 +1097,36 @@ void GenericConfigurationManagerImpl<ImplClass>::HashLengthAndBase64Value(Platfo
         val += chunkLen;
         valLen -= chunkLen;
     }
+}
+
+template<class ImplClass>
+bool GenericConfigurationManagerImpl<ImplClass>::_DeviceCredentialsProvisioned()
+{
+    return ::nl::GetFlag(mFlags, kFlag_DeviceCredentialsProvisioned);
+}
+
+template<class ImplClass>
+bool GenericConfigurationManagerImpl<ImplClass>::_DeviceICACertsProvisioned()
+{
+    return Impl()->ConfigValueExists(ImplClass::kConfigKey_OperationalDeviceICACerts);
+}
+
+template<class ImplClass>
+bool GenericConfigurationManagerImpl<ImplClass>::_ManufAttestDeviceICACertsProvisioned()
+{
+    return Impl()->ConfigValueExists(ImplClass::kConfigKey_ManufAttestDeviceICACerts);
+}
+
+template<class ImplClass>
+bool GenericConfigurationManagerImpl<ImplClass>::_UseManufAttestCredentialsAsOperational()
+{
+    return ::nl::GetFlag(mFlags, kFlag_UseManufAttestCredentialsAsOperational);
+}
+
+template<class ImplClass>
+void GenericConfigurationManagerImpl<ImplClass>::_UseManufAttestCredentialsAsOperational(bool val)
+{
+    SetFlag(mFlags, kFlag_UseManufAttestCredentialsAsOperational, val);
 }
 
 #if WEAVE_PROGRESS_LOGGING
