@@ -163,7 +163,7 @@ NRF5_SDK_TITLE = nRF5 SDK for Thread and Zigbee
 
 NRF5_SDK_VERSION_SED_EXP = /^${NRF5_SDK_TITLE} v[0-9.]+.*$$/ { s/.*v([0-9.]+).*/\1/; s/[.]/ /g; p; q; }
 
-NRF5_SDK_MIN_VERSION = 3.0.0
+NRF5_SDK_MIN_VERSION = 3.1.0
 
 
 # ==================================================
