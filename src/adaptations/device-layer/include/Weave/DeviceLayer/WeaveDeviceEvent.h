@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -196,6 +197,13 @@ enum PublicEventTypes
      * Signals that the state of WoBLE advertising has changed.
      */
     kWoBLEAdvertisingChange,
+
+    /**
+     * Operational Device Credentials Change
+     *
+     * Signals that the operational device's credentials have changed.
+     */
+    kOpDeviceCredentialsChange,
 };
 
 /**
@@ -397,6 +405,10 @@ struct WeaveDeviceEvent final
         {
             ActivityChange Result;
         } WoBLEAdvertisingChange;
+        struct
+        {
+            bool AreCredentialsProvisioned;
+        } OpDeviceCredentialsChange;
     };
 
     void Clear() { memset(this, 0, sizeof(*this)); }

@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -245,6 +246,7 @@ void BLEManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
     case DeviceEventType::kFabricMembershipChange:
     case DeviceEventType::kServiceProvisioningChange:
     case DeviceEventType::kAccountPairingChange:
+    case DeviceEventType::kOpDeviceCredentialsChange:
 
         // If WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED is enabled, and there is a change to the
         // device's provisioning state, then automatically disable WoBLE advertising if the device
@@ -1302,4 +1304,3 @@ void BLEManagerImpl::DriveBLEState(intptr_t arg)
 } // namespace nl
 
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-
