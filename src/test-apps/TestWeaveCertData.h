@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -24,7 +25,6 @@
 
 #ifndef TESTWEAVECERTDATA_H_
 #define TESTWEAVECERTDATA_H_
-
 
 namespace nl {
 namespace TestCerts {
@@ -82,7 +82,7 @@ extern const uint8_t sTestCert_Root_PublicKey[];
 extern const size_t sTestCertLength_Root_PublicKey;
 extern const uint8_t sTestCert_Root_SubjectKeyId[];
 extern const size_t sTestCertLength_Root_SubjectKeyId;
-extern const uint32_t sTestCert_Root_CurveOID;
+extern const uint32_t sTestCert_Root_CurveId;
 extern const uint64_t sTestCert_Root_Id;
 
 extern const uint8_t sTestCert_Root_SHA256_Weave[];

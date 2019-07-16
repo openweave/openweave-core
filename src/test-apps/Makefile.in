@@ -1430,7 +1430,8 @@ am__TestWeaveCert_SOURCES_DIST = TestWeaveCert.cpp \
 	TestWeaveCertData.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestWeaveCert_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveCert.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestWeaveCertData.$(OBJEXT)
+@WEAVE_BUILD_TESTS_TRUE@	TestWeaveCertData.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestPersistedStorageImplementation.$(OBJEXT)
 TestWeaveCert_OBJECTS = $(am_TestWeaveCert_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \

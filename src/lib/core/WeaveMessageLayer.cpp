@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -2528,6 +2529,36 @@ void WeaveMessageLayer::GetPeerDescription(char * buf, size_t bufSize, const Wea
         (msgInfo->InPacketInfo != NULL) ? msgInfo->InPacketInfo->SrcPort : 0,
         (msgInfo->InPacketInfo != NULL) ? msgInfo->InPacketInfo->Interface : INET_NULL_INTERFACEID,
         msgInfo->InCon);
+}
+
+/**
+ * @brief
+ *   Generate random Weave node Id.
+ *
+ * @details
+ *   This function generates 64-bit locally unique Weave node Id. This function uses cryptographically strong
+ *   random data source to guarantee uniqueness of generated value. Note that bit 57 of the generated Weave
+ *   node Id is set to 1 to indicate that generated Weave node Id is locally (not globally) unique.
+ *
+ * @param nodeId                        A reference to the 64-bit Weave node Id.
+ *
+ * @retval  #WEAVE_NO_ERROR             If Weave node Id was successfully generated.
+ */
+NL_DLL_EXPORT WEAVE_ERROR GenerateWeaveNodeId(uint64_t & nodeId)
+{
+    WEAVE_ERROR err;
+    uint64_t id = 0;
+
+    while (id <= kMaxAlwaysLocalWeaveNodeId)
+    {
+        err = nl::Weave::Platform::Security::GetSecureRandomData(reinterpret_cast<uint8_t*>(&id), sizeof(id));
+        SuccessOrExit(err);
+    }
+
+    nodeId = id | kEUI64_UL_Local;
+
+exit:
+    return err;
 }
 
 } // namespace nl

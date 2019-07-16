@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -1464,6 +1465,57 @@
 #ifndef WEAVE_CONFIG_DEBUG_CERT_VALIDATION
 #define WEAVE_CONFIG_DEBUG_CERT_VALIDATION                  1
 #endif // WEAVE_CONFIG_DEBUG_CERT_VALIDATION
+
+/**
+ *  @def WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID
+ *
+ *  @brief
+ *    EC curve to be used to generate Weave operational device certificate.
+ *
+ */
+#ifndef WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID
+#define WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID       (nl::Weave::Profiles::Security::kWeaveCurveId_prime256v1)
+#endif // WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID
+
+/**
+ *  @def WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_BEFORE
+ *
+ *  @brief
+ *    This is a packed valid date to be encoded in the Weave
+ *    operational device certificate. Any date before
+ *    that date the certificate is considered invalid.
+ *    The following functions can be used to calculate packed
+ *    date/time: PackCertTime() and PackedCertTimeToDate().
+ *    Weave packed certificate dates are limited to representing
+ *    dates that are on or after 2000/01/01.
+ *    Mathematical expression to calculate packed date is:
+ *        (((year - 2000) * 12 + (mon - 1)) * 31 + (day - 1))
+ *    Currently encoded value corresponds to 2019/01/01.
+ *
+ */
+#ifndef WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_BEFORE
+#define WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_BEFORE   0x1B9C
+#endif // WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_BEFORE
+
+/**
+ *  @def WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_AFTER
+ *
+ *  @brief
+ *    This is the valid date to be encoded in the Weave
+ *    operational device certificate. Any date after
+ *    that date the certificate is considered invalid.
+ *    The following functions can be used to calculate packed
+ *    date/time: PackCertTime() and PackedCertTimeToDate().
+ *    Weave packed certificate dates are limited to representing
+ *    dates that are on or after 2000/01/01.
+ *    Mathematical expression to calculate packed date is:
+ *        (((year - 2000) * 12 + (mon - 1)) * 31 + (day - 1))
+ *    Currently encoded value corresponds to 2069/01/01.
+ *
+ */
+#ifndef WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_AFTER
+#define WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_AFTER    0x6444
+#endif // WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_AFTER
 
 /**
  *  @def WEAVE_CONFIG_ENABLE_PASE_INITIATOR

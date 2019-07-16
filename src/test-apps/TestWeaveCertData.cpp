@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -91,7 +92,7 @@ void GetTestCert(int selector, const uint8_t *& certData, size_t& certDataLen)
     SELECT_CERT(FirmwareSigning);
     SELECT_CERT(FirmwareSigning_SHA256);
 
-    fprintf(stderr, "Unknown test certificated requested: %08X\n", selector);
+    fprintf(stderr, "Unknown test certificate requested: %08X\n", selector);
     exit(-1);
 }
 
@@ -140,7 +141,7 @@ void LoadTestCert(WeaveCertificateSet& certSet, int selector)
         // Add the trusted root key to the certificate set.
         rootPubKey.ECPoint = (uint8_t *)sTestCert_Root_PublicKey;
         rootPubKey.ECPointLen = sTestCertLength_Root_PublicKey;
-        err = certSet.AddTrustedKey(sTestCert_Root_Id, sTestCert_Root_CurveOID, rootPubKey, sTestCert_Root_SubjectKeyId, sTestCertLength_Root_SubjectKeyId);
+        err = certSet.AddTrustedKey(sTestCert_Root_Id, sTestCert_Root_CurveId, rootPubKey, sTestCert_Root_SubjectKeyId, sTestCertLength_Root_SubjectKeyId);
         if (err != WEAVE_NO_ERROR)
         {
             fprintf(stderr, "WeaveCertificateSet::AddTrustedKey() failed: %s\n", ErrorStr(err));
@@ -306,7 +307,7 @@ extern const uint8_t sTestCert_Root_SubjectKeyId[] =
 
 extern const size_t sTestCertLength_Root_SubjectKeyId = sizeof(sTestCert_Root_SubjectKeyId);
 
-extern const uint32_t sTestCert_Root_CurveOID = nl::Weave::Profiles::Security::kWeaveCurveId_secp224r1;
+extern const uint32_t sTestCert_Root_CurveId = nl::Weave::Profiles::Security::kWeaveCurveId_secp224r1;
 
 extern const uint64_t sTestCert_Root_Id = 0x18B430EEFF000001ULL;
 

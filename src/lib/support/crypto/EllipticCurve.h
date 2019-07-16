@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -31,6 +32,7 @@
 #include "WeaveCrypto.h"
 #include "HashAlgos.h"
 #include <Weave/Support/ASN1.h>
+#include <Weave/Support/MathUtils.h>
 
 #if WEAVE_CONFIG_USE_OPENSSL_ECC && !WEAVE_WITH_OPENSSL
 #error "INVALID WEAVE CONFIG: OpenSSL ECC implementation enabled but OpenSSL not available (WEAVE_CONFIG_USE_OPENSSL_ECC == 1 && WEAVE_WITH_OPENSSL == 0)."
@@ -66,6 +68,11 @@ using nl::Weave::ASN1::OID;
 class EncodedECPublicKey
 {
 public:
+    enum
+    {
+        kMaxValueLength = 2 * Platform::BitsToByteLength(WEAVE_CONFIG_MAX_EC_BITS) + 1
+    };
+
     uint8_t *ECPoint;                   // X9.62 format
     uint16_t ECPointLen;
 
@@ -77,7 +84,7 @@ class EncodedECDSASignature
 public:
     enum
     {
-        kMaxValueLength = ((WEAVE_CONFIG_MAX_EC_BITS + 7) / 8) + 1
+        kMaxValueLength = Platform::BitsToByteLength(WEAVE_CONFIG_MAX_EC_BITS) + 1
     };
 
     uint8_t *R;                         // ASN.1 DER Integer value format
@@ -91,6 +98,11 @@ public:
 class EncodedECPrivateKey
 {
 public:
+    enum
+    {
+        kMaxValueLength = Platform::BitsToByteLength(WEAVE_CONFIG_MAX_EC_BITS) + 1
+    };
+
     uint8_t *PrivKey;                   // Integer in big-endian format
     uint16_t PrivKeyLen;
 

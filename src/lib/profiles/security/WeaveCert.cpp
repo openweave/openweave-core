@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -276,7 +277,7 @@ WEAVE_ERROR WeaveCertificateSet::LoadCert(TLVReader& reader, uint16_t decodeFlag
     // If requested by the caller, mark the certificate as trusted.
     if (decodeFlags & kDecodeFlag_IsTrusted)
     {
-    	cert->CertFlags |= kCertFlag_IsTrusted;
+        cert->CertFlags |= kCertFlag_IsTrusted;
     }
 
     // Assign a default type for the certificate based on its subject and attributes.
@@ -564,18 +565,18 @@ WEAVE_ERROR WeaveCertificateSet::ValidateCert(WeaveCertificateData& cert, Valida
     if ((validateFlags & kValidateFlag_RequireSHA256) != 0)
         VerifyOrExit(cert.SigAlgoOID == kOID_SigAlgo_ECDSAWithSHA256, err = WEAVE_ERROR_WRONG_CERT_SIGNATURE_ALGORITHM);
 
-	// If the current certificate was signed with SHA-256, require that the CA certificate is also signed with SHA-256.
-	if (cert.SigAlgoOID == kOID_SigAlgo_ECDSAWithSHA256)
-		validateFlags |= kValidateFlag_RequireSHA256;
+    // If the current certificate was signed with SHA-256, require that the CA certificate is also signed with SHA-256.
+    if (cert.SigAlgoOID == kOID_SigAlgo_ECDSAWithSHA256)
+        validateFlags |= kValidateFlag_RequireSHA256;
 
     // Search for a valid CA certificate that matches the Issuer DN and Authority Key Id of the current certificate.
-	// Fail if no acceptable certificate is found.
-	err = FindValidCert(cert.IssuerDN, cert.AuthKeyId, context, validateFlags, depth + 1, caCert);
-	if (err != WEAVE_NO_ERROR)
-		ExitNow(err = WEAVE_ERROR_CA_CERT_NOT_FOUND);
+    // Fail if no acceptable certificate is found.
+    err = FindValidCert(cert.IssuerDN, cert.AuthKeyId, context, validateFlags, depth + 1, caCert);
+    if (err != WEAVE_NO_ERROR)
+        ExitNow(err = WEAVE_ERROR_CA_CERT_NOT_FOUND);
 
     // Verify signature of the current certificate against public key of the CA certificate. If signature verification
-	// succeeds, the current certificate is valid.
+    // succeeds, the current certificate is valid.
     hashLen = (cert.SigAlgoOID == kOID_SigAlgo_ECDSAWithSHA256)
               ? (uint8_t)Platform::Security::SHA256::kHashLength
               : (uint8_t)Platform::Security::SHA1::kHashLength;
@@ -892,6 +893,321 @@ NL_DLL_EXPORT uint32_t SecondsSinceEpochToPackedCertTime(uint32_t secondsSinceEp
     PackCertTime(asn1Time, packedTime);
 
     return packedTime;
+}
+
+/**
+ * @brief
+ *   Generate Weave operational device certificate.
+ *
+ * @details
+ *   This function generates Weave self-signed operational certificate encoded in the Weave TLV
+ *   format.
+ *
+ * @param  deviceId                Weave operational device Id.
+ * @param  devicePubKey            Weave operational device public key.
+ * @param  cert                    A pointer to a buffer where generated certificate to be written.
+ * @param  certBufSize             The length in bytes of the provided certificate buffer.
+ * @param  certLen                 The length in bytes of the generated certificate.
+ * @param  genCertSignature        A pointer to a function that generates ECDSA signature on the given
+ *                                 certificate hash using operational device private key.
+ *
+ * @retval #WEAVE_NO_ERROR         If Weave certificate was successfully generated.
+ */
+NL_DLL_EXPORT WEAVE_ERROR GenerateOperationalDeviceCert(uint64_t deviceId, EncodedECPublicKey& devicePubKey,
+                                                        uint8_t *cert, uint16_t certBufSize, uint16_t& certLen,
+                                                        GenerateECDSASignatureFunct genCertSignature)
+{
+    WEAVE_ERROR err;
+    TLVWriter writer;
+    TLVType containerType;
+    TLVType containerType2;
+    TLVType containerType3;
+    uint8_t *certDecodeBuf = NULL;
+    WeaveCertificateData *certData = NULL;
+
+    VerifyOrExit(genCertSignature != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    VerifyOrExit(devicePubKey.ECPoint != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    writer.Init(cert, certBufSize);
+
+    err = writer.StartContainer(ProfileTag(kWeaveProfile_Security, kTag_WeaveCertificate), kTLVType_Structure, containerType);
+    SuccessOrExit(err);
+
+    // Certificate serial number.
+    {
+        enum
+        {
+            kCertSerialNumber_Length          = 8,      // Length of the certificate serial number.
+            kCertSerialNumber_FirstByteMask   = 0x7F,   // Mask applied on the first byte of the key Id value.
+            kCertSerialNumber_FirstBytePrefix = 0x40,   // 4-bit Type value (0100) added at the beginning of the key Id value.
+        };
+        uint8_t certSerialNumber[kCertSerialNumber_Length];
+
+        // Generate a random value to be used as the serial number.
+        err = nl::Weave::Platform::Security::GetSecureRandomData(certSerialNumber, kCertSerialNumber_Length);
+        SuccessOrExit(err);
+
+        // Apply mask to avoid negative numbers.
+        certSerialNumber[0] &= kCertSerialNumber_FirstByteMask;
+
+        // Apply mask to guarantee the first byte is not zero.
+        certSerialNumber[0] |= kCertSerialNumber_FirstBytePrefix;
+
+        err = writer.PutBytes(ContextTag(kTag_SerialNumber), certSerialNumber, sizeof(certSerialNumber));
+        SuccessOrExit(err);
+    }
+
+    // Weave signature algorithm.
+    err = writer.Put(ContextTag(kTag_SignatureAlgorithm), static_cast<uint8_t>(kOID_SigAlgo_ECDSAWithSHA256 & ~kOIDCategory_Mask));
+    SuccessOrExit(err);
+
+    // Certificate issuer distinguished name.
+    {
+        err = writer.StartContainer(ContextTag(kTag_Issuer), kTLVType_Path, containerType2);
+        SuccessOrExit(err);
+
+        err = writer.Put(ContextTag(kOID_AttributeType_WeaveDeviceId & kOID_Mask), deviceId);
+        SuccessOrExit(err);
+
+        err = writer.EndContainer(containerType2);
+        SuccessOrExit(err);
+    }
+
+    // Certificate validity times.
+    err = writer.Put(ContextTag(kTag_NotBefore), PackedCertDateToTime(WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_BEFORE));
+    SuccessOrExit(err);
+
+    err = writer.Put(ContextTag(kTag_NotAfter), PackedCertDateToTime(WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_AFTER));
+    SuccessOrExit(err);
+
+    // Certificate subject distinguished name.
+    {
+        err = writer.StartContainer(ContextTag(kTag_Subject), kTLVType_Path, containerType2);
+        SuccessOrExit(err);
+
+        err = writer.Put(ContextTag(kOID_AttributeType_WeaveDeviceId & kOID_Mask), deviceId);
+        SuccessOrExit(err);
+
+        err = writer.EndContainer(containerType2);
+        SuccessOrExit(err);
+    }
+
+    // EC public key algorithm.
+    err = writer.Put(ContextTag(kTag_PublicKeyAlgorithm), static_cast<uint8_t>(kOID_PubKeyAlgo_ECPublicKey & kOID_Mask));
+    SuccessOrExit(err);
+
+    // EC public key curve Id.
+    err = writer.Put(ContextTag(kTag_EllipticCurveIdentifier), static_cast<uint32_t>(WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID));
+    SuccessOrExit(err);
+
+    // EC public key.
+    err = writer.PutBytes(ContextTag(kTag_EllipticCurvePublicKey), devicePubKey.ECPoint, devicePubKey.ECPointLen);
+    SuccessOrExit(err);
+
+    // Certificate extension: basic constraints.
+    {
+        err = writer.StartContainer(ContextTag(kTag_BasicConstraints), kTLVType_Structure, containerType2);
+        SuccessOrExit(err);
+
+        // This extension is critical.
+        err = writer.PutBoolean(ContextTag(kTag_BasicConstraints_Critical), true);
+        SuccessOrExit(err);
+
+        err = writer.EndContainer(containerType2);
+        SuccessOrExit(err);
+    }
+
+    // Certificate extension: key usage.
+    {
+        err = writer.StartContainer(ContextTag(kTag_KeyUsage), kTLVType_Structure, containerType2);
+        SuccessOrExit(err);
+
+        // This extension is critical.
+        err = writer.PutBoolean(ContextTag(kTag_KeyUsage_Critical), true);
+        SuccessOrExit(err);
+
+        err = writer.Put(ContextTag(kTag_KeyUsage_KeyUsage), static_cast<uint16_t>(kKeyUsageFlag_DigitalSignature | kKeyUsageFlag_KeyEncipherment));
+        SuccessOrExit(err);
+
+        err = writer.EndContainer(containerType2);
+        SuccessOrExit(err);
+    }
+
+    // Certificate extension: extended key usage.
+    {
+        err = writer.StartContainer(ContextTag(kTag_ExtendedKeyUsage), kTLVType_Structure, containerType2);
+        SuccessOrExit(err);
+
+        // This extension is critical.
+        err = writer.PutBoolean(ContextTag(kTag_ExtendedKeyUsage_Critical), true);
+        SuccessOrExit(err);
+
+        err = writer.StartContainer(ContextTag(kTag_ExtendedKeyUsage_KeyPurposes), kTLVType_Array, containerType3);
+        SuccessOrExit(err);
+
+        // Key purpose is client authentication.
+        err = writer.Put(AnonymousTag, static_cast<uint8_t>(kOID_KeyPurpose_ClientAuth & kOID_Mask));
+        SuccessOrExit(err);
+
+        // Key purpose is server authentication.
+        err = writer.Put(AnonymousTag, static_cast<uint8_t>(kOID_KeyPurpose_ServerAuth & kOID_Mask));
+        SuccessOrExit(err);
+
+        err = writer.EndContainer(containerType3);
+        SuccessOrExit(err);
+
+        err = writer.EndContainer(containerType2);
+        SuccessOrExit(err);
+    }
+
+    // Certificate key Id.
+    {
+        /* Use "truncated" SHA-1 hash. Per RFC5280:
+         *
+         *     "(2) The keyIdentifier is composed of a four-bit type field with the value 0100 followed
+         *     by the least significant 60 bits of the SHA-1 hash of the value of the BIT STRING
+         *     subjectPublicKey (excluding the tag, length, and number of unused bits)."
+         */
+        enum
+        {
+            kCertKeyId_Length          = 8,      // Length of the certificate key identifier.
+            kCertKeyId_FirstByte       = Platform::Security::SHA1::kHashLength - kCertKeyId_Length,
+                                                 // First byte of the SHA1 hash that used to generate certificate keyId.
+            kCertKeyId_FirstByteMask   = 0x0F,   // Mask applied on the first byte of the key Id value.
+            kCertKeyId_FirstBytePrefix = 0x40,   // 4-bit Type value (0100) added at the beginning of the key Id value.
+        };
+        Platform::Security::SHA1 sha1;
+        uint8_t hash[Platform::Security::SHA1::kHashLength];
+        uint8_t *certKeyId = &hash[kCertKeyId_FirstByte];
+
+        sha1.Begin();
+        sha1.AddData(devicePubKey.ECPoint, devicePubKey.ECPointLen);
+        sha1.Finish(hash);
+
+        certKeyId[0] &= kCertKeyId_FirstByteMask;
+        certKeyId[0] |= kCertKeyId_FirstBytePrefix;
+
+        // Certificate extension: subject key identifier.
+        {
+            err = writer.StartContainer(ContextTag(kTag_SubjectKeyIdentifier), kTLVType_Structure, containerType2);
+            SuccessOrExit(err);
+
+            err = writer.PutBytes(ContextTag(kTag_SubjectKeyIdentifier_KeyIdentifier), certKeyId, kCertKeyId_Length);
+            SuccessOrExit(err);
+
+            err = writer.EndContainer(containerType2);
+            SuccessOrExit(err);
+        }
+
+        // Certificate extension: authority key identifier.
+        {
+            err = writer.StartContainer(ContextTag(kTag_AuthorityKeyIdentifier), kTLVType_Structure, containerType2);
+            SuccessOrExit(err);
+
+            err = writer.PutBytes(ContextTag(kTag_AuthorityKeyIdentifier_KeyIdentifier), certKeyId, kCertKeyId_Length);
+            SuccessOrExit(err);
+
+            err = writer.EndContainer(containerType2);
+            SuccessOrExit(err);
+        }
+    }
+
+    // Start the ECDSASignature structure.
+    // Note that the ECDSASignature tag is added here but the actual certificate data (S and R values)
+    // will be written later. This is needed to prevent DecodeConvertTBSCert() function from failing.
+    // The DecodeConvertTBSCert() function expects a tag, different from "certificate extention" tag,
+    // to follow the certificate extention elements.
+    err = writer.StartContainer(ContextTag(kTag_ECDSASignature), kTLVType_Structure, containerType2);
+    SuccessOrExit(err);
+
+    {
+        enum
+        {
+            kCertDecodeBufferSize      = 1024,   // Maximum ASN1 encoded size of the operational device certificate.
+        };
+
+        TLVReader reader;
+        ASN1Writer tbsWriter;
+        TLVType readContainerType;
+
+        reader.Init(cert, certBufSize);
+
+        // Parse the beginning of the WeaveSignature structure.
+        err = reader.Next(kTLVType_Structure, ProfileTag(kWeaveProfile_Security, kTag_WeaveCertificate));
+        SuccessOrExit(err);
+
+        // Enter the certificate structure.
+        err = reader.EnterContainer(readContainerType);
+        SuccessOrExit(err);
+
+        // Allocate decode memory buffer.
+        certDecodeBuf = static_cast<uint8_t *>(Platform::Security::MemoryAlloc(kCertDecodeBufferSize));
+        VerifyOrExit(certDecodeBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+        // Allocate certificate data  structure.
+        certData = static_cast<WeaveCertificateData *>(Platform::Security::MemoryAlloc(sizeof(WeaveCertificateData)));
+        VerifyOrExit(certData != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+        // Initialize an ASN1Writer and convert the TBS (to-be-signed) portion of
+        // the certificate to ASN.1 DER encoding.
+        tbsWriter.Init(certDecodeBuf, kCertDecodeBufferSize);
+        err = DecodeConvertTBSCert(reader, tbsWriter, *certData);
+        SuccessOrExit(err);
+
+        // Finish writing the ASN.1 DER encoding of the TBS certificate.
+        err = tbsWriter.Finalize();
+        SuccessOrExit(err);
+
+        // Generate a SHA hash of the encoded TBS certificate.
+        Platform::Security::SHA256 sha256;
+        sha256.Begin();
+        sha256.AddData(certDecodeBuf, tbsWriter.GetLengthWritten());
+        sha256.Finish(certData->TBSHash);
+
+        // Reuse already allocated decode buffer to hold the generated signature value.
+        EncodedECDSASignature ecdsaSig;
+        ecdsaSig.R = certDecodeBuf;
+        ecdsaSig.RLen = EncodedECDSASignature::kMaxValueLength;
+        ecdsaSig.S = certDecodeBuf + EncodedECDSASignature::kMaxValueLength;
+        ecdsaSig.SLen = EncodedECDSASignature::kMaxValueLength;
+
+        // Generate an ECDSA signature for the given message hash.
+        err = genCertSignature(certData->TBSHash, Platform::Security::SHA256::kHashLength, ecdsaSig);
+        SuccessOrExit(err);
+
+        // Write the R value.
+        err = writer.PutBytes(ContextTag(kTag_ECDSASignature_r), ecdsaSig.R, ecdsaSig.RLen);
+        SuccessOrExit(err);
+
+        // Write the S value.
+        err = writer.PutBytes(ContextTag(kTag_ECDSASignature_s), ecdsaSig.S, ecdsaSig.SLen);
+        SuccessOrExit(err);
+    }
+
+    err = writer.EndContainer(containerType2);
+    SuccessOrExit(err);
+
+    err = writer.EndContainer(containerType);
+    SuccessOrExit(err);
+
+    err = writer.Finalize();
+    SuccessOrExit(err);
+
+    certLen = static_cast<uint16_t>(writer.GetLengthWritten());
+
+exit:
+    if (certDecodeBuf != NULL)
+    {
+        Platform::Security::MemoryFree(certDecodeBuf);
+    }
+
+    if (certData != NULL)
+    {
+        Platform::Security::MemoryFree(certData);
+    }
+
+    return err;
 }
 
 } // namespace Security

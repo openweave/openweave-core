@@ -1372,7 +1372,7 @@ TestWarm_LDFLAGS                         = $(AM_CPPFLAGS)
 TestWarm_LDADD                           = libWeaveTestGroupKeyStore.a $(COMMON_LDADD)
 endif
 
-TestWeaveCert_SOURCES                    = TestWeaveCert.cpp TestWeaveCertData.cpp
+TestWeaveCert_SOURCES                    = TestWeaveCert.cpp TestWeaveCertData.cpp TestPersistedStorageImplementation.cpp
 TestWeaveCert_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestWeaveEncoding_SOURCES                = TestWeaveEncoding.cpp
