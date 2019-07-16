@@ -18,8 +18,12 @@
 #      Component makefile for building OpenWeave within the ESP32 ESP-IDF environment.
 #
 
+# ==================================================
+# General settings
+# ==================================================
+
 # OpenWeave source root directory
-WEAVE_ROOT					?= $(realpath $(COMPONENT_PATH)/../../../..)
+OPENWEAVE_ROOT              ?= $(realpath $(COMPONENT_PATH)/../../../..)
 
 # Archtecture for which Weave will be built.
 HOST_ARCH                   := xtensa-unknown-linux-gnu
@@ -29,34 +33,55 @@ OUTPUT_DIR					:= $(BUILD_DIR_BASE)/openweave
 REL_OUTPUT_DIR              := $(shell perl -e 'use File::Spec; use Cwd; print File::Spec->abs2rel(Cwd::realpath($$ARGV[0]), Cwd::realpath($$ARGV[1])) . "\n"' $(OUTPUT_DIR) $(COMPONENT_PATH))
 
 # Directory containing esp32-specific Weave project configuration files.
-PROJECT_CONFIG_DIR          := $(WEAVE_ROOT)/build/config/esp32
+PROJECT_CONFIG_DIR          := $(OPENWEAVE_ROOT)/build/config/esp32
 
 # Architcture on which Weave is being built.
-BUILD_ARCH                  := $(shell $(WEAVE_ROOT)/third_party/nlbuild-autotools/repo/third_party/autoconf/config.guess | sed -e 's/[[:digit:].]*$$//g')
+BUILD_ARCH                  := $(shell $(OPENWEAVE_ROOT)/third_party/nlbuild-autotools/repo/third_party/autoconf/config.guess | sed -e 's/[[:digit:].]*$$//g')
 
 # Directory containing the esp32-specific LwIP component sources.
 LWIP_COMPONENT_DIR      	?= $(PROJECT_PATH)/components/lwip
 
+
+# ==================================================
+# Compilation flags specific to building OpenWeave
+# ==================================================
+
 # Include directories to be searched when building OpenWeave.
 INCLUDES                    := $(OUTPUT_DIR)/src/include \
                                $(OUTPUT_DIR)/src/include/Weave/DeviceLayer/ESP32 \
-                               $(WEAVE_ROOT)/src/adaptations/device-layer/trait-support \
+                               $(OPENWEAVE_ROOT)/src/adaptations/device-layer/trait-support \
                                $(COMPONENT_INCLUDES)
 
-# Compiler flags for building Weave
+# Compiler flags for building OpenWeave
 CFLAGS                      += $(addprefix -I,$(INCLUDES))
 CPPFLAGS                    += $(addprefix -I,$(INCLUDES))
 CXXFLAGS                    += $(addprefix -I,$(INCLUDES))
 
 INSTALL                     := /usr/bin/install
-INSTALLFLAGS                := --compare -v
+INSTALLFLAGS                := -C -v
 
+
+# ==================================================
+# Utility Functions
+# ==================================================
+
+QuoteChar = "
+
+DoubleQuoteStr = $(QuoteChar)$(subst $(QuoteChar),\$(QuoteChar),$(subst \,\\,$(1)))$(QuoteChar)
+
+
+# ==================================================
 # OpenWeave configuration options
-CONFIGURE_OPTIONS       	:= AR="$(AR)" CC="$(CC)" CXX="$(CXX)" LD="$(LD)" OBJCOPY="$(OBJCOPY)" \
+# ==================================================
+
+# ESP-IDF's project.mk fails to define RANLIB appropriately, so we define it here.
+RANLIB                      := $(call dequote,$(CONFIG_TOOLPREFIX))ranlib
+
+CONFIGURE_OPTIONS       	:= AR="$(AR)" CC="$(CC)" CXX="$(CXX)" LD="$(LD)" OBJCOPY="$(OBJCOPY)" RANLIB="$(RANLIB)" \
                                INSTALL="$(INSTALL) $(INSTALLFLAGS)" \
-                               CFLAGS="$(CFLAGS)" \
-                               CPPFLAGS="$(CPPFLAGS)" \
-                               CXXFLAGS="$(CXXFLAGS)" \
+                               CFLAGS=$(call DoubleQuoteStr, $(CFLAGS)) \
+                               CPPFLAGS=$(call DoubleQuoteStr, $(CPPFLAGS)) \
+                               CXXFLAGS=$(call DoubleQuoteStr, $(CXXFLAGS)) \
                                --prefix=$(OUTPUT_DIR) \
                                --exec-prefix=$(OUTPUT_DIR) \
                                --host=$(HOST_ARCH) \
@@ -86,7 +111,12 @@ else
 CONFIGURE_OPTIONS           +=  --enable-optimization=yes
 endif
 
-# Header directories to be included when building other components that use Weave.
+
+# ==================================================
+# Configuration for the OpenWeave ESF-IDF Component
+# ==================================================
+
+# Header directories to be included when building other components that use OpenWeave.
 # Note that these must be relative to the component source directory.
 COMPONENT_ADD_INCLUDEDIRS 	 = project-config \
                                $(REL_OUTPUT_DIR)/include
@@ -102,17 +132,19 @@ COMPONENT_ADD_LDFLAGS        = -L$(OUTPUT_DIR)/lib \
 					           -lWarm \
 					           -lDeviceLayer
 
-# Tell the ESP-IDF build system that the Weave component defines its own build
+# Tell the ESP-IDF build system that the OpenWeave component defines its own build
 # and clean targets.
 COMPONENT_OWNBUILDTARGET 	 = 1
 COMPONENT_OWNCLEANTARGET 	 = 1
 
 
-# ===== Rules =====
+# ==================================================
+# Build Rules
+# ==================================================
 
 .PHONY : check-config-args-updated
 check-config-args-updated : | $(OUTPUT_DIR)
-	echo $(WEAVE_ROOT)/configure $(CONFIGURE_OPTIONS) > $(OUTPUT_DIR)/config.args.tmp; \
+	echo $(OPENWEAVE_ROOT)/configure $(CONFIGURE_OPTIONS) > $(OUTPUT_DIR)/config.args.tmp; \
 	(test -r $(OUTPUT_DIR)/config.args && cmp -s $(OUTPUT_DIR)/config.args.tmp $(OUTPUT_DIR)/config.args) || \
 	    mv $(OUTPUT_DIR)/config.args.tmp $(OUTPUT_DIR)/config.args; \
 	rm -f $(OUTPUT_DIR)/config.args.tmp;
@@ -122,7 +154,7 @@ $(OUTPUT_DIR)/config.args : check-config-args-updated
 
 $(OUTPUT_DIR)/config.status : $(OUTPUT_DIR)/config.args
 	echo "CONFIGURE OPENWEAVE..."
-	(cd $(OUTPUT_DIR) && $(WEAVE_ROOT)/configure $(CONFIGURE_OPTIONS))
+	(cd $(OUTPUT_DIR) && $(OPENWEAVE_ROOT)/configure $(CONFIGURE_OPTIONS))
 
 configure-weave : $(OUTPUT_DIR)/config.status
 
