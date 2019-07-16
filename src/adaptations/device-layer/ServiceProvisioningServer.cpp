@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -22,13 +23,18 @@
 
 using namespace ::nl;
 using namespace ::nl::Weave;
+using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles;
 using namespace ::nl::Weave::Profiles::ServiceProvisioning;
+using namespace ::nl::Weave::Profiles::Security;
 
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
+
+using ::nl::Weave::Platform::Security::MemoryAlloc;
+using ::nl::Weave::Platform::Security::MemoryFree;
 
 ServiceProvisioningServer ServiceProvisioningServer::sInstance;
 
@@ -45,6 +51,10 @@ WEAVE_ERROR ServiceProvisioningServer::Init(void)
 
     mProvServiceBinding = NULL;
     mWaitingForServiceConnectivity = false;
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    mCertProvClient = NULL;
+#endif
 
 exit:
     return err;
@@ -91,7 +101,12 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
         PlatformMgr().PostEvent(&event);
     }
 
-#if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+
+    // Initiate the process of sending a GetCertificateRequest to the Certificate Provisioning service.
+    PlatformMgr().ScheduleWork(AsyncStartCertificateProvisioning);
+
+#elif !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
     // Initiate the process of sending a PairDeviceToAccount request to the Service Provisioning service.
     PlatformMgr().ScheduleWork(AsyncStartPairDeviceToAccount);
@@ -304,6 +319,15 @@ void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err,
         mProvServiceBinding = NULL;
     }
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    // If necessary, free memory allocated for the certificate provisioning engine.
+    if (mCertProvClient != NULL)
+    {
+        MemoryFree(mCertProvClient);
+        mCertProvClient = NULL;
+    }
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+
     // Return immediately if for some reason the client's RegisterServicePairAccount request
     // is no longer pending.  Note that, even if the PairDeviceToAccount request succeeded,
     // the device must clear the persisted service configuration in this case because it has
@@ -374,6 +398,33 @@ exit:
     }
 }
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+void ServiceProvisioningServer::AsyncStartCertificateProvisioning(intptr_t arg)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // Allocate temporary memory to hold the certificate provisioning client.
+    sInstance.mCertProvClient = static_cast<CertificateProvisioningClient *>(MemoryAlloc(sizeof(CertificateProvisioningClient)));
+    VerifyOrExit(sInstance.mCertProvClient != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    // Initialize certificate provisioning client.
+    err = sInstance.mCertProvClient->Init(WeaveCertProvEngine::kReqType_GetInitialOpDeviceCert, sInstance.EncodeGetCertificateRequestAuthInfo);
+    SuccessOrExit(err);
+
+    // Start certificate provisioning.
+    sInstance.mCertProvClient->StartCertificateProvisioning();
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        MemoryFree(sInstance.mCertProvClient);
+        sInstance.mCertProvClient = NULL;
+
+        sInstance.HandlePairDeviceToAccountResult(err, kWeaveProfile_Common, Profiles::Common::kStatus_InternalServerProblem);
+    }
+}
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+
 void ServiceProvisioningServer::AsyncStartPairDeviceToAccount(intptr_t arg)
 {
     sInstance.StartPairDeviceToAccount();
@@ -413,6 +464,23 @@ void ServiceProvisioningServer::HandleProvServiceBindingEvent(void * appState, B
         Binding::DefaultEventHandler(appState, eventType, inParam, outParam);
         break;
     }
+}
+
+WEAVE_ERROR ServiceProvisioningServer::EncodeGetCertificateRequestAuthInfo(TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    const RegisterServicePairAccountMessage & regServiceMsg = sInstance.mCurClientOpMsg.RegisterServicePairAccount;
+
+    // Encode pairing token.
+    err = writer.PutBytes(ContextTag(kTag_GetCertReqMsg_Authorize_PairingToken), regServiceMsg.PairingToken, regServiceMsg.PairingTokenLen);
+    SuccessOrExit(err);
+
+    // Encode pairing initialization data.
+    err = writer.PutBytes(ContextTag(kTag_GetCertReqMsg_Authorize_PairingInitData), regServiceMsg.PairingInitData, regServiceMsg.PairingInitDataLen);
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 
 #else // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING

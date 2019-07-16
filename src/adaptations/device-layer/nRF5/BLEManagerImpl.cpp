@@ -282,6 +282,7 @@ void BLEManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
     case DeviceEventType::kFabricMembershipChange:
     case DeviceEventType::kServiceProvisioningChange:
     case DeviceEventType::kAccountPairingChange:
+    case DeviceEventType::kDeviceCredentialsChange:
 
         // If WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED is enabled, and there is a change to the
         // device's provisioning state, then automatically disable WoBLE advertising if the device

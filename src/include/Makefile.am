@@ -1,5 +1,5 @@
 #
-#    Copyright (c) 2019 Google LLC.
+#    Copyright (c) 2019-2020 Google LLC.
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -1061,6 +1061,7 @@ $(NULL)
 
 nl_public_WeaveDeviceLayer_internal_header_sources =                                                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/BLEManager.h                                  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/CertificateProvisioningClient.h               \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceControlServer.h                         \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h                     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h               \
