@@ -23,35 +23,7 @@
 
 TMPDIR=${TMPDIR-/tmp}
 
-# Set tools download links
-#
-NORDIC_SDK_FOR_THREAD_URL=https://www.nordicsemi.com/-/media/Software-and-other-downloads/SDKs/nRF5-SDK-for-Thread/nRF5-SDK-for-Thread-and-Zigbee/nRF5SDKforThreadandZigbeev300d310e71.zip
-NORDIC_COMMAND_LINE_TOOLS_URL=https://www.nordicsemi.com/-/media/Software-and-other-downloads/Desktop-software/nRF5-command-line-tools/sw/nRF-Command-Line-Tools_9_8_1_Linux-x86_64.tar
-ARM_GCC_TOOLCHAIN_URL=https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
-
-# --------------------------------------------------------------------------------
-
 set -x
-
-# Install Nordic nRF52840 SDK for Thread and Zigbee
-#
-wget -O ${TMPDIR}/nordic_sdk_for_thread.zip -nv ${NORDIC_SDK_FOR_THREAD_URL} || exit 1
-unzip -d ${TRAVIS_BUILD_DIR}/nRF5x-SDK-for-Thread-and-Zigbee -q ${TMPDIR}/nordic_sdk_for_thread.zip || exit 1
-rm ${TMPDIR}/nordic_sdk_for_thread.zip
-
-# Install Nordic nRF5x Command Line Tools
-#
-wget -O ${TMPDIR}/nordic_command_line_tools.tar -nv ${NORDIC_COMMAND_LINE_TOOLS_URL} || exit 1
-mkdir ${TRAVIS_BUILD_DIR}/nRF5x-Command-Line-Tools
-tar -C ${TRAVIS_BUILD_DIR}/nRF5x-Command-Line-Tools -xf ${TMPDIR}/nordic_command_line_tools.tar || exit 1
-rm ${TMPDIR}/nordic_command_line_tools.tar
-
-# Install ARM GCC Toolchain
-#
-wget -O ${TMPDIR}/arm_gcc_toolchain.tar.bz2 -nv ${ARM_GCC_TOOLCHAIN_URL} || exit 1
-mkdir ${TRAVIS_BUILD_DIR}/arm
-tar -jxf ${TMPDIR}/arm_gcc_toolchain.tar.bz2 --directory ${TRAVIS_BUILD_DIR}/arm || exit 1
-rm ${TMPDIR}/arm_gcc_toolchain.tar.bz2
 
 # Clone the openweave-nrf52840-lock-example application.  This code will be used to
 # test the ability to build OpenWeave for the nRF52840.
@@ -71,6 +43,10 @@ if git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example rev-parse --verify
 fi
 EXAMPLE_APP_BRANCH=`git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example rev-parse --abbrev-ref HEAD`
 
+# Call the prepare script in the lock example repo to install related
+# dependencies.
+source ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example/.travis/prepare.sh
+
 # Initialize and update all submodules within the example app EXCEPT the
 # OpenWeave submodule.
 #
@@ -87,7 +63,7 @@ echo 'nRF52840 Build Preparation Complete'
 echo ''
 echo "openweave-core branch: ${TRAVIS_BRANCH}"
 echo "openweave-nrf52840-lock-example branch: ${EXAMPLE_APP_BRANCH}"
-echo "Nordic SDK for Thread and Zigbee: ${NORDIC_SDK_FOR_THREAD_URL}"
+echo "Nordic SDK for Thread and Zigbee: ${NORDIC_SDK_URL}"
 echo "Nordic nRF5x Command Line Tools: ${NORDIC_COMMAND_LINE_TOOLS_URL}"
 echo "ARM GCC Toolchain: ${ARM_GCC_TOOLCHAIN_URL}"
 echo 'Commit Hashes'

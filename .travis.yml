@@ -16,7 +16,7 @@
 
 #
 #    Description:
-#      This file is the Travis CI hosted, distributed continuous 
+#      This file is the Travis CI hosted, distributed continuous
 #      integration configuration file for the OpenWeave Core library.
 #
 
@@ -64,6 +64,12 @@ matrix:
       compiler: clang
     - name: "ESP32 (openweave-esp32-demo)"
       env: BUILD_TARGET="esp32"
+    - name: "nRF52840 Lock Example (Linux)"
+      env: BUILD_TARGET="nrf52840-lock-example"
+      os: linux
+    - name: "nRF52840 Lock Example (OS X)"
+      env: BUILD_TARGET="nrf52840-lock-example"
+      os: osx
     - name: "Linux with Defaults against GCC Functional and Unit Tests"
       env: BUILD_TARGET="linux-auto-gcc-check" CC="gcc"
       os: linux
