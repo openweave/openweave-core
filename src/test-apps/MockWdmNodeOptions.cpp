@@ -51,7 +51,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     mWdmUpdateConditionality(kConditionality_Conditional),
     mWdmUpdateMutation(kMutation_OneLeaf),
-    mWdmUpdateNumberOfTraits(1),
+    mWdmUpdateNumberOfTraits(0),
     mWdmUpdateNumberOfMutations(1),
     mWdmUpdateNumberOfRepeatedMutations(1),
     mWdmUpdateTiming(kTiming_AfterSub),
@@ -284,7 +284,8 @@ const char **MockWdmNodeOptions::GetUpdateTimingStrings(void)
     static const char *updateTimingStrings[kTiming_NumItems] = {
         "BeforeSub",
         "DuringSub",
-        "AfterSub"
+        "AfterSub",
+        "NoSub"
     };
 
     return updateTimingStrings;

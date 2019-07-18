@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google, LLC.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -144,6 +145,10 @@ private:
 
     bool mIsMutualSubscription;
     int mTestCaseId;
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    MockWdmNodeOptions::WdmUpdateTiming mUpdateTiming;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     // publisher side
     uint32_t mTimeBetweenLivenessCheckSec;
     SingleResourceSourceTraitCatalog mSourceCatalog;
@@ -232,11 +237,7 @@ private:
 
         kTestCase_IncompatibleVersionedCommandRequest = 9,
 
-        kTestCase_TestUpdatableTrait1 = 10,
-
-        kTestCase_TestUpdatableTrait2 = 11,
-
-        kTestCase_TestUpdatableTrait3 = 12,
+        kTestCase_TestUpdatableTrait = 10,
     };
 
     enum
@@ -439,25 +440,18 @@ WEAVE_ERROR MockWdmSubscriptionResponderImpl::Init (nl::Weave::WeaveExchangeMana
         WeaveLogDetail(DataManagement, "kTestCase_IncompatibleVersionedCommandRequest");
         break;
 
-    case kTestCase_TestUpdatableTrait1:
-        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait1");
-        mTestADataSource0.mTraitTestSet = 2;
-        break;
-
-    case kTestCase_TestUpdatableTrait2:
-        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait2");
-        mTestADataSource0.mTraitTestSet = 2;
-        break;
-
-    case kTestCase_TestUpdatableTrait3:
-        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait3");
-        mTestADataSource0.mTraitTestSet = 3;
+    case kTestCase_TestUpdatableTrait:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait");
         break;
 
     default:
         WeaveLogDetail(DataManagement, "kTestCase_TestTrait");
         break;
     }
+
+    #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    mUpdateTiming = aConfig.mWdmUpdateTiming;
+    #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     mIsMutualSubscription = aConfig.mEnableMutualSubscription;
 
@@ -547,9 +541,7 @@ void MockWdmSubscriptionResponderImpl::DumpClientTraits(void)
             DumpClientTraitChecksum(kTestADataSink0Index);
             DumpClientTraitChecksum(kTestADataSink1Index);
             break;
-        case kTestCase_TestUpdatableTrait1:
-        case kTestCase_TestUpdatableTrait2:
-        case kTestCase_TestUpdatableTrait3:
+        case kTestCase_TestUpdatableTrait:
             break;
     }
 }
@@ -581,9 +573,7 @@ void MockWdmSubscriptionResponderImpl::DumpPublisherTraits(void)
             DumpPublisherTraitChecksum(kTestATraitSource0Index);
             DumpPublisherTraitChecksum(kTestATraitSource1Index);
             break;
-        case kTestCase_TestUpdatableTrait1:
-        case kTestCase_TestUpdatableTrait2:
-        case kTestCase_TestUpdatableTrait3:
+        case kTestCase_TestUpdatableTrait:
             break;
     }
 }
@@ -691,9 +681,7 @@ void MockWdmSubscriptionResponderImpl::PublisherEventCallback (void * const aApp
                 switch (responder->mTestCaseId)
                 {
                 case kTestCase_TestTrait:
-                case kTestCase_TestUpdatableTrait1:
-                case kTestCase_TestUpdatableTrait2:
-                case kTestCase_TestUpdatableTrait3:
+                case kTestCase_TestUpdatableTrait:
                     responder->mNumPaths = 3;
                     responder->mTraitPaths[0].mTraitDataHandle = responder->mTraitHandleSet[kTestADataSink0Index];
                     responder->mTraitPaths[0].mPropertyPathHandle = kRootPropertyPathHandle;
@@ -1114,84 +1102,63 @@ void MockWdmSubscriptionResponderImpl::IncomingUpdateRequest(nl::Weave::Exchange
     const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
             uint8_t msgType, PacketBuffer *payload)
 {
-    static uint32_t num_update_iterations = 0;
-    static bool notification_first_ordering = false;
-    uint32_t num_update_tests = 7;
     WEAVE_ERROR     err     = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVReader reader;
+    nl::Weave::TLV::TLVWriter writer;
     UpdateRequest::Parser parser;
-    uint8_t statusReportLen = 6;
-    uint8_t * p;
-    WeaveLogDetail(DataManagement, "Incoming Update Request");
+    UpdateResponse::Builder updateResponseBuilder;
+    StatusReport statusReport;
+    uint8_t updateResponseBuf[512];
+    ReferencedTLVData referenceTLVData;
+    PacketBuffer * mBuf   = PacketBuffer::NewWithAvailableSize(1024);
     MockWdmSubscriptionResponderImpl * pResponder = reinterpret_cast<MockWdmSubscriptionResponderImpl *>(ec->AppState);
+
+    VerifyOrExit(NULL != pResponder, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    WeaveLogDetail(DataManagement, "Incoming Update Request, dumping it");
 
     reader.Init(payload);
     reader.Next();
-    parser.Init(reader);
-    parser.CheckSchemaValidity();
-
-    if (num_update_iterations == 0)
-    {
-        notification_first_ordering = ! notification_first_ordering;
-    }
-
-    if (notification_first_ordering)
-    {
-        WeaveLogDetail(DataManagement, "notification first");
-        switch (pResponder->mTestCaseId)
-        {
-        case kTestCase_TestUpdatableTrait1:
-            pResponder->mTestADataSource0.Mutate();
-            SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
-            break;
-        case kTestCase_TestUpdatableTrait2:
-            pResponder->mTestADataSource0.Mutate();
-            pResponder->mLocaleSettingsDataSource.Mutate();
-            SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
-            break;
-        case kTestCase_TestUpdatableTrait3:
-            pResponder->mTestADataSource0.Mutate();
-            pResponder->mTestBDataSource.Mutate();
-            pResponder->mLocaleSettingsDataSource.Mutate();
-            SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
-        default:
-            break;
-        }
-
-    }
-    else
-    {
-        WeaveLogDetail(DataManagement, "update response first");
-    }
-
-    num_update_iterations = num_update_iterations % num_update_tests;
-
-    WeaveLogDetail(DataManagement, "dump status report");
-
-    reader.Init(payload);
     DebugPrettyPrint(reader);
 
-    PacketBuffer * msgBuf   = PacketBuffer::NewWithAvailableSize(statusReportLen);
-    VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
+    WeaveLogDetail(DataManagement, "constructing notification if subscription exists and status report");
 
-    p = msgBuf->Start();
-    nl::Weave::Encoding::LittleEndian::Write32(p, nl::Weave::Profiles::kWeaveProfile_Common);
-    nl::Weave::Encoding::LittleEndian::Write16(p, nl::Weave::Profiles::Common::kStatus_Success);
-    msgBuf->SetDataLength(statusReportLen);
-
-    err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, msgBuf, nl::Weave::ExchangeContext::kSendFlag_RequestAck);
-    msgBuf = NULL;
-    SuccessOrExit(err);
-
-    if (!notification_first_ordering)
+    if (pResponder->mUpdateTiming != MockWdmNodeOptions::kTiming_NoSub)
     {
-        pResponder->mTestADataSource0.Mutate();
         pResponder->mLocaleSettingsDataSource.Mutate();
         SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
     }
 
-    num_update_iterations ++;
-    num_update_iterations = num_update_iterations % num_update_tests;
+    writer.Init(updateResponseBuf, sizeof(updateResponseBuf));
+    err = updateResponseBuilder.Init(&writer);
+    SuccessOrExit(err);
+
+    {
+        VersionList::Builder &lVLBuilder = updateResponseBuilder.CreateVersionListBuilder();
+        lVLBuilder.AddVersion(pResponder->mLocaleSettingsDataSource.GetVersion());
+        lVLBuilder.EndOfVersionList();
+        SuccessOrExit(lVLBuilder.GetError());
+    }
+
+    {
+        StatusList::Builder &lSLBuilder = updateResponseBuilder.CreateStatusListBuilder();
+        lSLBuilder.AddStatus(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kStatus_Success);
+        lSLBuilder.EndOfStatusList();
+        SuccessOrExit(lSLBuilder.GetError());
+    }
+
+    updateResponseBuilder.EndOfResponse();
+    SuccessOrExit(updateResponseBuilder.GetError());
+
+    referenceTLVData.init(sizeof(updateResponseBuf), sizeof(updateResponseBuf), updateResponseBuf);
+
+    statusReport.init(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kStatus_Success, &referenceTLVData);
+    err = statusReport.pack(mBuf);
+    SuccessOrExit(err);
+
+    err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, mBuf, nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+    mBuf = NULL;
+    SuccessOrExit(err);
 
 exit:
     WeaveLogFunctError(err);
@@ -1202,10 +1169,10 @@ exit:
         payload = NULL;
     }
 
-    if (NULL != msgBuf)
+    if (NULL != mBuf)
     {
-        PacketBuffer::Free(msgBuf);
-        msgBuf = NULL;
+        PacketBuffer::Free(mBuf);
+        mBuf = NULL;
     }
 
     if (NULL != ec)
@@ -1578,9 +1545,7 @@ void MockWdmSubscriptionResponderImpl::HandleDataFlipTimeout(nl::Weave::System::
             responder->Command_Send();
             SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
             break;
-        case kTestCase_TestUpdatableTrait1:
-        case kTestCase_TestUpdatableTrait2:
-        case kTestCase_TestUpdatableTrait3:
+        case kTestCase_TestUpdatableTrait:
             break;
         case kTestCase_IncompatibleVersionedCommandRequest:
             responder->Command_Send();

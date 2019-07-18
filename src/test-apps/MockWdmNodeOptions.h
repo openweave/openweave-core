@@ -87,7 +87,7 @@ public:
         kTiming_BeforeSub = 0,
         kTiming_DuringSub,
         kTiming_AfterSub,
-
+        kTiming_NoSub,
         kTiming_NumItems
     };
 
