@@ -51,7 +51,7 @@ NetworkInfo::NetworkInfo()
     ThreadNetworkName = NULL;
     ThreadExtendedPANId = NULL;
     ThreadNetworkKey = NULL;
-    ThreadNetworkKeyLen = 0;
+    ThreadPSKc = NULL;
     WirelessSignalStrength = INT16_MIN;
     ThreadPANId = kThreadPANId_NotSpecified;
     ThreadChannel = kThreadChannel_NotSpecified;
@@ -123,9 +123,11 @@ WEAVE_ERROR NetworkInfo::CopyTo(NetworkInfo& dest)
     SuccessOrExit(err);
     err = ReplaceValue(dest.ThreadNetworkName, ThreadNetworkName);
     SuccessOrExit(err);
-    err = ReplaceValue(dest.ThreadExtendedPANId, unused, ThreadExtendedPANId, 8);
+    err = ReplaceValue(dest.ThreadExtendedPANId, unused, ThreadExtendedPANId, kThreadExtendedPANIdLength);
     SuccessOrExit(err);
-    err = ReplaceValue(dest.ThreadNetworkKey, dest.ThreadNetworkKeyLen, ThreadNetworkKey, ThreadNetworkKeyLen);
+    err = ReplaceValue(dest.ThreadNetworkKey, unused, ThreadNetworkKey, kThreadNetworkKeyLength);
+    SuccessOrExit(err);
+    err = ReplaceValue(dest.ThreadPSKc, unused, ThreadPSKc, kThreadPSKcLength);
     SuccessOrExit(err);
     dest.WirelessSignalStrength = WirelessSignalStrength;
     dest.ThreadChannel = ThreadChannel;
@@ -138,6 +140,7 @@ exit:
 WEAVE_ERROR NetworkInfo::MergeTo(NetworkInfo& dest)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t unused;
 
     if (NetworkType != kNetworkType_NotSpecified)
         dest.NetworkType = NetworkType;
@@ -166,13 +169,17 @@ WEAVE_ERROR NetworkInfo::MergeTo(NetworkInfo& dest)
     }
     if (ThreadExtendedPANId != NULL)
     {
-        uint32_t unused;
-        err = ReplaceValue(dest.ThreadExtendedPANId, unused, ThreadExtendedPANId, 8);
+        err = ReplaceValue(dest.ThreadExtendedPANId, unused, ThreadExtendedPANId, kThreadExtendedPANIdLength);
         SuccessOrExit(err);
     }
     if (ThreadNetworkKey != NULL)
     {
-        err = ReplaceValue(dest.ThreadNetworkKey, dest.ThreadNetworkKeyLen, ThreadNetworkKey, ThreadNetworkKeyLen);
+        err = ReplaceValue(dest.ThreadNetworkKey, unused, ThreadNetworkKey, kThreadNetworkKeyLength);
+        SuccessOrExit(err);
+    }
+    if (ThreadPSKc != NULL)
+    {
+        err = ReplaceValue(dest.ThreadPSKc, unused, ThreadPSKc, kThreadPSKcLength);
         SuccessOrExit(err);
     }
     if (ThreadChannel != kThreadChannel_NotSpecified)
@@ -257,7 +264,7 @@ WEAVE_ERROR NetworkInfo::Decode(nl::Weave::TLV::TLVReader& reader)
             break;
         case kTag_ThreadExtendedPANId:
             VerifyOrExit(reader.GetType() == kTLVType_ByteString, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
-            VerifyOrExit(reader.GetLength() == 8, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            VerifyOrExit(reader.GetLength() == kThreadExtendedPANIdLength, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
             err = reader.DupBytes(ThreadExtendedPANId, val);
             SuccessOrExit(err);
             break;
@@ -277,9 +284,17 @@ WEAVE_ERROR NetworkInfo::Decode(nl::Weave::TLV::TLVReader& reader)
             break;
         case kTag_ThreadNetworkKey:
             VerifyOrExit(reader.GetType() == kTLVType_ByteString, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
-            err = reader.DupBytes(ThreadNetworkKey, ThreadNetworkKeyLen);
+            VerifyOrExit(reader.GetLength() == kThreadNetworkKeyLength, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.DupBytes(ThreadNetworkKey, val);
             SuccessOrExit(err);
             break;
+        case kTag_ThreadPSKc:
+            VerifyOrExit(reader.GetType() == kTLVType_ByteString, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            VerifyOrExit(reader.GetLength() == kThreadPSKcLength, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.DupBytes(ThreadPSKc, val);
+            SuccessOrExit(err);
+            break;
+
         default:
             // Ignore unknown elements
             break;
@@ -382,7 +397,14 @@ WEAVE_ERROR NetworkInfo::Encode(nl::Weave::TLV::TLVWriter& writer, uint8_t encod
     if (ThreadNetworkKey != NULL && (encodeFlags & kEncodeFlag_EncodeCredentials) != 0)
     {
         err = writer.PutBytes(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadNetworkKey), ThreadNetworkKey,
-                ThreadNetworkKeyLen);
+                kThreadNetworkKeyLength);
+        SuccessOrExit(err);
+    }
+
+    if (ThreadPSKc != NULL)
+    {
+        err = writer.PutBytes(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadPSKc), ThreadPSKc,
+                kThreadPSKcLength);
         SuccessOrExit(err);
     }
 
@@ -408,7 +430,6 @@ void NetworkInfo::Clear()
     WiFiRole = kWiFiRole_NotSpecified;
     WiFiSecurityType = kWiFiSecurityType_NotSpecified;
     WiFiKeyLen = 0;
-    ThreadNetworkKeyLen = 0;
     WirelessSignalStrength = INT16_MIN;
     ThreadPANId = kThreadPANId_NotSpecified;
     ThreadChannel = kThreadChannel_NotSpecified;
@@ -439,6 +460,12 @@ void NetworkInfo::Clear()
         free((void *)ThreadNetworkKey);
         ThreadNetworkKey = NULL;
     }
+    if (ThreadPSKc != NULL)
+    {
+        free((void *)ThreadPSKc);
+        ThreadPSKc = NULL;
+    }
+
 #endif //HAVE_MALLOC && HAVE_FREE
 }
 

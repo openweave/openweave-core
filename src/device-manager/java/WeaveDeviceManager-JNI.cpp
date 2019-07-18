@@ -3051,11 +3051,18 @@ WEAVE_ERROR J2N_NetworkInfo(JNIEnv *env, jobject inNetworkInfo, NetworkInfo& out
 
     err = J2N_ByteArrayFieldVal(env, inNetworkInfo, "ThreadExtendedPANId", outNetworkInfo.ThreadExtendedPANId, len);
     SuccessOrExit(err);
-    if (outNetworkInfo.ThreadExtendedPANId != NULL && len != 8)
+    if (outNetworkInfo.ThreadExtendedPANId != NULL && len != NetworkInfo::kThreadExtendedPANIdLength)
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    err = J2N_ByteArrayFieldVal(env, inNetworkInfo, "ThreadNetworkKey", outNetworkInfo.ThreadNetworkKey, outNetworkInfo.ThreadNetworkKeyLen);
+    err = J2N_ByteArrayFieldVal(env, inNetworkInfo, "ThreadNetworkKey", outNetworkInfo.ThreadNetworkKey, len);
     SuccessOrExit(err);
+    if (outNetworkInfo.ThreadNetworkKey != NULL && len != NetworkInfo::kThreadNetworkKeyLength)
+        ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = J2N_ByteArrayFieldVal(env, inNetworkInfo, "ThreadPSKc", outNetworkInfo.ThreadPSKc, len);
+    SuccessOrExit(err);
+    if (outNetworkInfo.ThreadPSKc!= NULL && len != NetworkInfo::kThreadPSKcLength)
+        ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     err = J2N_IntFieldVal(env, inNetworkInfo, "ThreadPANId", intVal);
     SuccessOrExit(err);
@@ -3082,6 +3089,7 @@ WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo, jobje
     jstring threadNetName = NULL;
     jbyteArray threadExtPANId = NULL;
     jbyteArray threadKey = NULL;
+    jbyteArray threadPSKc = NULL;
 
     if (inNetworkInfo.WiFiSSID != NULL)
     {
@@ -3103,17 +3111,23 @@ WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo, jobje
 
     if (inNetworkInfo.ThreadExtendedPANId != NULL)
     {
-        err = N2J_ByteArray(env, inNetworkInfo.ThreadExtendedPANId, 8, threadExtPANId);
+        err = N2J_ByteArray(env, inNetworkInfo.ThreadExtendedPANId, NetworkInfo::kThreadExtendedPANIdLength, threadExtPANId);
         SuccessOrExit(err);
     }
 
     if (inNetworkInfo.ThreadNetworkKey != NULL)
     {
-        err = N2J_ByteArray(env, inNetworkInfo.ThreadNetworkKey, inNetworkInfo.ThreadNetworkKeyLen, threadKey);
+        err = N2J_ByteArray(env, inNetworkInfo.ThreadNetworkKey, NetworkInfo::kThreadNetworkKeyLength, threadKey);
         SuccessOrExit(err);
     }
 
-    makeMethod = env->GetStaticMethodID(sNetworkInfoCls, "Make", "(IJLjava/lang/String;III[BLjava/lang/String;[B[BSII)Lnl/Weave/DeviceManager/NetworkInfo;");
+    if (inNetworkInfo.ThreadPSKc != NULL)
+    {
+        err = N2J_ByteArray(env, inNetworkInfo.ThreadPSKc, NetworkInfo::kThreadPSKcLength, threadPSKc);
+        SuccessOrExit(err);
+    }
+
+    makeMethod = env->GetStaticMethodID(sNetworkInfoCls, "Make", "(IJLjava/lang/String;III[BLjava/lang/String;[B[B[BSII)Lnl/Weave/DeviceManager/NetworkInfo;");
     VerifyOrExit(makeMethod != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
 
     env->ExceptionClear();
@@ -3128,6 +3142,7 @@ WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo, jobje
                                                  threadNetName,
                                                  threadExtPANId,
                                                  threadKey,
+                                                 threadPSKc,
                                                  (jshort)inNetworkInfo.WirelessSignalStrength,
                                                  (jint)inNetworkInfo.ThreadPANId,
                                                  (jint)inNetworkInfo.ThreadChannel);

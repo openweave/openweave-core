@@ -137,7 +137,8 @@ enum
     kTag_ThreadNetworkKey                       = 82,   /**< [ bytes string ] The Thread master network key. */
     kTag_ThreadMeshPrefix                       = 83,   /**< [ bytes string, exactly 8 bytes ] Thread mesh IPv6 /64 prefix (optional). */
     kTag_ThreadChannel                          = 84,   /**< [ uint, 8-bit max ] Thread channel number (optional). */
-    kTag_ThreadPANId                            = 85    /**< [ uint, 16-bit max ] Thread PAN ID (optional). */
+    kTag_ThreadPANId                            = 85,   /**< [ uint, 16-bit max ] Thread PAN ID (optional). */
+    kTag_ThreadPSKc                             = 86,   /**< [ uint, 16-bit max ] Thread PSKc (optional). */
 };
 
 /**

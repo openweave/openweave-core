@@ -86,13 +86,12 @@ const int NLThreadChannel_NotSpecified = -1;
             _ThreadNetworkName = [[NSString alloc] initWithCString:pNetworkInfo->ThreadNetworkName encoding:NSUTF8StringEncoding];
 
         if (pNetworkInfo->ThreadExtendedPANId) {
-            _ThreadExtendedPANId = [[NSData alloc] initWithBytes:pNetworkInfo->ThreadExtendedPANId length:8];
+            _ThreadExtendedPANId = [[NSData alloc] initWithBytes:pNetworkInfo->ThreadExtendedPANId length:nl::Weave::DeviceManager::NetworkInfo::kThreadExtendedPANIdLength];
         }
 
         if (pNetworkInfo->ThreadNetworkKey) {
-            NSLog(@"Copying ThreadNetworkKey with length: %d", pNetworkInfo->ThreadNetworkKeyLen);
             _ThreadNetworkKey = [[NSData alloc] initWithBytes:pNetworkInfo->ThreadNetworkKey
-                                                       length:pNetworkInfo->ThreadNetworkKeyLen];
+                                                       length:nl::Weave::DeviceManager::NetworkInfo::kThreadNetworkKeyLength];
             NSLog(@"_ThreadNetworkKey: %@", _ThreadNetworkKey);
         }
         _ThreadPANId = pNetworkInfo->ThreadPANId;
@@ -163,9 +162,8 @@ const int NLThreadChannel_NotSpecified = -1;
     }
 
     if (_ThreadNetworkKey) {
-        networkInfo.ThreadNetworkKeyLen = [_ThreadNetworkKey length];
-        networkInfo.ThreadNetworkKey = (uint8_t *) malloc(networkInfo.ThreadNetworkKeyLen);
-        memcpy(networkInfo.ThreadNetworkKey, [_ThreadNetworkKey bytes], networkInfo.ThreadNetworkKeyLen);
+        networkInfo.ThreadNetworkKey = (uint8_t *) malloc(NetworkInfo::kThreadNetworkKeyLength);
+        memcpy(networkInfo.ThreadNetworkKey, [_ThreadNetworkKey bytes], NetworkInfo::kThreadNetworkKeyLength);
     }
 
     networkInfo.ThreadPANId = _ThreadPANId;
@@ -281,7 +279,6 @@ const int NLThreadChannel_NotSpecified = -1;
                                     "\tThreadNetworkName: %s\n"
                                     "\tThreadPANId: %04x\n"
                                     "\tThreadExtendedPANId: %s\n"
-                                    "\tThreadNetworkKeyLen: %d\n"
                                     "\tThreadChannel: %d\n"
                                     "\tWirelessSignalStrength: %d",
                   self, pNetworkInfo->NetworkType, pNetworkInfo->NetworkId, pNetworkInfo->WiFiSSID, pNetworkInfo->WiFiMode,
@@ -290,7 +287,7 @@ const int NLThreadChannel_NotSpecified = -1;
                   pNetworkInfo->WiFiKey ? "*********" : "none",
 #endif
                   pNetworkInfo->ThreadNetworkName, pNetworkInfo->ThreadPANId, pNetworkInfo->ThreadExtendedPANId,
-                  pNetworkInfo->ThreadNetworkKeyLen, pNetworkInfo->ThreadChannel, pNetworkInfo->WirelessSignalStrength];
+                  pNetworkInfo->ThreadChannel, pNetworkInfo->WirelessSignalStrength];
 
     return descr;
 }

@@ -69,7 +69,6 @@ void WeaveTestNetworkInfo(nlTestSuite *inSuite, void *inContext)
     buf = new uint8_t[16];
     memcpy(buf, key1, 16);
     elemArray[0].ThreadNetworkKey = buf;
-    elemArray[0].ThreadNetworkKeyLen = 16;
 
     // PAN-1 has new-style credentials (with PAN ID, channel)
     elemArray[1].NetworkType = kNetworkType_Thread;
@@ -87,7 +86,6 @@ void WeaveTestNetworkInfo(nlTestSuite *inSuite, void *inContext)
     buf = new uint8_t[16];
     memcpy(buf, key2, 16);
     elemArray[1].ThreadNetworkKey = buf;
-    elemArray[1].ThreadNetworkKeyLen = 16;
     elemArray[1].ThreadPANId = 0x1234;
     elemArray[1].ThreadChannel = 15;
 

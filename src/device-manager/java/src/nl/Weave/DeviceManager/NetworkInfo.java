@@ -45,6 +45,7 @@ public class NetworkInfo
         ThreadNetworkName = null;
         ThreadExtendedPANId = null;
         ThreadNetworkKey = null;
+        ThreadPSKc = null;
         ThreadPANId = THREAD_PANID_NOTSPECIFIED;
         ThreadChannel = THREAD_CHANNEL_NOTSPECIFIED;
         WirelessSignalStrength = Short.MIN_VALUE;
@@ -90,6 +91,10 @@ public class NetworkInfo
     /** The Thread network key, or NULL if not specified.
          */
     public byte[] ThreadNetworkKey;
+
+    /** The Thread PSKc, or NULL if not specified.
+         */
+    public byte[] ThreadPSKc;
 
     /** The 16-bit Thread PAN ID, or kThreadPANId_NotSpecified 
          */

@@ -128,7 +128,6 @@ void MockNetworkProvisioningServer::Preconfig()
     for (int i = 0; i < 8; i++)
         ProvisionedNetworks[1].ThreadExtendedPANId[i] = i + 1;
     ProvisionedNetworks[1].ThreadNetworkKey = (uint8_t *)strdup("thisisathreadkey"); // must be 16 bytes
-    ProvisionedNetworks[1].ThreadNetworkKeyLen = strlen((const char *)ProvisionedNetworks[1].ThreadNetworkKey);
 }
 
 WEAVE_ERROR MockNetworkProvisioningServer::HandleScanNetworks(uint8_t networkType)
@@ -247,14 +246,6 @@ WEAVE_ERROR MockNetworkProvisioningServer::ValidateNetworkConfig(NetworkInfo& ne
             if (netConfig.ThreadNetworkKey == NULL)
             {
                 printf("Invalid network configuration: Missing Thread network key\n");
-                err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_InvalidNetworkConfiguration);
-                SuccessOrExit(err);
-                ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
-            }
-
-            if (netConfig.ThreadNetworkKeyLen == 0)
-            {
-                printf("Invalid network configuration: Zero-length Thread network key\n");
                 err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_InvalidNetworkConfiguration);
                 SuccessOrExit(err);
                 ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -883,7 +874,7 @@ void MockNetworkProvisioningServer::PrintNetworkInfo(NetworkInfo& netInfo, const
     if (netInfo.ThreadNetworkKey != NULL)
     {
         printf("%sThread Network Key: ", prefix);
-        for (uint32_t i = 0; i < netInfo.ThreadNetworkKeyLen; i++)
+        for (uint32_t i = 0; i < NetworkInfo::kThreadNetworkKeyLength; i++)
             printf("%02X", netInfo.ThreadNetworkKey[i]);
         printf("\n");
     }

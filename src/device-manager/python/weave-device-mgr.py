@@ -1166,6 +1166,7 @@ class DeviceMgrCmd(Cmd):
               thread-key or key
               thread-pan-id or pan-id
               thread-channel or channel
+              thread-pskc or pskc
               ...
         """
 
@@ -1216,11 +1217,15 @@ class DeviceMgrCmd(Cmd):
                 name = 'threadchannel'
             elif name == 'extended-pan-id':
                 name = 'threadextendedpanid'
+            elif name == 'pskc':
+                name = 'threadpskc'
 
             try:
                 if (name == 'threadchannel' or name == 'thread-channel'):
                     val = int(val, 10)
                 elif (name == 'threadnetworkkey' or name == 'thread-network-key' or name == 'thread-key'):
+                    val = bytearray(binascii.unhexlify(val))
+                elif (name == 'threadpskc' or name == 'thread-pskc'):
                     val = bytearray(binascii.unhexlify(val))
                 elif (name == 'threadextendedpanid' or name == 'thread-extended-pan-id'):
                     val = bytearray(binascii.unhexlify(val))
@@ -1284,6 +1289,7 @@ class DeviceMgrCmd(Cmd):
         optParser = OptionParser(usage=optparse.SUPPRESS_USAGE, option_class=ExtendedOption)
         optParser.add_option("-n", "--name", action="store", dest="threadNetworkName", type="string")
         optParser.add_option("-k", "--key", action="store", dest="threadNetworkKey", type="string")
+        optParser.add_option("-s", "--pskc", action="store", dest="threadPskc", type="string")
         optParser.add_option("-p", "--panid", action="store", dest="threadPANId", type="hexint")
         optParser.add_option("-c", "--channel", action="store", dest="threadChannel", type="int")
 
@@ -1303,6 +1309,8 @@ class DeviceMgrCmd(Cmd):
             networkInfo.ThreadNetworkName = options.threadNetworkName
         if (options.threadNetworkKey):
             networkInfo.ThreadNetworkKey = bytearray(binascii.unhexlify(options.threadNetworkKey))
+        if (options.threadPskc):
+            networkInfo.ThreadPskc = bytearray(binascii.unhexlify(options.threadPskc))
         if (options.threadPANId):
             networkInfo.ThreadPANId = options.threadPANId
             if (networkInfo.ThreadPANId > 0xffff):
@@ -1339,6 +1347,7 @@ class DeviceMgrCmd(Cmd):
               thread-network-name or thread-name
               thread-extended-pan-id or pan-id
               network-key or thread-key
+              pskc or thread-pskc
         """
 
         args = shlex.split(line)
