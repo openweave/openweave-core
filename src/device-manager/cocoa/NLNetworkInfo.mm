@@ -42,9 +42,9 @@ const int NLThreadChannel_NotSpecified = -1;
     return [[NLNetworkInfo alloc] initWith:pNetworkInfo];
 }
 
-- (id)initWithWiFiSSID:(NSString *)ssid wifiKey:(NSData *)wifiKey securityType:(NLWiFiSecurityType)securityType
+- (instancetype)initWithWiFiSSID:(NSString *)ssid wifiKey:(NSData *)wifiKey securityType:(NLWiFiSecurityType)securityType
 {
-    if (self = [super init]) {
+    if (self = [self init]) {
         _WiFiSSID = ssid;
 
         if (wifiKey)
@@ -55,13 +55,16 @@ const int NLThreadChannel_NotSpecified = -1;
         _NetworkType = kNLNetworkType_WiFi;
         _WiFiMode = kNLWiFiMode_Managed;
         _WiFiRole = kNLWiFiRole_Station;
-
-        _NetworkId = -1;
     }
     return self;
 }
 
-- (id)initWith:(nl::Weave::DeviceManager::NetworkInfo *)pNetworkInfo
+- (instancetype)init {
+    nl::Weave::DeviceManager::NetworkInfo defaultNetworkInfo;
+    return self = [self initWith:&defaultNetworkInfo];
+}
+
+- (instancetype)initWith:(nl::Weave::DeviceManager::NetworkInfo *)pNetworkInfo
 {
     if (self = [super init]) {
         _NetworkType = (NLNetworkType) pNetworkInfo->NetworkType;

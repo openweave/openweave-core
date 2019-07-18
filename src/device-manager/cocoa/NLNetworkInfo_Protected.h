@@ -31,6 +31,8 @@ using nl::Weave::DeviceManager::NetworkInfo;
 
 @interface NLNetworkInfo ()
 
+- (instancetype)initWith:(nl::Weave::DeviceManager::NetworkInfo *)pNetworkInfo NS_DESIGNATED_INITIALIZER;
+
 + (NLNetworkInfo *)createUsing:(NetworkInfo *)pNetworkInfo;
 
 - (NetworkInfo)toNetworkInfo;
