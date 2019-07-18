@@ -2,7 +2,8 @@
 
 
 #
-#    Copyright (c) 2015-2017 Nest Labs, Inc.
+#    Copyright (c) 2019 Google, LLC.
+#    Copyright (c) 2015-2018 Nest Labs, Inc.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -158,19 +159,30 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
                 sys.exit(1)
 
             device_ip = self.getNodeWeaveIPAddress(device_node_id)
-            device_weave_id = self.getWeaveNodeID(device_node_id)
-
             if device_ip is None:
                 emsg = "Could not find IP address of the device node."
                 self.logger.error("[localhost] WeavePairing: %s" % (emsg))
                 sys.exit(1)
 
+            device_weave_id = self.getWeaveNodeID(device_node_id)
             if device_weave_id is None:
                 emsg = "Could not find Weave node ID of the device node."
                 self.logger.error("[localhost] WeavePairing: %s" % (emsg))
                 sys.exit(1)
-            self.devices_info.append({'device': device, 'device_node_id': device_node_id, 'device_ip': device_ip,
-                                      'device_weave_id': device_weave_id, 'device_process_tag': device + "_" + self.device_process_tag, 'resource': resource})
+
+            device_serial_num = self.getSerialNum(device_node_id)
+            if device_serial_num is None:
+                emsg = "Could not find serial number of the device node."
+                self.logger.error("[localhost] WeavePairing: %s" % (emsg))
+                sys.exit(1)
+
+            self.devices_info.append({'device': device,
+                                      'device_node_id': device_node_id,
+                                      'device_ip': device_ip,
+                                      'device_weave_id': device_weave_id,
+                                      'device_serial_num': device_serial_num,
+                                      'device_process_tag': device + "_" + self.device_process_tag,
+                                      'resource': resource})
 
         if self.mobile_ip is None:
             emsg = "Could not find IP address of the mobile node."
@@ -328,7 +340,8 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
                 + " --vendor-id " + device_info['resource']['vendor_id'] \
                 + " --software-version " + '"' + device_info['resource']['software_id'] + '"' \
                 + " --product-id " + device_info['resource']['product_id'] \
-                + " --suppress-ac"  # Suppress access controls to work around WEAV-2024
+                + " --suppress-ac" \
+                + " --serial-num " + device_info['device_serial_num']
 
             if self.server_node_id is not None:
                 # if the server is a local mock, we need to override the default endpoint id
