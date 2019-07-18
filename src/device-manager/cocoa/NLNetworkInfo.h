@@ -58,7 +58,11 @@ extern const int NLThreadChannel_NotSpecified;
     int ThreadPANId; // The Thread PAN identifier (short) or NLThreadPANId_NotSpecified if not available/applicable.
 @property (nonatomic) int ThreadChannel; // The Thread channel or NLThreadChannel_NotSpecified if not available/applicable.
 
+
+- (instancetype)init NS_DESIGNATED_INITIALIZER;
+
 - (id)initWithWiFiSSID:(NSString *)ssid wifiKey:(NSData *)wifiKey securityType:(NLWiFiSecurityType)securityType;
+
 - (NSString *)WiFiSecurityTypeAsString;
 
 @end
