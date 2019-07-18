@@ -232,6 +232,11 @@ else
 OPT_FLAGS = -O0
 endif
 
+NRFJPROG_FLAGS ?= -f nrf52
+ifneq (,$(JLINK_SN))
+NRFJPROG_FLAGS += -s $(JLINK_SN)
+endif
+
 
 # ==================================================
 # Utility definitions
@@ -337,16 +342,16 @@ $(foreach file,$(filter %.s,$(ALL_SRCS)),$(call ASRule,$(file)))
 # Rule to build and flash the application
 flash : $(APP_HEX)
 	@echo "FLASH $$(APP_HEX)"
-	$(NO_ECHO)$$(NRFJPROG) -f nrf52 --program $$(APP_HEX) --sectorerase
+	$(NO_ECHO)$$(NRFJPROG) $$(NRFJPROG_FLAGS) --program $$(APP_HEX) --sectorerase
 	@echo "RESET DEVICE"
-	$(NO_ECHO)$$(NRFJPROG) -f nrf52 --reset
+	$(NO_ECHO)$$(NRFJPROG) $$(NRFJPROG_FLAGS) --reset
 
 # Rule to flash a pre-built application
 flash-app flash_app :
 	@echo "FLASH $$(APP_HEX)"
-	$(NO_ECHO)$$(NRFJPROG) -f nrf52 --program $$(APP_HEX) --sectorerase
+	$(NO_ECHO)$$(NRFJPROG) $$(NRFJPROG_FLAGS) --program $$(APP_HEX) --sectorerase
 	@echo "RESET DEVICE"
-	$(NO_ECHO)$$(NRFJPROG) -f nrf52 --reset
+	$(NO_ECHO)$$(NRFJPROG) $$(NRFJPROG_FLAGS) --reset
 
 # Rule to create the output directory / subdirectories
 $(OUTPUT_DIR) $(OBJS_DIR) $(DEPS_DIR) :
