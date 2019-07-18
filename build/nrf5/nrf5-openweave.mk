@@ -74,14 +74,23 @@ OPENWEAVE_CXXFLAGS = $(STD_CXXFLAGS) $(CXXFLAGS)
 
 
 # ==================================================
+# Utility Functions
+# ==================================================
+
+QuoteChar = "
+
+DoubleQuoteStr = $(QuoteChar)$(subst $(QuoteChar),\$(QuoteChar),$(subst \,\\,$(1)))$(QuoteChar)
+
+
+# ==================================================
 # OpenWeave configuration options
 # ==================================================
 
 OPENWEAVE_CONFIGURE_OPTIONS = \
     AR="$(AR)" AS="$(AS)" CC="$(CCACHE) $(CC)" CXX="$(CCACHE) $(CXX)" \
     LD="$(LD)" OBJCOPY="$(OBJCOPY)" RANLIB="$(RANLIB)" INSTALL="$(INSTALL) $(INSTALLFLAGS)" \
-    CPPFLAGS="$(OPENWEAVE_CPPFLAGS)" \
-    CXXFLAGS="$(OPENWEAVE_CXXFLAGS)" \
+    CPPFLAGS=$(call DoubleQuoteStr, $(OPENWEAVE_CPPFLAGS)) \
+    CXXFLAGS=$(call DoubleQuoteStr, $(OPENWEAVE_CXXFLAGS)) \
     --prefix=$(OPENWEAVE_OUTPUT_DIR) \
     --exec-prefix=$(OPENWEAVE_OUTPUT_DIR) \
     --host=$(OPENWEAVE_HOST_ARCH) \

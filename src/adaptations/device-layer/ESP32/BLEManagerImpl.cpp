@@ -24,6 +24,7 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/BLEManager.h>
+#include <BleLayer/WeaveBleServiceData.h>
 #include <new>
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
@@ -45,17 +46,11 @@ namespace Internal {
 
 namespace {
 
-struct WeaveServiceData
+
+struct ESP32WeaveServiceData
 {
     uint8_t ServiceUUID[2];
-    uint8_t DataBlockLen;
-    uint8_t DataBlockType;
-    uint8_t DataBlockMajorVersion;
-    uint8_t DataBlockMinorVersion;
-    uint8_t DeviceVendorId[2];
-    uint8_t DeviceProductId[2];
-    uint8_t DeviceId[8];
-    uint8_t PairingStatus;
+    WeaveBLEDeviceIdentificationInfo DeviceIdInfo;
 };
 
 const uint16_t WoBLEAppId = 0x235A;
@@ -562,7 +557,7 @@ WEAVE_ERROR BLEManagerImpl::ConfigureAdvertisingData(void)
 {
     WEAVE_ERROR err;
     esp_ble_adv_data_t advertData;
-    WeaveServiceData weaveServiceData;
+    ESP32WeaveServiceData weaveServiceData;
 
     // If a custom device name has not been specified, generate a Nest-standard name based on the
     // bottom digits of the Weave device id.
@@ -604,16 +599,11 @@ WEAVE_ERROR BLEManagerImpl::ConfigureAdvertisingData(void)
         ExitNow();
     }
 
-    // Construct the Weave Service Data to be sent in the scan response packet.
+    // Construct the Weave BLE Service Data to be sent in the scan response packet.  On the ESP32,
+    // the buffer given to esp_ble_gap_config_adv_data() must begin with the Weave BLE service UUID.
     memcpy(weaveServiceData.ServiceUUID, ShortUUID_WoBLEService, sizeof(weaveServiceData.ServiceUUID));
-    weaveServiceData.DataBlockLen = 16;
-    weaveServiceData.DataBlockType = 0x16;
-    weaveServiceData.DataBlockMajorVersion = 0;
-    weaveServiceData.DataBlockMinorVersion = 1;
-    Encoding::LittleEndian::Put16(weaveServiceData.DeviceVendorId, (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_VENDOR_ID);
-    Encoding::LittleEndian::Put16(weaveServiceData.DeviceProductId, (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_ID);
-    Encoding::LittleEndian::Put64(weaveServiceData.DeviceId, FabricState.LocalNodeId);
-    weaveServiceData.PairingStatus = ConfigurationMgr().IsPairedToAccount() ? 1 : 0;
+    err = ConfigurationMgr().GetBLEDeviceIdentificationInfo(weaveServiceData.DeviceIdInfo);
+    SuccessOrExit(err);
 
     // Configure the contents of the scan response packet.
     memset(&advertData, 0, sizeof(advertData));

@@ -36,48 +36,36 @@ import WeaveStateLoad
 import WeaveStateUnload
 import WeaveServiceDir
 import WeaveUtilities
+import subprocess
 
 gFaultopts = WeaveUtilities.FaultInjectionOptions(nodes=["client", "service"])
 gOptions = { "fault-injection": False }
 
 class test_service_directory_01(unittest.TestCase):
     def setUp(self):
-        self.tap = None
-
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.json"
-            self.tap = "wpan0"
+            self.use_lwip = True
+            topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
+                "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.sh"
+            # tap interface, ipv4 gateway and node addr should be provided if device is tap device
+            # both BorderRouter and cloud node are tap devices here
+            self.BR_tap = "wlan0"
+            self.BR_ipv4_gateway = "10.0.1.2"
+            self.BR_node_addr = "10.0.1.3"
+            self.cloud_tap = "eth0"
+            self.cloud_ipv4_gateway = "192.168.100.2"
+            self.cloud_node_addr = "192.168.100.3"
         else:
-            self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../../topologies/standalone/thread_wifi_ap_service.json"
-
-        self.show_strace = False
-
-        # setting Mesh for thread test
-        options = WeaveStateLoad.option()
-        options["quiet"] = True
-        options["json_file"] = self.topology_file
-
-        setup_network = WeaveStateLoad.WeaveStateLoad(options)
-        ret = setup_network.run()
-
+            self.use_lwip = False
+            topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
+                "/../../../topologies/standalone/thread_wifi_ap_service.sh"
+        output = subprocess.call([topology_shell_script])
 
     def tearDown(self):
         # cleaning up
-        options = WeaveStateUnload.option()
-        options["quiet"] = True
-        options["json_file"] = self.topology_file
-
-        teardown_network = WeaveStateUnload.WeaveStateUnload(options)
-        teardown_network.run()
-
+        subprocess.call(["happy-state-delete"])
 
     def test_service_directory(self):
-        # TODO: Once LwIP bugs are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")            
-            return
 
         num_tests = 0
         num_failed_tests = 0
@@ -125,13 +113,19 @@ class test_service_directory_01(unittest.TestCase):
         options["quiet"] = False
         options["client"] = nodeA
         options["service"] = nodeB
-        options["tap"] = self.tap
+        options["use_lwip"] = self.use_lwip
+        if self.use_lwip:
+            options["client_tap"] = self.BR_tap
+            options["client_ipv4_gateway"] = self.BR_ipv4_gateway
+            options["client_node_addr"] = self.BR_node_addr
+            options["service_tap"] = self.cloud_tap
+            options["service_ipv4_gateway"] = self.cloud_ipv4_gateway
+            options["service_node_addr"] = self.cloud_node_addr
         options["client_faults"] = faults.get("client")
         options["service_faults"] = faults.get("service")
         options["iterations"] = num_iterations
         options["test_tag"] = test_tag
         options["plaid"] = "auto"
-
 
         service_dir = WeaveServiceDir.WeaveServiceDir(options)
         ret = service_dir.run()

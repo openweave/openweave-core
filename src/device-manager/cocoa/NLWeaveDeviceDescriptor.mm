@@ -34,27 +34,13 @@
     WDM_LOG_METHOD_SIG();
 
     WEAVE_ERROR err;
-    uint8_t * encodedBuf = NULL;
-    uint32_t encodedLen;
     WeaveDeviceDescriptor deviceDesc;
-
-    NLWeaveDeviceDescriptor * nlDeviceDescriptor = nil;
-
-    encodedLen = [descriptorStr length];
-
-    encodedBuf = (uint8_t *) malloc(encodedLen + 1);
-    encodedBuf = (uint8_t *) strdup([descriptorStr UTF8String]);
-
-    err = WeaveDeviceDescriptor::Decode(encodedBuf, encodedLen, deviceDesc);
+    NSData *buffer = [descriptorStr dataUsingEncoding:NSUTF8StringEncoding];
+    err = WeaveDeviceDescriptor::Decode((const uint8_t *)buffer.bytes, (uint32_t)buffer.length, deviceDesc);
     SuccessOrExit(err);
 
-    nlDeviceDescriptor = [NLWeaveDeviceDescriptor createUsing:deviceDesc];
-
 exit:
-    if (encodedBuf != NULL)
-        free((uint8_t *) encodedBuf);
-
-    return nlDeviceDescriptor;
+    return [NLWeaveDeviceDescriptor createUsing:deviceDesc];
 }
 
 + (NLWeaveDeviceDescriptor *)createUsing:(WeaveDeviceDescriptor)deviceDescriptor

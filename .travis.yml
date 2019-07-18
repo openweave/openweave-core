@@ -33,6 +33,9 @@ script:
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 
+after_failure:
+  - .travis/after_failure.sh
+
 matrix:
   include:
     - name: "Linux with Defaults against GCC Distribution Sanity Check"
@@ -99,3 +102,6 @@ deploy:
   on:
     repo: openweave/openweave-core
     tags: true
+env:
+  global:
+    secure: PJdNS8L51Y+Op8xc2C9U13Y6eQUAszDEKigB0jn9LsXB8BZwJsu3mjmtLTQBU99nqAhsCKiN85kxry6APi/xjcDJ3/iRP8IpP8KJ/VV68CChdu1X/2iatSS/EOAT4ZBoo3sUCmP98w4k5G6HiVCpnNprhZOg8xsD9bflVkX9Au67hcwfHfKWyX1c/kbYYyegSWd+7GgkNZRGAws1yuwL1MwGppDqKQJ1bOciALaA1LMzzl1wvrle6t+CWvLH51YoIgndFsTJaphGqXp/hveCIsXEGKY5ZN8RkfuSvs9JupsfoXjA9Nxg2WfLC5c4MeyJV9yvzF9zZNglra9+PTlHFMxnuSvyIKRiHb9rwXMwgtb8Tqwhe0Cikj77gHdRUfZjUNBS34nNRqACSFjSFDM9N862z17BqfMZu0A0znquM24vfm+JV1i7OZ8USdbbmBqtL5qJgimQv2/Y/j3H/o6IrqOLEhuzOXQynclf6xi6AdXlcJ1QmTTicU5JbETJuzkvOYsnUs7TBV0FaPf+j98LEHTXZUPlDtQz4sIu757SiYUuR6Jm357yOwyv+x/PMk250g2op0TtMksjR3HQahnz8HJPYLenOxogYqarqY6E4TNm2P+bRDCPgxQ+dTSvlrcH8qhl+PHImn38q38ghm98WUvqdwxAApI3cZdy4Ja/3WA=

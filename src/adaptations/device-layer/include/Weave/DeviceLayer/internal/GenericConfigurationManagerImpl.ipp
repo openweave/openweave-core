@@ -27,7 +27,11 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h>
+#include <BleLayer/WeaveBleServiceData.h>
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#include <Weave/DeviceLayer/ThreadStackManager.h>
+#endif
 
 namespace nl {
 namespace Weave {
@@ -194,7 +198,11 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StorePrimaryWiFiMACAddr
 template<class ImplClass>
 WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetPrimary802154MACAddress(uint8_t * buf)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    return ThreadStackManager().GetPrimary802154MACAddress(buf);
+#else
     return WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND;
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 }
 
 template<class ImplClass>
@@ -610,6 +618,32 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetWiFiAPSSID(char * bu
     ExitNow(err = WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND);
 
 #endif // WEAVE_DEVICE_CONFIG_WIFI_AP_SSID_PREFIX
+
+exit:
+    return err;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetBLEDeviceIdentificationInfo(Ble::WeaveBLEDeviceIdentificationInfo & deviceIdInfo)
+{
+    WEAVE_ERROR err;
+    uint16_t id;
+
+    deviceIdInfo.Init();
+
+    err = Impl()->_GetVendorId(id);
+    SuccessOrExit(err);
+    deviceIdInfo.SetVendorId(id);
+
+    err = Impl()->_GetProductId(id);
+    SuccessOrExit(err);
+    deviceIdInfo.SetProductId(id);
+
+    deviceIdInfo.SetDeviceId(FabricState.LocalNodeId);
+
+    deviceIdInfo.PairingStatus = Impl()->_IsPairedToAccount()
+        ? Ble::WeaveBLEDeviceIdentificationInfo::kPairingStatus_Paired
+        : Ble::WeaveBLEDeviceIdentificationInfo::kPairingStatus_Unpaired;
 
 exit:
     return err;

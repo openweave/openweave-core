@@ -65,7 +65,7 @@ OPENTHREAD_OUTPUT_DIR = $(OUTPUT_DIR)/openthread
 
 # Directory containing OpenThread libraries.
 OPENTHREAD_LIB_DIR = $(if $(filter-out 0, $(USE_PREBUILT_OPENTHREAD)), \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc, \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/$(OPENTHREAD_TARGET)/gcc/mtls_ts, \
     $(OPENTHREAD_OUTPUT_DIR)/lib)
 
 # Prerequisite target for anything that depends on the output of the OpenThread
@@ -118,13 +118,27 @@ OPENTHREAD_INC_FLAGS = $(foreach dir,$(OPENTHREAD_INC_DIRS),-I$(dir))
 OPENTHREAD_DEFINES = \
     NRF52840_XXAA \
     DISABLE_CC310=1 \
-    OPENTHREAD_PROJECT_CORE_CONFIG_FILE='\"$(OPENTHREAD_PROJECT_CONFIG)\"'
+    MBEDTLS_THREADING=1 \
+    MBEDTLS_CONFIG_FILE='"mbedtls-config.h"' \
+    MBEDTLS_USER_CONFIG_FILE='"nrf52840-mbedtls-config.h"' \
+    OPENTHREAD_PROJECT_CORE_CONFIG_FILE='"$(OPENTHREAD_PROJECT_CONFIG)"'
 
 OPENTHREAD_INC_DIRS = \
 	$(PROJECT_ROOT) \
     $(OPENTHREAD_ROOT)/examples/platforms \
     $(OPENTHREAD_ROOT)/examples/platforms/$(OPENTHREAD_TARGET) \
+    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/crypto \
+    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/nrf_cc310/include \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk
+
+
+# ==================================================
+# Utility Functions
+# ==================================================
+
+QuoteChar = "
+
+DoubleQuoteStr = $(QuoteChar)$(subst $(QuoteChar),\$(QuoteChar),$(subst \,\\,$(1)))$(QuoteChar)
 
 
 # ==================================================
@@ -136,8 +150,8 @@ OPENTHREAD_CONFIGURE_OPTIONS = \
     CCAS="$(CCACHE) $(CC)" AS="${AS}" AR="$(AR)" RANLIB="$(RANLIB)" \
     NM="$(NM)" STRIP="$(STRIP)" OBJDUMP="$(OBJCOPY)" OBJCOPY="$(OBJCOPY)" \
     SIZE="$(SIZE)" RANLIB="$(RANLIB)" INSTALL="$(INSTALL) $(INSTALLFLAGS) -m644" \
-    CPPFLAGS="$(OPENTHREAD_CPPFLAGS)" \
-    CXXFLAGS="$(OPENTHREAD_CXXFLAGS)" \
+    CPPFLAGS=$(call DoubleQuoteStr, $(OPENTHREAD_CPPFLAGS)) \
+    CXXFLAGS=$(call DoubleQuoteStr, $(OPENTHREAD_CXXFLAGS)) \
     LDFLAGS="" \
     --prefix=$(OPENTHREAD_OUTPUT_DIR) \
     --exec-prefix=$(OPENTHREAD_OUTPUT_DIR) \
@@ -165,13 +179,25 @@ endif
 #   incorporate OpenThread into the application.
 # ==================================================
 
+STD_DEFINES += \
+    DISABLE_CC310=1 \
+    MBEDTLS_THREADING=1 \
+    MBEDTLS_CONFIG_FILE='"mbedtls-config.h"' \
+    MBEDTLS_USER_CONFIG_FILE='"nrf52840-mbedtls-config.h"'
+
 # Add the appropriate path to the public OpenThread headers to the application's
 # compile actions.
 STD_INC_DIRS_PREBUILT = \
-    $(NRF5_SDK_ROOT)/external/openthread/include
+    $(NRF5_SDK_ROOT)/external/openthread/include \
+    $(NRF5_SDK_ROOT)/external/openthread/project/$(OPENTHREAD_TARGET) \
+    $(NRF5_SDK_ROOT)/external/openthread/include/openthread/platform/mbedtls
+#    $(NRF5_SDK_ROOT)/external/nrf_cc310/include
 STD_INC_DIRS_BUILT = \
     $(OPENTHREAD_OUTPUT_DIR)/include \
-    $(OPENTHREAD_ROOT)/third_party/mbedtls/repo/include
+    $(OPENTHREAD_ROOT)/third_party/mbedtls \
+    $(OPENTHREAD_ROOT)/third_party/mbedtls/repo/include \
+    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/crypto
+#    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/nrf_cc310/include  
 STD_INC_DIRS += $(if $(filter-out 0, $(USE_PREBUILT_OPENTHREAD)), \
     $(STD_INC_DIRS_PREBUILT), \
     $(STD_INC_DIRS_BUILT))
