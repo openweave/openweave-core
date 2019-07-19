@@ -29,7 +29,6 @@ import getopt
 import sys
 import set_test_path
 
-from happy.Utils import *
 import ServiceAccountManager
 
 if __name__ == "__main__":
@@ -61,5 +60,5 @@ if __name__ == "__main__":
             options["password"] = a
 
     cmd = ServiceAccountManager.ServiceAccountManager(options)
-    cmd.start()
+    cmd.run()
 
