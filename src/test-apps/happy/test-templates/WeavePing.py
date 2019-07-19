@@ -134,20 +134,20 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
                 client_ip = self.getServiceWeaveIPAddress(self.endpoint, client_node_id)
                 client_weave_id = self.getServiceWeaveID(self.endpoint, client_node_id)
             else:
-                client_ip = self.getNodeWeaveIPAddress(client_node_id)
+                #client_ip = self.getNodeWeaveIPAddress(client_node_id)
                 client_weave_id = self.getWeaveNodeID(client_node_id)
 
-            if client_ip == None:
-                emsg = "Could not find IP address of the client node."
-                self.logger.error("[localhost] WeavePing: %s" % (emsg))
-                sys.exit(1)
+            # if client_ip == None:
+            #     emsg = "Could not find IP address of the client node."
+            #     self.logger.error("[localhost] WeavePing: %s" % (emsg))
+            #     sys.exit(1)
 
             if client_weave_id == None:
                 emsg = "Could not find Weave node ID of the client node."
                 self.logger.error("[localhost] WeavePing: %s" % (emsg))
                 sys.exit(1)
 
-            self.clients_info.append({'client': client, 'client_node_id': client_node_id, 'client_ip': client_ip,
+            self.clients_info.append({'client': client, 'client_node_id': client_node_id, 
                           'client_weave_id': client_weave_id, 'client_process_tag': client + "_" + self.client_process_tag + client})
 
 
@@ -161,44 +161,44 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
         if self._nodeExists(self.server):
             self.server_node_id = self.server
 
-        # Check if server is provided in a form of IP address
-        if IP.isIpAddress(self.server):
-            self.no_service = True
-            self.server_ip = self.server
-            self.server_weave_id = self.IPv6toWeaveId(self.server)
-        elif IP.isDomainName(self.server) or self.server == "service":
-            self.no_service = True
-            self.server_ip = self.getServiceWeaveIPAddress(self.endpoint)
-            self.server_weave_id = self.IPv6toWeaveId(self.server_ip)
-        else:
-            # Check if server is a true clound service instance
-            if self.getNodeType(self.server) == self.node_type_service:
-                self.no_service = True
+        # # Check if server is provided in a form of IP address
+        # if IP.isIpAddress(self.server):
+        #     self.no_service = True
+        #     self.server_ip = self.server
+        #     self.server_weave_id = self.IPv6toWeaveId(self.server)
+        # elif IP.isDomainName(self.server) or self.server == "service":
+        #     self.no_service = True
+        #     self.server_ip = self.getServiceWeaveIPAddress(self.endpoint)
+        #     self.server_weave_id = self.IPv6toWeaveId(self.server_ip)
+        # else:
+        #     # Check if server is a true clound service instance
+        #     if self.getNodeType(self.server) == self.node_type_service:
+        #         self.no_service = True
 
-        if not self.no_service and self.server_node_id == None:
-            emsg = "Unknown identity of the server node."
-            self.logger.error("[localhost] WeavePing: %s" % (emsg))
-            sys.exit(1)
+        # if not self.no_service and self.server_node_id == None:
+        #     emsg = "Unknown identity of the server node."
+        #     self.logger.error("[localhost] WeavePing: %s" % (emsg))
+        #     sys.exit(1)
 
-        if self.getNodeType(self.server_node_id) == "service":
-            self.server_ip = self.getServiceWeaveIPAddress(self.endpoint, self.server_node_id)
-            self.server_weave_id = self.getServiceWeaveID(self.endpoint, self.server_node_id)
-        else:
-            if not self.no_service:
-                self.server_ip = self.getNodeWeaveIPAddress(self.server_node_id)
-                self.server_weave_id = self.getWeaveNodeID(self.server_node_id)
+        # if self.getNodeType(self.server_node_id) == "service":
+        #     self.server_ip = self.getServiceWeaveIPAddress(self.endpoint, self.server_node_id)
+        #     self.server_weave_id = self.getServiceWeaveID(self.endpoint, self.server_node_id)
+        # else:
+        #     if not self.no_service:
+        #         self.server_ip = self.getNodeWeaveIPAddress(self.server_node_id)
+        #         self.server_weave_id = self.getWeaveNodeID(self.server_node_id)
 
-        # Check if all unknowns were found
+        # # Check if all unknowns were found
 
-        if self.server_ip == None:
-            emsg = "Could not find IP address of the server node."
-            self.logger.error("[localhost] WeavePing: %s" % (emsg))
-            sys.exit(1)
+        # if self.server_ip == None:
+        #     emsg = "Could not find IP address of the server node."
+        #     self.logger.error("[localhost] WeavePing: %s" % (emsg))
+        #     sys.exit(1)
 
-        if not self.no_service and self.server_weave_id == None:
-            emsg = "Could not find Weave node ID of the server node."
-            self.logger.error("[localhost] WeavePing: %s" % (emsg))
-            sys.exit(1)
+        # if not self.no_service and self.server_weave_id == None:
+        #     emsg = "Could not find Weave node ID of the server node."
+        #     self.logger.error("[localhost] WeavePing: %s" % (emsg))
+        #     sys.exit(1)
 
 
     def __process_results(self, client_info, output):
@@ -235,8 +235,8 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
     
 
     def __start_server_side(self):
-        if self.no_service:
-            return
+        # if self.no_service:
+        #     return
 
         cmd = self.getWeavePingPath()
         if not cmd:
@@ -249,11 +249,13 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --udp"
         elif self.wrmp:
             cmd += " --wrmp"
+        
+        if self.use_lwip:
+            cmd += " --tap-device " + self.service_tap
+            cmd += " --ipv4-gateway " + self.service_ipv4_gateway
+            cmd += " --node-addr " + self.service_ip
 
-        if self.tap:
-            cmd += " --tap-device " + self.tap
-
-        self.start_simple_weave_server(cmd, self.server_ip,
+        self.start_simple_weave_server(cmd, self.service_ip,
              self.server_node_id, self.server_process_tag, use_persistent_storage = self.use_persistent_storage, env=self.plaid_server_env)
 
 
@@ -275,8 +277,14 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
     
         cmd += " --count " + str(self.count)
 
-        if self.tap:
-            cmd += " --tap-device " + self.tap
+        if self.use_lwip:
+            cmd += " --tap-device " + self.client_tap
+            cmd += " --ipv4-gateway " + self.client_ipv4_gateway
+            cmd += " --node-addr " + self.client_node_addr
+            cmd += " --service-dir-server " + self.service_ip
+        else:
+            cmd += " --node-addr " + self.client_ip
+            cmd += " --service-dir-server " + self.service_ip
 
         if self.case:
             if self.case_shared:
@@ -290,7 +298,7 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
                 cmd += ' --node-cert ' + self.cert_file + ' --node-key ' + self.key_file
 
         self.start_simple_weave_client(cmd, client_info['client_ip'],
-            self.server_ip, self.server_weave_id,
+            self.service_ip, self.server_weave_id,
             client_info['client_node_id'], client_info['client_process_tag'], use_persistent_storage=self.use_persistent_storage, env=self.plaid_client_env)
 
 
@@ -299,8 +307,8 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
 
 
     def __stop_server_side(self):
-        if self.no_service:
-            return
+        # if self.no_service:
+        #     return
 
         self.stop_weave_process(self.server_node_id, self.server_process_tag)
 

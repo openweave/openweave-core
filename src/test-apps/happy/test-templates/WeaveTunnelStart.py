@@ -156,7 +156,7 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
                     self.logger.error("[localhost] WeaveTunnelStart: %s" % (emsg))
                     self.exit()
 
-        if self.service:
+        if self.service and not self.use_lwip:
             # If service is a domain name, convert it to IP
             if IP.isDomainName(self.service):
                 ip = IP.getHostByName(self.service)
@@ -215,8 +215,13 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --node-id " + str(self.service_weave_id)
         cmd += " --fabric-id " + str(self.fabric_id)
 
-        if self.tap:
-            cmd += " --tap-device " + self.tap
+        
+        # if device is tap device, we need to provide tap interface and ipv4 gateway 
+
+        if self.use_lwip:
+            cmd += " --tap-device " + self.service_tap
+            cmd += " --ipv4-gateway " + self.service_ipv4_gateway
+            cmd += " --node-addr " + self.service_ip
 
         if self.service_faults:
             cmd += " --faults " + self.service_faults
@@ -233,29 +238,29 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
 
         max_wait_time = 40
 
-        while not self._nodeInterfaceExists(self.service_tun, self.service):
-            time.sleep(0.1)
-            max_wait_time -= 1
+        # while not self._nodeInterfaceExists(self.service_tun, self.service):
+        #     time.sleep(0.1)
+        #     max_wait_time -= 1
 
-            if max_wait_time <= 0:
-                emsg = "Service-side tunnel interface %s was not created." % (self.service_tun)
-                self.logger.error("[%s] WeaveTunnel: %s" % (self.service, emsg))
-                self.exit()
+        #     if max_wait_time <= 0:
+        #         emsg = "Service-side tunnel interface %s was not created." % (self.service_tun)
+        #         self.logger.error("[%s] WeaveTunnel: %s" % (self.service, emsg))
+        #         self.exit()
 
-            if (max_wait_time) % 10 == 0:
-                emsg = "Waiting for interface %s to be created." % (self.service_tun)
-                self.logger.debug("[%s] WeaveTunnel: %s" % (self.service, emsg))
+        #     if (max_wait_time) % 10 == 0:
+        #         emsg = "Waiting for interface %s to be created." % (self.service_tun)
+        #         self.logger.debug("[%s] WeaveTunnel: %s" % (self.service, emsg))
 
-        with self.getStateLockManager():
-            self.readState()
+        # with self.getStateLockManager():
+        #     self.readState()
 
-            new_node_interface = {}
-            new_node_interface["link"] = None
-            new_node_interface["type"] = self.network_type["tun"]
-            new_node_interface["ip"] = {}
-            self.setNodeInterface(self.service, self.service_tun, new_node_interface)
+        #     new_node_interface = {}
+        #     new_node_interface["link"] = None
+        #     new_node_interface["type"] = self.network_type["tun"]
+        #     new_node_interface["ip"] = {}
+        #     self.setNodeInterface(self.service, self.service_tun, new_node_interface)
 
-            self.writeState()
+        #     self.writeState()
 
 
     def __assing_tunnel_endpoint_ula_at_service(self):
@@ -279,8 +284,15 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --node-id " + self.gateway_weave_id
         cmd += " --fabric-id " + str(self.fabric_id)
 
-        if self.tap:
-            cmd += " --tap-device " + self.tap
+        if self.use_lwip:
+            cmd += " --tap-device " + self.client_tap
+            cmd += " --ipv4-gateway " + self.client_ipv4_gateway
+            cmd += " --node-addr " + self.client_node_addr
+            cmd += " --service-dir-server " + self.service_ip
+        else:
+            cmd += " --node-addr " + self.client_ip
+            cmd += " --service-dir-server " + self.service_ip
+
         if self.primary:
             cmd += " --primary-intf " + self.primary
         if self.backup:
@@ -368,20 +380,20 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
 
         if not self.skip_service_end:
             self.__start_tunnel_at_service()
-            self.__assing_tunnel_endpoint_ula_at_service()
+            #self.__assing_tunnel_endpoint_ula_at_service()
 
         self.__start_tunnel_at_gateway()
 
         with self.getStateLockManager():
             self.readState()
 
-            self.__post_check()
+            #self.__post_check()
 
             self.__add_tunnel_state()
 
             self.writeState()
 
-        self.__add_tunnel_route()
+        #self.__add_tunnel_route()
 
         data = {}
 
