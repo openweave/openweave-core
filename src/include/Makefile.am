@@ -1063,6 +1063,8 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSou
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EventLogging.h                                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FactoryProvisioning.h                         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FactoryProvisioning.ipp                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl.h              \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.h          \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.ipp        \

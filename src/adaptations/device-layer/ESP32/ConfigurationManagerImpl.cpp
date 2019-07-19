@@ -31,6 +31,10 @@
 #include <Weave/DeviceLayer/ESP32/ESP32Config.h>
 #include <Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.ipp>
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_FACTORY_PROVISIONING
+#include <Weave/DeviceLayer/internal/FactoryProvisioning.ipp>
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_FACTORY_PROVISIONING
+
 #include "esp_wifi.h"
 #include "nvs_flash.h"
 #include "nvs.h"
@@ -88,6 +92,21 @@ WEAVE_ERROR ConfigurationManagerImpl::_Init()
     // Initialize the global GroupKeyStore object.
     err = gGroupKeyStore.Init();
     SuccessOrExit(err);
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_FACTORY_PROVISIONING
+
+    {
+        FactoryProvisioning factoryProv;
+        uint8_t * const kInternalSRAM12Start = (uint8_t *)0x3FFAE000;
+        uint8_t * const kInternalSRAM12End = kInternalSRAM12Start + (328 * 1024) - 1;
+
+        // Scan ESP32 Internal SRAM regions 1 and 2 for injected provisioning data and save
+        // to persistent storage if found.
+        err = factoryProv.ProvisionDeviceFromRAM(kInternalSRAM12Start, kInternalSRAM12End);
+        SuccessOrExit(err);
+    }
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_FACTORY_PROVISIONING
 
     // If the fail-safe was armed when the device last shutdown, initiate a factory reset.
     if (_GetFailSafeArmed(failSafeArmed) == WEAVE_NO_ERROR && failSafeArmed)

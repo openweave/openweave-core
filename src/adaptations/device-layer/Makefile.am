@@ -73,6 +73,8 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/internal/EchoServer.h \
     include/Weave/DeviceLayer/internal/EventLogging.h \
     include/Weave/DeviceLayer/internal/FabricProvisioningServer.h \
+    include/Weave/DeviceLayer/internal/FactoryProvisioning.h \
+    include/Weave/DeviceLayer/internal/FactoryProvisioning.ipp \
     include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h \
     include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.ipp \
     include/Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.h \

@@ -85,14 +85,15 @@ public:
     WEAVE_ERROR GetPairedAccountId(char * buf, size_t bufSize, size_t & accountIdLen);
 
     WEAVE_ERROR StoreDeviceId(uint64_t deviceId);
-    WEAVE_ERROR StoreSerialNumber(const char * serialNum);
+    WEAVE_ERROR StoreSerialNumber(const char * serialNum, size_t serialNumLen);
     WEAVE_ERROR StorePrimaryWiFiMACAddress(const uint8_t * buf);
     WEAVE_ERROR StorePrimary802154MACAddress(const uint8_t * buf);
-    WEAVE_ERROR StoreManufacturingDate(const char * mfgDate);
+    WEAVE_ERROR StoreManufacturingDate(const char * mfgDate, size_t mfgDateLen);
+    WEAVE_ERROR StoreProductRevision(uint16_t productRev);
     WEAVE_ERROR StoreFabricId(uint64_t fabricId);
     WEAVE_ERROR StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
     WEAVE_ERROR StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
-    WEAVE_ERROR StorePairingCode(const char * pairingCode);
+    WEAVE_ERROR StorePairingCode(const char * pairingCode, size_t pairingCodeLen);
     WEAVE_ERROR StoreServiceProvisioningData(uint64_t serviceId, const uint8_t * serviceConfig, size_t serviceConfigLen, const char * accountId, size_t accountIdLen);
     WEAVE_ERROR ClearServiceProvisioningData();
     WEAVE_ERROR StoreServiceConfig(const uint8_t * serviceConfig, size_t serviceConfigLen);
@@ -280,9 +281,9 @@ inline WEAVE_ERROR ConfigurationManager::StoreDeviceId(uint64_t deviceId)
     return static_cast<ImplClass*>(this)->_StoreDeviceId(deviceId);
 }
 
-inline WEAVE_ERROR ConfigurationManager::StoreSerialNumber(const char * serialNum)
+inline WEAVE_ERROR ConfigurationManager::StoreSerialNumber(const char * serialNum, size_t serialNumLen)
 {
-    return static_cast<ImplClass*>(this)->_StoreSerialNumber(serialNum);
+    return static_cast<ImplClass*>(this)->_StoreSerialNumber(serialNum, serialNumLen);
 }
 
 inline WEAVE_ERROR ConfigurationManager::StorePrimaryWiFiMACAddress(const uint8_t * buf)
@@ -295,9 +296,14 @@ inline WEAVE_ERROR ConfigurationManager::StorePrimary802154MACAddress(const uint
     return static_cast<ImplClass*>(this)->_StorePrimary802154MACAddress(buf);
 }
 
-inline WEAVE_ERROR ConfigurationManager::StoreManufacturingDate(const char * mfgDate)
+inline WEAVE_ERROR ConfigurationManager::StoreManufacturingDate(const char * mfgDate, size_t mfgDateLen)
 {
-    return static_cast<ImplClass*>(this)->_StoreManufacturingDate(mfgDate);
+    return static_cast<ImplClass*>(this)->_StoreManufacturingDate(mfgDate, mfgDateLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreProductRevision(uint16_t productRev)
+{
+    return static_cast<ImplClass*>(this)->_StoreProductRevision(productRev);
 }
 
 inline WEAVE_ERROR ConfigurationManager::StoreFabricId(uint64_t fabricId)
@@ -315,9 +321,9 @@ inline WEAVE_ERROR ConfigurationManager::StoreDevicePrivateKey(const uint8_t * k
     return static_cast<ImplClass*>(this)->_StoreDevicePrivateKey(key, keyLen);
 }
 
-inline WEAVE_ERROR ConfigurationManager::StorePairingCode(const char * pairingCode)
+inline WEAVE_ERROR ConfigurationManager::StorePairingCode(const char * pairingCode, size_t pairingCodeLen)
 {
-    return static_cast<ImplClass*>(this)->_StorePairingCode(pairingCode);
+    return static_cast<ImplClass*>(this)->_StorePairingCode(pairingCode, pairingCodeLen);
 }
 
 inline WEAVE_ERROR ConfigurationManager::StoreServiceProvisioningData(uint64_t serviceId, const uint8_t * serviceConfig, size_t serviceConfigLen, const char * accountId, size_t accountIdLen)
