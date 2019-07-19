@@ -27,6 +27,9 @@ export GNU_VERSION=7.3.1
 # Add Nordic nRF jprog tool to the path.
 export PATH=${PATH}:${NRF5_TOOLS_ROOT}/nrfjprog
 
+# Source env variables generated from the prepare script.
+source ${TRAVIS_BUILD_DIR}/nrf_setup_vars.sh
+
 # Set OPENWEAVE_ROOT to the Travis build directory. This will result in the example app being
 # built using the target OpenWeave commit.
 export OPENWEAVE_ROOT=${TRAVIS_BUILD_DIR}

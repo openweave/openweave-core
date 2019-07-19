@@ -44,8 +44,12 @@ fi
 EXAMPLE_APP_BRANCH=`git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example rev-parse --abbrev-ref HEAD`
 
 # Call the prepare script in the lock example repo to install related
-# dependencies.
-source ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example/.travis/prepare.sh
+# dependencies. This will also generate a file ${TRAVIS_BUILD_DIR}/nrf_setup_vars.sh
+${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example/.travis/prepare.sh
+
+# Source nrf_setup_vars.sh since it contains the URLs and paths to the tools
+# that were generated.
+source ${TRAVIS_BUILD_DIR}/nrf_setup_vars.sh
 
 # Initialize and update all submodules within the example app EXCEPT the
 # OpenWeave submodule.
