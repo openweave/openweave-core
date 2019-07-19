@@ -23,6 +23,8 @@
 #       Implements generate register service cmd which is used to service provisioning
 
 import json
+import logging
+import logging.handlers
 import os
 import requests
 import shutil
@@ -32,13 +34,31 @@ import tarfile
 import grpc
 from grpc.framework.interfaces.face.face import ExpirationError
 from httplib import HTTPSConnection
-from happy.Driver import Driver
-from happy.Utils import *
 
 options = {}
 options["tier"] = None
 options["username"] = None
 options["password"] = None
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+log_line_format = '%(asctime)s : %(name)s : %(levelname)s :  [%(filename)s : %(lineno)d: '\
+                  '%(funcName)s] : %(message)s'
+log_line_time_format = '%m/%d/%Y %I:%M:%S %p'
+formatter = logging.Formatter(log_line_format, datefmt=log_line_time_format)
+syslog_handler = logging.handlers.SysLogHandler(address="/dev/log")
+syslog_handler.setFormatter(formatter)
+logger.addHandler(syslog_handler)
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+file_handler_obj = logging.FileHandler("serviceaccountmanager.log", mode='w')
+file_handler_obj.name = __name__
+file_handler_obj.setLevel(logging.DEBUG)
+file_handler_obj.setFormatter(formatter)
+logger.addHandler(file_handler_obj)
+
 
 def option():
     return options.copy()
@@ -61,6 +81,7 @@ def get_phoenix_hash(branch):
     return response.text.rstrip()
 
 _phoenix_proto_cache = dict()
+
 
 def get_phoenix_proto_dir(branch):
     if branch in _phoenix_proto_cache:
@@ -91,10 +112,13 @@ def get_phoenix_proto_dir(branch):
     _phoenix_proto_cache[branch] = phoenix_dir
     return phoenix_dir
 
+
 def use_phoenix_schema(branch):
     sys.path.insert(0, get_phoenix_proto_dir(branch))
 
+
 class ServiceClient(object):
+
     def __init__(self, tier, username, password, token,
                  schema_branch=default_schema_branch):
         self.tier = tier
@@ -160,7 +184,8 @@ class ServiceClient(object):
         finally:
             return ids
 
-class ServiceAccountManager(Driver):
+
+class ServiceAccountManager(object):
     """
     weave-register-service [-h --help] [-q --quiet] [-t --tier <NAME>] [-u --username <NAME>] [-p --password <password>]
 
@@ -173,41 +198,48 @@ class ServiceAccountManager(Driver):
         options of the options of register service command
 
     """
-    def __init__(self, opts = options):
-        Driver.__init__(self)
+
+    def __init__(self, opts=options):
         self.tier = opts["tier"]
         self.username = opts["username"]
         self.password = opts["password"]
-        self.headers = {'Content-Type' : 'application/json'}
+        self.headers = {'Content-Type': 'application/json'}
 
     def __pre_check(self):
         if not self.tier:
             self.tier = "integration"
             emsg = "ServiceAccountManager: Using default weave_service_tier %s." % (self.tier)
-            self.logger.debug(emsg)
+            logger.debug(emsg)
 
         self.host = 'home.%s.nestlabs.com' % self.tier
 
         # Siac tiers contain 'unstable' and don't expose a 'home.*' hostname.
         if 'unstable' in self.tier:
-            self.host = self.host.replace('home.','')
+            self.host = self.host.replace('home.', '')
 
         if not self.username:
             self.username = "test-it+pairing1@nestlabs.com"
-            emsg = "ServiceAccountManager: using default weave_service_username %s." % (self.username)
-            self.logger.debug(emsg)
+            emsg = "ServiceAccountManager: using default weave_service_username %s." % (
+                self.username)
+            logger.debug(emsg)
 
         if not self.password:
             # Check if service password is set
             self.password = "nest-egg"
-            emsg = "ServiceAccountManager: using default weave_service_password %s." % (self.password)
-            self.logger.debug(emsg)
+            emsg = "ServiceAccountManager: using default weave_service_password %s." % (
+                self.password)
+            logger.debug(emsg)
 
-        self.params = json.dumps({'email': self.username, 'username': self.username, 'password':self.password})
+        self.params = json.dumps(
+            {'email': self.username, 'username': self.username, 'password': self.password})
 
         self.access_token, self.user_id = self.get_cz_token_userid()
         self.sessionJSON = self.__get_session_json()
-        client = ServiceClient(tier=self.tier, username=self.username, password=self.password, token=self.access_token)
+        client = ServiceClient(
+            tier=self.tier,
+            username=self.username,
+            password=self.password,
+            token=self.access_token)
         self.structureids = client.structure_ids
         self.accountid = client.account_id
         self.initial_data = self.__get_initial_data_json()
@@ -220,14 +252,13 @@ class ServiceAccountManager(Driver):
         login_response_data = json.load(login_response)
         if login_response.status == 201:
             delayExecution(1)
-            self.logger.info("create account for user %s" % self.username)
+            logger.info("create account for user %s" % self.username)
             token = login_response_data['access_token']
             user_id = login_response_data['user']
         else:
-            self.logger.info("get auth info for user %s" % self.username)
+            logger.info("get auth info for user %s" % self.username)
             token, user_id = self.__get_account_auth()
         return token, user_id
-
 
     def __get_account_auth(self):
         conn = HTTPSConnection(self.host)
@@ -236,17 +267,17 @@ class ServiceAccountManager(Driver):
         auth_response = conn.getresponse()
         auth_response_data = json.load(auth_response)
         if auth_response.status == 200:
-            self.logger.info("ServiceAccountManager: Authentication successful")
-        elif auth_response.status== 400:
+            logger.info("ServiceAccountManager: Authentication successful")
+        elif auth_response.status == 400:
             emsg = "ServiceAccountManager: Unauthorized request for user authentication: status=%s error=%s" % (
                 auth_response.status, auth_response.reason)
-            self.logger.info(emsg)
+            logger.info(emsg)
             raise ValueError(emsg)
         else:
             # Not a 200 or 4xx auth error, server error.
             emsg = "ServiceAccountManager: Service Error on user authentication: HTTPS %s: %s. " % (
-            auth_response.status, auth_response.reason)
-            self.logger.info(emsg)
+                auth_response.status, auth_response.reason)
+            logger.info(emsg)
             raise ValueError(emsg)
         token = auth_response_data['access_token']
         user_id = auth_response_data['user']
@@ -259,32 +290,37 @@ class ServiceAccountManager(Driver):
         response = conn.getresponse()
         data = response.read()
         if response.status != 200 and response.status != 201:
-            emsg = 'ServiceAccountManager: Failed with status %d: %s.  Password and login correct?' % (response.status, response.reason)
-            self.logger.info(emsg)
+            emsg = 'ServiceAccountManager: Failed with status %d: %s.  Password and login correct?' % (
+                response.status, response.reason)
+            logger.info(emsg)
             raise ValueError(emsg)
         return json.loads(data)
 
     def __get_initial_data_json(self):
         where_id = '00000000-0000-0000-0000-000100000010'
         spoken_where_id = '00000000-0000-0000-0000-000100000010'
-        initialDataJSON = {'structure_id': self.structureids[0], 'where_id': where_id, 'spoken_where_id': spoken_where_id}
+        initialDataJSON = {
+            'structure_id': self.structureids[0],
+            'where_id': where_id,
+            'spoken_where_id': spoken_where_id}
         return initialDataJSON
 
     def run(self):
-        self.logger.debug("[localhost] ServiceAccountManager: Run.")
+        logger.debug("[localhost] ServiceAccountManager: Run.")
 
         self.__pre_check()
 
-        self.cmd = ' --account-id %s --pairing-token %s --service-config %s --init-data \'%s\'' % (self.accountid, self.sessionJSON['weave']['pairing_token'], self.sessionJSON['weave']['service_config'], json.dumps(self.initial_data).encode("UTF-8"))
+        self.cmd = ' --account-id %s --pairing-token %s --service-config %s --init-data \'%s\'' % (self.accountid, self.sessionJSON[
+                                                                                                   'weave']['pairing_token'], self.sessionJSON['weave']['service_config'], json.dumps(self.initial_data).encode("UTF-8"))
 
         print "Weave Access Token:"
 
-        print hgreen(self.sessionJSON['weave']['access_token'])
+        print self.sessionJSON['weave']['access_token']
 
         print "weave-register-service generated the service registration command:"
 
-        print hgreen("register-service %s\n" % self.cmd)
+        print "register-service %s\n" % self.cmd
 
-        self.logger.debug("[localhost] ServiceAccountManager: Done.")
+        logger.debug("[localhost] ServiceAccountManager: Done.")
 
         return self.cmd
