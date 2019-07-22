@@ -23,13 +23,12 @@
 #       Implements generate register service cmd which is used to service provisioning
 
 import json
-import logging
-import logging.handlers
 import os
 import requests
 import shutil
 import sys
 import tarfile
+import time
 
 import grpc
 from grpc.framework.interfaces.face.face import ExpirationError
@@ -39,25 +38,6 @@ options = {}
 options["tier"] = None
 options["username"] = None
 options["password"] = None
-
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-log_line_format = '%(asctime)s : %(name)s : %(levelname)s :  [%(filename)s : %(lineno)d: '\
-                  '%(funcName)s] : %(message)s'
-log_line_time_format = '%m/%d/%Y %I:%M:%S %p'
-formatter = logging.Formatter(log_line_format, datefmt=log_line_time_format)
-syslog_handler = logging.handlers.SysLogHandler(address="/dev/log")
-syslog_handler.setFormatter(formatter)
-logger.addHandler(syslog_handler)
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-logger.addHandler(stream_handler)
-file_handler_obj = logging.FileHandler("serviceaccountmanager.log", mode='w')
-file_handler_obj.name = __name__
-file_handler_obj.setLevel(logging.DEBUG)
-file_handler_obj.setFormatter(formatter)
-logger.addHandler(file_handler_obj)
 
 
 def option():
@@ -199,17 +179,25 @@ class ServiceAccountManager(object):
 
     """
 
-    def __init__(self, opts=options):
+    def __init__(self, logger_obj, opts=options):
+        """
+            Initializes the ServiceAccountManager class.
+
+            Args:
+            logger_obj (logging.Logger): logger object to be used for logging.
+            opts (dict): Dictionary which contains tier, username and password.
+        """
         self.tier = opts["tier"]
         self.username = opts["username"]
         self.password = opts["password"]
         self.headers = {'Content-Type': 'application/json'}
+        self.logger = logger_obj
 
     def __pre_check(self):
         if not self.tier:
             self.tier = "integration"
             emsg = "ServiceAccountManager: Using default weave_service_tier %s." % (self.tier)
-            logger.debug(emsg)
+            self.logger.debug(emsg)
 
         self.host = 'home.%s.nestlabs.com' % self.tier
 
@@ -221,14 +209,14 @@ class ServiceAccountManager(object):
             self.username = "test-it+pairing1@nestlabs.com"
             emsg = "ServiceAccountManager: using default weave_service_username %s." % (
                 self.username)
-            logger.debug(emsg)
+            self.logger.debug(emsg)
 
         if not self.password:
             # Check if service password is set
             self.password = "nest-egg"
             emsg = "ServiceAccountManager: using default weave_service_password %s." % (
                 self.password)
-            logger.debug(emsg)
+            self.logger.debug(emsg)
 
         self.params = json.dumps(
             {'email': self.username, 'username': self.username, 'password': self.password})
@@ -250,13 +238,16 @@ class ServiceAccountManager(object):
         conn.request('POST', path, self.params, headers=self.headers)
         login_response = conn.getresponse()
         login_response_data = json.load(login_response)
+        # delay execution
+        time.sleep(1)
         if login_response.status == 201:
-            delayExecution(1)
-            logger.info("create account for user %s" % self.username)
+            # delay execution
+            time.sleep(1)
+            self.logger.info("create account for user %s" % self.username)
             token = login_response_data['access_token']
             user_id = login_response_data['user']
         else:
-            logger.info("get auth info for user %s" % self.username)
+            self.logger.info("get auth info for user %s" % self.username)
             token, user_id = self.__get_account_auth()
         return token, user_id
 
@@ -267,17 +258,17 @@ class ServiceAccountManager(object):
         auth_response = conn.getresponse()
         auth_response_data = json.load(auth_response)
         if auth_response.status == 200:
-            logger.info("ServiceAccountManager: Authentication successful")
+            self.logger.info("ServiceAccountManager: Authentication successful")
         elif auth_response.status == 400:
             emsg = "ServiceAccountManager: Unauthorized request for user authentication: status=%s error=%s" % (
                 auth_response.status, auth_response.reason)
-            logger.info(emsg)
+            self.logger.info(emsg)
             raise ValueError(emsg)
         else:
             # Not a 200 or 4xx auth error, server error.
             emsg = "ServiceAccountManager: Service Error on user authentication: HTTPS %s: %s. " % (
                 auth_response.status, auth_response.reason)
-            logger.info(emsg)
+            self.logger.info(emsg)
             raise ValueError(emsg)
         token = auth_response_data['access_token']
         user_id = auth_response_data['user']
@@ -292,7 +283,7 @@ class ServiceAccountManager(object):
         if response.status != 200 and response.status != 201:
             emsg = 'ServiceAccountManager: Failed with status %d: %s.  Password and login correct?' % (
                 response.status, response.reason)
-            logger.info(emsg)
+            self.logger.info(emsg)
             raise ValueError(emsg)
         return json.loads(data)
 
@@ -306,7 +297,7 @@ class ServiceAccountManager(object):
         return initialDataJSON
 
     def run(self):
-        logger.debug("[localhost] ServiceAccountManager: Run.")
+        self.logger.debug("[localhost] ServiceAccountManager: Run.")
 
         self.__pre_check()
 
@@ -321,6 +312,6 @@ class ServiceAccountManager(object):
 
         print "register-service %s\n" % self.cmd
 
-        logger.debug("[localhost] ServiceAccountManager: Done.")
+        self.logger.debug("[localhost] ServiceAccountManager: Done.")
 
         return self.cmd
