@@ -111,8 +111,7 @@ ifeq ($(NO_OPENSSL),1)
 OPENSSL                         = no
 else
 ifeq ($(HOSTOS),darwin)
-OSX_OPENSSL_DIR                 = /usr/local/opt/openssl
-OPENSSL                        ?= $(shell if which brew > /dev/null && brew ls --versions openssl > /dev/null; then echo $(OSX_OPENSSL_DIR); else echo "internal"; fi) 
+OPENSSL                        ?= $(shell if which brew > /dev/null && brew ls --versions openssl > /dev/null; then brew --prefix openssl; else echo "internal"; fi)
 else
 OPENSSL                        ?= $(shell if which pkg-config > /dev/null && pkg-config --exists openssl; then echo ""; else echo "internal"; fi)
 endif
