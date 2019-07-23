@@ -27,9 +27,9 @@ import os
 import random
 import re
 import sys
+import time
 
 from happy.ReturnMsg import ReturnMsg
-from happy.Utils import *
 from happy.utils.IP import IP
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
@@ -53,6 +53,7 @@ options = {"quiet": False,
            'server_node_id': None,
            'register_cmd': None}
 
+
 def option():
     return options.copy()
 
@@ -75,33 +76,34 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
         1   failure
 
     """
-    def __init__(self, opts = options):
+
+    def __init__(self, opts=options):
         HappyNode.__init__(self)
         HappyNetwork.__init__(self)
         WeaveTest.__init__(self)
         self.__dict__.update(opts)
-
 
     def __pre_check(self):
         device_node_id = None
         # Set the produce resource that mock-device is paired to
         resourceDictionaries = self.getResourceIds()
         resourceIndexList = os.environ.get("RESOURCE_IDS", "thd1").split(" ")
-        self.resources = [resourceDictionaries[resourceIndex] for resourceIndex in resourceIndexList]
+        self.resources = [resourceDictionaries[resourceIndex]
+                          for resourceIndex in resourceIndexList]
         # Check if Weave Pairing device node is given.
-        if self.devices == None:
+        if self.devices is None:
             emsg = "Missing name or address of the Weave Pairing device node."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
 
         # Check if Weave Pairing mobile node is given.
-        if self.mobile == None:
+        if self.mobile is None:
             emsg = "Missing name or address of the Weave Pairing mobile node."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
 
         # Check if Weave Pairing server info is given.
-        if self.server == None:
+        if self.server is None:
             emsg = "Missing name or address of the Weave Pairing server node."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
@@ -120,7 +122,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
         if IP.isIpAddress(self.mobile):
             self.mobile_node_id = self.getNodeIdFromAddress(self.mobile)
 
-        if self.mobile_node_id == None:
+        if self.mobile_node_id is None:
             emsg = "Unknown identity of the mobile node."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
@@ -150,7 +152,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
             if IP.isIpAddress(device):
                 device_node_id = self.getNodeIdFromAddress(device)
 
-            if device_node_id == None:
+            if device_node_id is None:
                 emsg = "Unknown identity of the device node."
                 self.logger.error("[localhost] WeavePairing: %s" % (emsg))
                 sys.exit(1)
@@ -158,35 +160,34 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
             device_ip = self.getNodeWeaveIPAddress(device_node_id)
             device_weave_id = self.getWeaveNodeID(device_node_id)
 
-            if device_ip == None:
+            if device_ip is None:
                 emsg = "Could not find IP address of the device node."
                 self.logger.error("[localhost] WeavePairing: %s" % (emsg))
                 sys.exit(1)
 
-            if device_weave_id == None:
+            if device_weave_id is None:
                 emsg = "Could not find Weave node ID of the device node."
                 self.logger.error("[localhost] WeavePairing: %s" % (emsg))
                 sys.exit(1)
             self.devices_info.append({'device': device, 'device_node_id': device_node_id, 'device_ip': device_ip,
-                          'device_weave_id': device_weave_id, 'device_process_tag': device + "_" + self.device_process_tag, 'resource': resource})
+                                      'device_weave_id': device_weave_id, 'device_process_tag': device + "_" + self.device_process_tag, 'resource': resource})
 
-
-        if self.mobile_ip == None:
+        if self.mobile_ip is None:
             emsg = "Could not find IP address of the mobile node."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
 
-        if self.mobile_weave_id == None:
+        if self.mobile_weave_id is None:
             emsg = "Could not find Weave node ID of the mobile node."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
 
-        if self.server_ip == None:
+        if self.server_ip is None:
             emsg = "Could not find IP address of the server."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
 
-        if self.server_weave_id == None:
+        if self.server_weave_id is None:
             emsg = "Could not find Weave node ID of the server."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
@@ -268,7 +269,6 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
         return resource_ids
 
-
     def __start_server(self):
         cmd = self.getWeaveMockDevicePath()
         if not cmd:
@@ -278,12 +278,17 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
         if self.tap:
             cmd += " --tap-device " + self.tap
 
-        self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output = self.ready_to_service_events_str)
+        self.start_weave_process(
+            self.server_node_id,
+            cmd,
+            self.server_process_tag,
+            sync_on_output=self.ready_to_service_events_str)
 
     def __start_mobile_side(self, device_info, mobile_process_tag):
         os.environ['WEAVE_DEVICE_MGR_PATH'] = self.getWeaveDeviceMgrPath()
         os.environ['WEAVE_DEVICE_MGR_LIB_PATH'] = self.getWeaveDeviceMgrLibPath()
-        cmd = "/usr/bin/env python " + os.path.dirname(os.path.realpath(__file__)) + "/../lib/WeaveDeviceManager.py"
+        cmd = "/usr/bin/env python " + \
+            os.path.dirname(os.path.realpath(__file__)) + "/../lib/WeaveDeviceManager.py"
         if not cmd:
             return
 
@@ -298,7 +303,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
                 options["username"] = self.username
                 options["password"] = self.password
 
-                registration = ServiceAccountManager.ServiceAccountManager(options)
+                registration = ServiceAccountManager.ServiceAccountManager(self.logger, options)
                 self.register_cmd = registration.run()
 
             if self.register_cmd:
@@ -311,7 +316,6 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
         self.start_weave_process(self.mobile_node_id, cmd, mobile_process_tag, env=os.environ)
 
-
     def __start_device_side(self, device_info):
         cmd = self.getWeaveMockDevicePath()
         if not cmd:
@@ -322,9 +326,9 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --pairing-server " + self.server_ip \
                 + " --wrm-pairing" \
                 + " --vendor-id " + device_info['resource']['vendor_id'] \
-                + " --software-version " + '"'+ device_info['resource']['software_id'] + '"' \
+                + " --software-version " + '"' + device_info['resource']['software_id'] + '"' \
                 + " --product-id " + device_info['resource']['product_id'] \
-                + " --suppress-ac" # Suppress access controls to work around WEAV-2024
+                + " --suppress-ac"  # Suppress access controls to work around WEAV-2024
 
             if self.server_node_id is not None:
                 # if the server is a local mock, we need to override the default endpoint id
@@ -333,8 +337,11 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
         if self.tap:
             cmd += " --tap-device " + self.tap
 
-        self.start_weave_process(device_info['device_node_id'], cmd, device_info['device_process_tag'], sync_on_output = self.ready_to_service_events_str)
-
+        self.start_weave_process(
+            device_info['device_node_id'],
+            cmd,
+            device_info['device_process_tag'],
+            sync_on_output=self.ready_to_service_events_str)
 
     def __process_results(self, mobiles_output, devices_info):
         result_list = []
@@ -346,22 +353,19 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
         for device_info, result in zip(devices_info, result_list):
             print " %s weave-pairing from mobile %s (%s) to device %s (%s) : " % \
-                ("Success for" if result else "Fail for", self.mobile_node_id, self.mobile_ip, device_info['device_node_id'], device_info['device_ip'])
+                ("Success for" if result else "Fail for", self.mobile_node_id,
+                 self.mobile_ip, device_info['device_node_id'], device_info['device_ip'])
 
         return result_list
-
 
     def __wait_for_mobile(self, mobile_process_tag):
         self.wait_for_test_to_end(self.mobile_node_id, mobile_process_tag)
 
-
     def __stop_device_side(self, device_info):
         self.stop_weave_process(device_info['device_node_id'], device_info['device_process_tag'])
 
-
     def __stop_server_side(self):
         self.stop_weave_process(self.server_node_id, self.server_process_tag)
-
 
     def run(self):
         self.logger.debug("[localhost] WeavePairing: Run.")
@@ -375,7 +379,8 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
         for device_info in self.devices_info:
             self.__start_device_side(device_info)
-            delayExecution(0.5)
+            # delay Execution
+            time.sleep(0.5)
 
             emsg = "WeavePairing %s should be running." % (device_info['device_process_tag'])
             self.logger.debug("[%s] WeavePairing: %s" % (device_info['device_node_id'], emsg))
@@ -394,15 +399,22 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
             self.__stop_device_side(device_info)
 
             device_output_value, device_output_data = \
-                self.get_test_output(device_info['device_node_id'], device_info['device_process_tag'], True)
+                self.get_test_output(
+                    device_info['device_node_id'],
+                    device_info['device_process_tag'],
+                    True)
             device_strace_value, device_strace_data = \
-                self.get_test_strace(device_info['device_node_id'], device_info['device_process_tag'], True)
+                self.get_test_strace(
+                    device_info['device_node_id'],
+                    device_info['device_process_tag'],
+                    True)
 
             devices_output_data.append(device_output_data)
             devices_strace_data.append(device_strace_data)
             mobiles_output_data.append(mobile_output_data)
             mobiles_strace_data.append(mobile_strace_data)
-            delayExecution(3)
+            # delay execution
+            time.sleep(3)
         server_output_value = None
         server_output_data = None
         server_strace_value = None
@@ -429,4 +441,3 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
         self.logger.debug("[localhost] WeavePairing: Done.")
         return ReturnMsg(result_list, data)
-

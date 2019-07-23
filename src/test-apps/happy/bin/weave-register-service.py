@@ -26,22 +26,38 @@
 #
 
 import getopt
+import logging
+import logging.handlers
 import sys
 import set_test_path
 
-from happy.Utils import *
 import ServiceAccountManager
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+log_line_format = '%(asctime)s : %(name)s : %(levelname)s :  [%(filename)s : %(lineno)d: '\
+                  '%(funcName)s] : %(message)s'
+log_line_time_format = '%m/%d/%Y %I:%M:%S %p'
+formatter = logging.Formatter(log_line_format, datefmt=log_line_time_format)
+syslog_handler = logging.handlers.SysLogHandler(address="/dev/log")
+syslog_handler.setFormatter(formatter)
+logger.addHandler(syslog_handler)
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
 
 if __name__ == "__main__":
     options = ServiceAccountManager.option()
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:t:u:p:",
-            ["help", "tier=", "username=", "password=" "quiet"])
+                                   ["help", "tier=", "username=", "password=" "quiet"])
     except getopt.GetoptError as err:
         print ServiceAccountManager.ServiceAccountManager.__doc__
-        print hred(str(err))
-        sys.exit(hred("%s: Failed server parse arguments." % (__file__)))
+        print str(err)
+        sys.exit("%s: Failed server parse arguments." % (__file__))
 
     for o, a in opts:
         if o in ("-h", "--help"):
@@ -60,6 +76,5 @@ if __name__ == "__main__":
         elif o in ("-p", "--password"):
             options["password"] = a
 
-    cmd = ServiceAccountManager.ServiceAccountManager(options)
-    cmd.start()
-
+    cmd = ServiceAccountManager.ServiceAccountManager(logger, options)
+    cmd.run()
