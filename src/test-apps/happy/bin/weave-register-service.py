@@ -55,8 +55,8 @@ if __name__ == "__main__":
         opts, args = getopt.getopt(sys.argv[1:], "h:t:u:p:",
                                    ["help", "tier=", "username=", "password=" "quiet"])
     except getopt.GetoptError as err:
-        logger.debug(ServiceAccountManager.ServiceAccountManager.__doc__)
-        logger.error(str(err))
+        print ServiceAccountManager.ServiceAccountManager.__doc__
+        print str(err)
         sys.exit("%s: Failed server parse arguments." % (__file__))
 
     for o, a in opts:
