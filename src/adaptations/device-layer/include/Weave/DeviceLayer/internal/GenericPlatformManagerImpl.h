@@ -67,8 +67,11 @@ protected:
     void DispatchEventToApplication(const WeaveDeviceEvent * event);
     static void HandleSessionEstablished(WeaveSecurityManager * sm, WeaveConnection * con,
             void * reqState, uint16_t sessionKeyId, uint64_t peerNodeId, uint8_t encType);
+    static void HandleMessageLayerActivityChanged(bool messageLayerIsActive);
 
 private:
+    bool mMsgLayerWasActive;
+
     ImplClass * Impl() { return static_cast<ImplClass*>(this); }
 };
 

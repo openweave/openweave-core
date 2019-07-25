@@ -351,6 +351,123 @@ void GenericThreadStackManagerImpl_OpenThread<ImplClass>::_ClearThreadProvision(
 }
 
 template<class ImplClass>
+ConnectivityManager::ThreadDeviceType GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetThreadDeviceType(void)
+{
+    otLinkModeConfig linkMode;
+    ConnectivityManager::ThreadDeviceType deviceType;
+
+    Impl()->LockThreadStack();
+
+    linkMode = otThreadGetLinkMode(mOTInst);
+
+    if (linkMode.mDeviceType)
+    {
+        if (otThreadIsRouterRoleEnabled(mOTInst))
+        {
+            deviceType = ConnectivityManager::kThreadDeviceType_Router;
+        }
+        else
+        {
+            deviceType = ConnectivityManager::kThreadDeviceType_FullEndDevice;
+        }
+    }
+    else
+    {
+        if (linkMode.mRxOnWhenIdle)
+        {
+            deviceType = ConnectivityManager::kThreadDeviceType_MinimalEndDevice;
+        }
+        else
+        {
+            deviceType = ConnectivityManager::kThreadDeviceType_SleepyEndDevice;
+        }
+    }
+
+    Impl()->UnlockThreadStack();
+
+    return deviceType;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadDeviceType(ConnectivityManager::ThreadDeviceType deviceType)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    otLinkModeConfig linkMode;
+
+    VerifyOrExit(deviceType == ConnectivityManager::kThreadDeviceType_Router ||
+                 deviceType == ConnectivityManager::kThreadDeviceType_FullEndDevice ||
+                 deviceType == ConnectivityManager::kThreadDeviceType_MinimalEndDevice ||
+                 deviceType == ConnectivityManager::kThreadDeviceType_SleepyEndDevice,
+                 err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+#if WEAVE_PROGRESS_LOGGING
+
+    {
+        const char * deviceTypeStr;
+        switch (deviceType)
+        {
+        case ConnectivityManager::kThreadDeviceType_Router:
+            deviceTypeStr = "ROUTER";
+            break;
+        case ConnectivityManager::kThreadDeviceType_FullEndDevice:
+            deviceTypeStr = "FULL END DEVICE";
+            break;
+        case ConnectivityManager::kThreadDeviceType_MinimalEndDevice:
+            deviceTypeStr = "MINIMAL END DEVICE";
+            break;
+        case ConnectivityManager::kThreadDeviceType_SleepyEndDevice:
+            deviceTypeStr = "SLEEPY END DEVICE";
+            break;
+        }
+        WeaveLogProgress(DeviceLayer, "Setting OpenThread device type to %s", deviceTypeStr);
+    }
+
+#endif // WEAVE_PROGRESS_LOGGING
+
+    Impl()->LockThreadStack();
+
+    linkMode = otThreadGetLinkMode(mOTInst);
+
+    switch (deviceType)
+    {
+    case ConnectivityManager::kThreadDeviceType_Router:
+    case ConnectivityManager::kThreadDeviceType_FullEndDevice:
+        linkMode.mDeviceType = true;
+        linkMode.mRxOnWhenIdle = true;
+        otThreadSetRouterRoleEnabled(mOTInst, deviceType == ConnectivityManager::kThreadDeviceType_Router);
+        break;
+    case ConnectivityManager::kThreadDeviceType_MinimalEndDevice:
+        linkMode.mDeviceType = false;
+        linkMode.mRxOnWhenIdle = true;
+        break;
+    case ConnectivityManager::kThreadDeviceType_SleepyEndDevice:
+        linkMode.mDeviceType = false;
+        linkMode.mRxOnWhenIdle = false;
+        break;
+    }
+
+    otThreadSetLinkMode(mOTInst, linkMode);
+
+    Impl()->UnlockThreadStack();
+
+exit:
+    return err;
+}
+
+template<class ImplClass>
+void GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetThreadPollingConfig(ConnectivityManager::ThreadPollingConfig & pollingConfig)
+{
+    pollingConfig = mPollingConfig;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadPollingConfig(const ConnectivityManager::ThreadPollingConfig & pollingConfig)
+{
+    mPollingConfig = pollingConfig;
+    return Impl()->AdjustPollingInterval();
+}
+
+template<class ImplClass>
 bool GenericThreadStackManagerImpl_OpenThread<ImplClass>::_HaveMeshConnectivity(void)
 {
     bool res;
@@ -396,6 +513,12 @@ bool GenericThreadStackManagerImpl_OpenThread<ImplClass>::_HaveMeshConnectivity(
     Impl()->UnlockThreadStack();
 
     return res;
+}
+
+template<class ImplClass>
+void GenericThreadStackManagerImpl_OpenThread<ImplClass>::_OnMessageLayerActivityChanged(bool messageLayerIsActive)
+{
+    Impl()->AdjustPollingInterval();
 }
 
 template<class ImplClass>
@@ -824,6 +947,7 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::DoInit(otInstan
     RegisterOpenThreadErrorFormatter();
 
     mOTInst = NULL;
+    mPollingConfig.Clear();
 
     // If an OpenThread instance hasn't been supplied, call otInstanceInitSingle() to
     // create or acquire a singleton instance of OpenThread.
@@ -842,26 +966,24 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::DoInit(otInstan
     otErr = otSetStateChangedCallback(otInst, ImplClass::OnOpenThreadStateChange, NULL);
     VerifyOrExit(otErr == OT_ERROR_NONE, err = MapOpenThreadError(otErr));
 
-    // TODO: generalize this
+    // Enable use of secure data requests.
     {
-        otLinkModeConfig linkMode;
-
-        memset(&linkMode, 0, sizeof(linkMode));
-        linkMode.mRxOnWhenIdle       = true;
+        otLinkModeConfig linkMode = otThreadGetLinkMode(otInst);
         linkMode.mSecureDataRequests = true;
-        linkMode.mDeviceType         = true;
-        linkMode.mNetworkData        = true;
-
         otErr = otThreadSetLinkMode(otInst, linkMode);
         VerifyOrExit(otErr == OT_ERROR_NONE, err = MapOpenThreadError(otErr));
     }
 
-    // TODO: not supported in old version of OpenThread used by Nordic SDK.
-    // otIp6SetSlaacEnabled(otInst, false);
+    // Disable automatic assignment of Thread advertised addresses.
+#if OPENTHREAD_CONFIG_ENABLE_SLAAC
+    otIp6SetSlaacEnabled(otInst, false);
+#endif
 
+    // Enable the Thread IPv6 interface.
     otErr = otIp6SetEnabled(otInst, true);
     VerifyOrExit(otErr == OT_ERROR_NONE, err = MapOpenThreadError(otErr));
 
+    // If the Thread stack has been provisioned, but is not currently enabled, enable it now.
     if (otThreadGetDeviceRole(mOTInst) == OT_DEVICE_ROLE_DISABLED && otDatasetIsCommissioned(otInst))
     {
         otErr = otThreadSetEnabled(otInst, true);
@@ -877,6 +999,38 @@ bool GenericThreadStackManagerImpl_OpenThread<ImplClass>::IsThreadAttachedNoLock
 {
     otDeviceRole curRole = otThreadGetDeviceRole(mOTInst);
     return (curRole != OT_DEVICE_ROLE_DISABLED && curRole != OT_DEVICE_ROLE_DETACHED);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::AdjustPollingInterval(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    uint32_t newPollingIntervalMS = MessageLayer.IsMessageLayerActive()
+            ? mPollingConfig.ActivePollingIntervalMS
+            : mPollingConfig.InactivePollingIntervalMS;
+
+    if (newPollingIntervalMS != 0)
+    {
+        Impl()->LockThreadStack();
+
+        uint32_t curPollingIntervalMS = otLinkGetPollPeriod(mOTInst);
+
+        if (newPollingIntervalMS != curPollingIntervalMS)
+        {
+            otError otErr = otLinkSetPollPeriod(mOTInst, newPollingIntervalMS);
+            err = MapOpenThreadError(otErr);
+        }
+
+        Impl()->UnlockThreadStack();
+
+        if (newPollingIntervalMS != curPollingIntervalMS)
+        {
+            WeaveLogProgress(DeviceLayer, "OpenThread polling interval set to %" PRId32 "ms", newPollingIntervalMS);
+        }
+    }
+
+    return err;
 }
 
 } // namespace Internal

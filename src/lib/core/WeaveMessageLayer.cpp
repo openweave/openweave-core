@@ -2308,6 +2308,15 @@ void WeaveMessageLayer::SetSignalMessageLayerActivityChanged(MessageLayerActivit
     OnMessageLayerActivityChange = messageLayerActivityChangeHandler;
 }
 
+bool WeaveMessageLayer::IsMessageLayerActive(void)
+{
+    return (ExchangeMgr->mContextsInUse != 0)
+#if WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
+           || FabricState->IsMsgCounterSyncReqInProgress()
+#endif
+           ;
+}
+
 /**
  *  This method is called every time the message layer activity changes.
  *  Specifically, it will be called every time:
@@ -2320,16 +2329,9 @@ void WeaveMessageLayer::SetSignalMessageLayerActivityChanged(MessageLayerActivit
  */
 void WeaveMessageLayer::SignalMessageLayerActivityChanged(void)
 {
-    bool messageLayerIsActive;
-
     if (OnMessageLayerActivityChange)
     {
-        messageLayerIsActive = (ExchangeMgr->mContextsInUse != 0)
-#if WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
-                               || FabricState->IsMsgCounterSyncReqInProgress()
-#endif
-                               ;
-
+        bool messageLayerIsActive = IsMessageLayerActive();
         OnMessageLayerActivityChange(messageLayerIsActive);
     }
 }

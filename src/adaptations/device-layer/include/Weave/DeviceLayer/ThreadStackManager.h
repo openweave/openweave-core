@@ -92,7 +92,12 @@ private:
     WEAVE_ERROR GetThreadProvision(Internal::DeviceNetworkInfo & netInfo, bool includeCredentials);
     WEAVE_ERROR SetThreadProvision(const Internal::DeviceNetworkInfo & netInfo);
     void ClearThreadProvision(void);
+    ConnectivityManager::ThreadDeviceType GetThreadDeviceType(void);
+    WEAVE_ERROR SetThreadDeviceType(ConnectivityManager::ThreadDeviceType threadRole);
+    void GetThreadPollingConfig(ConnectivityManager::ThreadPollingConfig & pollingConfig);
+    WEAVE_ERROR SetThreadPollingConfig(const ConnectivityManager::ThreadPollingConfig & pollingConfig);
     bool HaveMeshConnectivity(void);
+    void OnMessageLayerActivityChanged(bool messageLayerIsActive);
 
 protected:
 
@@ -218,9 +223,34 @@ inline void ThreadStackManager::ClearThreadProvision(void)
     static_cast<ImplClass*>(this)->_ClearThreadProvision();
 }
 
+inline ConnectivityManager::ThreadDeviceType ThreadStackManager::GetThreadDeviceType(void)
+{
+    return static_cast<ImplClass*>(this)->_GetThreadDeviceType();
+}
+
+inline WEAVE_ERROR ThreadStackManager::SetThreadDeviceType(ConnectivityManager::ThreadDeviceType deviceType)
+{
+    return static_cast<ImplClass*>(this)->_SetThreadDeviceType(deviceType);
+}
+
+inline void ThreadStackManager::GetThreadPollingConfig(ConnectivityManager::ThreadPollingConfig & pollingConfig)
+{
+    static_cast<ImplClass*>(this)->_GetThreadPollingConfig(pollingConfig);
+}
+
+inline WEAVE_ERROR ThreadStackManager::SetThreadPollingConfig(const ConnectivityManager::ThreadPollingConfig & pollingConfig)
+{
+    return static_cast<ImplClass*>(this)->_SetThreadPollingConfig(pollingConfig);
+}
+
 inline bool ThreadStackManager::HaveMeshConnectivity(void)
 {
     return static_cast<ImplClass*>(this)->_HaveMeshConnectivity();
+}
+
+inline void ThreadStackManager::OnMessageLayerActivityChanged(bool messageLayerIsActive)
+{
+    return static_cast<ImplClass*>(this)->_OnMessageLayerActivityChanged(messageLayerIsActive);
 }
 
 inline WEAVE_ERROR ThreadStackManager::GetAndLogThreadStatsCounters(void)

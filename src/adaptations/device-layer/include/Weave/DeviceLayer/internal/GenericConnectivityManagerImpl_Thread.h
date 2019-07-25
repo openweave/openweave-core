@@ -60,6 +60,10 @@ protected:
     WEAVE_ERROR _SetThreadMode(ConnectivityManager::ThreadMode val);
     bool _IsThreadEnabled(void);
     bool _IsThreadApplicationControlled(void);
+    ConnectivityManager::ThreadDeviceType _GetThreadDeviceType(void);
+    WEAVE_ERROR _SetThreadDeviceType(ConnectivityManager::ThreadDeviceType deviceType);
+    void _GetThreadPollingConfig(ConnectivityManager::ThreadPollingConfig & pollingConfig);
+    WEAVE_ERROR _SetThreadPollingConfig(const ConnectivityManager::ThreadPollingConfig & pollingConfig);
     bool _IsThreadAttached(void);
     bool _IsThreadProvisioned(void);
     void _ClearThreadProvision(void);
@@ -121,6 +125,30 @@ template<class ImplClass>
 inline void GenericConnectivityManagerImpl_Thread<ImplClass>::_ClearThreadProvision(void)
 {
     ThreadStackMgrImpl().ClearThreadProvision();
+}
+
+template<class ImplClass>
+inline ConnectivityManager::ThreadDeviceType GenericConnectivityManagerImpl_Thread<ImplClass>::_GetThreadDeviceType(void)
+{
+    return ThreadStackMgrImpl().GetThreadDeviceType();
+}
+
+template<class ImplClass>
+inline WEAVE_ERROR GenericConnectivityManagerImpl_Thread<ImplClass>::_SetThreadDeviceType(ConnectivityManager::ThreadDeviceType deviceType)
+{
+    return ThreadStackMgrImpl().SetThreadDeviceType(deviceType);
+}
+
+template<class ImplClass>
+inline void GenericConnectivityManagerImpl_Thread<ImplClass>::_GetThreadPollingConfig(ConnectivityManager::ThreadPollingConfig & pollingConfig)
+{
+    ThreadStackMgrImpl().GetThreadPollingConfig(pollingConfig);
+}
+
+template<class ImplClass>
+inline WEAVE_ERROR GenericConnectivityManagerImpl_Thread<ImplClass>::_SetThreadPollingConfig(const ConnectivityManager::ThreadPollingConfig & pollingConfig)
+{
+    return ThreadStackMgrImpl().SetThreadPollingConfig(pollingConfig);
 }
 
 template<class ImplClass>

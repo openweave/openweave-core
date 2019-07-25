@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *          Provides an generic implementation of ConnectivityManager features
+ *          Provides a generic implementation of ConnectivityManager features
  *          for use on platforms that do NOT support Thread.
  */
 
@@ -49,6 +49,10 @@ protected:
     WEAVE_ERROR _SetThreadMode(ConnectivityManager::ThreadMode val);
     bool _IsThreadEnabled(void);
     bool _IsThreadApplicationControlled(void);
+    ConnectivityManager::ThreadDeviceType _GetThreadDeviceType(void);
+    WEAVE_ERROR _SetThreadDeviceType(ConnectivityManager::ThreadDeviceType deviceType);
+    void _GetThreadPollingConfig(ConnectivityManager::ThreadPollingConfig & pollingConfig);
+    WEAVE_ERROR _SetThreadPollingConfig(const ConnectivityManager::ThreadPollingConfig & pollingConfig);
     bool _IsThreadAttached(void);
     bool _IsThreadProvisioned(void);
     void _ClearThreadProvision(void);
@@ -96,6 +100,30 @@ inline bool GenericConnectivityManagerImpl_NoThread<ImplClass>::_IsThreadProvisi
 template<class ImplClass>
 inline void GenericConnectivityManagerImpl_NoThread<ImplClass>::_ClearThreadProvision(void)
 {
+}
+
+template<class ImplClass>
+inline ConnectivityManager::ThreadDeviceType GenericConnectivityManagerImpl_NoThread<ImplClass>::_GetThreadDeviceType(void)
+{
+    return ConnectivityManager::kThreadDeviceType_NotSupported;
+}
+
+template<class ImplClass>
+inline WEAVE_ERROR GenericConnectivityManagerImpl_NoThread<ImplClass>::_SetThreadDeviceType(ConnectivityManager::ThreadDeviceType deviceType)
+{
+    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
+}
+
+template<class ImplClass>
+inline void GenericConnectivityManagerImpl_NoThread<ImplClass>::_GetThreadPollingConfig(ConnectivityManager::ThreadPollingConfig & pollingConfig)
+{
+    pollingConfig.Clear();
+}
+
+template<class ImplClass>
+inline WEAVE_ERROR GenericConnectivityManagerImpl_NoThread<ImplClass>::_SetThreadPollingConfig(const ConnectivityManager::ThreadPollingConfig & pollingConfig)
+{
+    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 }
 
 template<class ImplClass>

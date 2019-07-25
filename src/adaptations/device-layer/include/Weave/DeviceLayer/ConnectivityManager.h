@@ -88,6 +88,17 @@ public:
         kWoBLEServiceMode_Disabled                  = 2,
     };
 
+    enum ThreadDeviceType
+    {
+        kThreadDeviceType_NotSupported              = 0,
+        kThreadDeviceType_Router                    = 1,
+        kThreadDeviceType_FullEndDevice             = 2,
+        kThreadDeviceType_MinimalEndDevice          = 3,
+        kThreadDeviceType_SleepyEndDevice           = 4,
+    };
+
+    struct ThreadPollingConfig;
+
     // WiFi station methods
     WiFiStationMode GetWiFiStationMode(void);
     WEAVE_ERROR SetWiFiStationMode(WiFiStationMode val);
@@ -98,6 +109,7 @@ public:
     WEAVE_ERROR SetWiFiStationReconnectIntervalMS(uint32_t val);
     bool IsWiFiStationProvisioned(void);
     void ClearWiFiStationProvision(void);
+    WEAVE_ERROR GetAndLogWifiStatsCounters(void);
 
     // WiFi AP methods
     WiFiAPMode GetWiFiAPMode(void);
@@ -110,13 +122,15 @@ public:
     uint32_t GetWiFiAPIdleTimeoutMS(void);
     void SetWiFiAPIdleTimeoutMS(uint32_t val);
 
-    WEAVE_ERROR GetAndLogWifiStatsCounters(void);
-
     // Thread Methods
     ThreadMode GetThreadMode(void);
     WEAVE_ERROR SetThreadMode(ThreadMode val);
     bool IsThreadEnabled(void);
     bool IsThreadApplicationControlled(void);
+    ThreadDeviceType GetThreadDeviceType(void);
+    WEAVE_ERROR SetThreadDeviceType(ThreadDeviceType deviceType);
+    void GetThreadPollingConfig(ThreadPollingConfig & pollingConfig);
+    WEAVE_ERROR SetThreadPollingConfig(const ThreadPollingConfig & pollingConfig);
     bool IsThreadAttached(void);
     bool IsThreadProvisioned(void);
     void ClearThreadProvision(void);
@@ -186,6 +200,23 @@ protected:
     ConnectivityManager(const ConnectivityManager &&) = delete;
     ConnectivityManager & operator=(const ConnectivityManager &) = delete;
 };
+
+/**
+ * Information describing the desired Thread polling behavior of a device.
+ */
+struct ConnectivityManager::ThreadPollingConfig
+{
+    uint32_t ActivePollingIntervalMS;                   /**< Interval at which the device polls its parent Thread router when
+                                                             when there are active Weave exchanges in progress. Only meaningful
+                                                             when the device is acting as a sleepy end node. */
+
+    uint32_t InactivePollingIntervalMS;                 /**< Interval at which the device polls its parent Thread router when
+                                                             when there are NO active Weave exchanges in progress. Only meaningful
+                                                             when the device is acting as a sleepy end node. */
+
+    void Clear() { memset(this, 0, sizeof(*this)); }
+};
+
 
 /**
  * Returns a reference to the public interface of the ConnectivityManager singleton object.
@@ -376,6 +407,26 @@ inline bool ConnectivityManager::IsThreadEnabled(void)
 inline bool ConnectivityManager::IsThreadApplicationControlled(void)
 {
     return static_cast<ImplClass*>(this)->_IsThreadApplicationControlled();
+}
+
+inline ConnectivityManager::ThreadDeviceType ConnectivityManager::GetThreadDeviceType(void)
+{
+    return static_cast<ImplClass*>(this)->_GetThreadDeviceType();
+}
+
+inline WEAVE_ERROR ConnectivityManager::SetThreadDeviceType(ThreadDeviceType deviceType)
+{
+    return static_cast<ImplClass*>(this)->_SetThreadDeviceType(deviceType);
+}
+
+inline void ConnectivityManager::GetThreadPollingConfig(ThreadPollingConfig & pollingConfig)
+{
+    return static_cast<ImplClass*>(this)->_GetThreadPollingConfig(pollingConfig);
+}
+
+inline WEAVE_ERROR ConnectivityManager::SetThreadPollingConfig(const ThreadPollingConfig & pollingConfig)
+{
+    return static_cast<ImplClass*>(this)->_SetThreadPollingConfig(pollingConfig);
 }
 
 inline bool ConnectivityManager::IsThreadAttached(void)

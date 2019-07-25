@@ -56,6 +56,8 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
 {
     WEAVE_ERROR err;
 
+    mMsgLayerWasActive = false;
+
     // Arrange for Device Layer errors to be translated to text.
     RegisterDeviceLayerErrorFormatter();
 
@@ -124,6 +126,9 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
         }
         SuccessOrExit(err);
     }
+
+    // Hook the MessageLayer activity changed callback.
+    MessageLayer.SetSignalMessageLayerActivityChanged(ImplClass::HandleMessageLayerActivityChanged);
 
     // Initialize the Weave exchange manager.
     err = ExchangeMgr.Init(&MessageLayer);
@@ -463,6 +468,20 @@ void GenericPlatformManagerImpl<ImplClass>::HandleSessionEstablished(WeaveSecuri
     }
 }
 
+template<class ImplClass>
+void GenericPlatformManagerImpl<ImplClass>::HandleMessageLayerActivityChanged(bool messageLayerIsActive)
+{
+    GenericPlatformManagerImpl<ImplClass> & self = PlatformMgrImpl();
+
+    if (messageLayerIsActive != self.mMsgLayerWasActive)
+    {
+        self.mMsgLayerWasActive = messageLayerIsActive;
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+        ThreadStackMgr().OnMessageLayerActivityChanged(messageLayerIsActive);
+#endif
+    }
+}
 
 } // namespace Internal
 } // namespace DeviceLayer
