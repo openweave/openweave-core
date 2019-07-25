@@ -305,7 +305,7 @@ class ProvisioningData(object):
         self.deviceId    = argValues.device_id
         self.pairingCode = argValues.pairing_code
         self.productRev  = argValues.product_rev
-        
+
         mfgDate = argValues.mfg_date
         if mfgDate != None:
             mfgDate = mfgDate.lower()
@@ -336,13 +336,19 @@ class ProvisioningData(object):
         with open(fileName) as file:
             reader = csv.DictReader(file, dialect=csv.unix_dialect, skipinitialspace=True)
             for row in reader:
-                curDeviceId = row.get('MAC', None)
+                curDeviceId = row.get('Device_Id', None)
+                if curDeviceId == None:
+                    curDeviceId = row.get('MAC', None)
+                if curDeviceId == None:
+                    raise Exception('"Device_Id" column not found in provisioning csv file')
                 if curDeviceId == deviceIdStr:
                     try:
                         self.deviceId = deviceId
                         self._configFromProvisioningCSVRow(row)
                     except binascii.Error as ex:
                         raise binascii.Error('Invalid base-64 data in provisioning data CSV file: %s\nFile %s, line %d' % (str(ex), fileName, reader.line_num))
+                    except ValueError as ex:
+                        raise ValueError('Error in provisioning data CSV file: %s\nFile %s, line %d' % (str(ex), fileName, reader.line_num))
                     return True
         return False
 
@@ -364,21 +370,34 @@ class ProvisioningData(object):
             raise binascii.Error('Invalid base-64 data returned by provisioning server: %s' % (str(ex)))
                         
     def _configFromProvisioningCSVRow(self, row):
+        if self.serialNum == None:
+            serialNum = row.get('Serial_Num', None)
+            if serialNum != None:
+                self.serialNum = serialNum
         if self.deviceCert == None:
             deviceCert = row.get('Certificate', None)
-            if deviceCert == None:
-                raise Exception('"Certificate" column not found in provisioning csv file')
-            self.deviceCert = base64.b64decode(deviceCert, validate=True)
+            if deviceCert != None:
+                self.deviceCert = base64.b64decode(deviceCert, validate=True)
         if self.devicePrivateKey == None:
-            devicePrivateKey = row.get('Private Key', None)
+            devicePrivateKey = row.get('Private_Key', None)
             if devicePrivateKey == None:
-                raise Exception('"Private Key" column not found in provisioning csv file')
-            self.devicePrivateKey = base64.b64decode(devicePrivateKey, validate=True)
+                devicePrivateKey = row.get('Private Key', None)
+            if devicePrivateKey != None:
+                self.devicePrivateKey = base64.b64decode(devicePrivateKey, validate=True)
         if self.pairingCode == None:
-            pairingCode = row.get('Pairing Code', None)
+            pairingCode = row.get('Pairing_Code', None)
             if pairingCode == None:
-                raise Exception('"Pairing Code" column not found in provisioning csv file')
-            self.pairingCode = pairingCode
+                pairingCode = row.get('Pairing Code', None)
+            if pairingCode != None:
+                self.pairingCode = pairingCode
+        if self.productRev == None:
+            productRev = row.get('Product_Rev', None)
+            if productRev != None:
+                self.productRev = int(productRev, base=0)
+        if self.mfgDate == None:
+            mfgDate = row.get('Mfg_Date', None)
+            if mfgDate != None:
+                self.mfgDate = mfgDate
 
     def _setField(self, tag, value):
         if value != None:
