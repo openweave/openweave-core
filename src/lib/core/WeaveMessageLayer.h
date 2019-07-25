@@ -474,6 +474,7 @@ class NL_DLL_EXPORT WeaveMessageLayer
     friend class WeaveConnection;
     friend class WeaveExchangeManager;
     friend class ExchangeContext;
+    friend class WeaveFabricState;
 public:
     /**
      *  @enum State
@@ -673,7 +674,7 @@ public:
      */
     typedef void (*MessageLayerActivityChangeHandlerFunct)(bool messageLayerIsActive);
     void SetSignalMessageLayerActivityChanged(MessageLayerActivityChangeHandlerFunct messageLayerActivityChangeHandler);
-    void SignalMessageLayerActivityChanged(void);
+    bool IsMessageLayerActive(void);
 
     static uint32_t GetMaxWeavePayloadSize(const PacketBuffer *msgBuf, bool isUDP, uint32_t udpMTU);
 
@@ -722,6 +723,8 @@ private:
     WEAVE_ERROR EnableUnsecuredListen(void);
     WEAVE_ERROR DisableUnsecuredListen(void);
     bool IsUnsecuredListenEnabled(void) const;
+
+    void SignalMessageLayerActivityChanged(void);
 
     WEAVE_ERROR SendMessage(const IPAddress &destAddr, uint16_t destPort, InterfaceId sendIntfId, PacketBuffer *payload, uint16_t udpSendFlags);
     WEAVE_ERROR SelectDestNodeIdAndAddress(uint64_t& destNodeId, IPAddress& destAddr);

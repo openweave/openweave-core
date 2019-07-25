@@ -73,7 +73,12 @@ protected:
     WEAVE_ERROR _GetThreadProvision(DeviceNetworkInfo & netInfo, bool includeCredentials);
     WEAVE_ERROR _SetThreadProvision(const DeviceNetworkInfo & netInfo);
     void _ClearThreadProvision(void);
+    ConnectivityManager::ThreadDeviceType _GetThreadDeviceType(void);
+    WEAVE_ERROR _SetThreadDeviceType(ConnectivityManager::ThreadDeviceType deviceType);
+    void _GetThreadPollingConfig(ConnectivityManager::ThreadPollingConfig & pollingConfig);
+    WEAVE_ERROR _SetThreadPollingConfig(const ConnectivityManager::ThreadPollingConfig & pollingConfig);
     bool _HaveMeshConnectivity(void);
+    void _OnMessageLayerActivityChanged(bool messageLayerIsActive);
     WEAVE_ERROR _GetAndLogThreadStatsCounters(void);
     WEAVE_ERROR _GetAndLogThreadTopologyMinimal(void);
     WEAVE_ERROR _GetAndLogThreadTopologyFull(void);
@@ -83,12 +88,14 @@ protected:
 
     WEAVE_ERROR DoInit(otInstance * otInst);
     bool IsThreadAttachedNoLock(void);
+    WEAVE_ERROR AdjustPollingInterval(void);
 
 private:
 
     // ===== Private members for use by this class only.
 
     otInstance * mOTInst;
+    ConnectivityManager::ThreadPollingConfig mPollingConfig;
 
     inline ImplClass * Impl() { return static_cast<ImplClass*>(this); }
 };
