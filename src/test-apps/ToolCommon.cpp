@@ -833,8 +833,11 @@ void InitNetwork()
 
     tapIFs.clear();
     netIFs.clear();
+    printf("Set Lwip interface in InitNetwork()\n");
+    printf("  gNetworkOptions.TapDeviceName.size(): %zu\n", gNetworkOptions.TapDeviceName.size());
     for (size_t j = 0; j < gNetworkOptions.TapDeviceName.size(); j++)
     {
+        printf(" prepare mem for Tap Device: %s\n", gNetworkOptions.TapDeviceName[j]);
         TapInterface tapIF;
         struct netif netIF;
         tapIFs.push_back(tapIF);
@@ -843,6 +846,7 @@ void InitNetwork()
 
     for (size_t j = 0; j < gNetworkOptions.TapDeviceName.size(); j++)
     {
+        printf(" Init TAP interface for Tap Device: %s\n", gNetworkOptions.TapDeviceName[j]);
         lwipErr = TapInterface_Init(&(tapIFs[j]), gNetworkOptions.TapDeviceName[j], NULL);
         if (lwipErr != ERR_OK)
         {
@@ -859,6 +863,7 @@ void InitNetwork()
     {
         std::vector<char *>addrsVec;
         addrsVec.clear();
+        printf("========== CollectTapAddresses Tap Device: %s\n", gNetworkOptions.TapDeviceName[j]);
         if (gNetworkOptions.TapUseSystemConfig)
         {
             CollectTapAddresses(addrsVec, gNetworkOptions.TapDeviceName[j]);
@@ -898,17 +903,37 @@ void InitNetwork()
 #endif // INET_CONFIG_ENABLE_IPV4
 
         netif_create_ip6_linklocal_address(&(netIFs[j]), 1);
-
+        printf("  j: %zu \n", j);
+        printf("  gNetworkOptions.LocalIPv6Addr.size(): %zu\n", gNetworkOptions.LocalIPv6Addr.size());
         if (j < gNetworkOptions.LocalIPv6Addr.size())
         {
             ip6_addr_t ip6addr = gNetworkOptions.LocalIPv6Addr[j].ToIPv6();
             s8_t index;
+
+            const char *br_ip6_str = "FD00:0:FAB1:6:1AB4:3000:0:1";
+            IPAddress br_ip6;
+
+            IPAddress::FromString(br_ip6_str, br_ip6);
+            ip6_addr_t br_ip6_addr = br_ip6.ToIPv6();
+
+            printf("  ========== index %d after index define ======\n", index);
+            printf("  netif_ip6_addr_set_state   11111111111111111111\n");
             netif_add_ip6_address_with_route(&(netIFs[j]), &ip6addr, 64, &index);
+            printf("  index %d\n", index);
+            printf("  ******jennie added to test ipv6 default route *******\n");
+            struct ip6_prefix ip6_prefix; 
+            ip6_prefix.addr = nl::Inet::IPAddress::Any.ToIPv6();
+            ip6_prefix.prefix_len = 0;
+            err_t lwip_err = ip6_add_route_entry(&ip6_prefix, &netIFs[j], &br_ip6_addr, NULL);
+            //WEAVE_ERROR err = System::MapErrorLwIP(lwip_err);
+            printf("  ******ip6_add_route_entry return value: %d *******\n", lwip_err);
+            
             if (index >= 0)
             {
                 netif_ip6_addr_set_state(&(netIFs[j]), index, IP6_ADDR_PREFERRED);
             }
         }
+        printf("  addrsVec.size(): %zu\n", addrsVec.size());
         for (size_t n = 0; n < addrsVec.size(); n++)
         {
             IPAddress auto_addr;
@@ -920,7 +945,9 @@ void InitNetwork()
                     continue; // skip over the LLA addresses, LwIP is aready adding those
                 if (auto_addr.IsIPv6Multicast())
                     continue; // skip over the multicast addresses from host for now.
+                printf("  netif_ip6_addr_set_state   22222222222222\n");
                 netif_add_ip6_address_with_route(&(netIFs[j]), &ip6addr, 64, &index);
+                printf("  index %d\n", index);
                 if (index >= 0)
                 {
                     netif_ip6_addr_set_state(&(netIFs[j]), index, IP6_ADDR_PREFERRED);
@@ -930,6 +957,8 @@ void InitNetwork()
 
         netif_set_up(&(netIFs[j]));
         netif_set_link_up(&(netIFs[j]));
+
+        //printf("  IPv6 address: %s, 0x%02x\n", ip6addr_ntoa(netif_ip6_addr(netIF, i)), netif_ip6_addr_state(netIF, i));
 
     }
 
