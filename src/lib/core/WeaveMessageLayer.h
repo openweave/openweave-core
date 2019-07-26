@@ -793,6 +793,36 @@ inline bool WeaveMessageLayer::IsBoundToLocalIPv6Address(void) const
 }
 
 /**
+ * Bit field definitions for IEEE EUI-64 Identifiers.
+ */
+enum
+{
+    kEUI64_UL_Mask          = 0x0200000000000000ULL,        /**< Bitmask for the Universal/Local (U/L) bit within an EUI-64 identifier.
+                                                                 A value of 0 indicates the id is Universally (globally) administered.
+                                                                 A value of 1 indicates the id is Locally administered. */
+
+    kEUI64_UL_Unversal      = 0,                            /**< Universal/Local bit value indicating a Universally administered EUI-64 identifier. */
+
+    kEUI64_UL_Local         = kEUI64_UL_Mask,               /**< Universal/Local bit value indicating a Locally administered EUI-64 identifier. */
+
+    kEUI64_IG_Mask          = 0x0100000000000000ULL,        /**< Bitmask for the Individual/Group (I/G) bit within an EUI-64 identifier.
+                                                                 A value of 0 indicates the id is an individual address.
+                                                                 A value of 1 indicates the id is a group address. */
+
+    kEUI64_IG_Individual    = 0,                            /**< Individual/Group bit value indicating an individual address EUI-64 identifier. */
+
+    kEUI64_IG_Group         = kEUI64_IG_Mask,               /**< Individual/Group bit value indicating an group address EUI-64 identifier. */
+};
+
+/**
+ * Special ranges of Weave Node Ids.
+ */
+enum
+{
+    kMaxAlwaysLocalWeaveNodeId  = 0x000000000000FFFFULL,    /**< Weave node identifiers less or equal than this value are considered local for testing convenience. */
+};
+
+/**
  *  Convert a Weave fabric identifier to an IPv6 ULA global identifier.
  *
  *  The ULA global identifier for a fabric address is the lower 40 bits of the fabric's
@@ -808,10 +838,10 @@ inline uint64_t WeaveFabricIdToIPv6GlobalId(uint64_t fabricId) { return (fabricI
 /**
  *  Convert an IPv6 address interface identifier to a Weave node identifier.
  *
- *  As a convenience to testing, node identifiers less than 65536 are considered 'local',
- *  and have their universal/local bit is set to zero.  This simplifies the string
- *  representation of the corresponding IPv6 addresses. For example a ULA for node identifier
- *  \c 10 would be \c FD00:0:1:1\::A.
+ *  As a convenience to testing, node identifiers less or equal than #kMaxAlwaysLocalWeaveNodeId
+ *  (65535) are considered 'local', and have their universal/local bit is set to zero.
+ *  This simplifies the string representation of the corresponding IPv6 addresses.
+ *  For example a ULA for node identifier \c 10 would be \c FD00:0:1:1\::A.
  *
  *  @note
  *    When trying to determine if an interface identifier matches a particular node identifier,
@@ -827,19 +857,19 @@ inline uint64_t WeaveFabricIdToIPv6GlobalId(uint64_t fabricId) { return (fabricI
  */
 inline uint64_t IPv6InterfaceIdToWeaveNodeId(uint64_t interfaceId)
 {
-    return (interfaceId & ~(0x0200000000000000ULL));
+    return (interfaceId <= kMaxAlwaysLocalWeaveNodeId) ? interfaceId : (interfaceId ^ kEUI64_UL_Mask);
 }
 
 /**
  *  Convert a Weave node identifier to an IPv6 address interface identifier.
  *
- *  Weave node identifiers are global EUI-64s, which per RFC-3513 are converted to interface
- *  identifiers by setting the universal/local bit to 1 (bit 57 counting the LSB as 0).
+ *  Weave node identifiers are Universal/Local EUI-64s, which per RFC-3513 are converted to
+ *  interface identifiers by inverting the universal/local bit (bit 57 counting the LSB as 0).
  *
- *  As a convenience to testing, node identifiers less than 65536 are considered 'local',
- *  and have their universal/local bit is set to zero. This simplifies the string
- *  representation of the corresponding IPv6 addresses. For example, a ULA for node identifier
- *  \c 10 would be \c FD00:0:1:1\::A.
+ *  As a convenience to testing, node identifiers less or equal than #kMaxAlwaysLocalWeaveNodeId
+ *  (65535) are considered 'local', and have their universal/local bit is set to zero.
+ *  This simplifies the string representation of the corresponding IPv6 addresses.
+ *  For example a ULA for node identifier \c 10 would be \c FD00:0:1:1\::A.
  *
  *  @note
  *    When trying to determine if an interface identifier matches a particular node identifier,
@@ -855,7 +885,7 @@ inline uint64_t IPv6InterfaceIdToWeaveNodeId(uint64_t interfaceId)
  */
 inline uint64_t WeaveNodeIdToIPv6InterfaceId(uint64_t nodeId)
 {
-    return (nodeId < 65536) ? nodeId : (nodeId | 0x0200000000000000ULL);
+    return (nodeId <= kMaxAlwaysLocalWeaveNodeId) ? nodeId : (nodeId ^ kEUI64_UL_Mask);
 }
 
 /**
