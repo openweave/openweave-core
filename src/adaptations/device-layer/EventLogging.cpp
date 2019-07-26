@@ -101,26 +101,3 @@ WEAVE_ERROR InitWeaveEventLogging(void)
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
-
-
-namespace nl {
-namespace Weave {
-namespace Profiles {
-namespace DataManagement_Current {
-namespace Platform {
-
-void CriticalSectionEnter(void)
-{
-    return PlatformMgr().LockWeaveStack();
-}
-
-void CriticalSectionExit(void)
-{
-    return PlatformMgr().UnlockWeaveStack();
-}
-
-} // namespace Platform
-} // namespace DataManagement_Current
-} // namespace Profiles
-} // namespace Weave
-} // namespace nl
