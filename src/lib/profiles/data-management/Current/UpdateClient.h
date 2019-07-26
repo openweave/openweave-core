@@ -122,7 +122,7 @@ struct UpdateClient::InEventParam
 struct UpdateClient::OutEventParam
 {
     bool DefaultHandlerCalled;
-    union
+    union _ // make clang 9 happy. remove name when adding members.
     {
     };
     void Clear() { memset(this, 0, sizeof(*this)); }
