@@ -191,9 +191,9 @@ public:
          *  Allows application to manage the rest of the phases of software update such as
          *  download, image integrity validation and install. Software update manager
          *  state machine will move to the ApplicationManaged state. Scheduled software update checks (if enabled)
-         *  will be suspended till application calls Abort or InstallationComplete API.
+         *  will be suspended till application calls Abort or ImageInstallComplete API.
          */
-        kAction_Defer_To_Application,
+        kAction_ApplicationManaged,
     };
 
     /**

@@ -53,7 +53,6 @@ template class GenericSoftwareUpdateManagerImpl<SoftwareUpdateManagerImpl>;
 template<class ImplClass>
 void GenericSoftwareUpdateManagerImpl<ImplClass>::DoInit()
 {
-    mWasAborted = false;
     mShouldRetry = false;
     mScheduledCheckEnabled = false;
 
@@ -174,7 +173,7 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::PrepareQuery(void)
     outParam.PrepareQuery.Error = WEAVE_NO_ERROR;
 
     mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_PrepareQuery, inParam, outParam);
-    VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+    VerifyOrExit(mState == SoftwareUpdateManager::kState_Prepare, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
     // Check for a preparation error returned by the application
     err = outParam.PrepareQuery.Error;
@@ -219,7 +218,7 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::PrepareQuery(void)
 
     // Call EventHandler Callback to allow application to write meta-data.
     mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_PrepareQuery_Metadata, inParam, outParam);
-    VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+    VerifyOrExit(mState == SoftwareUpdateManager::kState_Prepare, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
     // Check for a preparation error returned by the application
     err = outParam.PrepareQuery_Metadata.Error;
@@ -371,7 +370,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::SendQuery(void)
     SuccessOrExit(err);
 
     mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_QuerySent, inParam, outParam);
-    VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+    VerifyOrExit(mState == SoftwareUpdateManager::kState_Query, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
 exit:
     if (err != WEAVE_NO_ERROR)
@@ -499,7 +498,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::HandleImageQueryResponse(Packe
     {
         Impl()->SoftwareUpdateFailed(WEAVE_ERROR_NOT_IMPLEMENTED, NULL);
     }
-    else if (outParam.SoftwareUpdateAvailable.Action == SoftwareUpdateManager::kAction_Defer_To_Application)
+    else if (outParam.SoftwareUpdateAvailable.Action == SoftwareUpdateManager::kAction_ApplicationManaged)
     {
         DriveState(SoftwareUpdateManager::kState_ApplicationManaged);
     }
@@ -568,7 +567,6 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::DriveState(SoftwareUpdateManag
 
     case SoftwareUpdateManager::kState_Prepare:
         {
-            mWasAborted = false;
             PlatformMgr().ScheduleWork(DoPrepare);
         }
         break;
@@ -747,7 +745,7 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::StoreImageBlock(uint32_
     outParam.StoreImageBlock.Error = WEAVE_NO_ERROR;
 
     mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_StoreImageBlock, inParam, outParam);
-    VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+    VerifyOrExit(mState == SoftwareUpdateManager::kState_Download, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
     // If the application didn't handle the PrepareRequested event then it doesn't support
     // on-demand configuration/preparation so fail with an error.
@@ -776,7 +774,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::StartingDownload(void)
     outParam.FetchPartialImageInfo.PartialImageLen = 0;
 
     mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_FetchPartialImageInfo, inParam, outParam);
-    VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+    VerifyOrExit(mState == SoftwareUpdateManager::kState_Download, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
     if (outParam.FetchPartialImageInfo.PartialImageLen != 0)
     {
@@ -792,7 +790,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::StartingDownload(void)
         // Inform the application to clear any image from their storage since we are going to start downloading
         // a new image from scratch.
         mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_ClearImageFromStorage, inParam, outParam);
-        VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+        VerifyOrExit(mState == SoftwareUpdateManager::kState_Download, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
         mStartOffset = 0;
     }
@@ -801,12 +799,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::StartingDownload(void)
     outParam.Clear();
 
     mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_StartImageDownload, inParam, outParam);
-
-    /**
-     * If the application aborted software update check while during the event callback,
-     * exit out immediately.
-     */
-    VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+    VerifyOrExit(mState == SoftwareUpdateManager::kState_Download, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
     err = Impl()->StartImageDownload(mURI, mStartOffset);
     SuccessOrExit(err);
@@ -862,7 +855,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::CheckImageIntegrity(void)
     outParam.ComputeImageIntegrity.Error = WEAVE_NO_ERROR;
 
     mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_ComputeImageIntegrity, inParam, outParam);
-    VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+    VerifyOrExit(mState == SoftwareUpdateManager::kState_Download, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
     err = outParam.ComputeImageIntegrity.Error;
     SuccessOrExit(err);
@@ -874,7 +867,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::CheckImageIntegrity(void)
     outParam.Clear();
 
     mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_ReadyToInstall, inParam, outParam);
-    VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+    VerifyOrExit(mState == SoftwareUpdateManager::kState_Download, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
 exit:
     if (err != WEAVE_NO_ERROR && err != WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED)
@@ -887,7 +880,7 @@ exit:
         outParam.Clear();
 
         mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_ClearImageFromStorage, inParam, outParam);
-        err = mWasAborted ? WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED : err;
+        err = mState == SoftwareUpdateManager::kState_Download ? WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED : err;
 
         Impl()->SoftwareUpdateFailed(err, NULL);
     }
@@ -909,7 +902,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::StartImageInstall(void)
     outParam.Clear();
 
     mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_StartInstallImage, inParam, outParam);
-    VerifyOrExit(!mWasAborted, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+    VerifyOrExit(mState == SoftwareUpdateManager::kState_Install, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
 
     err = Impl()->InstallImage();
     if (err == WEAVE_ERROR_NOT_IMPLEMENTED)
@@ -958,7 +951,6 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::_Abort(void)
     }
     else
     {
-        mWasAborted = true;
         if (mState == SoftwareUpdateManager::kState_Download)
         {
             Impl()->AbortDownload();
