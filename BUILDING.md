@@ -455,6 +455,7 @@ either in the SDK directory itself or from another non-colocated build directory
 
 ```
 % cd openweave-core
+% ./bootstrap
 % ./configure [ <options> ... ]
 ```
 
@@ -465,6 +466,7 @@ NOTE: Feel free to name this directory whatever you would like.
 ```
 % mkdir openweave-core-build
 % cd openweave-core-build
+% {WEAVE_SRCDIR}/bootstrap
 % {WEAVE_SRCDIR}/configure [ <options> ... ]
 
 

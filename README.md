@@ -77,6 +77,12 @@ technologies more widely available.
 
 # Getting started with OpenWeave Core
 
+First run
+```
+% ./bootstrap
+```
+The bootstrap script will install all the dependencies and run autoconf to generate configure files.
+
 All end-user documentation and guides are located at [openweave.io](https://openweave.io).
 Learn how Weave works with our [Weave Primer](https://openweave.io/guides/weave_primer),
 or dig right in and learn how to:

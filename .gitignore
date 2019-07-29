@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
 # Android build
 # Dolomite build
 # Eclipse
@@ -95,3 +84,31 @@ xcuserdata/
 src/test-apps/happy/*egg*
 src/test-apps/happy/dist
 src/test-apps/happy/build
+
+Makefile.in
+aclocal.m4
+configure
+Makefile.in
+
+build/autoconf/m4/libtool.m4
+build/autoconf/m4/ltoptions.m4
+build/autoconf/m4/ltsugar.m4
+build/autoconf/m4/ltversion.m4
+build/autoconf/m4/lt~obsolete.m4
+doc/html/
+src/include/PlatformLayer/
+src/include/SystemLayer/
+src/include/Warm/
+src/lib/support/ASN1OID.h
+third_party/bluez/
+third_party/nlassert/
+third_party/nlfaultinjection/
+third_party/nlio/
+third_party/nlunit-test/
+third_party/openssl/x86_64-unknown-linux-gnu/
+src/include/BuildConfig.h.in
+.repos-warning-stamp
+
+# Vim
+*.swp
+
