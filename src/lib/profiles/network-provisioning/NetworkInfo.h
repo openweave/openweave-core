@@ -91,7 +91,7 @@ public:
                                      * Destroyed on any condition that calls `Clear()` on
                                      * the object. */
     uint8_t *ThreadPSKc;            /**< Thread pre-shared key for commissioner, or NULL if not specified. It is a
-                                     * dynamically * allocated array of arbitrary octets, owned by the class
+                                     * dynamically allocated array of arbitrary octets, owned by the class
                                      * Destroyed on any condition that calls `Clear()` on
                                      * the object. */
 

@@ -359,7 +359,7 @@ class _NetworkInfoStruct(Structure):
         ('ThreadNetworkName', c_char_p),    # The name of the Thread network.
         ('ThreadExtendedPANId', c_void_p),  # The Thread extended PAN id (8 bytes).
         ('ThreadNetworkKey', c_void_p),     # The Thread master network key.
-        ('ThreadPSKc', c_void_p),           # The Thread preshared key for commissioner
+        ('ThreadPSKc', c_void_p),           # The Thread pre-shared key for commissioner
         ('ThreadPANId', c_uint32),          # The 16-bit Thread PAN ID, or kThreadPANId_NotSpecified
         ('ThreadChannel', c_uint8),         # The current channel on which the Thread network operates, or kThreadChannel_NotSpecified
         ('WirelessSignalStrength', c_int16),# The signal strength of the network, or INT16_MIN if not available/applicable.

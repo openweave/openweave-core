@@ -94,6 +94,13 @@ const int NLThreadChannel_NotSpecified = -1;
                                                        length:nl::Weave::DeviceManager::NetworkInfo::kThreadNetworkKeyLength];
             NSLog(@"_ThreadNetworkKey: %@", _ThreadNetworkKey);
         }
+
+        if (pNetworkInfo->ThreadPSKc) {
+            _ThreadPSKc = [[NSData alloc] initWithBytes:pNetworkInfo->ThreadPSKc
+                                                       length:nl::Weave::DeviceManager::NetworkInfo::kThreadPSKcLength];
+            NSLog(@"_ThreadPSKc: %@", _ThreadPSKc);
+        }
+
         _ThreadPANId = pNetworkInfo->ThreadPANId;
         _ThreadChannel = pNetworkInfo->ThreadChannel;
 
@@ -120,6 +127,7 @@ const int NLThreadChannel_NotSpecified = -1;
     networkInfo.ThreadNetworkName = [self.ThreadNetworkName copy];
     networkInfo.ThreadExtendedPANId = [self.ThreadExtendedPANId copy];
     networkInfo.ThreadNetworkKey = [self.ThreadNetworkKey copy];
+    networkInfo.ThreadPSKc = [self.ThreadPSKc copy];
     networkInfo.ThreadPANId = self.ThreadPANId;
     networkInfo.ThreadChannel = self.ThreadChannel;
 
@@ -164,6 +172,11 @@ const int NLThreadChannel_NotSpecified = -1;
     if (_ThreadNetworkKey) {
         networkInfo.ThreadNetworkKey = (uint8_t *) malloc(NetworkInfo::kThreadNetworkKeyLength);
         memcpy(networkInfo.ThreadNetworkKey, [_ThreadNetworkKey bytes], NetworkInfo::kThreadNetworkKeyLength);
+    }
+
+    if (_ThreadPSKc) {
+        networkInfo.ThreadPSKc = (uint8_t *) malloc(NetworkInfo::kThreadPSKcLength);
+        memcpy(networkInfo.ThreadPSKc, [_ThreadPSKc bytes], NetworkInfo::kThreadPSKcLength);
     }
 
     networkInfo.ThreadPANId = _ThreadPANId;
@@ -341,6 +354,11 @@ const int NLThreadChannel_NotSpecified = -1;
 
     if (_ThreadNetworkKey) {
         line = [NSString stringWithFormat:@"\tThreadNetworkKey: %@\n", _ThreadNetworkKey];
+        [descr appendString:line];
+    }
+
+    if (_ThreadPSKc) {
+        line = [NSString stringWithFormat:@"\tThreadPSKc: %@\n", _ThreadPSKc];
         [descr appendString:line];
     }
 
