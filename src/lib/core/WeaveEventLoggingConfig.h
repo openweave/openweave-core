@@ -61,7 +61,7 @@
 #endif /* WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD */
 
 /**
- *  @def WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
+ *  @def WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
  *
  *  @brief
  *    Control whether the logs are offloaded using the WDM profile
