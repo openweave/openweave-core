@@ -132,7 +132,6 @@ private:
     bool mHaveServiceConnectivity;
     bool mScheduledCheckEnabled;
     bool mShouldRetry;
-    bool mWasAborted;
 
     uint64_t mNumBytesToDownload;
     uint64_t mStartOffset;
