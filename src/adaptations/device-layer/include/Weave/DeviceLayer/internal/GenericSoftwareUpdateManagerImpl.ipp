@@ -36,16 +36,23 @@
 
 #include <Weave/Support/FibonacciUtils.h>
 #include <Weave/Support/RandUtils.h>
+#include <Weave/Support/TraitEventUtils.h>
+
+#include <nest/trait/firmware/SoftwareUpdateTrait.h>
 
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles;
 using namespace ::nl::Weave::Profiles::Common;
+using namespace ::nl::Weave::Profiles::DataManagement;
 using namespace ::nl::Weave::Profiles::SoftwareUpdate;
+using namespace ::Schema::Nest::Trait::Firmware;
+using namespace ::Schema::Nest::Trait::Firmware::SoftwareUpdateTrait;
 
 // Fully instantiate the generic implementation class in whatever compilation unit includes this file.
 template class GenericSoftwareUpdateManagerImpl<SoftwareUpdateManagerImpl>;
@@ -140,6 +147,9 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::PrepareQuery(void)
     TLVWriter writer;
     TLVType containerType;
 
+    QueryBeginEvent ev;
+    EventOptions evOptions(true);
+
     char firmwareRev[ConfigurationManager::kMaxFirmwareRevisionLength+1];
 
     size_t firmwareRevLen;
@@ -161,6 +171,17 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::PrepareQuery(void)
 
     err = ConfigurationMgr().GetFirmwareRevision(firmwareRev, sizeof(firmwareRev), firmwareRevLen);
     SuccessOrExit(err);
+
+    nl::NullifyAllEventFields(&ev);
+    evOptions.relatedEventID = mEventId;
+    ev.currentSwVersion = firmwareRev;
+    ev.vendorId = imageQuery.productSpec.vendorId;
+    ev.vendorProductId = imageQuery.productSpec.productId;
+    ev.productRevision = imageQuery.productSpec.productRev;
+    ev.SetCurrentSwVersionPresent();
+    ev.SetVendorIdPresent();
+    ev.SetVendorProductIdPresent();
+    ev.SetProductRevisionPresent();
 
     err = Impl()->GetUpdateSchemeList(&imageQuery.updateSchemes);
     SuccessOrExit(err);
@@ -188,6 +209,9 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::PrepareQuery(void)
     {
         err = imageQuery.localeSpec.init((uint8_t) strlen(outParam.PrepareQuery.DesiredLocale), (char *)outParam.PrepareQuery.DesiredLocale);
         SuccessOrExit(err);
+
+        ev.locale = outParam.PrepareQuery.DesiredLocale;
+        ev.SetLocalePresent();
     }
 
     // Package specification is an option field in the weave software update protocol. If one is not
@@ -229,6 +253,8 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::PrepareQuery(void)
 
     writer.Finalize();
 
+    nl::LogEvent(&ev, evOptions);
+
 exit:
     return err;
 }
@@ -248,11 +274,47 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl<ImplClass>::_CheckNow(void)
             SystemLayer.CancelTimer(HandleHoldOffTimerExpired, NULL);
         }
 
+        {
+            SoftwareUpdateStartEvent ev;
+            EventOptions evOptions(true);
+            ev.trigger = START_TRIGGER_USER_INITIATED;
+            mEventId = nl::LogEvent(&ev, evOptions);
+        }
+
         DriveState(SoftwareUpdateManager::kState_Prepare);
     }
 
 exit:
     return err;
+}
+
+template<class ImplClass>
+void GenericSoftwareUpdateManagerImpl<ImplClass>::GetEventState(int32_t& aEventState)
+{
+    int32_t event_state = 0;
+
+    switch(mState)
+    {
+        case SoftwareUpdateManager::kState_Idle:
+        case SoftwareUpdateManager::kState_ScheduledHoldoff:
+            event_state = STATE_IDLE;
+            break;
+        case SoftwareUpdateManager::kState_Prepare:
+        case SoftwareUpdateManager::kState_Query:
+            event_state = STATE_QUERYING;
+            break;
+        case SoftwareUpdateManager::kState_Download:
+            event_state = STATE_DOWNLOADING;
+            break;
+        case SoftwareUpdateManager::kState_Install:
+            event_state = STATE_INSTALLING;
+            break;
+        default:
+            event_state = 0;
+            break;
+    }
+
+    aEventState = event_state;
 }
 
 template<class ImplClass>
@@ -277,6 +339,30 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::SoftwareUpdateFailed(WEAVE_ERR
 
     mShouldRetry = true;
     mRetryCounter++;
+
+    {
+        FailureEvent ev;
+        EventOptions evOptions(true);
+        nl::NullifyAllEventFields(&ev);
+        GetEventState(ev.state);
+        evOptions.relatedEventID = mEventId;
+
+        ev.platformReturnCode = aError;
+        ev.SetPrimaryStatusCodeNull();
+
+        if (aStatusReport)
+        {
+            ev. SetRemoteStatusCodePresent();
+            ev.remoteStatusCode.profileId = aStatusReport->mProfileId;
+            ev.remoteStatusCode.statusCode = aStatusReport->mStatusCode;
+        }
+        else
+        {
+            ev.SetRemoteStatusCodeNull();
+        }
+
+        nl::LogEvent(&ev, evOptions);
+    }
 
     if (mState == SoftwareUpdateManager::kState_Prepare)
     {
@@ -308,6 +394,31 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::SoftwareUpdateFinished(WEAVE_E
 
     mShouldRetry = false;
     mRetryCounter = 0;
+
+    if (aError == WEAVE_ERROR_NO_SW_UPDATE_AVAILABLE)
+    {
+        /* Log a Query Finish event with null fields
+         * as per the software update trait schema to indicate no update available.
+         */
+        QueryFinishEvent ev;
+        EventOptions evOptions(true);
+        nl::NullifyAllEventFields(&ev);
+        evOptions.relatedEventID = mEventId;
+        nl::LogEvent(&ev, evOptions);
+    }
+    else if (aError != WEAVE_NO_ERROR)
+    {
+        /* Log a Failure event to indicate that software update finished
+         * because of an error.
+         */
+        FailureEvent ev;
+        EventOptions evOptions(true);
+        nl::NullifyAllEventFields(&ev);
+        GetEventState(ev.state);
+        evOptions.relatedEventID = mEventId;
+        ev.platformReturnCode = aError;
+        nl::LogEvent(&ev, evOptions);
+    }
 
     inParam.Finished.Error = aError;
     inParam.Finished.StatusReport = NULL;
@@ -478,6 +589,18 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::HandleImageQueryResponse(Packe
 
     mIntegritySpec = imageQueryResponse.integritySpec;
 
+    {
+        QueryFinishEvent ev;
+        EventOptions evOptions(true);
+        nl::NullifyAllEventFields(&ev);
+        evOptions.relatedEventID = mEventId;
+        ev.imageUrl = mURI;
+        ev.imageVersion = imageQueryResponse.versionSpec.theString;
+        ev.SetImageUrlPresent();
+        ev.SetImageVersionPresent();
+        nl::LogEvent(&ev, evOptions);
+    }
+
     inParam.SoftwareUpdateAvailable.Priority        = imageQueryResponse.updatePriority;
     inParam.SoftwareUpdateAvailable.Condition       = imageQueryResponse.updateCondition;
     inParam.SoftwareUpdateAvailable.IntegrityType   = imageQueryResponse.integritySpec.type;
@@ -522,6 +645,13 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::HandleHoldOffTimerExpired(::nl
                                                                             ::nl::Weave::System::Error aError)
 {
     GenericSoftwareUpdateManagerImpl<ImplClass> * self = &SoftwareUpdateMgrImpl();
+
+    {
+        SoftwareUpdateStartEvent ev;
+        EventOptions evOptions(true);
+        ev.trigger = START_TRIGGER_SCHEDULED;
+        self->mEventId = nl::LogEvent(&ev, evOptions);
+    }
 
     self->DriveState(SoftwareUpdateManager::kState_Prepare);
 }
@@ -804,6 +934,18 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::StartingDownload(void)
     err = Impl()->StartImageDownload(mURI, mStartOffset);
     SuccessOrExit(err);
 
+    {
+        DownloadStartEvent ev;
+        EventOptions evOptions(true);
+        nl::NullifyAllEventFields(&ev);
+        evOptions.relatedEventID = mEventId;
+        ev.imageUrl = mURI;
+        ev.offset = mStartOffset;
+        ev.SetImageUrlPresent();
+        ev.SetOffsetPresent();
+        nl::LogEvent(&ev, evOptions);
+    }
+
 exit:
     if (err != WEAVE_NO_ERROR)
     {
@@ -814,6 +956,12 @@ exit:
 template<class ImplClass>
 void GenericSoftwareUpdateManagerImpl<ImplClass>::DownloadComplete()
 {
+    DownloadFinishEvent ev;
+    EventOptions evOptions(true);
+    nl::NullifyAllEventFields(&ev);
+    evOptions.relatedEventID = mEventId;
+    nl::LogEvent(&ev, evOptions);
+
     // Download is complete. Check Image Integrity.
     CheckImageIntegrity();
 }
@@ -903,6 +1051,21 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::StartImageInstall(void)
 
     mEventHandlerCallback(mAppState, SoftwareUpdateManager::kEvent_StartInstallImage, inParam, outParam);
     VerifyOrExit(mState == SoftwareUpdateManager::kState_Install, err = WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_ABORTED);
+
+    {
+        /* Log an Install Start Event to indicate that software update
+         * install phase has started. The subsequent Install Finish Event
+         * should be logged by the application once image installation is complete
+         * and the device boots to the new image. If image installation fails and a
+         * rollback was performed, application must emit Image Rollback Event. It rollback
+         * is not a supported feature, application must emit a Failure Event.
+         */
+        InstallStartEvent ev;
+        EventOptions evOptions(true);
+        nl::NullifyAllEventFields(&ev);
+        evOptions.relatedEventID = mEventId;
+        nl::LogEvent(&ev, evOptions);
+    }
 
     err = Impl()->InstallImage();
     if (err == WEAVE_ERROR_NOT_IMPLEMENTED)

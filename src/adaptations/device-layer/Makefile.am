@@ -90,9 +90,11 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/internal/ServiceProvisioningServer.h \
     include/Weave/DeviceLayer/internal/ServiceTunnelAgent.h \
     include/Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h \
+    trait-support/nest/trait/firmware/SoftwareUpdateTrait.h \
     trait-support/nest/trait/network/TelemetryNetworkTrait.h \
     trait-support/nest/trait/network/TelemetryNetworkWifiTrait.h \
     trait-support/nest/trait/network/TelemetryNetworkWpanTrait.h \
+    trait-support/weave/common/ProfileSpecificStatusCodeStructSchema.h \
     trait-support/weave/trait/description/DeviceIdentityTrait.h \
     trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.h \
     $(NULL)
@@ -128,9 +130,11 @@ libDeviceLayer_a_SOURCES                = \
     TestDeviceIds.cpp                     \
     TimeSyncManager.cpp                   \
     TraitManager.cpp                      \
+    trait-support/nest/trait/firmware/SoftwareUpdateTrait.cpp \
     trait-support/nest/trait/network/TelemetryNetworkTrait.cpp \
     trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp \
     trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp \
+    trait-support/weave/common/ProfileSpecificStatusCodeStructSchema.cpp \
     trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
     trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp \
     $(NULL)
