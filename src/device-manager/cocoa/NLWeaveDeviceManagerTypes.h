@@ -188,6 +188,7 @@ typedef NS_ENUM(NSInteger, NLCommonProfileStatus) {
     kNLStatus_BadRequest = 0x0010, // The request was unrecognized or malformed.
     kNLStatus_UnsupportedMessage = 0x0011, // An unrecognized or unsupported message was received.
     kNLStatus_UnexpectedMessage = 0x0012, // A message was received at an unexpected time or in an unexpected context.
+    kNLStatus_AccessDenied = 0x0014, // The device is paired to another account.
     kNLStatus_OutOfMemory = 0x0017, // Out of memory
 
     kNLStatus_Relocated = 0x0030, // Request could not be completed because it was made to the wrong endpoint.

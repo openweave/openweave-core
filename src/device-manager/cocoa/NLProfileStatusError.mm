@@ -113,6 +113,8 @@ using namespace nl::Weave::Profiles;
             return kNLStatus_InternalError;
         case nl::Weave::Profiles::Common::kStatus_Continue:
             return kNLStatus_Continue;
+        case nl::Weave::Profiles::Common::kStatus_AccessDenied:
+            return kNLStatus_AccessDenied;
         default:
             return self.statusCode;
         }
