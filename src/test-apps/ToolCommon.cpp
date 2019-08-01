@@ -914,7 +914,7 @@ void InitNetwork()
             IPAddress br_ip6;
 
             IPAddress::FromString(br_ip6_str, br_ip6);
-            ip6_addr_t br_ip6_addr = br_ip6.ToIPv6();
+            static ip6_addr_t br_ip6_addr = br_ip6.ToIPv6();
 
             printf("  ========== index %d after index define ======\n", index);
             printf("  netif_ip6_addr_set_state   11111111111111111111\n");
