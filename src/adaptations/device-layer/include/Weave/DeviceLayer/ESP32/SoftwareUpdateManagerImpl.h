@@ -62,6 +62,11 @@ private:
     // ===== Members that implement the SoftwareUpdateManager abstract interface.
 
     WEAVE_ERROR _Init(void);
+    WEAVE_ERROR StartImageDownload(char *aURI, uint64_t aStartOffset);
+    WEAVE_ERROR GetUpdateSchemeList(::nl::Weave::Profiles::SoftwareUpdate::UpdateSchemeList * aUpdateSchemeList);
+    WEAVE_ERROR AbortDownload(void);
+
+    esp_err_t _http_event_handle(esp_http_client_event_t *evt)
 
 };
 
