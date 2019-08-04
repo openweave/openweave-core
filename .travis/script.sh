@@ -18,7 +18,7 @@
 
 #
 #    Description:
-#      This file is the script for Travis CI hosted, distributed continuous 
+#      This file is the script for Travis CI hosted, distributed continuous
 #      integration 'script' step.
 #
 
@@ -97,8 +97,8 @@ case "${BUILD_TARGET}" in
         .travis/build_esp32.sh
         ;;
 
-    nrf52840)
-        .travis/build_nrf52840.sh
+    nrf52840-lock-example)
+        .travis/build_nrf52840_lock_example.sh
         ;;
 
     linux-auto-*-distcheck)
@@ -112,6 +112,6 @@ case "${BUILD_TARGET}" in
     *)
         die "Unknown build target \"${BUILD_TARGET}\"."
         ;;
-        
+
 esac
 

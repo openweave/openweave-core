@@ -28,59 +28,59 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 .NOTPARALLEL:
 
-AM_MAKEFLAGS                             = --no-print-directory
+AM_MAKEFLAGS                                = --no-print-directory
 
-SUBDIRS                                  = \
-    third_party                            \
-    src                                    \
-    doc                                    \
+SUBDIRS                                     = \
+    third_party                               \
+    src                                       \
+    doc                                       \
     $(NULL)
 
-PRETTY_SUBDIRS                           = \
-    $(filter-out third_party,$(SUBDIRS))   \
+PRETTY_SUBDIRS                              = \
+    $(filter-out third_party,$(SUBDIRS))      \
     $(NULL)
 
-EXTRA_DIST                               = \
-    BUILDING-ESP32.md                      \
-    BUILDING.md                            \
-    CONTRIBUTING.md                        \
-    Makefile-Android                       \
-    Makefile-bootstrap                     \
-    Makefile-iOS                           \
-    Makefile-Standalone                    \
-    README.md                              \
-    .default-version                       \
-    .travis.yml                            \
-    .travis/before_install.sh              \
-    .travis/build_esp32.sh                 \
-    .travis/build_nrf52840.sh              \
-    .travis/prepare_esp32.sh               \
-    .travis/prepare_nrf52840.sh            \
-    .travis/script.sh                      \
-    bootstrap                              \
-    bootstrap-configure                    \
-    repos.conf                             \
-    $(srcdir)/build/autoconf               \
-    $(srcdir)/build/config                 \
-    $(srcdir)/build/cstyle/cstyle.options  \
-    $(srcdir)/build/esp32                  \
-    $(srcdir)/build/jenkins                \
-    $(srcdir)/build/make                   \
-    $(srcdir)/build/scripts                \
-    $(srcdir)/certs                        \
+EXTRA_DIST                                  = \
+    BUILDING-ESP32.md                         \
+    BUILDING.md                               \
+    CONTRIBUTING.md                           \
+    Makefile-Android                          \
+    Makefile-bootstrap                        \
+    Makefile-iOS                              \
+    Makefile-Standalone                       \
+    README.md                                 \
+    .default-version                          \
+    .travis.yml                               \
+    .travis/before_install.sh                 \
+    .travis/build_esp32.sh                    \
+    .travis/build_nrf52840_lock_example.sh    \
+    .travis/prepare_esp32.sh                  \
+    .travis/prepare_nrf52840_lock_example.sh  \
+    .travis/script.sh                         \
+    bootstrap                                 \
+    bootstrap-configure                       \
+    repos.conf                                \
+    $(srcdir)/build/autoconf                  \
+    $(srcdir)/build/config                    \
+    $(srcdir)/build/cstyle/cstyle.options     \
+    $(srcdir)/build/esp32                     \
+    $(srcdir)/build/jenkins                   \
+    $(srcdir)/build/make                      \
+    $(srcdir)/build/scripts                   \
+    $(srcdir)/certs                           \
     $(NULL)
 
-BUILT_SOURCES                            = \
-    .local-version                         \
+BUILT_SOURCES                               = \
+    .local-version                            \
     $(NULL)
 
-dist_doc_DATA                            = \
-    CHANGELOG                              \
-    LICENSE                                \
+dist_doc_DATA                               = \
+    CHANGELOG                                 \
+    LICENSE                                   \
     $(NULL)
 
-DISTCLEANFILES                           = \
-    .local-version                         \
+DISTCLEANFILES                              = \
+    .local-version                            \
     $(NULL)
 
 # There are no source files to lint or prettify in this subdirectory.

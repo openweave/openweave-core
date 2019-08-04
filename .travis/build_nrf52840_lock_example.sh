@@ -21,20 +21,14 @@
 #      Travis CI build script for nRF52840 integration builds.
 #
 
-# Export NRF5_SDK_ROOT variable pointing to the nRF5x SDK for Thread and Zigbee.
-export NRF5_SDK_ROOT=${TRAVIS_BUILD_DIR}/nRF5x-SDK-for-Thread-and-Zigbee
-
-# Export NRF5_TOOLS_ROOT variable pointing to the nRF5x command line tools.
-export NRF5_TOOLS_ROOT=${TRAVIS_BUILD_DIR}/nRF5x-Command-Line-Tools
-
-# Export GNU_INSTALL_ROOT variable pointing to the ARM GCC tool chain.
-export GNU_INSTALL_ROOT=${TRAVIS_BUILD_DIR}/arm/gcc-arm-none-eabi-7-2018-q2-update/bin/
-
 # Export GNU_VERSION variable.
 export GNU_VERSION=7.3.1
 
 # Add Nordic nRF jprog tool to the path.
 export PATH=${PATH}:${NRF5_TOOLS_ROOT}/nrfjprog
+
+# Source env variables generated from the prepare script.
+source ${TRAVIS_BUILD_DIR}/nrf_setup_vars.sh
 
 # Set OPENWEAVE_ROOT to the Travis build directory. This will result in the example app being
 # built using the target OpenWeave commit.
