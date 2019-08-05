@@ -1,0 +1,88 @@
+/*
+ *
+ *    Copyright (c) 2016 Nest Labs, Inc.
+ *    All rights reserved.
+ *
+ *    This document is the property of Nest. It is considered
+ *    confidential and proprietary information.
+ *
+ *    This document may not be reproduced or transmitted in any form,
+ *    in whole or in part, without the express written permission of
+ *    Nest.
+ *
+ *
+ *    Contact:
+ *    Version:
+ *
+ *    Revision history:
+ *    Date         Version    Owner/Summary
+ *
+ */
+
+syntax = "proto3";
+package wdl;
+
+option java_outer_classname = "WdlInternalDataAccess";
+option objc_class_prefix = "SCM";
+
+/**
+ * @brief 
+ *   The importance of an event.
+ *
+ * @detail
+ * Importance is a qualitative determination of the criticality
+ * that a particular event be eventually delivered. It indicates
+ * the customer impact of losing an event and is therefore used
+ * for Quality of Service design considerations.
+ *
+ */
+
+enum EventImportance {
+
+  EVENT_IMPORTANCE_UNSPECIFIED = 0; /// Should never be set, indicates the field is missing
+
+  /**
+   * Production Critical importance denotes events whose loss would have
+   * significant impact on critical customer-facing features. They are the
+   * highest importance and should be used sparingly and with consideration
+   * of product constraints like power and memory.
+   */
+  EVENT_IMPORTANCE_PRODUCTION_CRITICAL = 1;
+
+  /**
+   * Production Standard importance denotes events whose loss would
+   * have direct impact on customer-facing features.
+   */
+  EVENT_IMPORTANCE_PRODUCTION_STANDARD = 2;
+
+  /**  
+   * Info importance denotes events that provide extra insight
+   * and diagnostics into the running system, but whose loss would
+   * not directly impact customer-facing features.
+   */
+  EVENT_IMPORTANCE_INFO = 3;
+
+  /**
+   * Debug importance denotes events of interest to the developers
+   * of the system whose loss would not directly affect customers
+   * or business
+   */
+  EVENT_IMPORTANCE_DEBUG = 4;
+}
+
+enum Privilege {
+  PRIV_ANY = 0;
+  PRIV_ADVANCED = 1;
+  PRIV_ADMIN = 2;
+  PRIV_SERVICE = 3;
+}
+
+enum Variability {
+  DYNAMIC    = 0;  /// Values can update at any time
+  STATIC     = 1;  /// Values can never update
+}
+
+enum WriteAccess {
+  READ_WRITE = 0;	 /// Full write access
+  READ_ONLY  = 1;	 /// This cannot be written
+}

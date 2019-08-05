@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-
-#
 #    Copyright (c) 2015-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -21,18 +19,14 @@
 #
 #    @file
 #       Implements generate register service cmd which is used to service provisioning
+#    Note: "openweave-core/src/test-apps/happy/test-templates/generated"
+#    needs to be added to PYTHONPATH
 
 import json
-import os
-import requests
-import shutil
-import sys
-import tarfile
-import time
-
+from httplib import HTTPSConnection
 import grpc
 from grpc.framework.interfaces.face.face import ExpirationError
-from httplib import HTTPSConnection
+import time
 
 options = {}
 options["tier"] = None
@@ -43,69 +37,25 @@ options["password"] = None
 def option():
     return options.copy()
 
-
-default_schema_branch = 'develop'
 apigw_fmt = 'apigw01.weave01.iad02.{tier}.nestlabs.com'
 apigw_siac_fmt = '{siac_name}.unstable.nestlabs.com'
 
-phoenix_mirror_url = 'http://device-automation.nestlabs.com/phoenix-schema/python'
-
-python_local = os.path.expanduser('~/.python-local')
-phoenix_cache = os.path.join(python_local, 'phoenix')
-
-
-def get_phoenix_hash(branch):
-    url = '{}/{}/__latest__'.format(phoenix_mirror_url, branch)
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.text.rstrip()
-
-_phoenix_proto_cache = dict()
-
-
-def get_phoenix_proto_dir(branch):
-    if branch in _phoenix_proto_cache:
-        return _phoenix_proto_cache.get(branch)
-
-    latest_hash = get_phoenix_hash(branch)
-    tarball_dir = os.path.join(phoenix_cache, branch)
-    tarball_path = os.path.join(tarball_dir, '{}.tar.gz'.format(latest_hash))
-    extract_dir = os.path.join(tarball_dir, latest_hash)
-    phoenix_dir = os.path.join(extract_dir, 'phoenix')
-    if not os.path.exists(extract_dir):
-        os.makedirs(extract_dir)
-
-    if not os.path.exists(tarball_path):
-        url = '{}/{}/{}.tar.gz'.format(phoenix_mirror_url, branch, latest_hash)
-        response = requests.get(url, stream=True)
-        response.raise_for_status()
-        with open(tarball_path, 'wb') as tarball_file:
-            print type(response.raw)
-            shutil.copyfileobj(response.raw, tarball_file)
-
-    if not os.path.exists(phoenix_dir):
-        with tarfile.open(tarball_path) as tar:
-            for member in tar.getmembers():
-                if not member.isdir():
-                    tar.extract(member.path, path=extract_dir)
-
-    _phoenix_proto_cache[branch] = phoenix_dir
-    return phoenix_dir
-
-
-def use_phoenix_schema(branch):
-    sys.path.insert(0, get_phoenix_proto_dir(branch))
-
 
 class ServiceClient(object):
+    """
+        Gets basic account information from Service
+        Args:
+            tier (str): tier of the service
+            username (str): Account email/username
+            password (str): Account password
+            token (str): Account access token
+    """
 
-    def __init__(self, tier, username, password, token,
-                 schema_branch=default_schema_branch):
+    def __init__(self, tier, username, password, token):
         self.tier = tier
         self.username = username
         self.password = password
 
-        use_phoenix_schema(schema_branch)
         import nestlabs.gateway.v2.gateway_api_pb2 as gateway_api_pb2
         import nestlabs.gateway.v2.gateway_api_pb2_grpc as gateway_api_pb2_grpc
         self.gateway_api_pb2 = gateway_api_pb2
