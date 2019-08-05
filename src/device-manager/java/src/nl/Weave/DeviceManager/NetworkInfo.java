@@ -45,6 +45,7 @@ public class NetworkInfo
         ThreadNetworkName = null;
         ThreadExtendedPANId = null;
         ThreadNetworkKey = null;
+        ThreadPSKc = null;
         ThreadPANId = THREAD_PANID_NOTSPECIFIED;
         ThreadChannel = THREAD_CHANNEL_NOTSPECIFIED;
         WirelessSignalStrength = Short.MIN_VALUE;
@@ -91,6 +92,10 @@ public class NetworkInfo
          */
     public byte[] ThreadNetworkKey;
 
+    /** The Thread PSKc, or NULL if not specified.
+         */
+    public byte[] ThreadPSKc;
+
     /** The 16-bit Thread PAN ID, or kThreadPANId_NotSpecified 
          */
     public int ThreadPANId;
@@ -118,7 +123,7 @@ public class NetworkInfo
     }
 
     public static NetworkInfo MakeThread(String threadNetworkName, byte[] threadExtendedPANId, byte[] threadNetworkKey,
-                                         int threadPANId, int threadChannel)
+                                         int threadPANId, int threadChannel, byte[] threadPSKc)
     {
         NetworkInfo netInfo = new NetworkInfo();
         netInfo.NetworkType = nl.Weave.DeviceManager.NetworkType.Thread;
@@ -127,7 +132,14 @@ public class NetworkInfo
         netInfo.ThreadNetworkKey = threadNetworkKey;
         netInfo.ThreadPANId = threadPANId;
         netInfo.ThreadChannel = threadChannel;
+        netInfo.ThreadPSKc = threadPSKc;
         return netInfo;
+    }
+
+    public static NetworkInfo MakeThread(String threadNetworkName, byte[] threadExtendedPANId, byte[] threadNetworkKey,
+                                         int threadPANId, int threadChannel)
+    {
+        return MakeThread(threadNetworkName, threadExtendedPANId, threadNetworkKey, threadPANId, threadChannel, null);
     }
 
     public static NetworkInfo MakeThread(String threadNetworkName, byte[] threadExtendedPANId, byte[] threadNetworkKey)
@@ -139,7 +151,7 @@ public class NetworkInfo
     public static NetworkInfo Make(int networkType, long networkId,
                                    String wifiSSID, int wifiMode, int wifiRole, int wifiSecurityType, byte[] wifiKey,
                                    String threadNetworkName, byte[] threadExtendedPANId, byte[] threadNetworkKey,
-                                   short wirelessSignalStrength, int threadPANId, int threadChannel)
+                                   byte[] threadPSKc, short wirelessSignalStrength, int threadPANId, int threadChannel)
     {
         NetworkInfo netInfo = new NetworkInfo();
         netInfo.NetworkType = nl.Weave.DeviceManager.NetworkType.fromVal(networkType);
@@ -152,6 +164,7 @@ public class NetworkInfo
         netInfo.ThreadNetworkName = threadNetworkName;
         netInfo.ThreadExtendedPANId = threadExtendedPANId;
         netInfo.ThreadNetworkKey = threadNetworkKey;
+        netInfo.ThreadPSKc = threadPSKc;
         netInfo.ThreadPANId = threadPANId;
         netInfo.ThreadChannel = threadChannel;
         netInfo.WirelessSignalStrength = wirelessSignalStrength;
@@ -164,7 +177,7 @@ public class NetworkInfo
                                    short wirelessSignalStrength)
     {
         return Make(networkType, networkId, wifiSSID, wifiMode, wifiRole, wifiSecurityType, wifiKey, threadNetworkName,
-                    threadExtendedPANId, threadNetworkKey, wirelessSignalStrength, THREAD_PANID_NOTSPECIFIED,
+                    threadExtendedPANId, threadNetworkKey, null, wirelessSignalStrength, THREAD_PANID_NOTSPECIFIED,
                     THREAD_CHANNEL_NOTSPECIFIED);
     }
 }

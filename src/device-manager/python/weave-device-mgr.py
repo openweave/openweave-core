@@ -22,6 +22,7 @@
 #      This file implements the Python-based Weave Device Manager Shell.
 #
 
+from builtins import range
 import sys
 import os
 import platform
@@ -34,9 +35,13 @@ import random
 import textwrap
 import traceback
 import string
+import struct
 from copy import copy
 from cmd import Cmd
 from string import lower
+
+from Cryptodome.Hash import CMAC
+from Cryptodome.Cipher import AES
 
 # Extend sys.path with one or more directories, relative to the location of the
 # running script, in which the openweave package might be found .  This makes it
@@ -123,7 +128,6 @@ dummyAccessToken = (
 )
 
 
-
 def DecodeBase64Option(option, opt, value):
     try:
         return base64.standard_b64decode(value)
@@ -137,6 +141,39 @@ def DecodeHexIntOption(option, opt, value):
     except ValueError:
         raise OptionValueError(
             "option %s: invalid value: %r" % (opt, value))
+
+
+def aes_cmac(key, message):
+    cipher = CMAC.new(key, ciphermod=AES)
+    cipher.update(message)
+    return cipher.digest()
+
+
+#see RFC-4615
+def aes_cmac_prf_128(key, message):
+    if len(key) != 16:
+        key = aes_cmac(('00' * 16).decode('hex'), key)
+    return aes_cmac(key, message)
+
+
+def compute_pskc(passphrase, network_name, network_xpanid):
+    pbkdf_iter_count = 16384
+    pskc_len = 16
+    pskc = b''
+    salt = bytes('Thread') + network_xpanid + bytes(network_name)
+    block_counter = 0
+    prf_out = None
+    block_counter = 1
+    prf_in = salt + struct.pack('>I', block_counter)
+    prf_out = aes_cmac_prf_128(passphrase, prf_in)
+    key_block = prf_out
+    for i in range(1, pbkdf_iter_count):
+        prf_in = prf_out
+        prf_out = aes_cmac_prf_128(passphrase, prf_in)
+        key_block = ''.join([struct.pack('B', ord(v0) ^ ord(v1)) for v0, v1 in zip(key_block, prf_out)])
+
+    return key_block
+
 
 class ExtendedOption (Option):
     TYPES = Option.TYPES + ("base64", "hexint", )
@@ -1166,6 +1203,8 @@ class DeviceMgrCmd(Cmd):
               thread-key or key
               thread-pan-id or pan-id
               thread-channel or channel
+              thread-pskc or pskc
+              passphrase
               ...
         """
 
@@ -1201,6 +1240,8 @@ class DeviceMgrCmd(Cmd):
                 print "Invalid value for Thread Network Key"
                 return
 
+        passphrase = None
+
         for addedVal in args[kvstart:]:
             pair = addedVal.split('=', 1)
             if (len(pair) < 2):
@@ -1216,27 +1257,47 @@ class DeviceMgrCmd(Cmd):
                 name = 'threadchannel'
             elif name == 'extended-pan-id':
                 name = 'threadextendedpanid'
+            elif name == 'pskc':
+                name = 'threadpskc'
 
             try:
                 if (name == 'threadchannel' or name == 'thread-channel'):
                     val = int(val, 10)
                 elif (name == 'threadnetworkkey' or name == 'thread-network-key' or name == 'thread-key'):
                     val = bytearray(binascii.unhexlify(val))
+                elif (name == 'threadpskc' or name == 'thread-pskc'):
+                    val = bytearray(binascii.unhexlify(val))
                 elif (name == 'threadextendedpanid' or name == 'thread-extended-pan-id'):
                     val = bytearray(binascii.unhexlify(val))
                 elif (name == 'threadpanid' or name == 'thread-pan-id' or name == 'pan-id'):
                     val = int(val, 16)
+                elif (name == 'passphrase'):
+                    passphrase = val
             except ValueError:
                 print "Invalid value specified for <" + name + "> field"
                 return
 
             try:
-                networkInfo.SetField(name, val)
+                if name != 'passphrase':
+                    networkInfo.SetField(name, val)
             except Exception, ex:
                 print str(ex)
                 return
 
-        if networkInfo.ThreadPANId  != None:
+        if passphrase != None:
+            if networkInfo.ThreadPSKc:
+                print('PSKc already specified')
+                return
+            if networkInfo.ThreadNetworkName == None:
+                print('Thread network name not specified, cannot compute pskc')
+                return
+            if networkInfo.ThreadExtendedPANId == None:
+                print('Thread xpanid not specified, cannot compute pskc')
+                return
+            networkInfo.ThreadPSKc = bytearray(compute_pskc(passphrase, networkInfo.ThreadNetworkName, 
+                                                            networkInfo.ThreadExtendedPANId))
+
+        if networkInfo.ThreadPANId != None:
             panId=networkInfo.ThreadPANId
             if panId < 1 or panId > 0xffff:
                 print "Thread PAN Id must be non-zero and 2 bytes in hex"
@@ -1284,6 +1345,7 @@ class DeviceMgrCmd(Cmd):
         optParser = OptionParser(usage=optparse.SUPPRESS_USAGE, option_class=ExtendedOption)
         optParser.add_option("-n", "--name", action="store", dest="threadNetworkName", type="string")
         optParser.add_option("-k", "--key", action="store", dest="threadNetworkKey", type="string")
+        optParser.add_option("-s", "--pskc", action="store", dest="threadPSKc", type="string")
         optParser.add_option("-p", "--panid", action="store", dest="threadPANId", type="hexint")
         optParser.add_option("-c", "--channel", action="store", dest="threadChannel", type="int")
 
@@ -1303,6 +1365,8 @@ class DeviceMgrCmd(Cmd):
             networkInfo.ThreadNetworkName = options.threadNetworkName
         if (options.threadNetworkKey):
             networkInfo.ThreadNetworkKey = bytearray(binascii.unhexlify(options.threadNetworkKey))
+        if (options.threadPSKc):
+            networkInfo.ThreadPSKc = bytearray(binascii.unhexlify(options.threadPSKc))
         if (options.threadPANId):
             networkInfo.ThreadPANId = options.threadPANId
             if (networkInfo.ThreadPANId > 0xffff):
@@ -1339,6 +1403,7 @@ class DeviceMgrCmd(Cmd):
               thread-network-name or thread-name
               thread-extended-pan-id or pan-id
               network-key or thread-key
+              pskc or thread-pskc
         """
 
         args = shlex.split(line)

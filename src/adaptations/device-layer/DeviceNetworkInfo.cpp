@@ -136,7 +136,12 @@ WEAVE_ERROR DeviceNetworkInfo::Encode(nl::Weave::TLV::TLVWriter & writer) const
         SuccessOrExit(err);
     }
 
-    // TODO: Add support for ThreadPSKc field.
+    if (FieldPresent.ThreadPSKc)
+    {
+        err = writer.PutBytes(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadNetworkPSKc),
+                ThreadNetworkPSKc, kThreadPSKcLength);
+        SuccessOrExit(err);
+    }
 
     if (ThreadPANId != kThreadPANId_NotSpecified)
     {
@@ -286,7 +291,14 @@ WEAVE_ERROR DeviceNetworkInfo::Decode(nl::Weave::TLV::TLVReader & reader)
             SuccessOrExit(err);
             FieldPresent.ThreadNetworkKey = true;
             break;
-        // TODO: Add case for ThreadPSKc field.
+        case kTag_ThreadPSKc:
+            VerifyOrExit(reader.GetType() == kTLVType_ByteString, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            val = reader.GetLength();
+            VerifyOrExit(val == kThreadPSKcLength, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.GetBytes(ThreadPSKc, sizeof(ThreadPSKc));
+            SuccessOrExit(err);
+            FieldPresent.ThreadPSKc = true;
+            break;
         case kTag_ThreadPANId:
             VerifyOrExit(reader.GetType() == kTLVType_UnsignedInteger, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
             err = reader.Get(val);
@@ -306,7 +318,7 @@ WEAVE_ERROR DeviceNetworkInfo::Decode(nl::Weave::TLV::TLVReader & reader)
         case kTag_ThreadExtendedPANId:
         case kTag_ThreadMeshPrefix:
         case kTag_ThreadNetworkKey:
-        // TODO: Add case for ThreadPSKc field.
+        case kTag_ThreadPSKc:
         case kTag_ThreadPANId:
         case kTag_ThreadChannel:
             ExitNow(err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);

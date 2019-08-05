@@ -73,6 +73,13 @@ public:
     uint32_t WiFiKeyLen;            /**< The length in bytes of the WiFi key. */
 
     // ---- Thread-specific Fields ----
+    enum
+    {
+        kThreadNetworkKeyLength = 16,
+        kThreadExtendedPANIdLength = 8,
+        kThreadPSKcLength = 16,
+    };
+
     char *ThreadNetworkName;        /**< The name of the Thread network, or NULL if not specified. It is a
                                      * NUL-terminated, dynamically-allocated C-string, owned by the class.  Destroyed
                                      * on any condition that calls `Clear()` on the object. */
@@ -80,10 +87,14 @@ public:
                                      * owned by the class.  Destroyed on any condition that calls `Clear()` on
                                      * the object. */
     uint8_t *ThreadNetworkKey;      /**< The Thread master network key , or NULL if not specified. It is a dynamically
-                                     * allocated array of arbitrary octets, owned by the class, with length specified
-                                     * by `ThreadNetworkKeyLen`.  Destroyed on any condition that calls `Clear()` on
+                                     * allocated array of arbitrary octets, owned by the class
+                                     * Destroyed on any condition that calls `Clear()` on
                                      * the object. */
-    uint32_t ThreadNetworkKeyLen;   /**< The length in bytes of the Thread master network key. */
+    uint8_t *ThreadPSKc;            /**< Thread pre-shared key for commissioner, or NULL if not specified. It is a
+                                     * dynamically allocated array of arbitrary octets, owned by the class
+                                     * Destroyed on any condition that calls `Clear()` on
+                                     * the object. */
+
     uint32_t ThreadPANId;           /**< The 16-bit Thread PAN ID, or kThreadPANId_NotSpecified */
     uint8_t ThreadChannel;          /**< The current channel (currently [11..26]) on which the Thread network operates,
                                      * or kThreadChannel_NotSpecified */

@@ -57,6 +57,7 @@ extern const int NLThreadChannel_NotSpecified;
 @property (nonatomic)
     int ThreadPANId; // The Thread PAN identifier (short) or NLThreadPANId_NotSpecified if not available/applicable.
 @property (nonatomic) int ThreadChannel; // The Thread channel or NLThreadChannel_NotSpecified if not available/applicable.
+@property (nonatomic, strong) NSData * ThreadPSKc; // The Thread pre-shared key commissioner, or NULL if not specified.
 
 
 - (instancetype)init NS_DESIGNATED_INITIALIZER;
