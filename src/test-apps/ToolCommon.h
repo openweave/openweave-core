@@ -172,6 +172,7 @@ extern bool ProcessStats(nl::Weave::System::Stats::Snapshot &aBefore, nl::Weave:
 extern void PrintFaultInjectionCounters(void);
 extern void SetupFaultInjectionContext(int argc, char *argv[]);
 extern void SetupFaultInjectionContext(int argc, char *argv[], int32_t (*aNumEventsAvailable)(void), void (*aInjectAsyncEvents)(int32_t index));
+extern void ServiceTunnelInterfaceUp(InterfaceId tunIf);
 #define TOOL_COMMON_FIRST_APP_ASYNC_EVENT 1
 extern void (*gAsyncEventCb)(uint16_t numArgs, int32_t argument);
 

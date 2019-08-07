@@ -317,9 +317,19 @@ static INET_ERROR SetRouteToTunnelInterface_LwIP(InterfaceId tunIf, IPPrefix ipP
 
     ip6_prefix.addr = ipPrefix.IPAddr.ToIPv6();
     ip6_prefix.prefix_len = ipPrefix.Length;
+
+    const char *br_ip6_str = "FD00:0:FAB1:6:1AB4:3000:0:1";
+    IPAddress br_ip6;
+
+    IPAddress::FromString(br_ip6_str, br_ip6);
+    static ip6_addr_t br_ip6_addr = br_ip6.ToIPv6();
+    printf("SetRouteToTunnelInterface_LwIP====>333333\n");
+    printf("tunIf: %c %c\n", tunIf->name[0], tunIf->name[1]);
     if (routeAddDel == nl::Inet::TunEndPoint::kRouteTunIntf_Add)
     {
-        err = System::MapErrorLwIP(ip6_add_route_entry(&ip6_prefix, tunIf, NULL, NULL));
+        printf("kRouteTunIntf_Add   ====> 44444444\n");
+        //err_t lwip_err = ip6_add_route_entry(&ip6_prefix, &netIFs[j], &br_ip6_addr, NULL);
+        err = System::MapErrorLwIP(ip6_add_route_entry(&ip6_prefix, tunIf, &br_ip6_addr, NULL));
     }
     else
     {
@@ -560,6 +570,7 @@ INET_ERROR SetRouteToTunnelInterface(InterfaceId tunIf, IPPrefix ipPrefix, nl::I
     }
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+    printf("SetRouteToTunnelInterface======>22222\n");
     err = SetRouteToTunnelInterface_LwIP(tunIf, ipPrefix, routeAddDel);
 #else
     err = SetRouteToTunnelInterface_Linux(tunIf, ipPrefix, routeAddDel);
@@ -595,6 +606,33 @@ void nl::Weave::Profiles::WeaveTunnel::Platform::TunnelInterfaceUp(InterfaceId t
    globalId = WeaveFabricIdToIPv6GlobalId(ExchangeMgr.FabricState->FabricId);
    tunULAAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_PrimaryWiFi,
                                    nl::Weave::WeaveNodeIdToIPv6InterfaceId(ExchangeMgr.FabricState->LocalNodeId));
+   printf("====before InterfaceAddAddress in TunnelInterfaceUp====\n");
+   err = InterfaceAddAddress(tunIf, tunULAAddr, NL_INET_IPV6_MAX_PREFIX_LEN);
+   if (err != WEAVE_NO_ERROR)
+   {
+       WeaveLogError(WeaveTunnel, "Failed to add host address to Weave tunnel interface\n");
+   }
+}
+
+
+
+void ServiceTunnelInterfaceUp(InterfaceId tunIf)
+{
+   WEAVE_ERROR err = WEAVE_NO_ERROR;
+   uint64_t globalId = 0;
+   IPAddress tunULAAddr;
+
+   /*
+    * Add the WiFi interface ULA address to the tunnel interface to ensure the selection of
+    * a Weave ULA as the source address for packets originating on the local node but destined
+    * for addresses reachable via the tunnel. Without this, the default IPv6 source address
+    * selection algorithm might choose an inappropriate source address, making it impossible
+    * for the destination node to respond.
+    */
+   globalId = WeaveFabricIdToIPv6GlobalId(ExchangeMgr.FabricState->FabricId);
+   tunULAAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_Service,
+                                   nl::Weave::WeaveNodeIdToIPv6InterfaceId(ExchangeMgr.FabricState->LocalNodeId));
+   printf("====before InterfaceAddAddress in TunnelInterfaceUp====\n");
    err = InterfaceAddAddress(tunIf, tunULAAddr, NL_INET_IPV6_MAX_PREFIX_LEN);
    if (err != WEAVE_NO_ERROR)
    {
@@ -905,6 +943,8 @@ void InitNetwork()
         netif_create_ip6_linklocal_address(&(netIFs[j]), 1);
         printf("  j: %zu \n", j);
         printf("  gNetworkOptions.LocalIPv6Addr.size(): %zu\n", gNetworkOptions.LocalIPv6Addr.size());
+        printf("cloud netif name is:  %c %c ", netIFs[j].name[0], netIFs[j].name[1]);
+
         if (j < gNetworkOptions.LocalIPv6Addr.size())
         {
             ip6_addr_t ip6addr = gNetworkOptions.LocalIPv6Addr[j].ToIPv6();
@@ -921,12 +961,31 @@ void InitNetwork()
             netif_add_ip6_address_with_route(&(netIFs[j]), &ip6addr, 64, &index);
             printf("  index %d\n", index);
             printf("  ******jennie added to test ipv6 default route *******\n");
-            struct ip6_prefix ip6_prefix; 
+            struct ip6_prefix ip6_prefix;
             ip6_prefix.addr = nl::Inet::IPAddress::Any.ToIPv6();
             ip6_prefix.prefix_len = 0;
-            err_t lwip_err = ip6_add_route_entry(&ip6_prefix, &netIFs[j], &br_ip6_addr, NULL);
+            //err_t lwip_err = ip6_add_route_entry(&ip6_prefix, &netIFs[j], &br_ip6_addr, NULL);
+
+            ///////////////////////////try adding BR as cloud's ipv6 gateway///////////////////////////////
+			printf("cloud netif name is:  %c %c ", netIFs[j].name[0], netIFs[j].name[1]);
+			if (netIFs[j].name[0] == 't' && netIFs[j].name[1] == 'n')
+            {
+                printf("  ******jennie added to add default route for cloud node*******\n");
+                err_t lwip_err = ip6_add_route_entry(&ip6_prefix, &netIFs[j], &br_ip6_addr, NULL);
+                printf("  ******ip6_add_route_entry return value: %d *******\n", lwip_err);
+            }
+            
+
+            //src/inet/TunEndPoint.cpp
+            // err_t TunEndPoint::TunInterfaceNetifInit (struct netif *netif)
+            //         {
+            //             netif->name[0] = 't';
+            //             netif->name[1] = 'n';
+
+            //         }
+
             //WEAVE_ERROR err = System::MapErrorLwIP(lwip_err);
-            printf("  ******ip6_add_route_entry return value: %d *******\n", lwip_err);
+            //printf("  ******ip6_add_route_entry return value: %d *******\n", lwip_err);
             
             if (index >= 0)
             {

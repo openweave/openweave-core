@@ -246,8 +246,9 @@ WEAVE_ERROR WeaveTunnelServer::Init (WeaveExchangeManager *exchangeMgr)
     //Create Tunnel EndPoint and populate into member mTunEP
     err = CreateServiceTunEndPoint();
     SuccessOrExit(err);
-
+	WeaveLogDetail(WeaveTunnel, " ******CreateServiceTunEndPoint finished***** \n");
     err = SetupServiceTunEndPoint();
+	WeaveLogDetail(WeaveTunnel, " *****SetupServiceTunEndPoint finished***** \n");
     SuccessOrExit(err);
 
     //Register Recv function for TunEndPoint
@@ -925,6 +926,8 @@ WEAVE_ERROR WeaveTunnelServer::SetupServiceTunEndPoint (void)
     }
 
 #if !WEAVE_TUNNEL_CONFIG_WILL_OVERRIDE_ADDR_ROUTING_FUNCS
+    ServiceTunnelInterfaceUp(mTunEP->GetTunnelInterfaceId());
+    printf("SetupServiceTunEndPoint=====>1111\n");
     //Create prefix fd<globalId>::/48 to install route to tunnel interface
     globalId = WeaveFabricIdToIPv6GlobalId(ExchangeMgr->FabricState->FabricId);
     tunULAAddr = IPAddress::MakeULA(globalId, 0, 0);
