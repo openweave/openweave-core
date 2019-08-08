@@ -27,6 +27,8 @@ from httplib import HTTPSConnection
 import grpc
 from grpc.framework.interfaces.face.face import ExpirationError
 import time
+import nestlabs.gateway.v2.gateway_api_pb2 as gateway_api_pb2
+import nestlabs.gateway.v2.gateway_api_pb2_grpc as gateway_api_pb2_grpc
 
 options = {}
 options["tier"] = None
@@ -56,8 +58,6 @@ class ServiceClient(object):
         self.username = username
         self.password = password
 
-        import nestlabs.gateway.v2.gateway_api_pb2 as gateway_api_pb2
-        import nestlabs.gateway.v2.gateway_api_pb2_grpc as gateway_api_pb2_grpc
         self.gateway_api_pb2 = gateway_api_pb2
         self.gateway_api_pb2_grpc = gateway_api_pb2_grpc
 
