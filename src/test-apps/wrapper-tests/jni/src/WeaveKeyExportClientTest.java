@@ -19,6 +19,7 @@
 import com.nestlabs.weave.security.WeaveKeyExportClient;
 import com.nestlabs.weave.security.WeaveKeyExportSupport;
 import com.nestlabs.weave.security.WeaveKeyId;
+import java.util.Base64;
 
 public class WeaveKeyExportClientTest extends SimpleTest {
 
@@ -133,7 +134,7 @@ public class WeaveKeyExportClientTest extends SimpleTest {
             0x98, 0xc2, 0x8d, 0x9c, 0xec, 0x3e, 0xfe, 0x04, 0xb9, 0xf4, 0xa0, 0x67, 0x8b, 0x28, 0xc7, 0xa5, 
         });
             
-    private static final byte[] accessToken = javax.xml.bind.DatatypeConverter.parseBase64Binary(
+  private static final byte[] accessToken = Base64.getDecoder().decode(
             "1QAABAAJADUBMAEITi8yS0HXOtskAgQ3AyyBEERVTU1ZLUFDQ09VTlQtSUQYJgTLqPobJgVLNU9C" +
             "NwYsgRBEVU1NWS1BQ0NPVU5ULUlEGCQHAiYIJQBaIzAKOQQr2dtaYu+6sVMqD5ljt4owxYpBKaUZ" +
             "TksL837axemzNfB1GG1JXYbERCUHQbTTqe/utCrWCl2d4DWDKQEYNYIpASQCBRg1hCkBNgIEAgQB" +
