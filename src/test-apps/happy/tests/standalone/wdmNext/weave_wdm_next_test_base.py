@@ -133,7 +133,9 @@ class weave_wdm_next_test_base(unittest.TestCase):
         Returns:
             dict: Dictionary containing test, client, and server test params.
         """
-        with open("weave_wdm_next_test_params.json") as json_file:
+        curr_file_dir = os.path.dirname(os.path.abspath(__file__))
+        test_param_json_path = "{}/weave_wdm_next_test_params.json".format(curr_file_dir)
+        with open(test_param_json_path) as json_file:
             data = json.load(json_file)
             return data[test_name]
 
