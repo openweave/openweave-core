@@ -150,15 +150,25 @@ void GenericThreadStackManagerImpl_OpenThread<ImplClass>::_OnPlatformEvent(const
 {
     if (event->Type == DeviceEventType::kThreadStateChange)
     {
-#if WEAVE_DETAIL_LOGGING
-
         Impl()->LockThreadStack();
+
+#if WEAVE_DETAIL_LOGGING
 
         LogOpenThreadStateChange(mOTInst, event->ThreadStateChange.OpenThread.Flags);
 
+#endif // WEAVE_DETAIL_LOGGING
+
+        // The API we provide to enable/disable thread controls both the Thread
+        // stack and the IP6 stack within OpenThread.  In order to properly
+        // initialize OpenThread, we need to enable IP6 in OT, and we can
+        // disable it once the OT stack is up and running and signaling events.
+        if ((otThreadGetDeviceRole(mOTInst) == OT_DEVICE_ROLE_DISABLED) && otIp6IsEnabled(mOTInst))
+        {
+            otIp6SetEnabled(mOTInst, false);
+        }
+
         Impl()->UnlockThreadStack();
 
-#endif // WEAVE_DETAIL_LOGGING
     }
 }
 
@@ -182,11 +192,27 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadEnabl
     Impl()->LockThreadStack();
 
     bool isEnabled = (otThreadGetDeviceRole(mOTInst) != OT_DEVICE_ROLE_DISABLED);
+    bool isIp6Enabled = otIp6IsEnabled(mOTInst);
+
+    if (val && !isIp6Enabled)
+    {
+        otErr = otIp6SetEnabled(mOTInst, val);
+        VerifyOrExit(otErr == OT_ERROR_NONE, );
+    }
+
     if (val != isEnabled)
     {
         otErr = otThreadSetEnabled(mOTInst, val);
+        VerifyOrExit(otErr == OT_ERROR_NONE, );
     }
 
+    if (!val && isIp6Enabled)
+    {
+        otErr = otIp6SetEnabled(mOTInst, val);
+        VerifyOrExit(otErr == OT_ERROR_NONE, );
+    }
+
+exit:
     Impl()->UnlockThreadStack();
 
     return MapOpenThreadError(otErr);
