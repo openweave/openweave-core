@@ -31,7 +31,7 @@ import sys
 import unittest
 import set_test_path
 import WeaveUtilities
-
+import WeaveWdmNextOptions as wwno
 
 from weave_wdm_next_test_base import weave_wdm_next_test_base
 
@@ -41,80 +41,57 @@ gFaultopts = WeaveUtilities.FaultInjectionOptions()
 class test_weave_wdm_next_mutual_resub(weave_wdm_next_test_base):
 
     def test_weave_wdm_next_mutual_resub(self):
-        wdm_next_args = {}
-
-        wdm_next_args['wdm_option'] = "mutual_subscribe"
-
-        wdm_next_args['total_client_count'] = 2
-        wdm_next_args['final_client_status'] = 0
-        wdm_next_args['timer_client_period'] = 5000
-        wdm_next_args['enable_client_stop'] = True
-        wdm_next_args['test_client_iterations'] = 1
-        wdm_next_args['test_client_delay'] = 2000
-        wdm_next_args['enable_client_flip'] = 1
-
-        wdm_next_args['total_server_count'] = 2
-        wdm_next_args['final_server_status'] = 4
-        wdm_next_args['timer_server_period'] = 4000
-        wdm_next_args['enable_server_stop'] = False
-        wdm_next_args['test_server_iterations'] = 1
-        wdm_next_args['enable_server_flip'] = 1
-        wdm_next_args['enable_retry'] = True
-
-        base_test_tag = "_MUTUAL_RESUB"
-        wdm_next_args['test_tag'] = base_test_tag
-        wdm_next_args['test_case_name'] = ['N04: Mutual Subscribe: Root path, Null Version, Resubscribe On Error']
-
-        # We're going to run once, but expect a successful subscription since
-        # retries are enabled.
-        NUM_ITERATIONS = 1
-        wdm_next_args['test_client_iterations'] = NUM_ITERATIONS
-        wdm_next_args['server_log_check'] = []
-
+        wdm_next_args = self.get_test_param_json(self.__class__.__name__)
         fault_list = {}
         fault_list['server'] = [
-                # fail to create the first subscription handler on the
-                # server side. this sends a StatusReport to the client
-                # in the subscribing stage, which triggers another
-                # subscribe request to be sent.
-                ('Weave_WDMSubscriptionHandlerNew_s0_f1', 2),
+            # fail to create the first subscription handler on the
+            # server side. this sends a StatusReport to the client
+            # in the subscribing stage, which triggers another
+            # subscribe request to be sent.
+            ('Weave_WDMSubscriptionHandlerNew_s0_f1', 2),
 
-                # on counter subscription, responder sends an invalid
-                # message type, which triggers a StatusReport from the
-                # initiator. this causes the responder to tear down the
-                # mutual subscription (which is in confirming state),
-                # then a retry is set up.
-                ('Weave_WDMSendUnsupportedReqMsgType_s0_f1', 2),
+            # on counter subscription, responder sends an invalid
+            # message type, which triggers a StatusReport from the
+            # initiator. this causes the responder to tear down the
+            # mutual subscription (which is in confirming state),
+            # then a retry is set up.
+            ('Weave_WDMSendUnsupportedReqMsgType_s0_f1', 2),
 
-                # reject the NotificationRequest coming from the initiator,
-                # sending StatusReport to the client after the mutual
-                # subscription is established (initiator will be in the alive
-                # state).
-                ('Weave_WDMBadSubscriptionId_s0_f1', 2),
-                ]
+            # reject the NotificationRequest coming from the initiator,
+            # sending StatusReport to the client after the mutual
+            # subscription is established (initiator will be in the alive
+            # state).
+            ('Weave_WDMBadSubscriptionId_s0_f1', 2),
+        ]
         fault_list['client'] = [
-                # fail 3 instances of a send error after allowing the first.
-                # this will cause a failure after the subscription has been
-                # established. fail a few instances to confirm the retries
-                # continue. this tests the OnSendError and OnResponseTimeout
-                # callbacks in WDM.
-                ('Weave_WRMSendError_s1_f3', 4),
-                ]
+            # fail 3 instances of a send error after allowing the first.
+            # this will cause a failure after the subscription has been
+            # established. fail a few instances to confirm the retries
+            # continue. this tests the OnSendError and OnResponseTimeout
+            # callbacks in WDM.
+            ('Weave_WRMSendError_s1_f3', 4),
+        ]
+
+        base_test_tag = wdm_next_args[wwno.TEST][wwno.TEST_TAG]
 
         for node in gFaultopts.nodes:
             for fault_config, expected_retries in fault_list[node]:
-                wdm_next_args['client_log_check'] = [("Good Iteration", NUM_ITERATIONS),
-                                                     ('SendSubscribeRequest', NUM_ITERATIONS * expected_retries)]
-                wdm_next_args['test_tag'] = "%s_%s_FAULT_%s" % (base_test_tag, node.upper(), fault_config)
-                print wdm_next_args['test_tag']
+                wdm_next_args[wwno.CLIENT][wwno.LOG_CHECK] = [
+                    ("Good Iteration", wdm_next_args[wwno.CLIENT][wwno.TEST_ITERATIONS]),
+                    ('SendSubscribeRequest', wdm_next_args[wwno.CLIENT][wwno.TEST_ITERATIONS] * expected_retries)]
+                wdm_next_args[wwno.TEST][wwno.TEST_TAG] = "%s_%s_FAULT_%s" % (
+                    base_test_tag, node.upper(), fault_config)
+                print wdm_next_args[wwno.TEST][wwno.TEST_TAG]
                 if node == 'client':
-                    wdm_next_args['client_faults'] = fault_config
-                    wdm_next_args['server_faults'] = None
+                    wdm_next_args[wwno.CLIENT][wwno.FAULTS] = fault_config
+                    wdm_next_args[wwno.SERVER][wwno.FAULTS] = None
                 else:
-                    wdm_next_args['client_faults'] = None
-                    wdm_next_args['server_faults'] = fault_config
+                    wdm_next_args[wwno.CLIENT][wwno.FAULTS] = None
+                    wdm_next_args[wwno.SERVER][wwno.FAULTS] = fault_config
 
-                super(test_weave_wdm_next_mutual_resub, self).weave_wdm_next_test_base(wdm_next_args)
+                super(
+                    test_weave_wdm_next_mutual_resub,
+                    self).weave_wdm_next_test_base(wdm_next_args)
 
 
 if __name__ == "__main__":

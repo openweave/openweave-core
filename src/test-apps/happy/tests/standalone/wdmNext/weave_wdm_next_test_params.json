@@ -1,0 +1,5627 @@
+{
+    "test_weave_wdm_next_application_key_01": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_case": 2, 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_case": 2, 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "B01: Stress Mutual Subscribe: Application key: Key distribution"
+            ], 
+            "test_tag": "_APPLICATION_KEY_01", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_application_key_02": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 0, 
+            "group_enc": true, 
+            "group_enc_key_id": "0x00005536", 
+            "log_check": [
+                [
+                    "Message Encryption Key", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(1\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(1\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "B02: Stress Mutual Subscribe: Application key: Group key"
+            ], 
+            "test_tag": "_APPLICATION_KEY_02", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_resub": {
+        "client_options": {
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "enable_stop": true, 
+            "final_status": 0, 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "enable_stop": false, 
+            "final_status": 4, 
+            "log_check": [], 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "N04: Mutual Subscribe: Root path, Null Version, Resubscribe On Error"
+            ], 
+            "test_tag": "_MUTUAL_RESUB", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_01": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M01: Stress Mutual Subscribe: Root path. Null Version. Client in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_01", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_02": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "save_perf": false, 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M02: Stress Mutual Subscribe: Root path. Null Version. Publisher in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_02", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_03": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M03: Stress Mutual Subscribe: Root path. Null Version. Client in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_03", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_04": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M04: Stress Mutual Subscribe: Root path. Null Version. Publisher in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_04", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_05": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 10000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M05: Stress Mutual Subscribe: Root path. Null Version. Idle, Client in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_05", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_06": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 10000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M06: Stress Mutual Subscribe: Root path. Null Version. Idle. Publisher in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_06", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_07": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 10000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M07: Stress Mutual Susbscribe: Root path. Null Version. Idle. Client in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_07", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_08": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 10000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M08: Stress Mutual Subscribe: Root path. Null Version. Idle. Publisher in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_08", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_09": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M09: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Client in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_09", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_10": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[ALIVE\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M10: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Publisher in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_10", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_11": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M11: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Client in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_11", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_12": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M12: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator.Publisher in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_12", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_13": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M13: Stress Mutual Subscribe: Root path. Null Version. Mutate data in responder. Client in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_13", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_14": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M14: Stress Mutual Subscribe: Root path, Null Version, Notification in responder, Publisher in initiator Cancel"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_14", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_15": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M15: Stress Mutual Subscribe: Root path. Null Version. Notification in responder. Client in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_15", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_16": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M16: Stress Mutual Subscribe: Root path. Null Version. Mutate data in responder. Publisher in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_16", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_17": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M17: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Client in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_17", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_18": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M18: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Publisher in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_18", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_19": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M19: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Client in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_19", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_20": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M20: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Publisher in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_20", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_21": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "E05: Mutual Subscribe: Root path. Null Version. Client in responder cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_21", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_22": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "E06: Mutual Subscribe: Root path. Null Version. Publisher in responder cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_22", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_23": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "E07: Mutual Subscribe: Root path. Null Version. Client in responder aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_23", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_24": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "E08: Mutual Subscribe: Root path. Null Version. Publisher in responder aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_24", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_25": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 10000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F17: Mutual Subscribe: Root path. Null Version. Idle. Client in responder cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_25", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_26": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 10000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F18: Mutual Subscribe: Root path. Null Version. Idle. Publisher in responder cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_26", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_27": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 10000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F19: Mutual Subscribe: Root path. Null Version. Idle. Client in responder aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_27", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_28": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 10000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F20: Mutual Subscribe: Root path. Null Version. Idle. Publisher in responder aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_28", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_29": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F21: Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Client in responder cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_29", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_30": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F22: Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Publisher in responder cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_30", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_31": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F23: Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Client in responder aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_31", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_32": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F24: Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Publisher in responder Abort"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_32", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_33": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F25: Mutual Subscribe: Root path. Null Version. Mutate data in responder. Client in responder cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_33", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_34": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F26: Mutual Subscribe: Root path. Null Version. Mutate data in responder. Publisher in responder cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_34", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_35": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F27: Mutual Subscribe: Root path. Null Version. Mutate data in responder. Client in responder aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_35", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_36": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F28: Mutual Subscribe: Root path. Null Version. Mutate data in responder. Publisher in responder aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_36", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_37": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F29: Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Client in responder cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_37", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_38": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)]\\ EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F30: Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Publisher in responder cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_38", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_39": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F31: Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Client in responder aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_39", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_40": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "F32: Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Publisher in responder aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_40", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_41": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    11
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "0 ==> 100 ==> 101 ==> 102 ==> 103 ==> 104 ==> 105 ==> 106 ==> 107 ==> 108 ==> 109 ==> 110", 
+                    2
+                ], 
+                [
+                    "0 ==> 200 ==> 201 ==> 202 ==> 203 ==> 204 ==> 205 ==> 206 ==> 207 ==> 208 ==> 209 ==> 210", 
+                    1
+                ], 
+                [
+                    "0 ==> 300 ==> 301 ==> 302 ==> 303 ==> 304 ==> 305 ==> 306 ==> 307 ==> 308 ==> 309 ==> 310", 
+                    1
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "G01: Mutual Subscribe: Multiple Iterations. Mutate data in responder. Client in initiator aborts. Version is kept."
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_41", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_42": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    11
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "0 ==> 100 ==> 101 ==> 102 ==> 103 ==> 104 ==> 105 ==> 106 ==> 107 ==> 108 ==> 109 ==> 110", 
+                    2
+                ], 
+                [
+                    "0 ==> 200 ==> 201 ==> 202 ==> 203 ==> 204 ==> 205 ==> 206 ==> 207 ==> 208 ==> 209 ==> 210", 
+                    1
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 1
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "G02: Mutual Subscribe: Multiple Iterations. Mutate data in initiator. Client in initiator aborts. Version is kept."
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_42", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_43": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    11
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "0 ==> 100 ==> 101 ==> 102 ==> 103 ==> 104 ==> 105 ==> 106 ==> 107 ==> 108 ==> 109 ==> 110", 
+                    2
+                ], 
+                [
+                    "0 ==> 200 ==> 201 ==> 202 ==> 203 ==> 204 ==> 205 ==> 206 ==> 207 ==> 208 ==> 209 ==> 210", 
+                    1
+                ], 
+                [
+                    "0 ==> 300 ==> 301 ==> 302 ==> 303 ==> 304 ==> 305 ==> 306 ==> 307 ==> 308 ==> 309 ==> 310", 
+                    1
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    11
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "0 ==> 100 ==> 101 ==> 102 ==> 103 ==> 104 ==> 105 ==> 106 ==> 107 ==> 108 ==> 109 ==> 110", 
+                    2
+                ], 
+                [
+                    "0 ==> 200 ==> 201 ==> 202 ==> 203 ==> 204 ==> 205 ==> 206 ==> 207 ==> 208 ==> 209 ==> 210", 
+                    1
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "G03: Mutual Subscribe: Multiple Iterations. Mutate data in initiator and responder. Client in initiator aborts. Version is kept"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_43", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_44": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 0, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M25: Stress Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Client in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_44", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_45": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 1, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M26: Stress Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Publisher in Initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_45", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_46": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 2, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M27: Stress Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Client in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_46", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_47": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 3, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[ALIVE\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M28: Stress Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Publisher in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_47", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_48": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 4, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M29: Stress Mutual Subscribe: Responder Continuous Events. Mutate data in responder. Client in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_48", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_49": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 1, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M30: Stress Mutual Subscribe: Responder Continuous Events. Mutate data in responder. Publisher in Initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_49", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_50": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 2, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M31: Stress Mutual Subscribe: Responder Continuous Events. Mutate data in responder. Client in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_50", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_51": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 3, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[ALIVE\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M32: Stress Mutual Subscribe: Responder Continuous Events. Mutate data in responder. Publisher in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_51", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_52": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 0, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M33: Stress Mutual Subscribe: Initiator Continuous Events. Client in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_52", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_53": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 1, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 0, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M34: Stress Mutual Subscribe: Initiator Continuous Events. Publisher in Initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_53", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_54": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 2, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M35: Stress Mutual Subscribe: Initiator Continuous Events. Client in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_54", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_55": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 3, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[ALIVE\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M36: Stress Mutual Subscribe: Initiator Continuous Events. Publisher in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_55", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_56": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 4, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 35000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M37: Stress Mutual Subscribe: Responder Continuous Events. Client in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_56", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_57": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 1, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M38: Stress Mutual Subscribe: Responder Continuous Events. Mutate data in responder. Publisher in Initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_57", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_58": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 2, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M39: Stress Mutual Subscribe: Responder Continuous Events. Client in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_58", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_59": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 3, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[ALIVE\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M40: Stress Mutual Subscribe: Responder Continuous Events. Publisher in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_59", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_60": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 0, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 4, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M41: Initiator and Responder Continuous Events. Mutate data in initiator responder. Client in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_60", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_61": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 1, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 4, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M42: Stress Mutual Subscribe: Initiator and Responder Continuous Events. Mutate data in initiator and responder. Publisher in initiator cancels"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_61", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_62": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 2, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 4, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M43: Stress Mutual Subscribe: Initiator and Responder Continuous Events. Mutate data in initiator and responder. Client in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_62", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_63": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 3, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[ALIVE\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 4, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "M44: Stress Mutual Subscribe: Initiator and Responder Continuous Events. Mutate data in initiator and responder. Publisher in initiator aborts"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_63", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_64": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Error retrieving data from trait", 
+                    10
+                ], 
+                [
+                    "trait property is too big so that it fails to fit in the packet", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_case": 4, 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Error retrieving data from trait", 
+                    5
+                ], 
+                [
+                    "trait property is too big so that it fails to fit in the packet", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_case": 4, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "N01: Stress Mutual Subscribe: Oversize trait exists in the end of source trait list at initiator and in the beginning of source trait list at responder."
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_64", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_65": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Error retrieving data from trait", 
+                    10
+                ], 
+                [
+                    "trait property is too big so that it fails to fit in the packet", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_case": 5, 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "bound mutual subscription is going away", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ], 
+                [
+                    "Error retrieving data from trait", 
+                    10
+                ], 
+                [
+                    "trait property is too big so that it fails to fit in the packet", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_case": 5, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "N02: Stress Mutual Subscribe: Oversize trait exists in the end of source trait list at initiator and in the middle of source trait list at responder."
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_65", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_mutual_subscribe_faults": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Liveness", 
+            "final_status": 0, 
+            "inter_event_period": 9000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    4
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "Mutual subscription happy sequence for fault-injection"
+            ], 
+            "test_tag": "_MUTUAL_SUBSCRIBE_FAULTS", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_01": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "L01: Stress One way Subscribe: Root path. Null Version. Client cancels"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_01", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_02": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "L02: Stress One way Subscribe: Root path. Null Version. Client aborts"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_02", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_03": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[(CANCL)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "L03: Stress One way Subscribe: Root path. Null Version. Idle. Client cancels"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_03", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_04": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "L04: Stress One way Subscribe: Root path. Null Version. Idle. Client aborts"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_04", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_05": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "L05: Stress One way Subscribe: Root path, Null Version. Mutate data in Publisher. Client cancels"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_05", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_06": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[ALIVE\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    15
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "L06: Stress One way Subscribe: Root path. Null Version. Mutate data in Publisher. Client aborts"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_06", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_07": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 0, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "B03: One way Subscribe: Root path. Null Version. Publisher cancels"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_07", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_08": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "B04: One way Subscribe: Root path. Null Version. Publisher aborts"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_08", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_09": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 10000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "C05: One way Subscribe: Root path. Null Version. Idle. Publisher cancels"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_09", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_10": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "C06: One way Subscribe: Root path, Null Version, Idle, Publisher Abort"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_10", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_11": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "C07: One way Subscribe: Root path. Null Version. Mutate data in publisher. Publisher cancels"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_11", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_12": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    3
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_delay": 15000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "C08: One way Subscribe: Root path. Null Version. Mutate data in publisher. Publisher aborts"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_12", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_13": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    11
+                ], 
+                [
+                    "0 ==> 100 ==> 101 ==> 102 ==> 103 ==> 104 ==> 105 ==> 106 ==> 107 ==> 108 ==> 109 ==> 110", 
+                    2
+                ], 
+                [
+                    "0 ==> 200 ==> 201 ==> 202 ==> 203 ==> 204 ==> 205 ==> 206 ==> 207 ==> 208 ==> 209 ==> 210", 
+                    1
+                ], 
+                [
+                    "0 ==> 300 ==> 301 ==> 302 ==> 303 ==> 304 ==> 305 ==> 306 ==> 307 ==> 308 ==> 309 ==> 310", 
+                    1
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 5000, 
+            "total_count": 2
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] TimerEventHandler Ref\\(\\d+\\) Timeout", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "timer_period": 4000, 
+            "total_count": 2
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "D01: One way Subscribe: Multiple Iterations. Mutate data in publisher. Client aborts. Version is kept"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_13", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_14": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[CANCL\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 4, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 0, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "L07: Stress One way Subscribe: Publisher Continuous Events. Publisher mutates trait data. Client cancels"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_14", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_15": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 4, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 0, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "L08: Stress One way Subscribe: Publisher Continuous Events. Publisher mutates trait data. Client aborts"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_15", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_16": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] \\[CANCL\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 2000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 4, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] CancelRequestHandler", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 0, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "L09: Stress One way Subscribe: Publisher Continuous Events. Client cancels"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_16", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_one_way_subscribe_17": {
+        "client_options": {
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] _AbortSubscription Ref\\(\\d+\\)", 
+                    5
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 35000, 
+            "test_iterations": 5, 
+            "timer_period": 16000, 
+            "total_count": 4
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 4, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] HandleSubscriptionTerminated", 
+                    5
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    5
+                ]
+            ], 
+            "test_delay": 0, 
+            "timer_period": 15000, 
+            "total_count": 4
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "L10: Stress One way Subscribe: Publisher Continuous Events. Client cancels"
+            ], 
+            "test_tag": "_ONE_WAY_SUBSCRIBE_17", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_oneway_resub": {
+        "client_options": {
+            "enable_flip": 0, 
+            "enable_retry": true, 
+            "enable_stop": true, 
+            "final_status": 0, 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "enable_stop": false, 
+            "final_status": 4, 
+            "log_check": [], 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "N03: One way Subscribe: Root path, Null Version, Resubscribe On Error"
+            ], 
+            "test_tag": "_ONEWAY_RESUB", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_oneway_subscribe_faults": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 0, 
+            "log_check": [], 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 3000, 
+            "total_count": 1
+        }, 
+        "server_options": {
+            "enable_flip": 1, 
+            "final_status": 4, 
+            "log_check": [], 
+            "test_delay": 0, 
+            "timer_period": 2000, 
+            "total_count": 1
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "One way subscription happy sequence for fault injection"
+            ], 
+            "test_tag": "_ONEWAY_SUBSCRIBE_FAULTS", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_subless_notify_01": {
+        "client_options": {
+            "final_status": 0, 
+            "log_check": [], 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [], 
+            "test_delay": 1000, 
+            "test_iterations": 1, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "O01: Subscriptionless Notify: Publisher sends subscriptionless notify to receiver, and receiver notifies application after processing trait data"
+            ], 
+            "test_tag": "_SUBLESS_NOTIFY_01", 
+            "timeout": 10, 
+            "wdm_option": "subless_notify"
+        }
+    }, 
+    "test_weave_wdm_next_update_01": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Update: path result: success", 
+                    1
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 10000, 
+            "total_count": 1, 
+            "wdm_update_conditionality": "Conditional", 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_timing": "AfterSub"
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [], 
+            "test_case": 10, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "Update 01: Client creates mutual subscription, sends conditional update request to publisher, and receives notification and status report"
+            ], 
+            "test_tag": "_UPDATE_01", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_update_02": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Update: path result: success", 
+                    1
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 10000, 
+            "total_count": 1, 
+            "wdm_update_conditionality": "Unconditional", 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_timing": "AfterSub"
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [], 
+            "test_case": 10, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "Update 02: Client creates mutual subscription, sends unconditional update request to publisher, and receives notification and status report"
+            ], 
+            "test_tag": "_UPDATE_02", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_update_03": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Update: path result: success", 
+                    1
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 2000, 
+            "test_iterations": 1, 
+            "timer_period": 10000, 
+            "total_count": 1, 
+            "wdm_update_conditionality": "Unconditional", 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_timing": "NoSub"
+        }, 
+        "server_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 0, 
+            "final_status": 4, 
+            "log_check": [], 
+            "test_case": 10, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "test_options": {
+            "test_case_name": [
+                "Update 03: Client sends standalone unconditional update request to publisher, and receives status report"
+            ], 
+            "test_tag": "_UPDATE_03", 
+            "wdm_option": "one_way_subscribe"
+        }
+    }
+}

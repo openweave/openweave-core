@@ -34,37 +34,12 @@ import WeaveUtilities
 class test_weave_wdm_next_one_way_subscribe_05(weave_wdm_next_test_base):
 
     def test_weave_wdm_next_one_way_subscribe_05(self):
-        wdm_next_args = {}
-
-        wdm_next_args['wdm_option'] = "one_way_subscribe"
-
-        wdm_next_args['total_client_count'] = 2
-        wdm_next_args['final_client_status'] = 0
-        wdm_next_args['timer_client_period'] = 5000
-        wdm_next_args['test_client_iterations'] = 1
-        wdm_next_args['test_client_delay'] = 2000
-        wdm_next_args['enable_client_flip'] = 0
-
-        wdm_next_args['total_server_count'] = 2
-        wdm_next_args['final_server_status'] = 4
-        wdm_next_args['timer_server_period'] = 4000
-        wdm_next_args['enable_server_flip'] = 1
-
-        wdm_next_args['client_clear_state_between_iterations'] = True
-        wdm_next_args['server_clear_state_between_iterations'] = True
-
-        wdm_next_args['client_log_check'] = [('Client\[0\] \[(ALIVE|CONFM)\] EndSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations'] * 1),
-                                             ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_server_count'] + 1)),
-                                             ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'] * 1)]
-        wdm_next_args['server_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] CancelRequestHandler Ref\(\d+\)', wdm_next_args['test_client_iterations'] * 1),
-                                             ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'] * 1)]
-        wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
-        wdm_next_args['test_case_name'] = ['L05: Stress One way Subscribe: Root path, Null Version. Mutate data in Publisher. Client cancels']
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test C03 and L05"
-        super(test_weave_wdm_next_one_way_subscribe_05, self).weave_wdm_next_test_base(wdm_next_args)
+        wdm_next_args = self.get_test_param_json(self.__class__.__name__)
+        super(test_weave_wdm_next_one_way_subscribe_05,
+              self).weave_wdm_next_test_base(wdm_next_args)
 
 
 if __name__ == "__main__":
     WeaveUtilities.run_unittest()
-
