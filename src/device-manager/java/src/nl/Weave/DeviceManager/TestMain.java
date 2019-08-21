@@ -20,7 +20,6 @@ package nl.Weave.DeviceManager;
 
 import java.text.SimpleDateFormat;
 import java.util.EnumSet;
-import javax.xml.bind.DatatypeConverter;
 import java.math.BigInteger;
 
 public class TestMain implements WeaveDeviceManager.CompletionHandler
@@ -31,6 +30,33 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         {
             super(testName);
         }
+    }
+
+    protected byte [] parseHexBinary(String s)
+    {
+        byte [] retval = new byte[s.length()/2];
+        try {
+            for (int i = 0; i < s.length(); i += 2)
+            {
+                retval[i/2] = (byte) Integer.parseInt(s.substring(i, i + 2), 16);
+            }
+        }
+        catch (NumberFormatException nfe)
+        {
+            retval = null;
+        }
+
+        return retval;
+    }
+
+    protected String printHexBinary(byte [] inArray)
+    {
+        StringBuilder sb = new StringBuilder(inArray.length * 2);
+        for (byte b: inArray)
+        {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 
     public static void main(String[] args)
@@ -48,7 +74,7 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
     String TestResult = null;
     WeaveDeviceManager DeviceMgr;
     long AddNetworkId = -1;
-    byte[] TestDeviceDescriptor = DatatypeConverter.parseHexBinary(
+    byte[] TestDeviceDescriptor = parseHexBinary(
         "95010024002A24010124020125033245" +
         "2C041030354241303141433033313330" +
         "30334730050818B43000000A91B33006" +
@@ -178,7 +204,7 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         System.out.println("AddNetwork Test");
         System.out.println("    Adding new Thread network...");
         networkInfo = NetworkInfo.MakeThread("Thread-Test",
-                                        DatatypeConverter.parseHexBinary("0102030405060708"),
+                                        parseHexBinary("0102030405060708"),
                                         "akey".getBytes(),
                                         0x1234,
                                         (byte)21);
@@ -524,9 +550,9 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         if (deviceDesc.manufacturingDate != null)
             System.out.format("%sManufacturing Date: %s%n", prefix, new SimpleDateFormat("yyyy/MM/dd").format(deviceDesc.manufacturingDate.getTime()));
         if (deviceDesc.primary802154MACAddress != null)
-            System.out.format("%sPrimary 802.15.4 MAC Address: %s%n", prefix, DatatypeConverter.printHexBinary(deviceDesc.primary802154MACAddress));
+            System.out.format("%sPrimary 802.15.4 MAC Address: %s%n", prefix, printHexBinary(deviceDesc.primary802154MACAddress));
         if (deviceDesc.primaryWiFiMACAddress != null)
-            System.out.format("%sPrimary WiFi MAC Address: %s%n", prefix, DatatypeConverter.printHexBinary(deviceDesc.primaryWiFiMACAddress));
+            System.out.format("%sPrimary WiFi MAC Address: %s%n", prefix, printHexBinary(deviceDesc.primaryWiFiMACAddress));
         if (deviceDesc.rendezvousWiFiESSID != null)
             System.out.format("%sRendezvous WiFi ESSID: %s%n", prefix, deviceDesc.rendezvousWiFiESSID);
         if (deviceDesc.pairingCode != null)
@@ -557,13 +583,13 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
             if (n.WiFiSecurityType != WiFiSecurityType.NotSpecified)
                 System.out.format("%s  WiFi Security Type: %s%n", indent, n.WiFiSecurityType.name());
             if (n.WiFiKey != null)
-                System.out.format("%s  WiFi Key: %s%n", indent, DatatypeConverter.printHexBinary(n.WiFiKey));
+                System.out.format("%s  WiFi Key: %s%n", indent, printHexBinary(n.WiFiKey));
             if (n.ThreadNetworkName != null)
                 System.out.format("%s  Thread Network Name: \"%s\"%n", indent, n.ThreadNetworkName);
             if (n.ThreadExtendedPANId != null)
-                System.out.format("%s  Thread Extended PAN Id: %s%n", indent, DatatypeConverter.printHexBinary(n.ThreadExtendedPANId));
+                System.out.format("%s  Thread Extended PAN Id: %s%n", indent, printHexBinary(n.ThreadExtendedPANId));
             if (n.ThreadNetworkKey != null)
-                System.out.format("%s  Thread Network Key: %s%n", indent, DatatypeConverter.printHexBinary(n.ThreadNetworkKey));
+                System.out.format("%s  Thread Network Key: %s%n", indent, printHexBinary(n.ThreadNetworkKey));
             if (n.WirelessSignalStrength != Short.MIN_VALUE)
                 System.out.format("%s  Wireless Signal Strength: %d%n", indent, n.WirelessSignalStrength);
             i++;
