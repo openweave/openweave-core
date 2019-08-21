@@ -232,7 +232,7 @@ static void TestInetInterface(nlTestSuite *inSuite, void *inContext)
         intId = intIterator.GetInterface();
         memset(intName, 0, sizeof(intName));
         GetInterfaceName(intId, intName, sizeof(intName));
-        printf("     interface id: 0x%" PRIxPTR ", interface name: %s, %s mulicast\n",
+        printf("     interface id: 0x%" PRIxPTR ", interface name: %s, %s multicast\n",
                (uintptr_t)(intId),
                intName,
                intIterator.SupportsMulticast() ? "support" : "don't support");
@@ -247,7 +247,7 @@ static void TestInetInterface(nlTestSuite *inSuite, void *inContext)
         addr = addrIterator.GetAddress();
         char buf[80];
         addr.ToString(buf, 80);
-        printf("     %s, %s mulicast, prefix length: %d\n", buf,
+        printf("     %s, %s multicast, prefix length: %d\n", buf,
                addrIterator.SupportsMulticast() ? "support":"don't support",
                addrIterator.GetIPv6PrefixLength());
     }
@@ -327,10 +327,10 @@ static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, err != INET_NO_ERROR);
 
     // A bind should succeed with appropriate permissions but will
-    // othewise fail.
+    // otherwise fail.
 
     err = testRaw6EP->BindIPv6LinkLocal(intId, addr);
-    NL_TEST_ASSERT(inSuite, (err == INET_NO_ERROR) || (err = System::MapErrorPOSIX(EPERM)));
+    NL_TEST_ASSERT(inSuite, (err == INET_NO_ERROR) || (err == System::MapErrorPOSIX(EPERM)));
 
     didBind = (err == INET_NO_ERROR);
 
@@ -352,7 +352,7 @@ static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
     // otherwise, it will fail with a permissions error.
 
     err = testRaw6EP->Bind(kIPAddressType_IPv6, addr);
-    NL_TEST_ASSERT(inSuite, (didListen && (err == INET_ERROR_INCORRECT_STATE)) || (!didListen && (err = System::MapErrorPOSIX(EPERM))));
+    NL_TEST_ASSERT(inSuite, (didListen && (err == INET_ERROR_INCORRECT_STATE)) || (!didListen && (err == System::MapErrorPOSIX(EPERM))));
 
     // error SetICMPFilter case
     err = testRaw6EP->SetICMPFilter(0, ICMP6Types);
@@ -560,7 +560,7 @@ int main(int argc, char *argv[])
     // Generate machine-readable, comma-separated value (CSV) output.
     nl_test_set_output_style(OUTPUT_CSV);
 
-    // Run test suit againt one context.
+    // Run test suite against one context.
     nlTestRunner(&theSuite, NULL);
 
     return nlTestRunnerStats(&theSuite);
