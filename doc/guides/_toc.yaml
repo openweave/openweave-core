@@ -1,0 +1,34 @@
+toc:
+- title: Get Started
+  path: /guides/
+- heading: Weave Primer
+- title: What is Weave?
+  path: /guides/weave-primer/
+  step_group: weave_primer
+- title: Overview
+  path: /guides/weave-primer/overview
+  step_group: weave_primer
+- title: Fabric
+  path: /guides/weave-primer/fabric
+  step_group: weave_primer
+- title: Messaging
+  path: /guides/weave-primer/messaging
+  step_group: weave_primer
+- title: Profiles
+  path: /guides/weave-primer/profiles
+  step_group: weave_primer
+- title: Schema
+  path: /guides/weave-primer/schema
+  step_group: weave_primer
+- title: Data Management
+  path: /guides/weave-primer/data-management
+  step_group: weave_primer
+- heading: Reference
+- title: Glossary
+  path: /guides/glossary
+- heading: Codelabs and Tutorials
+- title: Getting Started with Happy
+  status: external
+  path: https://codelabs.developers.google.com/codelabs/happy-weave-getting-started/#0
+- title: Cross Network Multicast Inet Layer HOWTO
+  path: /guides/cross-network-inet-multicast-howto

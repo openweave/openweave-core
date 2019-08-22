@@ -1,0 +1,7 @@
+toc:
+- title: Overview
+  path: /guides/tools/
+- title: Device Manager
+  path: /guides/tools/device-manager
+- title: Factory Provisioning Tool
+  path: /guides/tools/factory-provisioning-tool

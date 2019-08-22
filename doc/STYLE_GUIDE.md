@@ -11,7 +11,29 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for general information on contributin
 
 ## Location
 
-Place all documentation contributions in the appropriate location in the [`/doc`](./) directory. If you are unsure of the best location for your contribution, let us know in your pull request.
+Place all documentation contributions in the appropriate location in the [`/doc`](./) directory. Most contributions should go into the `/doc/guides` subdirectory, which covers conceptual and usage content, to align it with the structure of the openweave.io documentation site.
+
+Current documentation structure:
+
+Directory | Description
+----|----
+`/doc/guides` | Conceptual or usage content that doesn't fit within a subdirectory, and high-level tutorials
+`/doc/guides/images` | All images included in guide content
+`/doc/guides/profiles` | Content describing or illustrating use of OpenWeave profiles
+`/doc/guides/test` | Content related to testing Weave with Happy
+`/doc/guides/tools` | Content describing or illustrating use of OpenWeave tools
+`/doc/guides/weave-primer` | Weave Primer content
+`/doc/images` | Top-level OpenWeave images, such as logos
+`/doc/presentations` | PDF presentations on Weave features
+`/doc/specs` | PDFs of Weave specifications
+
+If you are unsure of the best location for your contribution, create an Issue and ask, or let us know in your Pull Request.
+
+### Updating the site menus
+
+When adding a new document, or moving one, also update the `_toc.yaml` file(s) in the related folders. For example, the `/doc/guides/tools/_toc.yaml` file is the menu for the [Tools section on openweave.io](https://openweave.io/guides/tools).
+
+New documents should be added to the site menu TOCs where appropriate. If you are unsure of where to place a document within the menu, let us know in your Pull Request.
 
 ## Style
 
@@ -30,6 +52,12 @@ The text of a link should be descriptive, so it's clear what the link is for:
 Use standard Markdown when authoring OpenWeave documentation. While HTML may be used for more complex content such as tables, use Markdown as much as possible. To ease mirroring and to keep formatting consistent with openweave.io, we ask that you follow the specific guidelines listed here.
 
 > Note: Edit this file to see the Markdown behind the examples.
+
+### Headers
+
+The document title should be an h1 header (#) and in title case (all words are capitalized). All section headers should be h2 (##) or lower and in sentence case (only the first word and proper nouns are capitalized).
+
+The best practice for document clarity is to not go lower than h3, but h4 is fine on occasion. Try to avoid using h4 often, or going lower than h4. If this happens, the document should be reorganized or broken up to ensure it stays at h3 with the occasional h4.
 
 ### Command line examples
 
@@ -68,11 +96,13 @@ weave-device-mgr (18B4300000000004 @ fd00:0:fab1:6:1ab4:3000:0:4) > ping
 
 ### Commands and output
 
-All example commands and output should be in code blocks with backticks or indented:
+All example commands and output should be in code blocks with backticks:
 
 ```
 code in backticks
 ```
+
+...unless the code is within a step list. In a step list, indent the code blocks:
 
     code indented
 
@@ -80,16 +110,31 @@ code in backticks
 
 When writing procedures that feature code blocks, indent the content for the code blocks:
 
-1.	Step one.
+1.	Step one:
 
         $ git clone https://github.com/openweave/openweave-core.git
         $ cd openweave-core
 
-    More about step one.
-
-1.  Step two, do something else.
+1.  Step two, do something else:
 
         $ ./configure
+
+For clarity in instructions, avoid putting additional step commands after a code sample
+within a step item. Instead rewrite the instruction so this is not necessary.
+
+For example, avoid this:
+
+1.  Step three, do this now:
+
+        $ ./configure
+
+    And then you will see that thing.
+
+Instead, do this:
+
+1.  Step three, do this now, and you will see that thing:
+
+		$ ./configure
 
 ### Inline code
 
@@ -131,3 +176,33 @@ For example:
 Or:
 
 > Caution: The user should be careful running the next command.
+
+### Material icons
+
+The openweave.io documentation site uses various Material icons inline with the text or in
+diagrams to represent elements of the Weave system. These icons are used to aid in your
+understanding of Weave by highlighting common elements and are not official Weave-branded
+icons.
+
+> You are not required to use these icons, but we may ask to insert them during the review
+process, in order to tie content together across the documentation site.
+
+Example: https://openweave.io/guides/tools#weave-heartbeat
+
+To use these icons in your content, so that they render on the openweave.io documentation site,
+surround one of the supported keywords with semicolons. The word can be upper or lowercase.
+
+For example:
+
+*   ;Echo;
+*   ;heartbeat;
+
+See the **OpenWeave Tools** page for an example of this:
+
+*   [GitHub version](./guides/tools/index.md)
+*   [openweave.io version](https://openweave.io/guides/tools)
+
+Supported keywords:
+
+*	Echo
+*	Heartbeat

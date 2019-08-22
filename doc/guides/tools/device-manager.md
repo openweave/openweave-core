@@ -83,7 +83,7 @@ $ happy-shell node01
 
 In `node01`, bring up a mock device using that node's Weave IPv6 address and a
 valid Weave pairing code. A pairing code is required to establish a secure
-[PASE](../glossary.md#pase) session between the mock device and Device
+[PASE](/guides/glossary.md#pase) session between the mock device and Device
 Manager:
 
 ```
@@ -187,8 +187,6 @@ weave-device-mgr (18B4300000000004 @ fd00:0:fab1:6:1ab4:3000:0:4) >
 The output on the mock device (`node01`), confirms a successful connection:
 
 ```
-### node01 - mock device
-
 WEAVE:EM: Msg rcvd 0000000E:1 16 0000000000000001 0000 986B 0 MsgId:23C64568
 WEAVE:EM: ec id: 1, AppState: 0x3aadf480
 IdentifyRequest received from node 1 (fd00:0:fab1:6:1ab4:3000:0:5)
@@ -230,8 +228,6 @@ Ping complete
 Output on the mock device (`node01`) confirms the successful Echo:
 
 ```
-### node01 - mock device
-
 WEAVE:EM: Msg rcvd 00000001:1 0 0000000000000001 3960 986F 0 MsgId:00000000
 WEAVE:EM: ec id: 1, AppState: 0x3aadfbb0
 WEAVE:SM: Reserve session key: Id=2CFF Peer=0000000000000001 Reserve=1
