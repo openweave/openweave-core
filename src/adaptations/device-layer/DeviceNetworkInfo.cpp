@@ -138,8 +138,8 @@ WEAVE_ERROR DeviceNetworkInfo::Encode(nl::Weave::TLV::TLVWriter & writer) const
 
     if (FieldPresent.ThreadPSKc)
     {
-        err = writer.PutBytes(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadNetworkPSKc),
-                ThreadNetworkPSKc, kThreadPSKcLength);
+        err = writer.PutBytes(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadPSKc),
+                ThreadPSKc, kThreadPSKcLength);
         SuccessOrExit(err);
     }
 
