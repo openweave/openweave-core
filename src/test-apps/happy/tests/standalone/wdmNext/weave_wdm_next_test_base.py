@@ -45,6 +45,29 @@ TESTRAIL_SUFFIX = "_TESTRAIL.json"
 
 class weave_wdm_next_test_base(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        """
+        Set up the weave toplogy.
+        """
+        cls.tap = None
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ[
+                "WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+            cls.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
+                "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
+            cls.tap = "wpan0"
+        else:
+            cls.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
+                "/../../../topologies/standalone/three_nodes_on_thread_weave.json"
+
+        # setting Mesh for thread test
+        options = WeaveStateLoad.option()
+        options["quiet"] = True
+        options["json_file"] = cls.topology_file
+
+        setup_network = WeaveStateLoad.WeaveStateLoad(options)
+        setup_network.run()
+
     def setUp(self):
         """
         Set up the toplogy and load the default test parameters.
@@ -64,36 +87,54 @@ class weave_wdm_next_test_base(unittest.TestCase):
         else:
             self.options[wwno.SERVER][wwno.LIVENESS_CHECK_PERIOD] = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ[
-                "WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
-            self.options[wwno.CLIENT][wwno.TAP] = "wpan0"
-            self.options[wwno.SERVER][wwno.TAP] = "wpan0"
-        else:
-            self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../../topologies/standalone/three_nodes_on_thread_weave.json"
-
         self.show_strace = False
+        self.options[wwno.CLIENT][wwno.TAP] = self.tap
+        self.options[wwno.SERVER][wwno.TAP] = self.tap
 
-        # setting Mesh for thread test
-        options = WeaveStateLoad.option()
-        options["quiet"] = True
-        options["json_file"] = self.topology_file
-
-        setup_network = WeaveStateLoad.WeaveStateLoad(options)
-        ret = setup_network.run()
-
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         """
         Tear down the toplogy.
         """
         options = WeaveStateUnload.option()
         options["quiet"] = True
-        options["json_file"] = self.topology_file
+        options["json_file"] = cls.topology_file
 
         teardown_network = WeaveStateUnload.WeaveStateUnload(options)
         teardown_network.run()
+
+    @staticmethod
+    def generate_test(wdm_next_args):
+        """
+        Generate individual test cases for a group of tests.
+
+        Args:
+            wdm_next_args (dict): Test parameters.
+
+        Returns:
+            func: Function that runs a test given wdm arguments.
+        """
+
+        def test(self):
+            self.weave_wdm_next_test_base(wdm_next_args)
+        return test
+
+    @staticmethod
+    def get_test_param_json(test_name):
+        """
+        Retrieve the test params for a particular test.
+
+        Args:
+            test_name (str): Name of the test.
+
+        Returns:
+            dict: Dictionary containing test, client, and server test params.
+        """
+        curr_file_dir = os.path.dirname(os.path.abspath(__file__))
+        test_param_json_path = "{}/weave_wdm_next_test_params.json".format(curr_file_dir)
+        with open(test_param_json_path) as json_file:
+            data = json.load(json_file)
+            return data[test_name]
 
     def weave_wdm_next_test_base(self, wdm_next_args):
         """
@@ -122,22 +163,6 @@ class weave_wdm_next_test_base(unittest.TestCase):
             success, data = self.__run_wdm_test_between("node01", "node02", wdm_next_args)
             self.__process_result("node01", "node02", success, data)
             self.result_data = data
-
-    def get_test_param_json(self, test_name):
-        """
-        Retrieve the test params for a particular test.
-
-        Args:
-            test_name (str): Name of the test.
-
-        Returns:
-            dict: Dictionary containing test, client, and server test params.
-        """
-        curr_file_dir = os.path.dirname(os.path.abspath(__file__))
-        test_param_json_path = "{}/weave_wdm_next_test_params.json".format(curr_file_dir)
-        with open(test_param_json_path) as json_file:
-            data = json.load(json_file)
-            return data[test_name]
 
     def __validate_log_line(self, data, node_type, wdm_stress_check, stress_failures):
         """
@@ -224,7 +249,8 @@ class weave_wdm_next_test_base(unittest.TestCase):
             success (bool): Whether test executed successfully without parser/leak errors.
             data (list): Results from weave wdm test including node logs.
         """
-        print "weave-wdm-next {} from {} to {}".format(
+        print "weave-wdm-next {}\n {} from {} to {}".format(
+            self.options[wwno.TEST][wwno.TEST_CASE_NAME][0],
             self.options[wwno.TEST][wwno.WDM_OPTION], nodeA, nodeB)
         data = data[0]
         test_results = []
