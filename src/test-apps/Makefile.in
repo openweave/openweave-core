@@ -571,7 +571,6 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    $(NULL)
 
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__append_39 = \
-@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/pairing/test_weave_ble_01.py                \
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__append_40 = \
@@ -2454,7 +2453,7 @@ RECHECK_LOGS = $(TEST_LOGS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@	happy/tests/standalone/con_tunnel/test_weave_con_tunnel_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_32 = happy/tests/standalone/key_export/test_weave_key_export_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_33 = happy/tests/standalone/pairing/test_weave_pairing_01.py
-@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_34 = happy/tests/standalone/pairing/test_weave_ble_01.py
+am__EXEEXT_34 =
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_35 = happy/tests/standalone/servicedir/test_service_directory_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_36 = happy/tests/standalone/time/test_weave_time_local.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/time/test_weave_time_service.sh \
@@ -8397,13 +8396,6 @@ happy/tests/standalone/pairing/test_weave_pairing_01.py.log: happy/tests/standal
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/pairing/test_weave_ble_01.py.log: happy/tests/standalone/pairing/test_weave_ble_01.py
-	@p='happy/tests/standalone/pairing/test_weave_ble_01.py'; \
-	b='happy/tests/standalone/pairing/test_weave_ble_01.py'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
 happy/tests/standalone/servicedir/test_service_directory_01.py.log: happy/tests/standalone/servicedir/test_service_directory_01.py
 	@p='happy/tests/standalone/servicedir/test_service_directory_01.py'; \
 	b='happy/tests/standalone/servicedir/test_service_directory_01.py'; \
@@ -8626,11 +8618,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-recursive
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \
