@@ -185,17 +185,20 @@ understanding of Weave by highlighting common elements and are not official Weav
 icons.
 
 > You are not required to use these icons, but we may ask to insert them during the review
-process, in order to tie content together across the documentation site.
+process, in order to visually tie concepts together across the documentation site.
 
 Example: https://openweave.io/guides/tools#weave-heartbeat
 
 To use these icons in your content, so that they render on the openweave.io documentation site,
-surround one of the supported keywords with semicolons. The word can be upper or lowercase.
+surround one of the supported keywords with an underscore+asterisk combo.
 
 For example:
 
-*   ;Echo;
-*   ;heartbeat;
+<div>_*Echo*_</div>
+<div>_*heartbeat*_</div>
+
+The keyword can be upper or lowercase. Use of this format with unsupported keywords merely
+renders the text in italics.
 
 See the **OpenWeave Tools** page for an example of this:
 
