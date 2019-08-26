@@ -31,11 +31,11 @@ OpenWeave test cases run against the sample Happy topologies found in
 [`/src/test-apps/happy/topologies/standalone`](https://github.com/openweave/openweave-core/tree/master/src/test-apps/happy/topologies/standalone).
 To use your own custom Happy topology in a test case:
 
-1.  After constructing your custom topology, save it in JSON format:
+1.  After constructing your custom topology, save it in JSON format. This saves
+    the topology state file in the `$HOME` directory:
 
         $ happy-state -s my_topology.json
 
-    This saves the topology state file in the `$HOME` directory.
 1.  In the test case script, locate the topology file being used. Topologies in
     test cases are typically assigned to the `self.topology_file` variable. For
     example,
