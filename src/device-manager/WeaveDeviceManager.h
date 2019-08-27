@@ -446,6 +446,7 @@ private:
 
     static void HandleRequestConnectionClosed(ExchangeContext *ec, WeaveConnection *con, WEAVE_ERROR conErr);
 
+    WEAVE_ERROR ValidateIdentifyRequest(const IdentifyRequestMessage &reqMsg);
     WEAVE_ERROR InitiateDeviceEnumeration();
     WEAVE_ERROR InitiateConnection();
 #if CONFIG_NETWORK_LAYER_BLE
