@@ -445,25 +445,96 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	$(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@am__append_32 = \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_01.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_02.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_03.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_01.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_02.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_03.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_04.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_05.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_06.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_07.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_08.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_09.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_10.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_11.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_group.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_resub_group.py    \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_group.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_02.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_03.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_04.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_05.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_06.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_07.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_08.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_09.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_10.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_11.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_12.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_13.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_14.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_15.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_16.py    \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_01.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_02.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_03.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_04.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_05.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_06.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_07.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_08.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_09.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_10.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_11.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_12.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_13.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_14.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_15.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_16.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_17.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_18.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_19.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_20.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_21.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_22.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_23.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_24.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_25.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_26.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_27.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_28.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_29.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_30.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_31.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_32.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_33.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_34.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_35.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_36.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_37.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_38.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_39.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_40.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_41.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_42.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_43.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_44.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_45.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_46.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_47.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_48.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_49.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_50.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_51.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_52.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_53.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_54.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_55.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_56.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_57.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_58.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_59.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_60.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_61.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_62.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_63.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_64.py     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_65.py     \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_happy.sh       \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_01.py      \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py      \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py            \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py            \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py       \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py       \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py       \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py       \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__append_33 = \
@@ -500,6 +571,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    $(NULL)
 
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__append_39 = \
+@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/pairing/test_weave_ble_01.py                \
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__append_40 = \
@@ -559,12 +631,12 @@ am__aclocal_m4_deps = $(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ax_cxx_compile_stdcxx_11.m4 \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ax_jni_include_dir.m4 \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ax_pthread.m4 \
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/libtool.m4 \
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ltoptions.m4 \
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ltsugar.m4 \
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ltversion.m4 \
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/lt~obsolete.m4 \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/pkg.m4 \
-	$(top_srcdir)/build/autoconf/m4/libtool.m4 \
-	$(top_srcdir)/build/autoconf/m4/ltoptions.m4 \
-	$(top_srcdir)/build/autoconf/m4/ltsugar.m4 \
-	$(top_srcdir)/build/autoconf/m4/ltversion.m4 \
-	$(top_srcdir)/build/autoconf/m4/lt~obsolete.m4 \
 	$(top_srcdir)/build/autoconf/m4/nl_check_project_config_includes.m4 \
 	$(top_srcdir)/build/autoconf/m4/nl_enable_long_tests.m4 \
 	$(top_srcdir)/build/autoconf/m4/nl_with_lwip.m4 \
@@ -2278,25 +2350,96 @@ RECHECK_LOGS = $(TEST_LOGS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/time/test_weave_time_faults_auto_6_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/time/test_weave_time_faults_auto_7_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/time/test_weave_time_faults_auto_8_of_8.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@am__EXEEXT_27 = happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_01.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_02.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_03.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_01.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_02.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_03.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_04.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_05.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_06.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_07.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_08.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_09.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_10.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_11.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_group.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_resub_group.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_group.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@am__EXEEXT_27 = happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_02.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_03.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_04.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_05.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_06.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_07.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_08.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_09.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_10.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_11.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_12.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_13.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_14.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_15.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_16.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_02.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_03.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_04.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_05.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_06.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_07.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_08.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_09.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_10.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_11.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_12.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_13.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_14.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_15.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_16.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_17.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_18.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_19.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_20.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_21.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_22.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_23.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_24.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_25.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_26.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_27.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_28.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_29.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_30.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_31.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_32.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_33.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_34.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_35.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_36.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_37.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_38.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_39.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_40.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_41.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_42.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_43.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_44.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_45.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_46.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_47.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_48.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_49.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_50.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_51.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_52.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_53.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_54.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_55.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_56.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_57.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_58.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_59.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_60.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_61.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_62.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_63.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_64.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_65.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_happy.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_28 = happy/tests/standalone/bdx/test_weave_bdx_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_03.py \
@@ -2312,7 +2455,7 @@ RECHECK_LOGS = $(TEST_LOGS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@	happy/tests/standalone/con_tunnel/test_weave_con_tunnel_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_32 = happy/tests/standalone/key_export/test_weave_key_export_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_33 = happy/tests/standalone/pairing/test_weave_pairing_01.py
-am__EXEEXT_34 =
+@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_34 = happy/tests/standalone/pairing/test_weave_ble_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_35 = happy/tests/standalone/servicedir/test_service_directory_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_36 = happy/tests/standalone/time/test_weave_time_local.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/time/test_weave_time_service.sh \
@@ -2520,7 +2663,6 @@ LIPO = @LIPO@
 LNDIR = @LNDIR@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
-LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 LWIP_CPPFLAGS = @LWIP_CPPFLAGS@
 LWIP_LDFLAGS = @LWIP_LDFLAGS@
 LWIP_LIBS = @LWIP_LIBS@
@@ -7521,121 +7663,569 @@ happy/tests/standalone/time/test_weave_time_faults_auto_8_of_8.sh.log: happy/tes
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_01.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_01.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_01.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_01.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_02.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_02.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_02.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_02.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_02.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_02.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_02.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_02.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_03.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_03.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_03.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_group_03.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_03.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_03.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_03.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_03.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_01.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_01.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_01.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_01.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_04.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_04.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_04.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_04.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_02.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_02.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_02.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_02.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_05.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_05.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_05.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_05.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_03.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_03.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_03.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_03.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_06.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_06.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_06.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_06.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_04.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_04.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_04.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_04.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_07.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_07.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_07.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_07.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_05.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_05.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_05.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_05.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_08.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_08.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_08.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_08.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_06.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_06.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_06.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_06.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_09.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_09.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_09.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_09.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_07.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_07.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_07.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_07.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_10.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_10.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_10.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_10.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_08.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_08.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_08.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_08.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_11.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_11.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_11.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_11.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_09.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_09.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_09.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_09.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_12.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_12.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_12.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_12.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_10.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_10.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_10.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_10.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_13.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_13.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_13.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_13.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_11.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_11.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_11.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_group_11.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_14.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_14.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_14.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_14.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_group.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_group.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_group.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_group.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_15.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_15.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_15.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_15.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_resub_group.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_resub_group.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_resub_group.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_resub_group.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_16.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_16.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_16.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_16.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_update_group.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_update_group.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_group.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_group.py'; \
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_01.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_01.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_01.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_02.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_02.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_02.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_02.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_03.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_03.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_03.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_03.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_04.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_04.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_04.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_04.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_05.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_05.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_05.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_05.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_06.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_06.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_06.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_06.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_07.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_07.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_07.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_07.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_08.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_08.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_08.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_08.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_09.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_09.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_09.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_09.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_10.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_10.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_10.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_10.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_11.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_11.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_11.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_11.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_12.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_12.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_12.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_12.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_13.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_13.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_13.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_13.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_14.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_14.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_14.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_14.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_15.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_15.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_15.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_15.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_16.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_16.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_16.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_16.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_17.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_17.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_17.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_17.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_18.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_18.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_18.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_18.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_19.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_19.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_19.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_19.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_20.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_20.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_20.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_20.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_21.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_21.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_21.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_21.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_22.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_22.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_22.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_22.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_23.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_23.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_23.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_23.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_24.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_24.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_24.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_24.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_25.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_25.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_25.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_25.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_26.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_26.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_26.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_26.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_27.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_27.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_27.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_27.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_28.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_28.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_28.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_28.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_29.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_29.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_29.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_29.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_30.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_30.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_30.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_30.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_31.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_31.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_31.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_31.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_32.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_32.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_32.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_32.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_33.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_33.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_33.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_33.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_34.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_34.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_34.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_34.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_35.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_35.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_35.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_35.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_36.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_36.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_36.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_36.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_37.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_37.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_37.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_37.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_38.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_38.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_38.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_38.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_39.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_39.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_39.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_39.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_40.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_40.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_40.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_40.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_41.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_41.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_41.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_41.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_42.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_42.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_42.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_42.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_43.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_43.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_43.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_43.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_44.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_44.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_44.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_44.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_45.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_45.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_45.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_45.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_46.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_46.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_46.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_46.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_47.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_47.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_47.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_47.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_48.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_48.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_48.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_48.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_49.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_49.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_49.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_49.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_50.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_50.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_50.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_50.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_51.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_51.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_51.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_51.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_52.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_52.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_52.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_52.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_53.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_53.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_53.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_53.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_54.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_54.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_54.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_54.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_55.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_55.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_55.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_55.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_56.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_56.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_56.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_56.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_57.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_57.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_57.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_57.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_58.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_58.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_58.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_58.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_59.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_59.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_59.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_59.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_60.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_60.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_60.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_60.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_61.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_61.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_61.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_61.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_62.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_62.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_62.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_62.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_63.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_63.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_63.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_63.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_64.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_64.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_64.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_64.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_65.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_65.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_65.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_65.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -7647,9 +8237,58 @@ happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_happy
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_01.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_01.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_01.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py
 	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py'; \
 	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -7755,6 +8394,13 @@ happy/tests/standalone/key_export/test_weave_key_export_01.py.log: happy/tests/s
 happy/tests/standalone/pairing/test_weave_pairing_01.py.log: happy/tests/standalone/pairing/test_weave_pairing_01.py
 	@p='happy/tests/standalone/pairing/test_weave_pairing_01.py'; \
 	b='happy/tests/standalone/pairing/test_weave_pairing_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/pairing/test_weave_ble_01.py.log: happy/tests/standalone/pairing/test_weave_ble_01.py
+	@p='happy/tests/standalone/pairing/test_weave_ble_01.py'; \
+	b='happy/tests/standalone/pairing/test_weave_ble_01.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -7981,11 +8627,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-recursive
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \
