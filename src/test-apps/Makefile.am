@@ -1089,7 +1089,6 @@ if WEAVE_RUN_HAPPY_PAIRING
 if CONFIG_NETWORK_LAYER_BLE
 if CONFIG_BLE_PLATFORM_BLUEZ
 check_SCRIPTS                                 +=                \
-    happy/tests/standalone/pairing/test_weave_ble_01.py                \
     $(NULL)
 endif # CONFIG_BLE_PLATFORM_BLUEZ
 endif # CONFIG_NETWORK_LAYER_BLE
