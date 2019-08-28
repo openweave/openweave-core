@@ -93,6 +93,29 @@ static OptionSet *gToolOptionSets[] =
     NULL
 };
 
+void ServiceTunnelInterfaceUp(InterfaceId tunIf)
+{
+   WEAVE_ERROR err = WEAVE_NO_ERROR;
+   uint64_t globalId = 0;
+   IPAddress tunULAAddr;
+
+   /*
+    * Add the service interface ULA address to the tunnel interface to ensure the selection of
+    * a Weave ULA as the source address for packets originating on the local node but destined
+    * for addresses reachable via the tunnel. Without this, the default IPv6 source address
+    * selection algorithm might choose an inappropriate source address, making it impossible
+    * for the destination node to respond.
+    */
+   globalId = WeaveFabricIdToIPv6GlobalId(ExchangeMgr.FabricState->FabricId);
+   tunULAAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_Service,
+                                   nl::Weave::WeaveNodeIdToIPv6InterfaceId(ExchangeMgr.FabricState->LocalNodeId));
+   err = InterfaceAddAddress(tunIf, tunULAAddr, NL_INET_IPV6_MAX_PREFIX_LEN);
+   if (err != WEAVE_NO_ERROR)
+   {
+       WeaveLogError(WeaveTunnel, "Failed to service address to Weave tunnel interface\n");
+   }
+}
+
 VirtualRouteTable::VirtualRouteTable(void)
 {
     memset(RouteTable, 0, sizeof(RouteTable));
@@ -925,6 +948,7 @@ WEAVE_ERROR WeaveTunnelServer::SetupServiceTunEndPoint (void)
     }
 
 #if !WEAVE_TUNNEL_CONFIG_WILL_OVERRIDE_ADDR_ROUTING_FUNCS
+    ServiceTunnelInterfaceUp(mTunEP->GetTunnelInterfaceId());
     //Create prefix fd<globalId>::/48 to install route to tunnel interface
     globalId = WeaveFabricIdToIPv6GlobalId(ExchangeMgr->FabricState->FabricId);
     tunULAAddr = IPAddress::MakeULA(globalId, 0, 0);
@@ -1185,6 +1209,7 @@ void ConnectionTable::RemoveConnection(WeaveConnection *aCon)
     }
 }
 #endif //WEAVE_CONFIG_ENABLE_TUNNELING
+
 
 int main(int argc, char *argv[])
 {

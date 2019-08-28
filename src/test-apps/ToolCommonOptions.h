@@ -77,6 +77,7 @@ enum
     kToolCommonOpt_ServiceDirDNSOptions,
     kToolCommonOpt_ServiceDirTargetDNSOptions,
     kToolCommonOpt_IPv4GatewayAddr,
+    kToolCommonOpt_IPv6GatewayAddr,
     kToolCommonOpt_TapDevice,
     kToolCommonOpt_TapInterfaceConfig,
     kToolCommonOpt_WRMPACKDelay,
@@ -112,6 +113,7 @@ public:
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
     std::vector<nl::Inet::IPAddress> IPv4GatewayAddr;
+    std::vector<nl::Inet::IPAddress> IPv6GatewayAddr;
     nl::Inet::IPAddress DNSServerAddr;
     std::vector<const char *>TapDeviceName;
     uint8_t LwIPDebugFlags;

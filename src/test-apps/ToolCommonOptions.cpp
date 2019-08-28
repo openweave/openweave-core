@@ -63,6 +63,7 @@ NetworkOptions::NetworkOptions()
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
         { "tap-device",     kArgumentRequired, kToolCommonOpt_TapDevice },
         { "ipv4-gateway",   kArgumentRequired, kToolCommonOpt_IPv4GatewayAddr },
+        { "ipv6-gateway",   kArgumentRequired, kToolCommonOpt_IPv6GatewayAddr },
         { "dns-server",     kArgumentRequired, 'X' },
         { "debug-lwip",     kNoArgument,       kToolCommonOpt_DebugLwIP },
         { "event-delay",    kArgumentRequired, kToolCommonOpt_EventDelay },
@@ -85,6 +86,9 @@ NetworkOptions::NetworkOptions()
         "  --ipv4-gateway <ip-addr>\n"
         "       Address of default IPv4 gateway.\n"
         "\n"
+        "  --ipv6-gateway <ip-addr>\n"
+        "       Address of default IPv6 gateway.\n"
+        "\n"
         "  -X, --dns-server <ip-addr>\n"
         "       IPv4 address of local DNS server.\n"
         "\n"
@@ -97,7 +101,7 @@ NetworkOptions::NetworkOptions()
         "  --tap-system-config\n"
         "       Use configuration on each of the Linux TAP interfaces to configure LwIP's interfaces.\n"
         "\n"
-#endif
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
         ;
 
     // Defaults.
@@ -109,6 +113,7 @@ NetworkOptions::NetworkOptions()
     LwIPDebugFlags = 0;
     EventDelay = 0;
     IPv4GatewayAddr.clear();
+    IPv6GatewayAddr.clear();
     DNSServerAddr = nl::Inet::IPAddress::Any;
     TapUseSystemConfig = false;
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
@@ -161,6 +166,17 @@ bool NetworkOptions::HandleOption(const char *progName, OptionSet *optSet, int i
                 return false;
             }
             IPv4GatewayAddr.push_back(localAddr);
+        }
+        break;
+
+    case kToolCommonOpt_IPv6GatewayAddr:
+        {
+            if (!ParseIPAddress(arg, localAddr))
+            {
+                PrintArgError("%s: Invalid value specified for IPv6 gateway address: %s\n", progName, arg);
+                return false;
+            }
+            IPv6GatewayAddr.push_back(localAddr);
         }
         break;
 

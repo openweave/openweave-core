@@ -660,7 +660,6 @@ void nl::Weave::Profiles::WeaveTunnel::Platform::ServiceTunnelEstablished(Interf
     prefix.Length = WEAVE_ULA_FABRIC_DEFAULT_PREFIX_LEN;
 
     // Add route to tunnel interface
-
     err = SetRouteToTunnelInterface(tunIf, prefix, TunEndPoint::kRouteTunIntf_Add);
     if (err != WEAVE_NO_ERROR)
     {
@@ -904,6 +903,15 @@ void InitNetwork()
             ip6_addr_t ip6addr = gNetworkOptions.LocalIPv6Addr[j].ToIPv6();
             s8_t index;
             netif_add_ip6_address_with_route(&(netIFs[j]), &ip6addr, 64, &index);
+            // add ipv6 route for ipv6 address
+            if (j < gNetworkOptions.IPv6GatewayAddr.size())
+            {
+                static ip6_addr_t br_ip6_addr = gNetworkOptions.IPv6GatewayAddr[j].ToIPv6();
+                struct ip6_prefix ip6_prefix;
+                ip6_prefix.addr = nl::Inet::IPAddress::Any.ToIPv6();
+                ip6_prefix.prefix_len = 0;
+                ip6_add_route_entry(&ip6_prefix, &netIFs[j], &br_ip6_addr, NULL);
+            }
             if (index >= 0)
             {
                 netif_ip6_addr_set_state(&(netIFs[j]), index, IP6_ADDR_PREFERRED);
