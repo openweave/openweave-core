@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 #
-#    Copyright (c) 2015-2017 Nest Labs, Inc.
+#    Copyright (c) 2019 Google, LLC.
+#    Copyright (c) 2015-2018 Nest Labs, Inc.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -313,6 +314,12 @@ class WeaveState(State):
 
         return endpoint
 
+    def getSerialNum(self, node_id=None, state=None):
+        node_record = self.getNodeWeaveRecord(node_id, state)
+        if "serial_num" not in node_record.keys():
+            return None
+        return node_record["serial_num"]
+
     def setFabric(self, record, state=None):
         weave_record = self.getWeaveRecord(state)
         weave_record["fabric"] = record
@@ -328,6 +335,10 @@ class WeaveState(State):
     def setWeaveGateway(self, network_id, gateway, state=None):
         network_record = self.getWeaveNetworkRecord(network_id, state)
         network_record["gateway"] = gateway
+
+    def setSerialNum(self, node_id, record, state=None):
+        node_record = self.getNodeWeaveRecord(node_id, state)
+        node_record["serial_num"] = record
 
     def removeTunnel(self, state=None):
         weave_record = self.getWeaveRecord(state)

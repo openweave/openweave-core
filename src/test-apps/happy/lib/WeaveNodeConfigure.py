@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 #
-#    Copyright (c) 2017 Nest Labs, Inc.
+#    Copyright (c) 2019 Google, LLC.
+#    Copyright (c) 2017-2018 Nest Labs, Inc.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -205,6 +206,7 @@ class WeaveNodeConfigure():
         params['weave_node_id'] = weave_node_id
         params['eui64'] = self.weave_state.WeaveIdtoEUI64(weave_node_id)
         params['iid'] = IP.EUI64toIID(params['eui64'])
+        params['serial_num'] = weave_node_id
 
         if cert and key:
             # these keys are only written if they are available
