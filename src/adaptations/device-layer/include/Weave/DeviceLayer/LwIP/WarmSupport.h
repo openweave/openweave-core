@@ -33,6 +33,7 @@ namespace DeviceLayer {
 namespace Internal {
 
 extern WEAVE_ERROR GetLwIPNetifForWarmInterfaceType(::nl::Weave::Warm::InterfaceType inInterfaceType, struct netif *& netif);
+extern bool LwIPNetifSupportsMLD(struct netif * netif);
 extern const char * WarmInterfaceTypeToStr(::nl::Weave::Warm::InterfaceType inInterfaceType);
 
 } // namespace Internal
