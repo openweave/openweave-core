@@ -84,6 +84,7 @@ private:
     void CheckImageState(void);
     void CheckImageIntegrity(void);
     void DriveState(SoftwareUpdateManager::State aNextState);
+    void GetEventState(int32_t& aEventState);
     void HandleImageQueryResponse(PacketBuffer * aPayload);
     void HandleStatusReport(PacketBuffer * aPayload);
     void SendQuery(void);
@@ -138,6 +139,7 @@ private:
 
     uint32_t mMinWaitTimeMs;
     uint32_t mMaxWaitTimeMs;
+    uint32_t mEventId;
 
     uint16_t mRetryCounter;
 

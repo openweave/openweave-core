@@ -1049,9 +1049,11 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceConfig.h                
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceError.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceEvent.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceLayer.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/firmware/SoftwareUpdateTrait.h     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkTrait.h     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkWifiTrait.h \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkWpanTrait.h \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/weave/common/ProfileSpecificStatusCodeStructSchema.h \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.h \
 $(NULL)
 
