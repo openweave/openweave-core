@@ -213,7 +213,6 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
             (bool, list): Whether test executed without parser/leak errors and
                           test results/logs
         """
-        print "Running test!"
         # Update default options with test parameters
         for category, test_param_args in wdm_next_args.items():
             self.options[category].update(test_param_args)
@@ -221,8 +220,6 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
         self.options[wwno.TEST][wwno.CLIENT] = [nodeA + str(index + 1).zfill(2)
                                                 for index in range(self.device_numbers)]
         self.options[wwno.TEST][wwno.SERVER] = nodeB
-        self.options[wwno.TEST][wwno.TEST_TAG] = self.options[wwno.TEST][
-            wwno.TEST_TAG][19:].upper()
         self.options[wwno.CLIENT][wwno.ENABLE_DICTIONARY_TEST] = False
 
         self.weave_wdm = WeaveWdmNext.WeaveWdmNext(self.options)
@@ -243,7 +240,6 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
             success (bool): Whether test executed successfully without parser/leak errors.
             all_data (list): Results from weave wdm test including node logs.
         """
-        print "Processing results!"
         success = True
         client_event_dic = None
         client_stress_event_dic = None

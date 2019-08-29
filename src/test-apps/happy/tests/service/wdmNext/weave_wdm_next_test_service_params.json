@@ -1680,7 +1680,7 @@
             "wdm_option": "mutual_subscribe"
         }
     }, 
-    "test_weave_wdm_next_service_update_faults2": {
+    "test_weave_wdm_next_service_update_faults": {
         "client_options": {
             "clear_state_between_iterations": false, 
             "enable_flip": 1, 
@@ -1700,7 +1700,7 @@
             "test_case_name": [
                 "WDM Update sequence for fault-injection"
             ], 
-            "test_tag": "_SERVICE_UPDATE_FAULTS2", 
+            "test_tag": "_SERVICE_UPDATE_FAULTS", 
             "wdm_option": "mutual_subscribe"
         }
     }
