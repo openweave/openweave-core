@@ -357,6 +357,21 @@ exit:
     return err;
 }
 
+WEAVE_ERROR WeaveDeviceManager::ValidateIdentifyRequest(const IdentifyRequestMessage &reqMsg)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (reqMsg.TargetVendorId == 0xFFFF && reqMsg.TargetProductId != 0xFFFF)
+    {
+        // A request for "any vendor" cannot specify a product ID,
+        // because a product ID is meaningful only alongside a
+        // specific vendor ID.
+        err = WEAVE_ERROR_INVALID_ARGUMENT;
+    }
+
+    return err;
+}
+
 WEAVE_ERROR WeaveDeviceManager::InitiateDeviceEnumeration()
 {
     WEAVE_ERROR             err     = WEAVE_NO_ERROR;
@@ -384,6 +399,10 @@ WEAVE_ERROR WeaveDeviceManager::InitiateDeviceEnumeration()
     {
         reqMsg.TargetProductId = mDeviceCriteria.TargetProductId;
     }
+
+    // Validate the Identify request.
+    err = ValidateIdentifyRequest(reqMsg);
+    SuccessOrExit(err);
 
     // Encode the Identify device request message.
     msgBuf = PacketBuffer::New();
@@ -2691,6 +2710,10 @@ WEAVE_ERROR WeaveDeviceManager::InitiateConnection()
     {
         reqMsg.TargetProductId = mDeviceCriteria.TargetProductId;
     }
+
+    // Validate the Identify request.
+    err = ValidateIdentifyRequest(reqMsg);
+    SuccessOrExit(err);
 
     // Encode the Identify device request message.
     msgBuf = PacketBuffer::New();
