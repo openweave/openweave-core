@@ -29,37 +29,13 @@ from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
 
 class test_weave_wdm_next_service_update_01_cond_OneLeaf(weave_wdm_next_test_service_base):
+
     def test_weave_wdm_next_service_update_01_cond_OneLeaf(self):
-        wdm_next_args = {}
-
-        wdm_next_args['wdm_option'] = "mutual_subscribe"
-        wdm_next_args['final_client_status'] = 0
-        wdm_next_args['enable_client_flip'] = 1
-        wdm_next_args['test_client_iterations'] = 1
-        wdm_next_args['test_client_delay'] = 4000
-        wdm_next_args['timer_client_period'] = 4000
-        wdm_next_args['client_clear_state_between_iterations'] = False
-        wdm_next_args['test_client_case'] = 10 # kTestCase_TestUpdatableTraits
-        wdm_next_args['total_client_count'] = 1 
-
-        wdm_next_args['enable_retry'] = True 
-
-        wdm_next_args['client_update_mutation'] = "OneLeaf" 
-        wdm_next_args['client_update_num_traits'] = 1
-        wdm_next_args['client_update_num_mutations'] = 1
-
-        wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
-                                             ('Update: path result: success', 1),
-                                             ('Update: no more pending updates', 1),
-                                             ('Update: path failed', 0),
-                                             ('unconditional update', 0),
-                                             ('Need to resubscribe', 0)]
-
-        wdm_next_args['test_tag'] = self.__class__.__name__
-        wdm_next_args['test_case_name'] = ['Wdm-NestService-O01: Client creates a mutual subscription, sends one UpdateRequest to the publisher, and receives a StatusReport']
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test O01"
-        super(test_weave_wdm_next_service_update_01_cond_OneLeaf, self).weave_wdm_next_test_service_base(wdm_next_args)
+        wdm_next_args = self.get_test_param_json(self.__class__.__name__)
+        super(test_weave_wdm_next_service_update_01_cond_OneLeaf,
+              self).weave_wdm_next_test_service_base(wdm_next_args)
 
 
 if __name__ == "__main__":

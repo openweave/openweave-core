@@ -83,28 +83,28 @@ class test_weave_wdm_next_mutual_subscribe_faults(weave_wdm_next_test_base):
 
         # By default, empty the arrays of strings to look for in the logs; rely on
         # the default check for "Good Iteration"
-        self.wdm_next_args['client_log_check'] = []
-        self.wdm_next_args['server_log_check'] = []
+        self.wdm_next_args[wwno.CLIENT][wwno.LOG_CHECK] = []
+        self.wdm_next_args[wwno.SERVER][wwno.LOG_CHECK] = []
 
         # For some of the exceptions, enforce they are handled in a specific way
-        if self.wdm_next_args['server_faults']:
+        if self.wdm_next_args[wwno.SERVER][wwno.FAULTS]:
 
             #
             # Test the handling of the ExpiryTime and MustBeVersion fields of custom commands
             #
             if "Weave_WDMSendCommandExpired" in self.wdm_next_args['server_faults']:
-                self.wdm_next_args['client_log_check'].append(
+                self.wdm_next_args[wwno.CLIENT][wwno.LOG_CHECK].append(
                     ["Command\[0\] \[.*\] SendError profile: 11, code: 36, err No Error", 1])
-                self.wdm_next_args['server_log_check'].append(
+                elf.wdm_next_args[wwno.SERVER][wwno.LOG_CHECK].append(
                     ["Received Status Report 0xB : 0x24", 1])
 
-            elif "Weave_WDMSendCommandBadVersion" in self.wdm_next_args['server_faults']:
-                self.wdm_next_args['client_log_check'].append(
+            elif "Weave_WDMSendCommandBadVersion" in self.wdm_next_args[wwno.SERVER][wwno.FAULTS]:
+                self.wdm_next_args[wwno.CLIENT][wwno.LOG_CHECK].append(
                     ["Command\[0\] \[.*\] SendError profile: 11, code: 37, err No Error", 1])
-                self.wdm_next_args['server_log_check'].append(
+                self.wdm_next_args[wwno.SERVER][wwno.LOG_CHECK].append(
                     ["Received Status Report 0xB : 0x25", 1])
 
-        if self.wdm_next_args['client_faults']:
+        if self.wdm_next_args[wwno.CLIENT][wwno.FAULTS]:
             pass
 
     def test_weave_wdm_next_mutual_subscribe_faults(self):

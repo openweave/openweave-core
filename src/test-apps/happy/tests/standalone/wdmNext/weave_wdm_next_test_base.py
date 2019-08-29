@@ -70,7 +70,7 @@ class weave_wdm_next_test_base(unittest.TestCase):
 
     def setUp(self):
         """
-        Set up the toplogy and load the default test parameters.
+        Load the default test parameters.
         """
         self.wdm_option = None
         self.options = WeaveWdmNext.option()
