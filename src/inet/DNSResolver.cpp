@@ -36,9 +36,9 @@
 #include <lwip/dns.h>
 #include <lwip/tcpip.h>
 
-#if LWIP_VERSION_MAJOR < 2
+#ifndef LWIP_DNS_FOUND_CALLBACK_TYPE
 #define LWIP_DNS_FOUND_CALLBACK_TYPE    dns_found_callback
-#endif // LWIP_VERSION_MAJOR < 2
+#endif
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS

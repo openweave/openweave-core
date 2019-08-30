@@ -64,7 +64,7 @@ void AES128BlockCipherEnc::EncryptBlock(const uint8_t *inBlock, uint8_t *outBloc
 
     esp_aes_init(&ctx);
     esp_aes_setkey(&ctx, mKey, kKeyLengthBits);
-    esp_aes_encrypt(&ctx, inBlock, outBlock);
+    esp_aes_crypt_ecb(&ctx, ESP_AES_ENCRYPT, inBlock, outBlock);
     esp_aes_free(&ctx);
 }
 
@@ -79,7 +79,7 @@ void AES128BlockCipherDec::DecryptBlock(const uint8_t *inBlock, uint8_t *outBloc
 
     esp_aes_init(&ctx);
     esp_aes_setkey(&ctx, mKey, kKeyLengthBits);
-    esp_aes_decrypt(&ctx, inBlock, outBlock);
+    esp_aes_crypt_ecb(&ctx, ESP_AES_DECRYPT, inBlock, outBlock);
     esp_aes_free(&ctx);
 }
 
@@ -109,7 +109,7 @@ void AES256BlockCipherEnc::EncryptBlock(const uint8_t *inBlock, uint8_t *outBloc
 
     esp_aes_init(&ctx);
     esp_aes_setkey(&ctx, mKey, kKeyLengthBits);
-    esp_aes_encrypt(&ctx, inBlock, outBlock);
+    esp_aes_crypt_ecb(&ctx, ESP_AES_ENCRYPT, inBlock, outBlock);
     esp_aes_free(&ctx);
 }
 
@@ -124,7 +124,7 @@ void AES256BlockCipherDec::DecryptBlock(const uint8_t *inBlock, uint8_t *outBloc
 
     esp_aes_init(&ctx);
     esp_aes_setkey(&ctx, mKey, kKeyLengthBits);
-    esp_aes_decrypt(&ctx, inBlock, outBlock);
+    esp_aes_crypt_ecb(&ctx, ESP_AES_DECRYPT, inBlock, outBlock);
     esp_aes_free(&ctx);
 }
 
