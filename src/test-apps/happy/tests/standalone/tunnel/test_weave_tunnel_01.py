@@ -27,6 +27,7 @@ import sys
 import unittest
 import set_test_path
 import time
+import subprocess
 
 from happy.Utils import *
 import happy.HappyNodeList
@@ -38,47 +39,29 @@ import WeaveUtilities
 
 class test_weave_tunnel_01(unittest.TestCase):
     def setUp(self):
-        self.tap = None
-
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.json"
-            self.tap = "wpan0"
+            self.use_lwip = True
+            topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
+                "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.sh"
+            # tap interface, ipv4 gateway and node addr should be provided if device is tap device
+            # both BorderRouter and cloud node are tap devices here
+            self.BR_tap = "wlan0"
+            self.cloud_tap = "eth0"
         else:
-            self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../../topologies/standalone/thread_wifi_ap_service.json"
-
-        self.show_strace = False
-
-        # setting Mesh for thread test
-        options = WeaveStateLoad.option()
-        options["quiet"] = True
-        options["json_file"] = self.topology_file
-
-        setup_network = WeaveStateLoad.WeaveStateLoad(options)
-        ret = setup_network.run()
+            self.use_lwip = False
+            topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
+                "/../../../topologies/standalone/thread_wifi_ap_service.sh"
+        output = subprocess.call([topology_shell_script])
 
         # Wait for a second to ensure that Weave ULA addresses passed dad
         # and are no longer tentative
         time.sleep(2)
 
-
     def tearDown(self):
         # cleaning up
-        options = WeaveStateUnload.option()
-        options["quiet"] = True
-        options["json_file"] = self.topology_file
-
-        teardown_network = WeaveStateUnload.WeaveStateUnload(options)
-        teardown_network.run()
-
+        subprocess.call(["happy-state-delete"])
 
     def test_weave_tunnel(self):
-        # TODO: Once LwIP bugs are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")            
-            return
-
         # topology has nodes: ThreadNode, BorderRouter, onhub and cloud
         # we run tunnel between BorderRouter and cloud
 
@@ -90,13 +73,15 @@ class test_weave_tunnel_01(unittest.TestCase):
         # Stop tunnel
         value, data = self.__stop_tunnel_between("BorderRouter", "cloud")
 
-
     def __start_tunnel_between(self, gateway, service):
         options = WeaveTunnelStart.option()
         options["quiet"] = False
         options["border_gateway"] = gateway
         options["service"] = service
-        options["tap"] = self.tap
+        options["use_lwip"] = self.use_lwip
+        if self.use_lwip:
+            options["client_tap"] = self.BR_tap
+            options["service_tap"] = self.cloud_tap
 
         weave_tunnel = WeaveTunnelStart.WeaveTunnelStart(options)
         ret = weave_tunnel.run()
@@ -105,7 +90,6 @@ class test_weave_tunnel_01(unittest.TestCase):
         data = ret.Data()
 
         return value, data
-
 
     def __stop_tunnel_between(self, gateway, service):
         options = WeaveTunnelStop.option()

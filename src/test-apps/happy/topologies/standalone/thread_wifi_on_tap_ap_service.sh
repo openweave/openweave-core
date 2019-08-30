@@ -50,6 +50,10 @@ happy-node-join onhub Internet
 happy-node-add --service cloud
 happy-node-join --tap cloud Internet
 
+happy-network-route HomeThread BorderRouter
+happy-network-route --prefix 10.0.1.0 HomeWiFi onhub
+happy-network-route --prefix 192.168.100.0 Internet onhub
+
 weave-fabric-add fab1
 weave-node-configure
 weave-network-gateway HomeThread BorderRouter
