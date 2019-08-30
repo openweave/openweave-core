@@ -78,7 +78,11 @@ ConnectivityManager::WiFiStationMode ConnectivityManagerImpl::_GetWiFiStationMod
     if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled)
     {
         bool autoConnect;
-        mWiFiStationMode = (esp_wifi_get_auto_connect(&autoConnect) == ESP_OK && autoConnect)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+        WEAVE_ERROR err = esp_wifi_get_auto_connect(&autoConnect);
+#pragma GCC diagnostic pop
+        mWiFiStationMode = (err == ESP_OK && autoConnect)
                 ? kWiFiStationMode_Enabled
                 : kWiFiStationMode_Disabled;
     }
@@ -99,7 +103,10 @@ WEAVE_ERROR ConnectivityManagerImpl::_SetWiFiStationMode(WiFiStationMode val)
     if (val != kWiFiStationMode_ApplicationControlled)
     {
         bool autoConnect = (val == kWiFiStationMode_Enabled);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         err = esp_wifi_set_auto_connect(autoConnect);
+#pragma GCC diagnostic pop
         SuccessOrExit(err);
 
         SystemLayer.ScheduleWork(DriveStationState, NULL);
