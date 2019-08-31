@@ -723,6 +723,13 @@ menu "OpenWeave Device Layer"
                 operation.  When this option is enabled, the device will perform all local operations associated
                 with registering a service, but will not request the service to add the device to the user's account.
     
+        config LOG_PROVISIONING_HASH
+            bool "Enable Provisioning Hash Logging"
+            default n
+            help
+                Compute and log a hash of the device's provisioning data on boot.  The generated hash value confirms
+                to the form described in the Nest Weave: Factory Provisioning Specification.
+
     endmenu
 
     menu "Network Telemetry Options"

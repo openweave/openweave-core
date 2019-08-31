@@ -28,6 +28,7 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h>
 #include <BleLayer/WeaveBleServiceData.h>
+#include <Weave/Support/Base64.h>
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 #include <Weave/DeviceLayer/ThreadStackManager.h>
@@ -88,8 +89,29 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_ConfigureWeaveStack()
     FabricState.GroupKeyStore = Impl()->_GetGroupKeyStore();
 
 #if WEAVE_PROGRESS_LOGGING
+
     Impl()->LogDeviceConfig();
-#endif
+
+#if WEAVE_DEVICE_CONFIG_LOG_PROVISIONING_HASH
+    {
+        uint8_t provHash[Platform::Security::SHA256::kHashLength];
+        char provHashBase64[BASE64_ENCODED_LEN(sizeof(provHash)) + 1];
+        err = Impl()->_ComputeProvisioningHash(provHash, sizeof(provHash));
+        if (err == WEAVE_NO_ERROR)
+        {
+            Base64Encode(provHash, sizeof(provHash), provHashBase64);
+            provHashBase64[sizeof(provHashBase64) - 1] = '\0';
+            WeaveLogProgress(DeviceLayer, "Nest Provisioning Hash: %s", provHashBase64);
+        }
+        else
+        {
+            WeaveLogError(DeviceLayer, "Error generating Nest Provisioning Hash: %s", nl::ErrorStr(err));
+            err = WEAVE_NO_ERROR;
+        }
+    }
+#endif // WEAVE_DEVICE_CONFIG_LOG_PROVISIONING_HASH
+
+#endif // WEAVE_PROGRESS_LOGGING
 
 exit:
     return err;
@@ -691,6 +713,148 @@ template<class ImplClass>
 bool GenericConfigurationManagerImpl<ImplClass>::_IsPairedToAccount()
 {
     return ::nl::GetFlag(mFlags, kFlag_IsPairedToAccount);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_ComputeProvisioningHash(uint8_t * hashBuf, size_t hashBufSize)
+{
+    using HashAlgo = Platform::Security::SHA256;
+
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    HashAlgo hash;
+    uint8_t * dataBuf = NULL;
+    size_t dataBufSize;
+    constexpr uint16_t kLenFieldLen = 4; // 4 hex characters
+
+    VerifyOrExit(hashBufSize >= HashAlgo::kHashLength, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+    // Compute a hash of the device's provisioning data.  The generated hash value confirms to the form
+    // described in the Nest Weave: Factory Provisioning Specification.
+    //
+    // A Nest provisioning hash is a SHA-256 hash of an ASCII string with the following format:
+    //
+    //     DDDDddddddddddddddddCCCCcccc…ccccKKKKkkkk…kkkkPPPPpppppp
+    //
+    // Where:
+    //     dddddddddddddddd is the Weave node id for the device, encoded as a string of 16 uppercase hex digits.
+    //     cccc…cccc is the device Weave certificate, in base-64 format.
+    //     kkkk…kkkk is the device private key, in base-64 format.
+    //     pppppp is the device pairing code, as ASCII characters.
+    //     DDDD is the length of the dddddddddddddddd field (the device id), represented as 4 uppercase hex digits.
+    //         Because the device id is always the same size, this field is always '0010'.
+    //     CCCC is the length of the cccc…cccc field (the device certificate), represented as 4 uppercase hex digits.
+    //     KKKK is the length of the kkkk…kkkk field (the device private key), represented as 4 uppercase hex digits.
+    //     PPPP is the length of the pppppp field (the device pairing code), represented as 4 uppercase hex digits.
+
+    hash.Begin();
+
+    // Hash the device id
+    {
+        uint64_t deviceId;
+        constexpr uint16_t kDeviceIdLen = 16; // 16 hex characters
+        char inputBuf[kLenFieldLen + kDeviceIdLen + 1]; // +1 for terminator
+
+        err = Impl()->_GetDeviceId(deviceId);
+        SuccessOrExit(err);
+
+        snprintf(inputBuf, sizeof(inputBuf), "0010%016" PRIX64, deviceId);
+
+        hash.AddData((uint8_t *)inputBuf, kLenFieldLen + kDeviceIdLen);
+    }
+
+    // Hash the device certificate
+    {
+        size_t certLen;
+
+        // Determine the length of the device certificate.
+        err = Impl()->_GetDeviceCertificate((uint8_t *)NULL, 0, certLen);
+        SuccessOrExit(err);
+
+        // Create a temporary buffer to hold the certificate.  (This will also be used for
+        // the private key).
+        dataBufSize = certLen;
+        dataBuf = (uint8_t *)Platform::Security::MemoryAlloc(dataBufSize);
+        VerifyOrExit(dataBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+        // Read the certificate.
+        err = Impl()->_GetDeviceCertificate(dataBuf, certLen, certLen);
+        SuccessOrExit(err);
+
+        // Hash the length and value of the device certificate in base-64 form.
+        HashLengthAndBase64Value(hash, dataBuf, (uint16_t)certLen);
+    }
+
+    // Hash the device private key
+    {
+        size_t keyLen;
+
+        // Determine the length of the device private key.
+        err = Impl()->_GetDevicePrivateKey((uint8_t *)NULL, 0, keyLen);
+        SuccessOrExit(err);
+
+        // Read the private key.  (Note that we presume the buffer allocated to hold the certificate
+        // is big enough to hold the private key.  _GetDevicePrivateKey() will return an error in the
+        // unlikely event that this is not the case.)
+        err = Impl()->_GetDevicePrivateKey(dataBuf, dataBufSize, keyLen);
+        SuccessOrExit(err);
+
+        // Hash the length and value of the private key in base-64 form.
+        HashLengthAndBase64Value(hash, dataBuf, (uint16_t)keyLen);
+    }
+
+    // Hash the device pairing code.  If the device does not have a pairing code, hash a zero-length value.
+    {
+        char pairingCode[ConfigurationManager::kMaxPairingCodeLength + 1]; // +1 for terminator
+        char lenStr[kLenFieldLen + 1]; // +1 for terminator
+        size_t pairingCodeLen;
+
+        err = Impl()->_GetPairingCode(pairingCode, sizeof(pairingCode), pairingCodeLen);
+        if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+        {
+            pairingCodeLen = 0;
+            err = WEAVE_NO_ERROR;
+        }
+        SuccessOrExit(err);
+
+        snprintf(lenStr, sizeof(lenStr), "%04" PRIX16, (uint16_t)pairingCodeLen);
+
+        hash.AddData((uint8_t *)lenStr, kLenFieldLen);
+        hash.AddData((uint8_t *)pairingCode, pairingCodeLen);
+    }
+
+    hash.Finish(hashBuf);
+
+exit:
+    if (dataBuf != NULL)
+    {
+        Crypto::ClearSecretData(dataBuf, dataBufSize);
+        Platform::Security::MemoryFree(dataBuf);
+    }
+    return err;
+}
+
+template<class ImplClass>
+void GenericConfigurationManagerImpl<ImplClass>::HashLengthAndBase64Value(Platform::Security::SHA256 & hash, const uint8_t * val, uint16_t valLen)
+{
+    constexpr uint16_t kInputBufSize = 80;
+    static_assert(kInputBufSize > 0 && kInputBufSize % 4 == 0, "kInputBufSize must be a positive multiple of 4");
+    char inputBuf[kInputBufSize];
+    constexpr uint16_t kMaxChunkLen = BASE64_MAX_DECODED_LEN(kInputBufSize);
+
+    // Hash the length of the base-64 value as 4 hex digits.
+    snprintf(inputBuf, sizeof(inputBuf), "%04" PRIX16, (uint16_t)BASE64_ENCODED_LEN(valLen));
+    hash.AddData((uint8_t *)inputBuf, 4);
+
+    // Repeatedly encode and hash chunks of the value in base-64 format.
+    while (valLen > 0)
+    {
+        uint16_t chunkLen = (valLen > kMaxChunkLen) ? kMaxChunkLen : valLen;
+        uint16_t encodedLen = Base64Encode(val, chunkLen, inputBuf);
+        inputBuf[encodedLen] = 0;
+        hash.AddData((uint8_t *)inputBuf, encodedLen);
+        val += chunkLen;
+        valLen -= chunkLen;
+    }
 }
 
 #if WEAVE_PROGRESS_LOGGING
