@@ -357,7 +357,7 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
             }
 
             output_file_name = self.weave_wdm.process_log_prefix + data['client'] + \
-                self.options[wwno.TEST][wwno.TEST_TAG][20:].upper() + TESTRAIL_SUFFIX
+                self.options[wwno.TEST][wwno.TEST_TAG][1:].upper() + TESTRAIL_SUFFIX
 
             self.__output_test_result(output_file_name, output_data)
 

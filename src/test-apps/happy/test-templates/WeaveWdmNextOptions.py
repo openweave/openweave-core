@@ -2,6 +2,7 @@
 
 """
 Defines all test parameter options for WeaveWdmNext automation.
+Client and Server options map to MockWdmNode CLI options.
 """
 
 # Test Options
