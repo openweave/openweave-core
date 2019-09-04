@@ -28,6 +28,9 @@
 #include <Weave/DeviceLayer/LwIP/WarmSupport.h>
 #include <lwip/netif.h>
 #include <lwip/ip6_route_table.h>
+#if LWIP_IPV6_MLD
+#include "lwip/mld6.h"
+#endif /* LWIP_IPV6_MLD */
 
 #if WARM_CONFIG_SUPPORT_THREAD
 #include <Weave/DeviceLayer/ThreadStackManager.h>
@@ -107,6 +110,24 @@ PlatformResult AddRemoveHostAddress(InterfaceType inInterfaceType, const Inet::I
             ExitNow();
         }
         netif_ip6_addr_set_state(netif, addrIdx, IP6_ADDR_PREFERRED);
+
+#if LWIP_IPV6_MLD
+        // If the interface supports IPv6 MLD, join the solicited-node multicast group associated
+        // with the assigned address.
+        if (LwIPNetifSupportsMLD(netif))
+        {
+            ip6_addr_t solNodeAddr;
+            ip6_addr_set_solicitednode(&solNodeAddr, ip6addr.addr[3]);
+            lwipErr = mld6_joingroup_netif(netif, &solNodeAddr);
+            err = System::MapErrorLwIP(lwipErr);
+            if (err != WEAVE_NO_ERROR)
+            {
+                WeaveLogError(DeviceLayer, "mld6_joingroup_netif() failed for %s interface: %s",
+                        WarmInterfaceTypeToStr(inInterfaceType), nl::ErrorStr(err));
+                ExitNow();
+            }
+        }
+#endif /* LWIP_IPV6_MLD */
     }
     else
     {
@@ -118,6 +139,15 @@ PlatformResult AddRemoveHostAddress(InterfaceType inInterfaceType, const Inet::I
                      WarmInterfaceTypeToStr(inInterfaceType), nl::ErrorStr(err));
             ExitNow();
         }
+
+#if LWIP_IPV6_MLD
+        // Leave the solicited-node multicast group associated with the removed address.
+        {
+            ip6_addr_t solNodeAddr;
+            ip6_addr_set_solicitednode(&solNodeAddr, ip6addr.addr[3]);
+            mld6_leavegroup_netif(netif, &solNodeAddr);
+        }
+#endif /* LWIP_IPV6_MLD */
     }
 
     UNLOCK_TCPIP_CORE();
@@ -378,6 +408,15 @@ WEAVE_ERROR GetLwIPNetifForWarmInterfaceType(InterfaceType inInterfaceType, stru
 
 exit:
     return err;
+}
+
+bool LwIPNetifSupportsMLD(struct netif * netif)
+{
+    // Determine if the given netif supports IPv6 MLD.  Unfortunately, the LwIP MLD6 netif flag
+    // is an unreliable indication of MLD support in older versions of LwIP.
+    return (((netif->flags & NETIF_FLAG_MLD6) != 0) ||
+            (netif->name[0] == WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME[0] &&
+             netif->name[1] == WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME[1]));
 }
 
 const char * WarmInterfaceTypeToStr(InterfaceType inInterfaceType)
