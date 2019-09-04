@@ -93,6 +93,7 @@ public:
     bool _IsServiceProvisioned();
     bool _IsMemberOfFabric();
     bool _IsPairedToAccount();
+    WEAVE_ERROR _ComputeProvisioningHash(uint8_t * hashBuf, size_t hashBufSize);
 
 protected:
 
@@ -111,6 +112,8 @@ protected:
 private:
 
     ImplClass * Impl() { return static_cast<ImplClass *>(this); }
+
+    static void HashLengthAndBase64Value(Platform::Security::SHA256 & hash, const uint8_t * val, uint16_t valLen);
 };
 
 // Instruct the compiler to instantiate the template only when explicitly told to do so.

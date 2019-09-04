@@ -113,6 +113,8 @@ public:
 
     void InitiateFactoryReset();
 
+    WEAVE_ERROR ComputeProvisioningHash(uint8_t * hashBuf, size_t hashBufSize);
+
 private:
 
     // ===== Members for internal use by the following friends.
@@ -399,6 +401,11 @@ inline bool ConfigurationManager::IsMemberOfFabric()
 inline void ConfigurationManager::InitiateFactoryReset()
 {
     static_cast<ImplClass*>(this)->_InitiateFactoryReset();
+}
+
+inline WEAVE_ERROR ConfigurationManager::ComputeProvisioningHash(uint8_t * hashBuf, size_t hashBufSize)
+{
+    return static_cast<ImplClass*>(this)->_ComputeProvisioningHash(hashBuf, hashBufSize);
 }
 
 inline WEAVE_ERROR ConfigurationManager::Init()

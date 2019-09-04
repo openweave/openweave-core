@@ -35,7 +35,7 @@ typedef uint8_t (*Base64CharToValFunct)(uint8_t c);
 // Returns length of generated string.
 // Output will contain padding characters ('=') as necessary to make length a multiple of 4 characters.
 // Output DOES NOT include a null terminator.
-// Output buffer must be at least (inLen + 2) * 4 / 3 bytes long.
+// Output buffer must be at least (inLen + 2) / 3 * 4 bytes long.
 // Input and output buffers CANNOT overlap.
 //
 extern uint16_t Base64Encode(const uint8_t *in, uint16_t inLen, char *out);
@@ -66,8 +66,10 @@ extern uint32_t Base64Decode32(const char *in, uint32_t inLen, uint8_t *out, Bas
 /** Computes the base-64 encoded length for a given input length.
  *
  * The computed length includes room for padding characters.
+ *
+ * NOTE: The supplied argument must be an integer type.
  */
-#define BASE64_ENCODED_LEN(LEN) (((LEN) + 2) * 4 / 3)
+#define BASE64_ENCODED_LEN(LEN) ((((LEN) + 2) / 3) * 4)
 
 /** Computes the maximum possible decoded length for a given base-64 string input length.
  *

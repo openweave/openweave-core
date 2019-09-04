@@ -117,6 +117,18 @@
 #define WEAVE_DEVICE_CONFIG_ENABLE_FACTORY_PROVISIONING 1
 #endif
 
+/**
+ * WEAVE_DEVICE_CONFIG_LOG_PROVISIONING_HASH
+ *
+ * Compute and log a hash of the device's provisioning data on boot.
+ *
+ * The generated hash value confirms to the form described in the Nest Weave: Factory
+ * Provisioning Specification.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_LOG_PROVISIONING_HASH
+#define WEAVE_DEVICE_CONFIG_LOG_PROVISIONING_HASH 1
+#endif
+
 // -------------------- Device Identification Configuration --------------------
 
 /**
