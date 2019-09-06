@@ -55,6 +55,7 @@ options = {"count": None,
            "case_cert_path": None,
            "case_key_path": None,
            "use_persistent_storage": True,
+           "use_lwip": False,
            "plaid_server_env": {},
            "plaid_client_env": {}
            }
@@ -93,6 +94,11 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
         HappyNetwork.__init__(self)
         WeaveTest.__init__(self)
         self.__dict__.update(opts)
+        self.fabric_id = self.getFabricId()
+        if self.use_lwip:
+            self.service_weave_id = self.getServiceWeaveID("Tunnel")
+            self.service_weave_addr = self.getServiceWeaveIPAddress("Tunnel")
+            self.gateway_weave_addr = self.getNodeInterfaceWeaveIPAddress("wpan0", self.border_gateway)
 
     def __pre_check(self):
         # clear network info
@@ -275,8 +281,11 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
     
         cmd += " --count " + str(self.count)
 
-        if self.tap:
-            cmd += " --tap-device " + self.tap
+        if self.use_lwip:
+            cmd += " --fabric-id " + str(self.fabric_id)
+            cmd += " --tap-device " + self.client_tap
+            cmd += " --node-id " + client_info['client_weave_id']
+            cmd += " --ipv6-gateway " + self.gateway_weave_addr
 
         if self.case:
             if self.case_shared:
@@ -288,7 +297,6 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
                 self.cert_file = self.case_cert_path if self.case_cert_path else os.path.join(self.main_conf['log_directory'], client_info["client_weave_id"].upper() + '-cert.weave-b64')
                 self.key_file = self.case_key_path if self.case_key_path else os.path.join(self.main_conf['log_directory'], client_info["client_weave_id"].upper() + '-key.weave-b64')
                 cmd += ' --node-cert ' + self.cert_file + ' --node-key ' + self.key_file
-
         self.start_simple_weave_client(cmd, client_info['client_ip'],
             self.server_ip, self.server_weave_id,
             client_info['client_node_id'], client_info['client_process_tag'], use_persistent_storage=self.use_persistent_storage, env=self.plaid_client_env)
