@@ -1871,8 +1871,13 @@
  *  @def WEAVE_CONFIG_DEFAULT_INCOMING_CONNECTION_IDLE_TIMEOUT
  *
  *  @brief
- *    The default minimum amount of time, in milliseconds, that an inbound idle
- *    connection will be allowed to exist before being destroyed.
+ *    The maximum amount of time, in milliseconds, that an idle inbound
+ *    Weave connection will be allowed to exist before being closed.
+ *
+ *    This is a default value that can be overridden at runtime by the
+ *    application.
+ *
+ *    A value of 0 disables automatic closing of idle connections.
  *
  */
 #ifndef WEAVE_CONFIG_DEFAULT_INCOMING_CONNECTION_IDLE_TIMEOUT
