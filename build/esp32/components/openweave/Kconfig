@@ -109,7 +109,7 @@ menu "OpenWeave Core"
         
                 Weave generally needs one UDP EndPoint object for each local network
                 interface, plus 2 additional EndPoints for general UDP communcation.
-        
+
         config MAX_CONNECTIONS
             int "Max Weave Connections"
             range 0 65535
@@ -118,6 +118,19 @@ menu "OpenWeave Core"
                 The maximum number of simultaneously active Weave connections, either locally
                 or remotely initiated.  This limit covers both Weave TCP connections, and
                 Weave-over-BLE (WoBLE) connections.
+
+        config DEFAULT_INCOMING_CONNECTION_IDLE_TIMEOUT
+            int "Default Incoming Connection Idle Timeout (ms)"
+            range 0 1000000
+            default 15000
+            help
+                The maximum amount of time, in milliseconds, that an idle inbound
+                Weave connection will be allowed to exist before being closed.
+            
+                This is a default value that can be overridden at runtime by the
+                application.
+            
+                A value of 0 disables automatic closing of idle connections.
     
     endmenu # "Networking Options"
     
