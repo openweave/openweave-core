@@ -55,7 +55,9 @@ happy-network-route --prefix 10.0.1.0 HomeWiFi onhub
 happy-network-route --prefix 192.168.100.0 Internet onhub
 
 weave-fabric-add fab1
-weave-node-configure
+weave-node-configure -w 18b4300000000001 BorderRouter
+weave-node-configure -w 18b430000000000a ThreadNode
+weave-node-configure -w 18B4300200000011 cloud
 weave-network-gateway HomeThread BorderRouter
 
 # happy-state -s thread_wifi_on_tap_ap_service.json

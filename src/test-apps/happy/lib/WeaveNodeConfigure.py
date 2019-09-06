@@ -331,8 +331,14 @@ class WeaveNodeConfigure():
             self.logger.error("[localhost] WeaveNodeConfigure: %s" % emsg)
             return
 
-        if self.weave_state.getNodeType(node) in ['ap', 'service']:
-            emsg = "ignoring initialization for nodes types 'ap' and 'service'"
+        # configure weave state including weave address for non-AP nodes,
+        # because current infra only support AP joined as a non-weave device, 
+        # all other nodes can be joined as weave devices.
+        # ToDo: Actually, AP should be able to joined as weave device or non-weave device, 
+        # Some infra work need to be sorted out to support that.
+        # Tracked issue link: https://github.com/openweave/openweave-core/issues/360
+        if self.weave_state.getNodeType(node) in ['ap']:
+            emsg = "ignoring initialization for nodes types 'ap'"
             self.logger.debug("[localhost] WeaveNodeConfigure: %s" % emsg)
             return
 
