@@ -238,17 +238,32 @@ class WeaveState(State):
 
         return global_prefix
 
-    def typeToWeaveSubnet(self, type):
-        if type == "wifi":
+    def typeToWeaveSubnet(self, interface_type):
+        """This function attempts to match node interface type to a matching weave subnet.
+
+        Args:
+           interface_type (str): A string containing a node interface type, example: "wifi" or "wan".
+
+        Returns:
+           integer. The return code:
+
+              1  -- weave subnet is 1 which matches a wifi interface.
+              5  -- weave subnet is 5 which matches a wan interface.
+              4  -- weave subnet is 4 which matches a mobile interface.
+              6  -- weave subnet is 6 which matches a thread interface.
+              0  -- weave subnet is 0 which matches all other interfaces.
+        """
+
+        if interface_type == "wifi":
             return 1
 
-        if type == "service":
+        if interface_type == "wan":
             return 5
 
-        if type == "mobile":
+        if interface_type == "mobile":
             return 4
 
-        if type == "thread":
+        if interface_type == "thread":
             return 6
 
         return 0
