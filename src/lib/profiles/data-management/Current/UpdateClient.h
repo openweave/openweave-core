@@ -122,9 +122,16 @@ struct UpdateClient::InEventParam
 struct UpdateClient::OutEventParam
 {
     bool DefaultHandlerCalled;
-    union
-    {
-    };
+
+    // additional parameters required by application shall be added via structs
+    // added to an anonymous union, following the pattern for InEventParam
+    // above.  As some compilers emit warnings for anonymous empty unions, we
+    // leave the union declaration commented out below.
+
+    // union
+    // {
+    //    // Parameters for specific purposes should be embedded here as structs
+    // };
     void Clear() { memset(this, 0, sizeof(*this)); }
 };
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
