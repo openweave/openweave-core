@@ -741,7 +741,7 @@ INET_ERROR IPEndPointBasis::SendTo(const IPAddress &aAddress, uint16_t aPort, In
     if (aInterfaceId == INET_NULL_INTERFACEID)
         aInterfaceId = mBoundIntfId;
 
-    if (aInterfaceId != INET_NULL_INTERFACEID && false)
+    if (aInterfaceId != INET_NULL_INTERFACEID)
     {
 #if defined(IP_PKTINFO) || defined(IPV6_PKTINFO)
         memset(controlData, 0, sizeof (controlData));
@@ -788,7 +788,7 @@ INET_ERROR IPEndPointBasis::SendTo(const IPAddress &aAddress, uint16_t aPort, In
     {
         // Send IP packet.
 
-        const ssize_t lenSent = sendto(mSocket, msgHeader.msg_iov[0].iov_base, msgHeader.msg_iov[0].iov_len, 0, &lPeerSockAddr.any, msgHeader.msg_namelen);
+        const ssize_t lenSent = sendmsg(mSocket, &msgHeader, 0);
 
         if (lenSent == -1)
             lRetval = Weave::System::MapErrorPOSIX(errno);

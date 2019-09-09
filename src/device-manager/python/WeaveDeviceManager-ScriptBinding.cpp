@@ -221,7 +221,7 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_GetFabricConfig(WeaveDeviceManager *devMgr, GetFabricConfigCompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_JoinExistingFabric(WeaveDeviceManager *devMgr, const uint8_t *fabricConfig, uint32_t fabricConfigLen, CompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_Ping(WeaveDeviceManager *devMgr, CompleteFunct onComplete, ErrorFunct onError);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_SetRendezvousAddress(WeaveDeviceManager *devMgr, const char *rendezvousAddr);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_SetRendezvousAddress(WeaveDeviceManager *devMgr, const char *rendezvousAddr, const char *rendezvousAddrIntf);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_SetAutoReconnect(WeaveDeviceManager *devMgr, bool autoReconnect);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_SetRendezvousLinkLocal(WeaveDeviceManager *devMgr, bool RendezvousLinkLocal);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_SetConnectTimeout(WeaveDeviceManager *devMgr, uint32_t timeoutMS);
@@ -1033,14 +1033,27 @@ WEAVE_ERROR nl_Weave_DeviceManager_Ping(WeaveDeviceManager *devMgr, CompleteFunc
     return devMgr->Ping(NULL, onComplete, onError);
 }
 
-WEAVE_ERROR nl_Weave_DeviceManager_SetRendezvousAddress(WeaveDeviceManager *devMgr, const char *rendezvousAddrStr)
+WEAVE_ERROR nl_Weave_DeviceManager_SetRendezvousAddress(WeaveDeviceManager *devMgr, const char *rendezvousAddrStr, const char *rendezvousIntfStr)
 {
     IPAddress rendezvousAddr;
+    InterfaceId rendezvousIntf;
 
     if (!IPAddress::FromString(rendezvousAddrStr, rendezvousAddr))
         return WEAVE_ERROR_INVALID_ADDRESS;
 
-    return devMgr->SetWiFiRendezvousAddress(rendezvousAddr);
+    if (rendezvousIntfStr == NULL || strlen(rendezvousIntfStr) == 0)
+    {
+        rendezvousIntf = INET_NULL_INTERFACEID;
+    }
+    else
+    {
+        WEAVE_ERROR err;
+        err = InterfaceNameToId(rendezvousIntfStr, rendezvousIntf);
+        if (err != WEAVE_NO_ERROR)
+            return err;
+    }
+
+    return devMgr->SetRendezvousAddress(rendezvousAddr, rendezvousIntf);
 }
 
 WEAVE_ERROR nl_Weave_DeviceManager_SetAutoReconnect(WeaveDeviceManager *devMgr, bool autoReconnect)

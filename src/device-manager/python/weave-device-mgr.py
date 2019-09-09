@@ -2102,11 +2102,15 @@ class DeviceMgrCmd(Cmd):
 
     def do_setrendezvousaddr(self, line):
         """
-          set-rendezvous-addr <addr>
+          set-rendezvous-addr <addr> [ <intf> ]
 
           Set the device IP address to be used when rendezvousing with a device.
           <addr> can be an IPv4 or IPv6 address. Specify the IPv6 link-local, all
-          nodes multicast address (ff02::1) to use multicast rendezvous.
+          nodes multicast address (ff02::1) to use multicast rendezvous. Additionally,
+          the user may specify the name of the interface to be used to rendezvous with
+          with the device; this is useful to limit the IPv6 link local multicasts to a
+          specific interface or to override the default interface settings for IPv4
+          broadcasts.
         """
 
         args = shlex.split(line)
@@ -2118,8 +2122,12 @@ class DeviceMgrCmd(Cmd):
 
         addr = args[0]
 
+        intf = None
+        if (len(args) > 1):
+            intf = args[1]
+
         try:
-            self.devMgr.SetRendezvousAddress(addr)
+            self.devMgr.SetRendezvousAddress(addr, intf)
         except WeaveDeviceMgr.DeviceManagerException, ex:
             print str(ex)
             return
