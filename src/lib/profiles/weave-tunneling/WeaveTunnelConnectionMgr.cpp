@@ -422,11 +422,13 @@ void WeaveTunnelConnectionMgr::ServiceConnectTimeout(System::Layer* aSystemLayer
         ExitNow();
     }
 
-    /* Check if the WeaveConnectionManager is in the correct state to effect a
+    /* Ensure that the WeaveConnectionManager is in the correct state to effect a
      * reconnect.
      */
-    VerifyOrExit(tConnMgr->mConnectionState == kState_NotConnected,
-                 /* NO_OP */);
+    if (tConnMgr->mConnectionState != kState_NotConnected)
+    {
+        tConnMgr->StopServiceTunnelConn(WEAVE_ERROR_TUNNEL_FORCE_ABORT);
+    }
 
     // Reconnect to Service.
 
