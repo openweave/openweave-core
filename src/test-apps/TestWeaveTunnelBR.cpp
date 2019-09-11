@@ -1107,7 +1107,7 @@ static void TestTunnelNoStatusReportResetReconnectBackoff(nlTestSuite *inSuite, 
     gTestSucceeded = false;
     /* Set the test timeout to be a little longer than the Tunnel Control ExchangeContext
      * timeout */
-    gMaxTestDurationMillisecs = (WEAVE_CONFIG_TUNNELING_CTRL_RESPONSE_TIMEOUT_SECS + 1 ) * System::kTimerFactor_milli_per_unit;
+    gMaxTestDurationMillisecs = (WEAVE_CONFIG_TUNNELING_CTRL_RESPONSE_TIMEOUT_SECS + 5 ) * System::kTimerFactor_milli_per_unit;
     gCurrTestNum = kTestNum_TestTunnelNoStatusReportResetReconnectBackoff;
     gTestStartTime = Now();
 
