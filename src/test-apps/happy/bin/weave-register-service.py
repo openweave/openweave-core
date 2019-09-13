@@ -2,7 +2,8 @@
 
 
 #
-#    Copyright (c) 2015-2017 Nest Labs, Inc.
+#    Copyright (c) 2015-2018 Nest Labs, Inc.
+#    Copyright (c) 2019 Google, LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +41,13 @@ log_line_format = '%(asctime)s : %(name)s : %(levelname)s :  [%(filename)s : %(l
                   '%(funcName)s] : %(message)s'
 log_line_time_format = '%m/%d/%Y %I:%M:%S %p'
 formatter = logging.Formatter(log_line_format, datefmt=log_line_time_format)
-syslog_handler = logging.handlers.SysLogHandler(address="/dev/log")
+
+if sys.platform == "darwin":
+    address = "/var/run/syslog"
+else:
+    address = "/dev/log"
+ 
+syslog_handler = logging.handlers.SysLogHandler(address=address)
 syslog_handler.setFormatter(formatter)
 logger.addHandler(syslog_handler)
 stream_handler = logging.StreamHandler()
