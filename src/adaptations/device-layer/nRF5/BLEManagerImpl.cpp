@@ -386,8 +386,8 @@ void BLEManagerImpl::DriveBLEState(void)
         }
     }
 
-    // Otherwise, stop advertising if it is enabled.
-    else if (GetFlag(mFlags, kFlag_AdvertisingEnabled))
+    // Otherwise, stop advertising if currently active.
+    else
     {
         err = StopAdvertising();
         SuccessOrExit(err);
@@ -499,6 +499,8 @@ WEAVE_ERROR BLEManagerImpl::StopAdvertising(void)
 
         err = sd_ble_gap_adv_stop(mAdvHandle);
         SuccessOrExit(err);
+
+        WeaveLogProgress(DeviceLayer, "BLE advertising stopped");
     }
 
 exit:
