@@ -881,7 +881,7 @@ void GenericConfigurationManagerImpl<ImplClass>::LogDeviceConfig()
         {
             vendorId = 0;
         }
-        WeaveLogProgress(DeviceLayer, "  Vendor Id: %" PRId16 " (0x%" PRIX16 ")%s",
+        WeaveLogProgress(DeviceLayer, "  Vendor Id: %" PRIu16 " (0x%" PRIX16 ")%s",
                 vendorId, vendorId, (vendorId == kWeaveVendor_NestLabs) ? " (Nest)" : "");
     }
 
