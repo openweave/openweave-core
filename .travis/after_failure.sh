@@ -36,5 +36,5 @@ bundle update
 
 dpl --provider=gcs --access-key-id=GOOGNPZYTVTEPZM5VBRAVVUU \
 	--secret-access-key=$GCSKEY --bucket=openweave \
-	--local-dir=$TRAVIS_BUILD_DIR/happy-test-logs --upload-dir=happy-test-log/$TRAVIS_BUILD_NUMBER \
+	--local-dir=$TRAVIS_BUILD_DIR/build_artifacts --upload-dir=happy-test-log/$TRAVIS_BUILD_NUMBER \
 	--acl=public-read --skip_cleanup=true

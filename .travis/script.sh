@@ -38,8 +38,8 @@ die()
 ###############################################################
 gcc_check_happy()
 {
-    cmd_start="sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 "
-    cmd_end="BuildJobs=24 check"
+    cmd_start="sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1"
+    cmd_end="BuildJobs=24 coverage"
 
     if [ "lwip" in "${BUILD_TARGET}" ];then
         build_cmd="$cmd_start USE_LWIP=1 $cmd_end"
@@ -49,11 +49,17 @@ gcc_check_happy()
         build_folder="x86_64-unknown-linux-gnu"
     fi
 
-    mkdir -p $TRAVIS_BUILD_DIR/happy-test-logs/$1
+    mkdir -p $TRAVIS_BUILD_DIR/build_artifacts/$1
     eval $build_cmd
     make_status=${?}
-    cp $TRAVIS_BUILD_DIR/build/$build_folder/src/test-apps/happy $TRAVIS_BUILD_DIR/happy-test-logs/$1 -rf
+    cp $TRAVIS_BUILD_DIR/build/$build_folder/src/test-apps/happy $TRAVIS_BUILD_DIR/build_artifacts/$1 -rf
     echo "please check happy-test-log/<UTC time> under link: https://storage.cloud.google.com/openweave"
+    cp $TRAVIS_BUILD_DIR/build/$build_folder/src/test-apps/*.lcov $TRAVIS_BUILD_DIR/build_artifacts/$1 -rf
+    echo "===========ls build_artifacts x86 folder==============="
+    ls $TRAVIS_BUILD_DIR/build_artifacts/$1
+    echo "===========ls happy==============="
+    ls $TRAVIS_BUILD_DIR/build_artifacts/$1/happy/
+    
     return ${make_status}
 }
 
