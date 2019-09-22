@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -265,7 +266,6 @@ protected:
     uint8_t *mDecodeBuf;
     uint16_t mDecodeBufSize;
 
-    WEAVE_ERROR DecodeWeaveCert(TLVReader& reader, uint16_t decodeFlags, WeaveCertificateData& certData);
     WEAVE_ERROR FindValidCert(const WeaveDN& subjectDN, const CertificateKeyId& subjectKeyId,
             ValidationContext& context, uint16_t validateFlags, uint8_t depth, WeaveCertificateData *& cert);
     WEAVE_ERROR ValidateCert(WeaveCertificateData& cert, ValidationContext& context, uint16_t validateFlags, uint8_t depth);
@@ -273,6 +273,25 @@ protected:
 
 extern WEAVE_ERROR DecodeWeaveCert(const uint8_t *weaveCert, uint32_t weaveCertLen, WeaveCertificateData& certData);
 extern WEAVE_ERROR DecodeWeaveCert(TLVReader& reader, WeaveCertificateData& certData);
+
+/**
+  * Generate an ECDSA signature using local Weave node's private key.
+  *
+  * When invoked, implementations must compute a signature on the given hash value using the node's
+  * private key.
+  *
+  * @param[in] hash              A buffer containing the hash of the certificate to be signed.
+  * @param[in] hashLen           The length in bytes of the hash.
+  * @param[in] ecdsaSig          A reference to the ecdsa signature object, where result of
+  *                              this function to be stored.
+  *
+  * @retval #WEAVE_NO_ERROR      If the operation succeeded.
+  */
+typedef WEAVE_ERROR (*GenerateECDSASignatureFunct)(const uint8_t *hash, uint8_t hashLen, EncodedECDSASignature& ecdsaSig);
+
+extern WEAVE_ERROR GenerateOperationalDeviceCert(uint64_t deviceId, EncodedECPublicKey& devicePubKey,
+                                                 uint8_t *cert, uint16_t certBufSize, uint16_t& certLen,
+                                                 GenerateECDSASignatureFunct genCertSignature);
 
 extern WEAVE_ERROR DecodeWeaveDN(TLVReader& reader, WeaveDN& dn);
 

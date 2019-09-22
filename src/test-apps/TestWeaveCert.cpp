@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -25,8 +26,10 @@
 #include "ToolCommon.h"
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveTLV.h>
+#include <Weave/Core/WeaveMessageLayer.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/security/WeaveCert.h>
+#include <Weave/Profiles/security/WeavePrivateKey.h>
 
 #include "TestWeaveCertData.h"
 
@@ -35,6 +38,8 @@ using namespace nl::Weave::Profiles::Security;
 using namespace nl::Weave::ASN1;
 
 using namespace nl::TestCerts;
+
+#define DEBUG_PRINT_ENABLE 0
 
 #define VerifyOrFail(TST, MSG, ...) \
 do { \
@@ -687,6 +692,177 @@ void WeaveCertTest_CertType()
     printf("%s passed\n", __FUNCTION__);
 }
 
+static EncodedECPrivateKey sDevicePrivKey;
+
+static WEAVE_ERROR sGenerateCertSignature(const uint8_t *hash, uint8_t hashLen, EncodedECDSASignature& ecdsaSig)
+{
+    return nl::Weave::Crypto::GenerateECDSASignature(WeaveCurveIdToOID(WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID),
+                                                     hash, hashLen, sDevicePrivKey, ecdsaSig);
+}
+
+void WeaveCertTest_GenerateOperationalDeviceCert()
+{
+    WEAVE_ERROR err;
+    uint64_t deviceId;
+    uint8_t certBuf[kTestCertBufSize];
+    uint16_t certLen;
+    uint8_t devicePrivKeyBuf[EncodedECPrivateKey::kMaxValueLength];
+    uint8_t devicePubKeyBuf[EncodedECPublicKey::kMaxValueLength];
+    EncodedECPublicKey devicePubKey;
+    WeaveCertificateSet certSet;
+    WeaveCertificateData* certData;
+    ValidationContext validContext;
+
+    sDevicePrivKey.PrivKey = devicePrivKeyBuf;
+    sDevicePrivKey.PrivKeyLen = sizeof(devicePrivKeyBuf);
+
+    devicePubKey.ECPoint = devicePubKeyBuf;
+    devicePubKey.ECPointLen = sizeof(devicePubKeyBuf);
+
+    err = GenerateWeaveNodeId(deviceId);
+    SuccessOrFail(err, "GenerateWeaveNodeId() returned error");
+
+    err = GenerateECDHKey(WeaveCurveIdToOID(WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID), devicePubKey, sDevicePrivKey);
+    SuccessOrFail(err, "GenerateECDHKey() returned error");
+
+    err = GenerateOperationalDeviceCert(deviceId, devicePubKey, certBuf, sizeof(certBuf), certLen, sGenerateCertSignature);
+    SuccessOrFail(err, "GenerateOperationalDeviceCert() returned error");
+
+    // Initialize the certificate set.
+    certSet.Init(1, kTestCertBufSize);
+
+    // Load generated self-signed certificate.
+    err = certSet.LoadCert(certBuf, certLen, kDecodeFlag_IsTrusted | kDecodeFlag_GenerateTBSHash, certData);
+    SuccessOrFail(err, "LoadCert() returned error");
+
+    // Verify that loaded certificate data is as expected.
+    {
+        VerifyOrFail(certData->SubjectDN.AttrOID           == ASN1::kOID_AttributeType_WeaveDeviceId,            "LoadCert() returned incorrect certData->SubjectDN.AttrOID parameter");
+        VerifyOrFail(certData->SubjectDN.AttrValue.WeaveId == deviceId,                                          "LoadCert() returned incorrect certData->SubjectDN.AttrValue.WeaveId parameter");
+        VerifyOrFail(certData->IssuerDN.AttrOID            == ASN1::kOID_AttributeType_WeaveDeviceId,            "LoadCert() returned incorrect certData->SubjectDN.AttrOID parameter");
+        VerifyOrFail(certData->IssuerDN.AttrValue.WeaveId  == deviceId,                                          "LoadCert() returned incorrect certData->SubjectDN.AttrValue.WeaveId parameter");
+        VerifyOrFail(certData->SubjectKeyId.Len            == 8,                                                 "LoadCert() returned incorrect certData->SubjectKeyId.Len parameter");
+        VerifyOrFail((certData->SubjectKeyId.Id[0] & 0xF0) == 0x40,                                              "LoadCert() returned incorrect certData->SubjectKeyId.Id parameter");
+        VerifyOrFail(certData->AuthKeyId.Len               == 8,                                                 "LoadCert() returned incorrect certData->AuthKeyId.Len parameter");
+        VerifyOrFail((certData->AuthKeyId.Id[0] & 0xF0)    == 0x40,                                              "LoadCert() returned incorrect certData->AuthKeyId.Id parameter");
+        VerifyOrFail(certData->PubKeyCurveId               == WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID,     "LoadCert() returned incorrect certData->PubKeyCurveId parameter");
+        VerifyOrFail(certData->CertFlags                   == (kCertFlag_ExtPresent_BasicConstraints |
+                                                               kCertFlag_ExtPresent_KeyUsage |
+                                                               kCertFlag_ExtPresent_ExtendedKeyUsage |
+                                                               kCertFlag_ExtPresent_SubjectKeyId |
+                                                               kCertFlag_ExtPresent_AuthKeyId |
+                                                               kCertFlag_TBSHashPresent |
+                                                               kCertFlag_IsTrusted),                             "LoadCert() returned incorrect certData->CertFlags parameter");
+        VerifyOrFail(certData->KeyUsageFlags               == (kKeyUsageFlag_DigitalSignature |
+                                                               kKeyUsageFlag_KeyEncipherment),                   "LoadCert() returned incorrect certData->KeyUsageFlags parameter");
+        VerifyOrFail(certData->PubKeyAlgoOID               == kOID_PubKeyAlgo_ECPublicKey,                       "LoadCert() returned incorrect certData->PubKeyAlgoOID parameter");
+        VerifyOrFail(certData->SigAlgoOID                  == kOID_SigAlgo_ECDSAWithSHA256,                      "LoadCert() returned incorrect certData->SigAlgoOID parameter");
+        VerifyOrFail(certData->KeyPurposeFlags             == (kKeyPurposeFlag_ServerAuth |
+                                                               kKeyPurposeFlag_ClientAuth),                      "LoadCert() returned incorrect certData->KeyPurposeFlags parameter");
+        VerifyOrFail(certData->NotBeforeDate               == WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_BEFORE, "LoadCert() returned incorrect certData->NotBeforeDate parameter");
+        VerifyOrFail(certData->NotAfterDate                == WEAVE_CONFIG_OP_DEVICE_CERT_VALID_DATE_NOT_AFTER,  "LoadCert() returned incorrect certData->NotAfterDate parameter");
+        VerifyOrFail(certData->PublicKey.EC.ECPointLen     == devicePubKey.ECPointLen,                           "LoadCert() returned incorrect certData->PublicKey.EC.ECPointLen parameter");
+        VerifyOrFail(memcmp(certData->PublicKey.EC.ECPoint, devicePubKey.ECPoint, devicePubKey.ECPointLen) == 0, "LoadCert() returned incorrect certData->PublicKey.EC.ECPoint parameter");
+    }
+
+    // Validate generated certificate.
+    {
+        // Initialize the validation context.
+        memset(&validContext, 0, sizeof(validContext));
+        ASN1UniversalTime testEffectiveTime = {
+            .Year   = 2020,
+            .Month  = 01,
+            .Day    = 01,
+            .Hour   = 00,
+            .Minute = 00,
+            .Second = 00
+        };
+        SetEffectiveTime(validContext, testEffectiveTime.Year, testEffectiveTime.Month, testEffectiveTime.Day);
+        validContext.ValidateFlags = kValidateFlag_RequireSHA256;
+        validContext.RequiredKeyUsages = kKeyUsageFlag_DigitalSignature |
+                                         kKeyUsageFlag_KeyEncipherment;
+        validContext.RequiredKeyPurposes = kKeyPurposeFlag_ServerAuth |
+                                           kKeyPurposeFlag_ClientAuth;
+        validContext.RequiredCertType = kCertType_Device;
+
+        // Validate generated certificate.
+        err = certSet.ValidateCert(*certData, validContext);
+        SuccessOrFail(err, "ValidateCert() returned error");
+
+        // Verify certificate signature.
+        err = VerifyECDSASignature(WeaveCurveIdToOID(certData->PubKeyCurveId),
+                                   certData->TBSHash, SHA256::kHashLength,
+                                   certData->Signature.EC, certData->PublicKey.EC);
+        SuccessOrFail(err, "VerifyECDSASignature() returned error");
+    }
+
+#if DEBUG_PRINT_ENABLE
+    printf("Generated Weave Device Self-Signed Certificate (%d bytes):\n", certLen);
+    DumpMemoryCStyle(certBuf, certLen, "    ", 16);
+#endif
+
+    printf("%s passed\n", __FUNCTION__);
+}
+
+void WeaveCertTest_GenerateAndPrintTestOperationalDeviceCert()
+{
+    WEAVE_ERROR err;
+    uint64_t deviceId;
+    uint8_t certBuf[kTestCertBufSize];
+    uint16_t certLen;
+    uint8_t keyBuf[kTestCertBufSize];
+    uint32_t keyLen;
+    uint8_t devicePrivKeyBuf[EncodedECPrivateKey::kMaxValueLength];
+    uint8_t devicePubKeyBuf[EncodedECPublicKey::kMaxValueLength];
+    EncodedECPublicKey devicePubKey;
+
+    enum
+    {
+        kTestDevice_OpDeviceIdBase     = 0x1AB4300000000000ULL,
+        kTestDevice_NumberOfOpCerts    = 10,
+    };
+
+    sDevicePrivKey.PrivKey = devicePrivKeyBuf;
+    sDevicePrivKey.PrivKeyLen = sizeof(devicePrivKeyBuf);
+
+    devicePubKey.ECPoint = devicePubKeyBuf;
+    devicePubKey.ECPointLen = sizeof(devicePubKeyBuf);
+
+
+    for (int i = 1; i <= kTestDevice_NumberOfOpCerts; i++)
+    {
+        deviceId = kTestDevice_OpDeviceIdBase + i;
+
+        err = GenerateECDHKey(WeaveCurveIdToOID(WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID), devicePubKey, sDevicePrivKey);
+        SuccessOrFail(err, "GenerateECDHKey() returned error");
+
+        err = EncodeWeaveECPrivateKey(WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID, &devicePubKey, sDevicePrivKey,
+                                      keyBuf, sizeof(keyBuf), keyLen);
+        SuccessOrFail(err, "EncodeWeaveECPrivateKey() returned error");
+
+        err = GenerateOperationalDeviceCert(deviceId, devicePubKey, certBuf, sizeof(certBuf), certLen, sGenerateCertSignature);
+        SuccessOrFail(err, "GenerateOperationalDeviceCert() returned error");
+
+        printf("// Operational node Id, self-signed certificate and private key for Test Device %d\n//\n\n", i);
+
+        printf("uint64_t TestDevice%d_OperationalNodeId = 0x%" PRIX64 "ULL;\n\n", i, deviceId);
+
+        printf("uint8_t TestDevice%d_OperationalCert[] = \n{\n", i);
+        DumpMemoryCStyle(certBuf, certLen, "    ", 16);
+        printf("};\n\n");
+
+        printf("uint16_t TestDevice%d_OperationalCertLength = sizeof(TestDevice%d_OperationalCert);\n\n", i, i);
+
+        printf("uint8_t TestDevice%d_OperationalPrivateKey[] = \n{\n", i);
+        DumpMemoryCStyle(keyBuf, keyLen, "    ", 16);
+        printf("};\n\n");
+
+        printf("uint16_t TestDevice%d_OperationalPrivateKeyLength = sizeof(TestDevice%d_OperationalPrivateKey);\n\n\n", i, i);
+    }
+
+    printf("%s passed\n", __FUNCTION__);
+}
+
 int main(int argc, char *argv[])
 {
     WeaveCertTest_WeaveToX509();
@@ -695,5 +871,9 @@ int main(int argc, char *argv[])
     WeaveCertTest_CertValidTime();
     WeaveCertTest_CertUsage();
     WeaveCertTest_CertType();
+    WeaveCertTest_GenerateOperationalDeviceCert();
+#if DEBUG_PRINT_ENABLE
+    WeaveCertTest_GenerateAndPrintTestOperationalDeviceCert();
+#endif
     printf("All tests passed.\n");
 }

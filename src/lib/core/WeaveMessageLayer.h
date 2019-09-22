@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -934,6 +935,8 @@ inline void WeaveMessageSourceToStr(char *buf, uint32_t bufSize, const WeaveMess
 {
     WeaveMessageLayer::GetPeerDescription(buf, (size_t)bufSize, msgInfo);
 }
+
+extern WEAVE_ERROR GenerateWeaveNodeId(uint64_t & nodeId);
 
 } // namespace nl
 } // namespace Weave
