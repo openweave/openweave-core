@@ -72,7 +72,6 @@ typedef uint16_t PropertySchemaHandle;
 typedef uint16_t PropertyDictionaryKey;
 typedef uint16_t TraitDataHandle;
 
-
 /* Reserved property path handles that have special meaning */
 enum
 {
@@ -120,15 +119,14 @@ public:
 class UpdateDirtyPathFilter : public IPathFilter
 {
 public:
-    UpdateDirtyPathFilter(SubscriptionClient *apSubClient,
-                          TraitDataHandle traitDataHandle,
+    UpdateDirtyPathFilter(SubscriptionClient * apSubClient, TraitDataHandle traitDataHandle,
                           const TraitSchemaEngine * aSchemaEngine);
-    virtual bool FilterPath (PropertyPathHandle aPathhandle);
+    virtual bool FilterPath(PropertyPathHandle aPathhandle);
 
 private:
-    SubscriptionClient *mpSubClient;
+    SubscriptionClient * mpSubClient;
     TraitDataHandle mTraitDataHandle;
-    const TraitSchemaEngine *mSchemaEngine;
+    const TraitSchemaEngine * mSchemaEngine;
 };
 
 class IDirtyPathCut
@@ -145,11 +143,11 @@ public:
 class UpdateDictionaryDirtyPathCut : public IDirtyPathCut
 {
 public:
-    UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, UpdateEncoder *pEncoder);
-    virtual WEAVE_ERROR CutPath (PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine);
+    UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, UpdateEncoder * pEncoder);
+    virtual WEAVE_ERROR CutPath(PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine);
 
 private:
-    UpdateEncoder *mpUpdateEncoder;
+    UpdateEncoder * mpUpdateEncoder;
     TraitDataHandle mTraitDataHandle;
 };
 
@@ -183,23 +181,23 @@ public:
     struct Schema
     {
         uint32_t mProfileId;                   ///< The ID of the trait profile.
-        const PropertyInfo * mSchemaHandleTbl; ///< A pointer to the schema handle table, which provides parent info and context tags
-                                               ///< for each schema handle.
+        const PropertyInfo * mSchemaHandleTbl; ///< A pointer to the schema handle table, which provides parent info and context
+                                               ///< tags for each schema handle.
         uint32_t mNumSchemaHandleEntries;      ///< The number of schema handles in this trait.
         uint32_t mTreeDepth;                   ///< The max depth of this schema.
 #if (TDM_EXTENSION_SUPPORT) || (TDM_VERSIONING_SUPPORT)
-        PropertyPathHandle mMaxParentPathHandle;///< Max handle supported by the parent schema
+        PropertyPathHandle mMaxParentPathHandle; ///< Max handle supported by the parent schema
 #endif
-        uint8_t * mIsDictionaryBitfield;       ///< A bitfield indicating whether each schema handle is a dictionary or not.
-        uint8_t * mIsOptionalBitfield;         ///< A bitfield indicating whether each schema handle is optional or not.
-        uint8_t * mIsImplementedBitfield;      ///< A bitfield indicating whether each optional schema handle is implemented or not.
-        uint8_t * mIsNullableBitfield;         ///< A bitfield indicating whether each schema handle is nullable or not.
-        uint8_t * mIsEphemeralBitfield;        ///< A bitfield indicating whether each schema handle is ephemeral or not.
+        uint8_t * mIsDictionaryBitfield;  ///< A bitfield indicating whether each schema handle is a dictionary or not.
+        uint8_t * mIsOptionalBitfield;    ///< A bitfield indicating whether each schema handle is optional or not.
+        uint8_t * mIsImplementedBitfield; ///< A bitfield indicating whether each optional schema handle is implemented or not.
+        uint8_t * mIsNullableBitfield;    ///< A bitfield indicating whether each schema handle is nullable or not.
+        uint8_t * mIsEphemeralBitfield;   ///< A bitfield indicating whether each schema handle is ephemeral or not.
 #if (TDM_EXTENSION_SUPPORT)
-        Schema *mParentSchema;                 ///< A pointer to the parent schema
+        Schema * mParentSchema; ///< A pointer to the parent schema
 #endif
 #if (TDM_VERSIONING_SUPPORT)
-        const ConstSchemaVersionRange *mVersionRange;     ///< Range of versions supported by this trait
+        const ConstSchemaVersionRange * mVersionRange; ///< Range of versions supported by this trait
 #endif
     };
 
@@ -211,19 +209,19 @@ public:
     class ISetDataDelegate
     {
     public:
-        enum DataSinkEventType
+        enum SetDataEventType
         {
             /* Start of replacement of an entire dictionary */
-            kDataSinkEvent_DictionaryReplaceBegin,
+            kSetDataEvent_DictionaryReplaceBegin,
 
             /* End of replacement of an entire dictionary */
-            kDataSinkEvent_DictionaryReplaceEnd,
+            kSetDataEvent_DictionaryReplaceEnd,
 
             /* Start of modification or addition of a dictionary item */
-            kDataSinkEvent_DictionaryItemModifyBegin,
+            kSetDataEvent_DictionaryItemModifyBegin,
 
             /* End of modification or addition of a dictionary item */
-            kDataSinkEvent_DictionaryItemModifyEnd,
+            kSetDataEvent_DictionaryItemModifyEnd,
         };
 
         /**
@@ -260,7 +258,7 @@ public:
          * For dictionary item added/modififed events, these handles are property path handles as they contain the dictionary key as
          * well.
          */
-        virtual void OnDataSinkEvent(DataSinkEventType aType, PropertyPathHandle aHandle) = 0;
+        virtual void OnSetDataEvent(SetDataEventType aType, PropertyPathHandle aHandle) = 0;
     };
 
     class IGetDataDelegate
@@ -366,7 +364,8 @@ public:
      * @retval #WEAVE_NO_ERROR On success.
      * @retval other           Encountered errors parsing/processing the data.
      */
-    WEAVE_ERROR StoreData(PropertyPathHandle aHandle, nl::Weave::TLV::TLVReader & aReader, ISetDataDelegate * aDelegate, IPathFilter * aPathFilter) const;
+    WEAVE_ERROR StoreData(PropertyPathHandle aHandle, nl::Weave::TLV::TLVReader & aReader, ISetDataDelegate * aDelegate,
+                          IPathFilter * aPathFilter) const;
 
     /**
      * Given a path handle and a writer position on the corresponding data element, retrieve leaf data from the source and write it
@@ -376,10 +375,11 @@ public:
      * @retval other           Encountered errors writing out the data.
      */
     WEAVE_ERROR RetrieveData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
-                             IGetDataDelegate * aDelegate, IDirtyPathCut * apDirtyPathCut=NULL) const;
+                             IGetDataDelegate * aDelegate, IDirtyPathCut * apDirtyPathCut = NULL) const;
 
-    WEAVE_ERROR RetrieveUpdatableDictionaryData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
-                                                IGetDataDelegate * aDelegate, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom) const;
+    WEAVE_ERROR RetrieveUpdatableDictionaryData(PropertyPathHandle aHandle, uint64_t aTagToWrite,
+                                                nl::Weave::TLV::TLVWriter & aWriter, IGetDataDelegate * aDelegate,
+                                                PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom) const;
     /**********
      *
      * Schema Query Functions
@@ -473,7 +473,8 @@ public:
      * @return     WEAVE_NO_ERROR in case of success; WEAVE_ERROR_NO_MEMORY if aTags is too small
      *             to store the full path.
      */
-    WEAVE_ERROR GetRelativePathTags(const PropertyPathHandle aCandidateHandle, uint64_t *aTags, const uint32_t aTagsSize, uint32_t &aNumTags) const;
+    WEAVE_ERROR GetRelativePathTags(const PropertyPathHandle aCandidateHandle, uint64_t * aTags, const uint32_t aTagsSize,
+                                    uint32_t & aNumTags) const;
     /**
      * Returns true if the passed in profileId matches that stored in the schema.
      *
@@ -544,7 +545,8 @@ private:
      * aParseRes must be less than kContextTagMaxNum. If apEndptr is not NULL,
      * it stores the address of the first "/" in *apEndptr.
      */
-    WEAVE_ERROR ParseTagString(const char *apTagString, char **apEndptr, uint8_t& aParseRes) const;
+    WEAVE_ERROR ParseTagString(const char * apTagString, char ** apEndptr, uint8_t & aParseRes) const;
+
 public:
     const Schema mSchema;
 };
@@ -558,10 +560,9 @@ public:
  *         It takes in a pointer to a schema that it then uses to help decipher incoming TLV data from a publisher and invoke the
  *         relevant data setter calls to pass the data up to subclasses.
  */
-class TraitDataSink : private TraitSchemaEngine::ISetDataDelegate
+class TraitDataSink : protected TraitSchemaEngine::ISetDataDelegate
 {
 public:
-
     TraitDataSink(const TraitSchemaEngine * aEngine);
     virtual ~TraitDataSink() { }
     const TraitSchemaEngine * GetSchemaEngine(void) const { return mSchemaEngine; }
@@ -585,7 +586,7 @@ public:
      * @retval other           Encountered errors writing out the data.
      */
     WEAVE_ERROR StoreDataElement(PropertyPathHandle aHandle, TLV::TLVReader & aReader, uint8_t aFlags, OnChangeRejection aFunc,
-                                 void * aContext, TraitDataHandle aDatahandle=0);
+                                 void * aContext, TraitDataHandle aDatahandle = 0);
 
     /**
      * Retrieves the current version of the data that resides in this sink.
@@ -596,7 +597,7 @@ public:
      */
     bool IsVersionValid(void) const { return mHasValidVersion; }
 
-    virtual bool IsVersionNewer(DataVersion &aVersion) { return aVersion != mVersion || false == mHasValidVersion; }
+    virtual bool IsVersionNewer(DataVersion & aVersion) { return aVersion != mVersion || false == mHasValidVersion; }
 
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     /**
@@ -708,7 +709,7 @@ public:
     virtual WEAVE_ERROR OnEvent(uint16_t aType, void * aInEventParam) { return WEAVE_NO_ERROR; }
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    virtual bool IsUpdatableDataSink(void)  { return false; }
+    virtual bool IsUpdatableDataSink(void) { return false; }
 
     virtual WEAVE_ERROR SetSubscriptionClient(SubscriptionClient * apSubClient) { return WEAVE_NO_ERROR; };
     virtual WEAVE_ERROR SetUpdateEncoder(UpdateEncoder * apEncoder) { return WEAVE_NO_ERROR; };
@@ -743,7 +744,9 @@ protected: // ISetDataDelegate
      * subscriptionless notifications.
      */
     void SetAcceptsSubscriptionlessNotifications(const bool aAcceptsSublessNotifies)
-    { mAcceptsSubscriptionlessNotifications = aAcceptsSublessNotifies; }
+    {
+        mAcceptsSubscriptionlessNotifications = aAcceptsSublessNotifies;
+    }
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
     // Set current version of the data in this sink.
@@ -751,14 +754,13 @@ protected: // ISetDataDelegate
     void SetLastNotifyVersion(uint64_t version);
     uint64_t GetLastNotifyVersion(void) const { return mLastNotifyVersion; }
 
-
     const TraitSchemaEngine * mSchemaEngine;
 
 private:
     // Current version of the data in this sink.
     uint64_t mVersion;
     uint64_t mLastNotifyVersion;
-    void OnDataSinkEvent(DataSinkEventType aType, PropertyPathHandle aHandle) __OVERRIDE;
+    void OnSetDataEvent(SetDataEventType aType, PropertyPathHandle aHandle) __OVERRIDE;
     static OnChangeRejection sChangeRejectionCb;
     static void * sChangeRejectionContext;
     bool mHasValidVersion;
@@ -768,7 +770,7 @@ private:
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 };
 
-#if    WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
 /*
  * @class  TraitUpdatableDataSink
  *
@@ -782,23 +784,33 @@ class TraitUpdatableDataSink : public TraitDataSink, protected TraitSchemaEngine
 public:
     TraitUpdatableDataSink(const TraitSchemaEngine * aEngine);
 
-    WEAVE_ERROR ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLV::TLVWriter & aWriter, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom);
+    WEAVE_ERROR ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite,
+                         TLV::TLVWriter & aWriter, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom);
 
     virtual WEAVE_ERROR GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
                                 bool & aIsNull, bool & aIsPresent) __OVERRIDE;
 
-    WEAVE_ERROR SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional=false);
+    WEAVE_ERROR SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional = false);
 
     void Lock(SubscriptionClient * apSubClient);
     void Unlock(SubscriptionClient * apSubClient);
 
     virtual bool IsUpdatableDataSink(void) __OVERRIDE { return true; }
 
-    virtual WEAVE_ERROR SetSubscriptionClient(SubscriptionClient * apSubClient) __OVERRIDE { mpSubClient = apSubClient; return WEAVE_NO_ERROR; }
-    virtual WEAVE_ERROR SetUpdateEncoder(UpdateEncoder * apEncoder) __OVERRIDE { mpUpdateEncoder = apEncoder; return WEAVE_NO_ERROR; }
+    virtual WEAVE_ERROR SetSubscriptionClient(SubscriptionClient * apSubClient) __OVERRIDE
+    {
+        mpSubClient = apSubClient;
+        return WEAVE_NO_ERROR;
+    }
+    virtual WEAVE_ERROR SetUpdateEncoder(UpdateEncoder * apEncoder) __OVERRIDE
+    {
+        mpUpdateEncoder = apEncoder;
+        return WEAVE_NO_ERROR;
+    }
 
     virtual SubscriptionClient * GetSubscriptionClient() __OVERRIDE { return mpSubClient; }
     virtual UpdateEncoder * GetUpdateEncoder() __OVERRIDE { return mpUpdateEncoder; }
+
 private:
     friend class SubscriptionClient;
     friend class UpdateEncoder;
@@ -810,13 +822,16 @@ private:
      * a version number that is lower than the current one. Please refer to the WDM
      * specification for more details.
      */
-    bool IsVersionNewer(DataVersion &aVersion) __OVERRIDE { return false == IsVersionValid() || aVersion > GetVersion() || aVersion  < GetLastNotifyVersion(); }
+    bool IsVersionNewer(DataVersion & aVersion) __OVERRIDE
+    {
+        return false == IsVersionValid() || aVersion > GetVersion() || aVersion < GetLastNotifyVersion();
+    }
     uint64_t GetUpdateRequiredVersion(void) const { return mUpdateRequiredVersion; }
     void ClearUpdateRequiredVersion(void) { SetUpdateRequiredVersion(0); }
-    void SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion);
+    void SetUpdateRequiredVersion(const uint64_t & aUpdateRequiredVersion);
 
     uint64_t GetUpdateStartVersion(void) const { return mUpdateStartVersion; }
-    void SetUpdateStartVersion (void);
+    void SetUpdateStartVersion(void);
     void ClearUpdateStartVersion(void) { mUpdateStartVersion = 0; }
 
     bool IsConditionalUpdate(void) { return mConditionalUpdate; }
@@ -832,7 +847,7 @@ private:
     SubscriptionClient * mpSubClient;
     UpdateEncoder * mpUpdateEncoder;
 };
-#endif    // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 class Command;
 
@@ -856,6 +871,15 @@ public:
 
     void SetDirty(PropertyPathHandle aPropertyHandle);
 
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+    WEAVE_ERROR Unlock(bool aSkipVersionIncrement);
+
+    virtual bool IsUpdatableDataSource(void) { return false; }
+
+    // Check if version is equal to the internal trait version
+    bool IsVersionEqual(DataVersion & aVersion) { return aVersion == GetVersion(); }
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+
 #if TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
     void DeleteKey(PropertyPathHandle aPropertyHandle);
 #endif
@@ -869,9 +893,12 @@ public:
     // API with all meta information housed within the Command
     // object.
     virtual void OnCustomCommand(Command * aCommand, const nl::Weave::WeaveMessageInfo * aMsgInfo,
-                                 nl::Weave::PacketBuffer * aPayload,
-                                 nl::Weave::TLV::TLVReader & aArgumentReader);
+                                 nl::Weave::PacketBuffer * aPayload, nl::Weave::TLV::TLVReader & aArgumentReader);
 
+    enum EventType
+    {
+        kEvent_DataSourceMax
+    };
     /*
      * Invoked either by the base class or by an external agent (like the subscription engine) to signal the occurrence of an event
      * (of type EventType). Sub-classes are expected to over-ride this if they desire to be made known of these events.
@@ -915,7 +942,6 @@ protected: // IGetDataDelegate
 
     // Increment current version of the data in this source.
     void IncrementVersion(void);
-
     // Controls whether mVersion is incremented automatically or not.
     bool mManagedVersion;
 
@@ -927,6 +953,151 @@ private:
     // Tracks whether SetDirty was called within a Lock/Unlock 'session'
     bool mSetDirtyCalled;
 };
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+/*
+ * @class  TraitUpdatableDataSource
+ *
+ * @brief  Base abstract class that represents a particular instance of a trait on a specific resource (publisher).
+ * Application developers are expected to subclass this to make a concrete source that apply data received from client
+ *
+ */
+class TraitUpdatableDataSource : public TraitDataSource, protected TraitSchemaEngine::ISetDataDelegate
+{
+public:
+    TraitUpdatableDataSource(const TraitSchemaEngine * aEngine);
+
+    typedef WEAVE_ERROR (*OnChangeRejection)(uint16_t aRejectionStatusCode, uint64_t aVersion, void * aContext);
+
+    /**
+     * Convenience function for data sinks to handle unknown leaf handles with
+     * a system level tolerance for mismatched schema as defined by
+     * TDM_DISABLE_STRICT_SCHEMA_COMPILANCE.
+     */
+    WEAVE_ERROR HandleUnknownLeafHandle(void)
+    {
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
+        return WEAVE_NO_ERROR;
+#else
+        return WEAVE_ERROR_TLV_TAG_NOT_FOUND;
+#endif
+    }
+
+    enum EventType
+    {
+        kEventChangeFirst = kEvent_DataSourceMax,
+
+        /* Signals the beginning of a change record which in certain scenarios can span multiple data elements over multiple
+         * update requests (the latter only a possibility if the data being transmitted is unable to fit within a single packet)
+         */
+        kEventChangeBegin,
+
+        /* Start of a data element */
+        kEventDataElementBegin,
+
+        /* End of a data element */
+        kEventDataElementEnd,
+
+        /* End of a change record */
+        kEventChangeEnd,
+
+        /* Start of replacement of an entire dictionary */
+        kEventDictionaryReplaceBegin,
+
+        /* End of replacement of an entire dictionary */
+        kEventDictionaryReplaceEnd,
+
+        /* Start of modification or addition of a dictionary item */
+        kEventDictionaryItemModifyBegin,
+
+        /* End of modification or addition of a dictionary item */
+        kEventDictionaryItemModifyEnd,
+
+        /* Deletion of a dictionary item */
+        kEventDictionaryItemDelete,
+
+        /* Signals the start of the processing of a update request packet
+         */
+        kEventUpdateRequestBegin,
+
+        /* Signals the end of the processing of a update request packet
+         */
+        kEventUpdateRequestEnd,
+
+        /* Signals the termination of a subscription either due to an error, or the subscription was cancelled */
+        kEventSubscriptionTerminated,
+
+        kEvent_UpdatableDataSourceMax
+    };
+
+    union InEventParam
+    {
+        struct
+        {
+            PropertyPathHandle mTargetHandle;
+        } mDictionaryReplaceBegin;
+
+        struct
+        {
+            PropertyPathHandle mTargetHandle;
+        } mDictionaryReplaceEnd;
+
+        struct
+        {
+            PropertyPathHandle mTargetHandle;
+        } mDictionaryItemModifyBegin;
+
+        struct
+        {
+            PropertyPathHandle mTargetHandle;
+        } mDictionaryItemModifyEnd;
+
+        struct
+        {
+            PropertyPathHandle mTargetHandle;
+        } mDictionaryItemDelete;
+    };
+
+    /**
+     * Given a reader that points to a data element conformant to a schema bound to this object, this method processes that data and
+     * invokes the relevant SetLeafData call below for all leaf items in the buffer.
+     *
+     * A change rejection function can be passed in as well that will be invoked if the updatable source chooses to reject this data
+     * for any reason.
+     *
+     * @retval #WEAVE_NO_ERROR On success.
+     * @retval other           Encountered errors writing out the data.
+     */
+    WEAVE_ERROR StoreDataElement(PropertyPathHandle aHandle, TLV::TLVReader & aReader, uint8_t aFlags, OnChangeRejection aFunc,
+                                 void * aContext);
+    virtual bool IsUpdatableDataSource(void) __OVERRIDE { return true; }
+
+protected: // ISetDataDelegate
+    virtual WEAVE_ERROR SetLeafData(PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader & aReader) __OVERRIDE = 0;
+
+    /*
+     * Defaults to calling SetLeafData if aHandle is a leaf. DataSinks
+     * can optionally implement this if they need to support nullable,
+     * ephemeral, or optional properties.
+     *
+     * TODO: make this the defacto API, moving all the logic from
+     * SetLeafData into this function.
+     */
+    virtual WEAVE_ERROR SetData(PropertyPathHandle aHandle, nl::Weave::TLV::TLVReader & aReader, bool aIsNull) __OVERRIDE;
+
+    /* Subclass can invoke this if they desire to reject a particular data change */
+    void RejectChange(uint16_t aRejectionStatusCode);
+
+private:
+    friend class SubscriptionEngine;
+
+    void OnSetDataEvent(SetDataEventType aType, PropertyPathHandle aHandle) __OVERRIDE;
+
+private:
+    static OnChangeRejection sChangeRejectionCb;
+    static void * sChangeRejectionContext;
+};
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles
