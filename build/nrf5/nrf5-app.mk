@@ -122,7 +122,8 @@ STD_ASFLAGS = \
     -mthumb \
     -mabi=aapcs \
     -mfloat-abi=hard \
-    -mfpu=fpv4-sp-d16    
+    -mfpu=fpv4-sp-d16 \
+    -x assembler-with-cpp
 
 STD_LDFLAGS = \
     -mthumb \
