@@ -116,6 +116,37 @@ static INET_ERROR LwIPBindInterface(struct udp_pcb *aUDP, InterfaceId intfId)
 }
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
+/**
+ * @brief   Bind the endpoint to an interface IP address.
+ *
+ * @param[in]   addrType    the protocol version of the IP address
+ * @param[in]   addr        the IP address (must be an interface address)
+ * @param[in]   port        the UDP port
+ * @param[in]   intfId      an optional network interface indicator
+ *
+ * @retval  INET_NO_ERROR               success: endpoint bound to address
+ * @retval  INET_ERROR_INCORRECT_STATE  endpoint has been bound previously
+ * @retval  INET_NO_MEMORY              insufficient memory for endpoint
+ *
+ * @retval  INET_ERROR_UNKNOWN_INTERFACE
+ *      On some platforms, the optionally specified interface is not
+ *      present.
+ *
+ * @retval  INET_ERROR_WRONG_PROTOCOL_TYPE
+ *      \c addrType does not match \c IPVer.
+ *
+ * @retval  INET_ERROR_WRONG_ADDRESS_TYPE
+ *      \c addrType is \c kIPAddressType_Any, or the type of \c addr is not
+ *      equal to \c addrType.
+ *
+ * @retval  other                   another system or platform error
+ *
+ * @details
+ *  Binds the endpoint to the specified network interface IP address.
+ *
+ *  On LwIP, this method must not be called with the LwIP stack lock
+ *  already acquired.
+ */
 INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t port, InterfaceId intfId)
 {
     INET_ERROR res = INET_NO_ERROR;
@@ -181,6 +212,7 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
     // Make sure we have the appropriate type of socket.
     res = GetSocket(addrType);
     SuccessOrExit(res);
@@ -190,6 +222,7 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
 
     mBoundPort = port;
     mBoundIntfId = intfId;
+
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     if (res == INET_NO_ERROR)
@@ -201,6 +234,21 @@ exit:
     return res;
 }
 
+/**
+ * @brief   Prepare the endpoint to receive UDP messages.
+ *
+ * @retval  INET_NO_ERROR   success: endpoint ready to receive messages.
+ * @retval  INET_ERROR_INCORRECT_STATE  endpoint is already listening.
+ *
+ * @details
+ *  If \c State is already \c kState_Listening, then no operation is
+ *  performed, otherwise the \c mState is set to \c kState_Listening and
+ *  the endpoint is prepared to received UDP messages, according to the
+ *  semantics of the platform.
+ *
+ *  On LwIP, this method must not be called with the LwIP stack lock
+ *  already acquired
+ */
 INET_ERROR UDPEndPoint::Listen(void)
 {
     INET_ERROR res = INET_NO_ERROR;
@@ -256,6 +304,16 @@ INET_ERROR UDPEndPoint::Listen(void)
     return res;
 }
 
+/**
+ * @brief   Close the endpoint.
+ *
+ * @details
+ *  If <tt>mState != kState_Closed</tt>, then closes the endpoint, removing
+ *  it from the set of endpoints eligible for communication events.
+ *
+ *  On LwIP systems, this method must not be called with the LwIP stack
+ *  lock already acquired.
+ */
 void UDPEndPoint::Close(void)
 {
     if (mState != kState_Closed)
@@ -301,6 +359,17 @@ void UDPEndPoint::Close(void)
     }
 }
 
+/**
+ * @brief   Close the endpoint and recycle its memory.
+ *
+ * @details
+ *  Invokes the \c Close method, then invokes the
+ *  <tt>InetLayerBasis::Release</tt> method to return the object to its
+ *  memory pool.
+ *
+ *  On LwIP systems, this method must not be called with the LwIP stack
+ *  lock already acquired.
+ */
 void UDPEndPoint::Free(void)
 {
     Close();
@@ -312,14 +381,105 @@ void UDPEndPoint::Free(void)
 #endif // !WEAVE_SYSTEM_CONFIG_USE_LWIP
 }
 
+/**
+ *  A synonym for <tt>SendTo(addr, port, INET_NULL_INTERFACEID, msg, sendFlags)</tt>.
+ */
 INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, Weave::System::PacketBuffer *msg, uint16_t sendFlags)
 {
     return SendTo(addr, port, INET_NULL_INTERFACEID, msg, sendFlags);
 }
 
+/**
+ * @brief   Send a UDP message to the specified destination address.
+ *
+ * @param[in]   addr        the destination IP address
+ * @param[in]   port        the destination UDP port
+ * @param[in]   intfId      an optional network interface indicator
+ * @param[in]   msg         the packet buffer containing the UDP message
+ * @param[in]   sendFlags   optional transmit option flags
+ *
+ * @retval  INET_NO_ERROR       success: \c msg is queued for transmit.
+ *
+ * @retval  INET_ERROR_NOT_SUPPORTED
+ *      the system does not support the requested operation.
+ *
+ * @retval  INET_ERROR_WRONG_ADDRESS_TYPE
+ *      the destination address and the bound interface address do not
+ *      have matching protocol versions or address type.
+ *
+ * @retval  INET_ERROR_MESSAGE_TOO_LONG
+ *      \c msg does not contain the whole UDP message.
+ *
+ * @retval  INET_ERROR_OUTBOUND_MESSAGE_TRUNCATED
+ *      On some platforms, only a truncated portion of \c msg was queued
+ *      for transmit.
+ *
+ * @retval  other
+ *      another system or platform error
+ *
+ * @details
+ *      If possible, then this method sends the UDP message \c msg to the
+ *      destination \c addr (with \c intfId used as the scope
+ *      identifier for IPv6 link-local destinations) and \c port with the
+ *      transmit option flags encoded in \c sendFlags.
+ *
+ *      Where <tt>(sendFlags & kSendFlag_RetainBuffer) != 0</tt>, calls
+ *      <tt>Weave::System::PacketBuffer::Free</tt> on behalf of the caller, otherwise this
+ *      method deep-copies \c msg into a fresh object, and queues that for
+ *      transmission, leaving the original \c msg available after return.
+ */
 INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId, Weave::System::PacketBuffer *msg, uint16_t sendFlags)
 {
+    IPPacketInfo pktInfo;
+    pktInfo.Clear();
+    pktInfo.DestAddress = addr;
+    pktInfo.DestPort = port;
+    pktInfo.Interface = intfId;
+    return SendMsg(&pktInfo, msg, sendFlags);
+}
+
+/**
+ * @brief   Send a UDP message to a specified destination.
+ *
+ * @param[in]   pktInfo     source and destination information for the UDP message
+ * @param[in]   msg         a packet buffer containing the UDP message
+ * @param[in]   sendFlags   optional transmit option flags
+ *
+ * @retval  INET_NO_ERROR
+ *      success: \c msg is queued for transmit.
+ *
+ * @retval  INET_ERROR_NOT_SUPPORTED
+ *      the system does not support the requested operation.
+ *
+ * @retval  INET_ERROR_WRONG_ADDRESS_TYPE
+ *      the destination address and the bound interface address do not
+ *      have matching protocol versions or address type.
+ *
+ * @retval  INET_ERROR_MESSAGE_TOO_LONG
+ *      \c msg does not contain the whole UDP message.
+ *
+ * @retval  INET_ERROR_OUTBOUND_MESSAGE_TRUNCATED
+ *      On some platforms, only a truncated portion of \c msg was queued
+ *      for transmit.
+ *
+ * @retval  other
+ *      another system or platform error
+ *
+ * @details
+ *      Send the UDP message in \c msg to the destination address and port given in
+ *      \c pktInfo.  If \c pktInfo contains an interface id, the message will be sent
+ *      over the specified interface.  If \c pktInfo contains a source address, the
+ *      given address will be used as the source of the UDP message.
+ *
+ *      Where <tt>(sendFlags & kSendFlag_RetainBuffer) != 0</tt>, calls
+ *      <tt>Weave::System::PacketBuffer::Free</tt> on behalf of the caller, otherwise this
+ *      method deep-copies \c msg into a fresh object, and queues that for
+ *      transmission, leaving the original \c msg available after return.
+ */
+INET_ERROR UDPEndPoint::SendMsg(const IPPacketInfo *pktInfo, PacketBuffer *msg, uint16_t sendFlags)
+{
     INET_ERROR res = INET_NO_ERROR;
+    const IPAddress & destAddr = pktInfo->DestAddress;
 
     INET_FAULT_INJECT(FaultInjection::kFault_Send,
             if ((sendFlags & kSendFlag_RetainBuffer) == 0)
@@ -373,37 +533,83 @@ INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId
     LOCK_TCPIP_CORE();
 
     // Make sure we have the appropriate type of PCB based on the destination address.
-    res = GetPCB(addr.Type());
+    res = GetPCB(destAddr.Type());
     SuccessOrExit(res);
 
     // Send the message to the specified address/port.
+    // If an outbound interface has been specified, call a specific version of the UDP sendto()
+    // function that accepts the target interface.
+    // If a source address has been specified, temporarily override the local_ip of the PCB.
+    // This results in LwIP using the given address being as the source address for the generated
+    // packet, as if the PCB had been bound to that address.
     {
         err_t lwipErr = ERR_VAL;
+        const IPAddress & srcAddr = pktInfo->SrcAddress;
+        const uint16_t & destPort = pktInfo->DestPort;
+        const InterfaceId & intfId = pktInfo->Interface;
 
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
-        ip_addr_t ipAddr = addr.ToLwIPAddr();
+
+        ip_addr_t lwipSrcAddr = srcAddr.ToLwIPAddr();
+        ip_addr_t lwipDestAddr = destAddr.ToLwIPAddr();
+
+        ip_addr_t boundAddr;
+        ip_addr_copy(boundAddr, mUDP->local_ip);
+
+        if (!ip_addr_isany(&lwipSrcAddr))
+        {
+            ip_addr_copy(mUDP->local_ip, lwipSrcAddr);
+        }
+
         if (intfId != INET_NULL_INTERFACEID)
-            lwipErr = udp_sendto_if(mUDP, (pbuf *)msg, &ipAddr, port, intfId);
+            lwipErr = udp_sendto_if(mUDP, (pbuf *)msg, &lwipDestAddr, destPort, intfId);
         else
-            lwipErr = udp_sendto(mUDP, (pbuf *)msg, &ipAddr, port);
+            lwipErr = udp_sendto(mUDP, (pbuf *)msg, &lwipDestAddr, destPort);
+
+        ip_addr_copy(mUDP->local_ip, boundAddr);
+
 #else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
+
+        ipX_addr_t boundAddr;
+        ipX_addr_copy(boundAddr, mUDP->local_ip);
+
         if (PCB_ISIPV6(mUDP))
         {
-            ip6_addr_t ipv6Addr = addr.ToIPv6();
+            ip6_addr_t lwipSrcAddr = srcAddr.ToIPv6();
+            ip6_addr_t lwipDestAddr = destAddr.ToIPv6();
+
+            if (!ip6_addr_isany(&lwipSrcAddr))
+            {
+            	ipX_addr_copy(mUDP->local_ip, *ip6_2_ipX(&lwipSrcAddr));
+            }
+
             if (intfId != INET_NULL_INTERFACEID)
-                lwipErr = udp_sendto_if_ip6(mUDP, (pbuf *)msg, &ipv6Addr, port, intfId);
+                lwipErr = udp_sendto_if_ip6(mUDP, (pbuf *)msg, &lwipDestAddr, destPort, intfId);
             else
-                lwipErr = udp_sendto_ip6(mUDP, (pbuf *)msg, &ipv6Addr, port);
+                lwipErr = udp_sendto_ip6(mUDP, (pbuf *)msg, &lwipDestAddr, destPort);
         }
+
 #if INET_CONFIG_ENABLE_IPV4
+
         else
         {
-            ip4_addr_t ipv4Addr = addr.ToIPv4();
+            ip4_addr_t lwipSrcAddr = srcAddr.ToIPv4();
+            ip4_addr_t lwipDestAddr = destAddr.ToIPv4();
+            ipX_addr_t boundAddr;
+
+            if (!ip_addr_isany(&lwipSrcAddr))
+            {
+                ipX_addr_copy(mUDP->local_ip, *ip_2_ipX(&lwipSrcAddr));
+            }
+
             if (intfId != INET_NULL_INTERFACEID)
-                lwipErr = udp_sendto_if(mUDP, (pbuf *)msg, &ipv4Addr, port, intfId);
+                lwipErr = udp_sendto_if(mUDP, (pbuf *)msg, &lwipDestAddr, destPort, intfId);
             else
-                lwipErr = udp_sendto(mUDP, (pbuf *)msg, &ipv4Addr, port);
+                lwipErr = udp_sendto(mUDP, (pbuf *)msg, &lwipDestAddr, destPort);
         }
+
+        ipX_addr_copy(mUDP->local_ip, boundAddr);
+
 #endif // INET_CONFIG_ENABLE_IPV4
 #endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 
@@ -418,13 +624,14 @@ INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
     // Make sure we have the appropriate type of socket based on the
     // destination address.
 
-    res = GetSocket(addr.Type());
+    res = GetSocket(destAddr.Type());
     SuccessOrExit(res);
 
-    res = IPEndPointBasis::SendTo(addr, port, intfId, msg, sendFlags);
+    res = IPEndPointBasis::SendMsg(pktInfo, msg, sendFlags);
 
     if ((sendFlags & kSendFlag_RetainBuffer) == 0)
         PacketBuffer::Free(msg);
@@ -436,9 +643,28 @@ exit:
     return res;
 }
 
-//A lock is required because the LwIP thread may be referring to intf_filter,
-//while this code running in the Inet application is potentially modifying it.
-//NOTE: this only supports LwIP interfaces whose number is no bigger than 9.
+/**
+ * @brief   Bind the endpoint to a network interface.
+ *
+ * @param[in]   addrType    the protocol version of the IP address.
+ *
+ * @param[in]   intf        indicator of the network interface.
+ *
+ * @retval  INET_NO_ERROR               success: endpoint bound to address
+ * @retval  INET_NO_MEMORY              insufficient memory for endpoint
+ * @retval  INET_ERROR_NOT_IMPLEMENTED  system implementation not complete.
+ *
+ * @retval  INET_ERROR_UNKNOWN_INTERFACE
+ *      On some platforms, the interface is not present.
+ *
+ * @retval  other                   another system or platform error
+ *
+ * @details
+ *  Binds the endpoint to the specified network interface IP address.
+ *
+ *  On LwIP, this method must not be called with the LwIP stack lock
+ *  already acquired.
+ */
 INET_ERROR UDPEndPoint::BindInterface(IPAddressType addrType, InterfaceId intfId)
 {
     INET_ERROR err = INET_NO_ERROR;
@@ -447,6 +673,10 @@ INET_ERROR UDPEndPoint::BindInterface(IPAddressType addrType, InterfaceId intfId
         return INET_ERROR_INCORRECT_STATE;
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+    //A lock is required because the LwIP thread may be referring to intf_filter,
+    //while this code running in the Inet application is potentially modifying it.
+    //NOTE: this only supports LwIP interfaces whose number is no bigger than 9.
     LOCK_TCPIP_CORE();
 
     // Make sure we have the appropriate type of PCB.
@@ -484,6 +714,11 @@ void UDPEndPoint::Init(InetLayer *inetLayer)
     IPEndPointBasis::Init(inetLayer);
 }
 
+/**
+ * Get the bound interface on this endpoint.
+ *
+ * @return InterfaceId   The bound interface id.
+ */
 InterfaceId UDPEndPoint::GetBoundInterface(void)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
