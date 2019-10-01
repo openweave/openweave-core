@@ -49,9 +49,9 @@ public:
     EncodedECDSASignature OperationalSig;
     EncodedECDSASignature ManufAttestSig;
 
-    bool IsInitialReq() const { return (ReqType == nl::Weave::Profiles::Security::CertProvisioning::WeaveCertProvClient::kReqType_GetInitialOpDeviceCert); }
+    bool IsInitialReq() const { return (ReqType == nl::Weave::Profiles::Security::CertProvisioning::kReqType_GetInitialOpDeviceCert); }
     bool AuthInfoPresent() const { return mAuthInfoPresent; }
-    bool ManufAttestRequired() const { return (ReqType == nl::Weave::Profiles::Security::CertProvisioning::WeaveCertProvClient::kReqType_GetInitialOpDeviceCert); }
+    bool ManufAttestRequired() const { return (ReqType == nl::Weave::Profiles::Security::CertProvisioning::kReqType_GetInitialOpDeviceCert); }
 
     WEAVE_ERROR Decode(PacketBuffer *msgBuf);
     WEAVE_ERROR GenerateTBSHash(uint8_t *tbsHash);

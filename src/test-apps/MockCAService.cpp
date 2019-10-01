@@ -50,7 +50,7 @@ using namespace nl::Weave::ASN1;
 
 GetCertificateRequestMessage::GetCertificateRequestMessage()
 {
-    ReqType = WeaveCertProvClient::kReqType_NotSpecified;
+    ReqType = kReqType_NotSpecified;
 
     OperationalSig.R = NULL;
     OperationalSig.S = NULL;
@@ -95,8 +95,8 @@ WEAVE_ERROR GetCertificateRequestMessage::Decode(PacketBuffer *msgBuf)
         err = reader.Get(ReqType);
         SuccessOrExit(err);
 
-        VerifyOrExit(ReqType == WeaveCertProvClient::kReqType_GetInitialOpDeviceCert ||
-                     ReqType == WeaveCertProvClient::kReqType_RotateCert, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(ReqType == kReqType_GetInitialOpDeviceCert ||
+                     ReqType == kReqType_RotateCert, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
         err = reader.Next();
         SuccessOrExit(err);

@@ -84,6 +84,12 @@ extern WEAVE_ERROR MakeCertInfo(uint8_t *buf, uint16_t bufSize, uint16_t& certIn
                                 const uint8_t *entityCert, uint16_t entityCertLen,
                                 const uint8_t *intermediateCert, uint16_t intermediateCertLen);
 
+static bool sIncludeAuthorizedInfo = false;
+static uint8_t * sPairingToken = NULL;
+static uint16_t sPairingTokenLength;
+static uint8_t * sPairingInitData = NULL;
+static uint16_t sPairingInitDataLength;
+
 static uint8_t sDeviceOperationalCert[nl::TestCerts::kTestCertBufSize];
 static uint16_t sDeviceOperationalCertLength;
 
@@ -96,24 +102,40 @@ enum DeviceType
     kDevType_X509RSACertProvisioned       = 2,
 };
 
-class TestCertProvDelegate : public WeaveCertProvDelegate
+class OpAuthCertProvDelegate : public WeaveCertProvAuthDelegate
 {
 public:
-    TestCertProvDelegate(uint8_t devType, bool includeIntermediateCert)
-    : mDeviceType(devType),
-      mIncludeManufAttestRelatedCerts(includeIntermediateCert)
+    OpAuthCertProvDelegate(void)
     {
     }
 
-    // ===== Methods that implement the WeaveCertProvDelegate interface.
+    // ===== Methods that implement the OpAuthCertProvDelegate interface.
 
-    WEAVE_ERROR EncodeNodeOperationalCert(TLVWriter & writer) __OVERRIDE
+    WEAVE_ERROR EncodeNodeCert(TLVWriter & writer) __OVERRIDE
     {
         // Copy the test device operational certificate into supplied TLV writer.
         return writer.CopyContainer(ContextTag(kTag_GetCertReqMsg_OpDeviceCert), TestDevice1_OperationalCert, TestDevice1_OperationalCertLength);
     }
 
-    WEAVE_ERROR EncodeNodeManufAttestInfo(TLVWriter & writer) __OVERRIDE
+    WEAVE_ERROR GenerateNodeSig(const uint8_t * hash, uint8_t hashLen, TLVWriter & writer) __OVERRIDE
+    {
+        return GenerateAndEncodeWeaveECDSASignature(writer, ContextTag(kTag_GetCertReqMsg_OpDeviceSig_ECDSA), hash, hashLen,
+                                                    TestDevice1_OperationalPrivateKey, TestDevice1_OperationalPrivateKeyLength);
+    }
+};
+
+class ManufAttestCertProvDelegate : public WeaveCertProvAuthDelegate
+{
+public:
+    ManufAttestCertProvDelegate(uint8_t devType, bool includeIntermediateCert)
+    : mDeviceType(devType),
+      mIncludeManufAttestRelatedCerts(includeIntermediateCert)
+    {
+    }
+
+    // ===== Methods that implement the ManufAttestCertProvDelegate interface.
+
+    WEAVE_ERROR EncodeNodeCert(TLVWriter & writer) __OVERRIDE
     {
         WEAVE_ERROR err;
         TLVType containerType;
@@ -157,13 +179,7 @@ public:
         return err;
     }
 
-    WEAVE_ERROR GenerateNodeOperationalSig(const uint8_t * hash, uint8_t hashLen, TLVWriter & writer) __OVERRIDE
-    {
-        return GenerateAndEncodeWeaveECDSASignature(writer, ContextTag(kTag_GetCertReqMsg_OpDeviceSig_ECDSA), hash, hashLen,
-                                                    TestDevice1_OperationalPrivateKey, TestDevice1_OperationalPrivateKeyLength);
-    }
-
-    WEAVE_ERROR GenerateNodeManufAttestSig(const uint8_t * hash, uint8_t hashLen, TLVWriter & writer) __OVERRIDE
+    WEAVE_ERROR GenerateNodeSig(const uint8_t * hash, uint8_t hashLen, TLVWriter & writer) __OVERRIDE
     {
         if (IsWeaveProvisionedDevice())
         {
@@ -177,13 +193,78 @@ public:
         }
     }
 
-    WEAVE_ERROR StoreServiceAssignedNodeOperationalCert(uint8_t * cert, uint16_t certLen,
-                                                        uint8_t * relatedCerts, uint16_t relatedCertsLen) __OVERRIDE
+private:
+    uint8_t mDeviceType;
+    bool mIncludeManufAttestRelatedCerts;
+
+    inline bool IsWeaveProvisionedDevice(void) { return (mDeviceType == kDevType_WeaveCertProvisioned); }
+};
+
+/**
+ *  Handler for Certificate Provisioning Client API events.
+ *
+ *  @param[in]  appState    A pointer to application-defined state information associated with the client object.
+ *  @param[in]  eventType   Event ID passed by the event callback.
+ *  @param[in]  inParam     Reference of input event parameters passed by the event callback.
+ *  @param[in]  outParam    Reference of output event parameters passed by the event callback.
+ *
+ */
+static void CertProvEventCallback(void * appState, EventType eventType, const InEventParam & inParam, OutEventParam & outParam)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveCertificateSet certSet;
+    bool certSetInitialized = false;
+
+    switch (eventType)
     {
-        WEAVE_ERROR err;
-        WeaveCertificateSet certSet;
+    case kEvent_PrepareAuthorizeInfo:
+    {
+        WeaveLogDetail(SecurityManager, "CertProvisioning::kEvent_PrepareAuthorizeInfo");
+
+        TLVWriter * writer = inParam.PrepareAuthorizeInfo.Writer;
+
+        if (sIncludeAuthorizedInfo)
+        {
+            TLVType containerType;
+
+            VerifyOrExit((sPairingToken != NULL) || (sPairingInitData != NULL), err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+            err = writer->StartContainer(ProfileTag(kWeaveProfile_Security, kTag_GetCertAuthorizeInfo), kTLVType_Structure, containerType);
+            SuccessOrExit(err);
+
+            // Pairing Token.
+            if (sPairingToken != NULL)
+            {
+                err = writer->PutBytes(ContextTag(kTag_GetCertAuthorizeInfo_PairingToken), sPairingToken, sPairingTokenLength);
+                SuccessOrExit(err);
+            }
+
+            // Pairing Initialization Data.
+            if (sPairingInitData != NULL)
+            {
+                err = writer->PutBytes(ContextTag(kTag_GetCertAuthorizeInfo_PairingInitData), sPairingInitData, sPairingInitDataLength);
+                SuccessOrExit(err);
+            }
+
+            err = writer->EndContainer(containerType);
+            SuccessOrExit(err);
+        }
+        break;
+    }
+
+    case kEvent_RequestSent:
+        WeaveLogDetail(SecurityManager, "CertProvisioning::kEvent_RequestSent");
+        break;
+
+    case kEvent_ResponseReceived:
+    {
+        WeaveLogDetail(SecurityManager, "CertProvisioning::kEvent_ResponseReceived");
+
         WeaveCertificateData *certData;
-        bool certSetInitialized = false;
+        const uint8_t * cert = inParam.ResponseReceived.Cert;
+        uint16_t certLen = inParam.ResponseReceived.CertLen;
+        const uint8_t * relatedCerts = inParam.ResponseReceived.RelatedCerts;
+        uint16_t relatedCertsLen = inParam.ResponseReceived.RelatedCertsLen;
 
         // This certificate verification step is added for testing purposes only.
         // In reality, device doesn't have to validate certificate issued by the CA service.
@@ -217,19 +298,32 @@ public:
         memcpy(sDeviceRelatedCerts, relatedCerts, relatedCertsLen);
         sDeviceRelatedCertsLength = relatedCertsLen;
 
-    exit:
-        if (certSetInitialized)
-            certSet.Release();
-
-        return err;
+        break;
     }
 
-private:
-    uint8_t mDeviceType;
-    bool mIncludeManufAttestRelatedCerts;
+    case kEvent_ResponseProcessError:
+        WeaveLogDetail(SecurityManager, "CertProvisioning::kEvent_ResponseProcessError");
+        break;
 
-    inline bool IsWeaveProvisionedDevice(void) { return (mDeviceType == kDevType_WeaveCertProvisioned); }
-};
+    case kEvent_CommuncationError:
+        WeaveLogDetail(SecurityManager, "CertProvisioning::kEvent_CommuncationError");
+        break;
+
+    case kEvent_ResponseTimeout:
+        WeaveLogDetail(SecurityManager, "CertProvisioning::kEvent_ResponseTimeout");
+        break;
+
+    default:
+        WeaveLogError(SecurityManager, "CertProvisioning unrecognized API event");
+        break;
+    }
+
+exit:
+    if (eventType == kEvent_PrepareAuthorizeInfo)
+        outParam.PrepareAuthorizeInfo.Error = err;
+    if (certSetInitialized)
+        certSet.Release();
+}
 
 class MessageMutator
 {
@@ -332,7 +426,7 @@ public:
         mTestName = testName;
         memset(mExpectedErrors, 0, sizeof(mExpectedErrors));
         mMutator = &gNullMutator;
-        mReqType = WeaveCertProvClient::kReqType_GetInitialOpDeviceCert;
+        mReqType = kReqType_GetInitialOpDeviceCert;
         mDevType = kDevType_WeaveCertProvisioned;
         mLogMessageData = false;
         mClientIncludeManufAttestRelatedCerts = false;
@@ -418,11 +512,11 @@ private:
 void CertProvEngineTest::Run() const
 {
     WEAVE_ERROR err;
-    WeaveCertProvClient clientEng;
     MockCAService serviceEng;
     PacketBuffer *msgBuf = NULL;
     PacketBuffer *msgBuf2 = NULL;
-    TestCertProvDelegate certProvDelegate(DeviceType(), ClientIncludeIntermediateCert());
+    OpAuthCertProvDelegate opAuthDelegate;
+    ManufAttestCertProvDelegate manufAttestDelegate(DeviceType(), ClientIncludeIntermediateCert());
     WeaveExchangeManager exchangeMgr;
 
     printf("========== Starting Test: %s\n", TestName());
@@ -433,9 +527,6 @@ void CertProvEngineTest::Run() const
 
     do
     {
-        clientEng.Init();
-        clientEng.CertProvDelegate = &certProvDelegate;
-
         serviceEng.Init(&exchangeMgr);
         serviceEng.LogMessageData(LogMessageData());
         serviceEng.IncludeIntermediateCert(ServerIncludeIntermediateCert());
@@ -446,19 +537,19 @@ void CertProvEngineTest::Run() const
             msgBuf = PacketBuffer::New();
             VerifyOrQuit(msgBuf != NULL, "PacketBuffer::New() failed");
 
-            printf("Client: Calling GenerateGetCertificateRequest\n");
+            printf("Calling CertProvisioning::GenerateGetCertificateRequest\n");
 
-            err = clientEng.GenerateGetCertificateRequest(msgBuf, mReqType, NULL, 0, NULL, 0);
+            err = GenerateGetCertificateRequest(msgBuf, mReqType, &opAuthDelegate, &manufAttestDelegate, CertProvEventCallback);
 
-            if (IsExpectedError("Client:GenerateGetCertificateRequest", err))
+            if (IsExpectedError("CertProvisioning::GenerateGetCertificateRequest", err))
                 goto onExpectedError;
 
-            SuccessOrQuit(err, "WeaveCertProvClient::GenerateGetCertificateRequest() failed");
+            SuccessOrQuit(err, "CertProvisioning::GenerateGetCertificateRequest() failed");
         }
 
         // ========== Client Sends GetCertificateRequest to the CA Service ==========
 
-        mMutator->MutateMessage("GetCertificateRequest", msgBuf, clientEng, serviceEng);
+        // mMutator->MutateMessage("GetCertificateRequest", msgBuf, clientEng, serviceEng);
 
         printf("Client->Service: GetCertificateRequest Message (%d bytes)\n", msgBuf->DataLength());
         if (LogMessageData())
@@ -498,7 +589,7 @@ void CertProvEngineTest::Run() const
 
         // ========== CA Service Sends GetCertificateResponse to Client ==========
 
-        mMutator->MutateMessage("GetCertificateResponse", msgBuf2, clientEng, serviceEng);
+        // mMutator->MutateMessage("GetCertificateResponse", msgBuf2, clientEng, serviceEng);
 
         printf("Service->Client: GetCertificateResponse Message (%d bytes)\n", msgBuf2->DataLength());
         if (LogMessageData())
@@ -509,18 +600,16 @@ void CertProvEngineTest::Run() const
         {
             printf("Client: Calling ProcessGetCertificateResponse\n");
 
-            err = clientEng.ProcessGetCertificateResponse(msgBuf2);
+            err = ProcessGetCertificateResponse(msgBuf2, CertProvEventCallback);
 
-            if (IsExpectedError("Client:ProcessGetCertificateResponse", err))
+            if (IsExpectedError("CertProvisioning::ProcessGetCertificateResponse()", err))
                 goto onExpectedError;
 
-            SuccessOrQuit(err, "WeaveCertProvClient::ProcessGetCertificateResponse() failed");
+            SuccessOrQuit(err, "CertProvisioning::ProcessGetCertificateResponse() failed");
 
             PacketBuffer::Free(msgBuf2);
             msgBuf2 = NULL;
         }
-
-        VerifyOrQuit(clientEng.State == WeaveCertProvClient::kState_Complete, "Client not in Complete state");
 
         // TODO: Check the result here.
 
@@ -534,7 +623,6 @@ void CertProvEngineTest::Run() const
         PacketBuffer::Free(msgBuf2);
         msgBuf2 = NULL;
 
-        clientEng.Shutdown();
         serviceEng.Shutdown();
 
     } while (!mMutator->IsComplete());
@@ -548,27 +636,27 @@ void CertProvEngineTests_BasicTests()
 {
     // Basic sanity test with standard parameters
     CertProvEngineTest("Sanity test")
-        .RequestType(WeaveCertProvClient::kReqType_GetInitialOpDeviceCert)
+        .RequestType(kReqType_GetInitialOpDeviceCert)
         .LogMessageData(true)
         .Run();
 
     // Basic sanity test with standard parameters
     CertProvEngineTest("Sanity test")
-        .RequestType(WeaveCertProvClient::kReqType_GetInitialOpDeviceCert)
+        .RequestType(kReqType_GetInitialOpDeviceCert)
         .LogMessageData(true)
         .ClientIncludeIntermediateCert(true)
         .Run();
 
     // Basic sanity test with standard parameters
     CertProvEngineTest("Sanity test")
-        .RequestType(WeaveCertProvClient::kReqType_GetInitialOpDeviceCert)
+        .RequestType(kReqType_GetInitialOpDeviceCert)
         .LogMessageData(true)
         .ServerIncludeIntermediateCert(true)
         .Run();
 
     // Basic sanity test with standard parameters
     CertProvEngineTest("Sanity test")
-        .RequestType(WeaveCertProvClient::kReqType_GetInitialOpDeviceCert)
+        .RequestType(kReqType_GetInitialOpDeviceCert)
         .LogMessageData(true)
         .ClientIncludeIntermediateCert(true)
         .ServerIncludeIntermediateCert(true)
@@ -579,49 +667,49 @@ void CertProvEngineTests_ConfigNegotiationTests()
 {
     // Initiator only supports Config1, responder supports Config1 and Config2, expect use of Config1
     CertProvEngineTest("Config1-only Initiator")
-        .RequestType(WeaveCertProvClient::kReqType_GetInitialOpDeviceCert)
+        .RequestType(kReqType_GetInitialOpDeviceCert)
         .Run();
 
     // Initiator proposes Config1 but supports Config2, responder only supports Config1, expect use of Config1
     CertProvEngineTest("Config1-only Responder")
-        .RequestType(WeaveCertProvClient::kReqType_GetInitialOpDeviceCert)
+        .RequestType(kReqType_GetInitialOpDeviceCert)
         .Run();
 
     // Initiator only supports Config2, Responder supports Config1 and Config2, expect use of Config2
     CertProvEngineTest("Config2-only initiator")
-        .RequestType(WeaveCertProvClient::kReqType_RotateCert)
+        .RequestType(kReqType_RotateCert)
         .Run();
 
     // Initiator proposes Config1 but supports Config2, Responder only supports Config2, expect reconfig to Config2
     CertProvEngineTest("Config2-only responder")
-        .RequestType(WeaveCertProvClient::kReqType_GetInitialOpDeviceCert)
+        .RequestType(kReqType_GetInitialOpDeviceCert)
         .Run();
 
     // Initiator proposes Config1 but supports Config2, Responder supports Config1 and Config2, expect reconfig to Config2
     CertProvEngineTest("Reconfig to Config2")
-        .RequestType(WeaveCertProvClient::kReqType_GetInitialOpDeviceCert)
+        .RequestType(kReqType_GetInitialOpDeviceCert)
         .Run();
 
     // Initiator proposes Config2 but supports Config1, Responder only supports Config1, expect reconfig to Config1
     CertProvEngineTest("Reconfig to Config1")
-        .RequestType(WeaveCertProvClient::kReqType_RotateCert)
+        .RequestType(kReqType_RotateCert)
         .Run();
 
     // Initiator only supports Config1, responder only supports Config2, expect error
     CertProvEngineTest("No Common Configs 1")
-        .RequestType(WeaveCertProvClient::kReqType_GetInitialOpDeviceCert)
+        .RequestType(kReqType_GetInitialOpDeviceCert)
         .ExpectError("Responder:ProcessBeginSessionRequest", WEAVE_ERROR_UNSUPPORTED_CASE_CONFIGURATION)
         .Run();
 
     // Initiator only supports Config2, responder only supports Config1, expect error
     CertProvEngineTest("No Common Configs 2")
-        .RequestType(WeaveCertProvClient::kReqType_RotateCert)
+        .RequestType(kReqType_RotateCert)
         .ExpectError("Responder:ProcessBeginSessionRequest", WEAVE_ERROR_UNSUPPORTED_CASE_CONFIGURATION)
         .Run();
 
     // Responder repeatedly sends Reconfigure, expect initiator error
     CertProvEngineTest("Repeated reconfigs")
-        .RequestType(WeaveCertProvClient::kReqType_GetInitialOpDeviceCert)
+        .RequestType(kReqType_GetInitialOpDeviceCert)
         .ExpectError("Initiator:ProcessReconfigure", WEAVE_ERROR_TOO_MANY_CASE_RECONFIGURATIONS)
         .Run();
 }
