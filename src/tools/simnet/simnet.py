@@ -1630,10 +1630,9 @@ def deleteBridge(name, nsName=None):
 def getNamespaces():
     out = runCmd([ 'ip', 'netns', 'list' ], errMsg='Failed to enumerate network namespaces')
     for line in re.split('\n', out):
-        line = line.strip()
-        if len(line) == 0:
-            continue
-        yield line
+        m = re.match('\s*([^\s]+)', line)
+        if m:
+            yield m.group(1)
 
 def addNamespace(name):
     runCmd([ 'ip', 'netns', 'add', name ], errMsg='Failed to create network namespace %s' % (name))
