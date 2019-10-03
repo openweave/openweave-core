@@ -23,6 +23,7 @@ import sys
 import subprocess
 import re
 import time
+import tempfile
 try:
     import ipaddress
 except ImportError, ex:
@@ -188,20 +189,52 @@ class SimNet:
 
         shell = os.path.realpath(os.path.abspath(os.environ['SHELL']))
         
-        if os.path.basename(shell) == 'bash' and not noOverridePrompt:
-            promptOverride = [ '-c', '''exec $SHELL --rcfile <(cat ~/.bashrc; echo '[ "$SN_NO_OVERRIDE_PROMPT" ] || PS1="\e[1m[\$SN_NODE_NAME]\e[0m $PS1"')''' ]
-        else:
-            promptOverride = [ ]
-                
-        cmd = [ 'su', ] + promptOverride + [ os.environ['SUDO_USER'] ]
-
-        if not node.isHostNode:
-            cmd = [ 'ip', 'netns', 'exec', node.nsName ] + cmd
-            
-        cmdEnv = os.environ.copy()
-        node.setEnvironVars(cmdEnv)
+        user = os.environ['SUDO_USER']
+        userId = int(os.environ['SUDO_UID'])
         
-        subprocess.call(cmd, env=cmdEnv)
+        nodeEnv = {}
+        node.setEnvironVars(nodeEnv)
+        
+        promptOverrideRCFile = None
+
+        try:
+        
+            cmd = [ 'sudo', '-u', user, '--preserve-env=' + ','.join(nodeEnv.keys()), shell ]
+    
+            if os.path.basename(shell) == 'bash' and not noOverridePrompt:
+                promptOverrideRCFile = tempfile.NamedTemporaryFile()
+
+                promptOverrideRCFile.write(''':
+if test -f /etc/bash.bashrc; then
+    . /etc/bash.bashrc
+fi
+if test -f ${HOME}/.bashrc; then
+    . ${HOME}/.bashrc
+fi
+if [ `tput colors` -gt 0 ]; then
+    PS1="\[\e[36m\][\$SN_NODE_NAME] \[\e[0m\]$PS1"
+else
+    PS1="[\$SN_NODE_NAME] $PS1"
+fi
+''')
+                
+                promptOverrideRCFile.flush()
+                
+                os.fchown(promptOverrideRCFile.fileno(), userId, userId)
+
+                cmd += [ '--rcfile', promptOverrideRCFile.name ]
+
+            if not node.isHostNode:
+                cmd = [ 'ip', 'netns', 'exec', node.nsName ] + cmd
+                
+            cmdEnv = os.environ.copy()
+            cmdEnv.update(nodeEnv)
+            
+            subprocess.call(cmd, env=cmdEnv)
+            
+        finally:
+            if promptOverrideRCFile != None:
+                promptOverrideRCFile.close()
 
     def clearAll(self):
         verifyRoot()
@@ -1277,11 +1310,11 @@ class WeaveDevice(Node):
         weaveConfig  = '--node-id %016X ' % self.weaveNodeId
         weaveConfig += '--fabric-id %016X ' % self.weaveFabricId
         if self.wifiInterface:
-            weaveConfig += '--default-subnet 1 '
+            weaveConfig += '--subnet 1 '
         elif self.threadInterface:
-            weaveConfig += '--default-subnet 6 '
+            weaveConfig += '--subnet 6 '
         elif self.legacyInterface:
-            weaveConfig += '--default-subnet 2 '
+            weaveConfig += '--subnet 2 '
         if self.useLwIP:
             weaveConfig += self.getLwIPConfig()
         environ['WEAVE_CONFIG'] = weaveConfig
