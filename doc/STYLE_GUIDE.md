@@ -190,15 +190,15 @@ process, in order to visually tie concepts together across the documentation sit
 Example: https://openweave.io/guides/tools#weave-heartbeat
 
 To use these icons in your content, so that they render on the openweave.io documentation site,
-surround one of the supported keywords with an underscore+asterisk combo.
+put one of the supported keywords inside an HTML comment.
 
 For example:
 
-<div>_*Echo*_</div>
-<div>_*heartbeat*_</div>
+`<!-- echo -->`
 
-The keyword can be upper or lowercase. Use of this format with unsupported keywords merely
-renders the text in italics.
+`<!-- heartbeat -->`
+
+The keyword must be lowercase.
 
 See the **OpenWeave Tools** page for an example of this:
 
@@ -207,5 +207,49 @@ See the **OpenWeave Tools** page for an example of this:
 
 Supported keywords:
 
-*	Echo
-*	Heartbeat
+Keyword | Weave Element
+----|----
+alarm | Alarm
+bdx | Bulk Data Exchange
+certificate | Certificate
+common | Common
+controller | Controller
+custom | Custom Command
+description | Device Description
+devicecontrol | Device Control
+directory | Service Directory
+echo | Echo
+event | Events
+fabric | Fabric
+fabric | Fabric Provisioning
+general | General
+heartbeat | Heartbeat
+interface | Interfaces
+locale | Locale
+messaging | Messaging
+nestservice | Nest Service
+network | Network Provisioning
+notify | Notify
+pairing | Pairing
+profile | Profiles
+property | Properties
+publisher | Publisher
+request | Requests
+resource | Resources
+schema | Schema
+security | Security
+service | Service Provisioning
+status | Status Report
+subscribe | Subscribe
+swu | Software Update
+timeservice | Time Service
+timezone | Time Zone
+tlv | TLV
+trait | Traits
+tunnel | Tunnel
+ula | ULA (Unique Local Address)
+update | Update
+view | View
+wdl | WDL (Weave Schema Description Language)
+wdm | Data Management
+wrm | WRM
