@@ -350,6 +350,9 @@ class Network():
 
         # Create a virtual ethernet bridge to simulate the network
         addBridge(self.brName, nsName=self.nsName)
+        
+        # Disable automatic address generation on the host interface for the bridge.
+        setInterfaceAddressGenerationMode(self.brName, mode='none', nsName=self.nsName)
 
         # Enable the host interface for the bridge
         enableInterface(self.brName, nsName=self.nsName)
@@ -953,7 +956,7 @@ class Node():
         lwipConfig = ''
         for i in self.interfaces:
             if isinstance(i, TapInterface):
-                lwipConfig += i.getLwipConfig()
+                lwipConfig += i.getLwIPConfig()
         if self.ip4DefaultGateway:
             lwipConfig += '--ip4-default-gw %s ' % self.ip4DefaultGateway
         if self.ip4DNSServers:
@@ -1167,7 +1170,7 @@ class WeaveDevice(Node):
         
         if wifiNetwork or wifiInterface:
             if not wifiInterface:
-                wifiInterface = 'wifi' if not useLwIP else 'et0'
+                wifiInterface = 'wifi'
             self.wifiInterface = self.addInterface(wifiNetwork, name=wifiInterface)
             if not isinstance(self.wifiInterface.network, (WiFiNetwork, HostNetwork)):
                 raise ConfigException('Incompatible network %s attached to wifi interface of node %s' % (self.wifiInterface.network.name, name))
@@ -1176,7 +1179,7 @@ class WeaveDevice(Node):
             
         if threadNetwork or threadInterface:
             if not threadInterface:
-                threadInterface = 'thread' if not useLwIP else 'th0'
+                threadInterface = 'thread'
             self.threadInterface = self.addInterface(threadNetwork, name=threadInterface)
             if not isinstance(self.threadInterface.network, (ThreadNetwork, HostNetwork)):
                 raise ConfigException('Incompatible network %s attached to thread interface of node %s' % (self.threadInterface.network.name, name))
@@ -1185,7 +1188,7 @@ class WeaveDevice(Node):
         
         if legacyNetwork or legacyInterface:
             if not legacyInterface:
-                legacyInterface = 'legacy' if not useLwIP else 'al0'
+                legacyInterface = 'legacy'
             self.legacyInterface = self.addInterface(legacyNetwork, name=legacyInterface)
             if not isinstance(self.legacyInterface.network, (LegacyThreadNetwork, HostNetwork)):
                 raise ConfigException('Incompatible network %s attached to legacy thread interface of node %s' % (self.legacyInterface.network.name, name))
@@ -1194,7 +1197,7 @@ class WeaveDevice(Node):
         
         if cellularNetwork or cellularInterface:
             if not cellularInterface:
-                cellularInterface = 'cell' if not useLwIP else 'cl0'
+                cellularInterface = 'cell'
             self.cellularInterface = self.addInterface(cellularNetwork, name=cellularInterface)
             if not isinstance(self.cellularInterface.network, (WiFiNetwork, Internet, HostNetwork)):
                 raise ConfigException('Incompatible network %s attached to cell interface of node %s' % (self.cellularInterface.network.name, name))
@@ -1365,7 +1368,6 @@ class NodeInterface():
         self.advertisedIP6Prefixes = []
         self.ip4AutoConfig = None
         self.ip6AutoConfig = None
-        self.isTapInterface = False
         
         # Form a MAC address for the interface from the base MAC address, the node index and the interface index.
         # Use a 48-bit or 64-bit MAC based on the nature of the connected network.
@@ -1439,14 +1441,14 @@ class VirtualInterface(NodeInterface):
             moveInterfaceToNamespace(tmpInterfaceName, nsName=self.node.nsName)
         renameInterface(tmpInterfaceName, self.ifName, nsName=self.node.nsName)
 
+        # Disable automatic IPv6 link-local address generation on both interfaces.  The peer interface
+        # doesn't need one, and one will be created for the node interface below.
+        setInterfaceAddressGenerationMode(self.ifName, mode='none', nsName=self.node.nsName)
+        setInterfaceAddressGenerationMode(self.peerIfName, mode='none', nsName=self.network.nsName)
+
         # Enable the virtual interfaces. 
         enableInterface(self.ifName, nsName=self.node.nsName)
         enableInterface(self.peerIfName, nsName=self.network.nsName)
-
-        # Flush any IPv6 link-local addresses automatically created by the network. The appropriate
-        # LL addresses will be added later (see below).
-        runCmd([ 'ip', '-6', 'addr', 'flush', 'dev', self.ifName, 'scope', 'link' ], nsName=self.node.nsName, 
-               errMsg='Unable to flush IPv6 LL addresses on interface %s in namespace %s' % (self.ifName, self.node.nsName))
 
         # Assign the IPv4 address to the node interface.
         if self.ip4Address != None:
@@ -1472,7 +1474,7 @@ class VirtualInterface(NodeInterface):
             
 
 class TapInterface(NodeInterface):
-    def __init__(self, node, network, name=None):
+    def __init__(self, node, network, name):
     
         # If the node is implemented by the host, include the node index in the interface name to
         # ensure it is unique.
@@ -1482,37 +1484,75 @@ class TapInterface(NodeInterface):
         # Initialize the base class.
         NodeInterface.__init__(self, node, network, name)
 
-        # Form the name of the tap device from the node index and the name of the network to which it is attached.
-        self.tapDevName = namePrefix + network.name + '-' + str(node.nodeIndex)
+        self.tapBrName = namePrefix + 'tunbr-' + self.ifName
+        self.trunkIfName = namePrefix + 'trunk-' + self.ifName
+        self.peerIfName = namePrefix + str(network.networkIndex) + '-' + str(node.nodeIndex) + '-' + str(self.ifIndex)
 
     def buildInterface(self):
         
-        # Create the tap device
-        # TODO: set owner and group
-        createTapInterface(self.tapDevName)
+        # Create a pair of virtual ethernet interfaces that will serve as a 'trunk' line between a bridge in the node's
+        # namespace and the bridge in the network's namespace.
+        # Use a temporary name for the first interface.
+        tmpInterfaceName = namePrefix + 'tmp-' + str(os.getpid()) + str(random.randint(0, 100))
+        createVETHPair(tmpInterfaceName, self.peerIfName)
         
-        # Attach the tap interface to the network bridge.
-        moveInterfaceToNamespace(self.tapDevName, nsName=self.network.nsName)
-        attachInterfaceToBridge(self.tapDevName, self.network.brName, nsName=self.network.nsName)
+        # Assign the first trunk interface to the node namespace and rename it to the appropriate name.
+        if not self.node.isHostNode:
+            moveInterfaceToNamespace(tmpInterfaceName, nsName=self.node.nsName)
+        renameInterface(tmpInterfaceName, self.trunkIfName, nsName=self.node.nsName)
         
-        # Enable the tap interface.
-        enableInterface(self.tapDevName, nsName=self.network.nsName)
+        # Attach the second trunk interface (the peer interface) to the network bridge.
+        moveInterfaceToNamespace(self.peerIfName, nsName=self.network.nsName)
+        attachInterfaceToBridge(self.peerIfName, self.network.brName, nsName=self.network.nsName)
+        
+        # Create a bridge in the node namespace that will bridge between the tap device and the trunk
+        # interface.
+        addBridge(self.tapBrName, nsName=self.node.nsName)
+
+        # Attach the first trunk interface to the TAP bridge.
+        attachInterfaceToBridge(self.trunkIfName, self.tapBrName, nsName=self.node.nsName)
+        
+        # Create a tap device in the node namespace.
+        user = os.environ['SUDO_USER']
+        createTapInterface(self.ifName, user=user, group=user, nsName=self.node.nsName)
+        
+        # Attach the tap interface to the TAP bridge.
+        attachInterfaceToBridge(self.ifName, self.tapBrName, nsName=self.node.nsName)
+
+        # Disable automatic address generation on all associated interfaces. 
+        setInterfaceAddressGenerationMode(self.ifName, mode='none', nsName=self.node.nsName)
+        setInterfaceAddressGenerationMode(self.tapBrName, mode='none', nsName=self.node.nsName)
+        setInterfaceAddressGenerationMode(self.trunkIfName, mode='none', nsName=self.node.nsName)
+        setInterfaceAddressGenerationMode(self.peerIfName, mode='none', nsName=self.network.nsName)
+        
+        # Enable the interfaces. 
+        enableInterface(self.tapBrName, nsName=self.node.nsName)
+        enableInterface(self.trunkIfName, nsName=self.node.nsName)
+        enableInterface(self.peerIfName, nsName=self.network.nsName)
+        enableInterface(self.ifName, nsName=self.node.nsName)
 
     def clearInterface(self):
         
         # Delete the tap device.
-        deleteInterface(self.tapDevName, nsName=self.network.nsName)
+        deleteInterface(self.ifName, nsName=self.node.nsName)
+        
+        # Delete the trunk and peer interfaces.
+        deleteInterface(self.trunkIfName, nsName=self.node.nsName)
+        deleteInterface(self.peerIfName, nsName=self.network.nsName)
+
+        # Delete the TAP bridge.
+        deleteBridge(self.tapBrName, nsName=self.node.nsName)
         
     def typeSummary(self):
-        return 'tap device connected to network "%s" via interface %s' % (self.network.name, self.tapDevName)
+        return 'tap device "%s" connected to network "%s" via peer interface %s' % (self.ifName, self.network.name, self.peerIfName)
 
     def getLwIPConfig(self):
-        lwipConfig = '--%s-tap-device %s ' % (i.ifName, i.tapDevName) 
-        lwipConfig += '--%s-mac-addr %012X ' % (i.ifName, i.macAddress) # TODO: handle case where MAC is 64-bits
-        if i.ip4Enabled and i.ip4Address:
-            lwipConfig += '--%s-ip4-addr %s ' % (i.ifName, i.ip4Address)
-        if i.ip6Enabled and len(i.ip6Addresses) > 0:
-            lwipConfig += '--%s-ip6-addrs %s ' % (i.ifName, ','.join([ str(a) for a in i.ip6Addresses ]))
+        lwipConfig = '--%s-tap-device %s ' % (self.ifName, self.ifName) 
+        lwipConfig += '--%s-mac-addr %012X ' % (self.ifName, self.macAddress) # TODO: handle case where MAC is 64-bits
+        if self.ip4Enabled and self.ip4Address:
+            lwipConfig += '--%s-ip4-addr %s ' % (self.ifName, self.ip4Address)
+        if self.ip6Enabled and len(self.ip6Addresses) > 0:
+            lwipConfig += '--%s-ip6-addrs %s ' % (self.ifName, ','.join([ str(a) for a in self.ip6Addresses ]))
         return lwipConfig;
 
 
@@ -1687,8 +1727,8 @@ def createVETHPair(name, peerName):
     runCmd([ 'ip', 'link', 'add', 'name', name, 'type', 'veth', 'peer', 'name', peerName ], errMsg='Unable to create virtual ethernet interface pair %s' % (name))
     time.sleep(0.01)
 
-def createTapInterface(name, user='root', group='root'):
-    runCmd([ 'tunctl', '-u', user, '-g', group, '-t', name], errMsg='Unable to create tap interface pair %s' % (name))
+def createTapInterface(name, user='root', group='root', nsName=None):
+    runCmd([ 'tunctl', '-u', user, '-g', group, '-t', name], errMsg='Unable to create tap interface pair %s' % (name), nsName=nsName)
 
 def moveInterfaceToNamespace(ifName, nsName=None):
     runCmd([ 'ip', 'link', 'set', ifName, 'netns', nsName ], errMsg='Unable to assign virtual ethernet interface %s to namespace %s' % (ifName, nsName))
@@ -1717,6 +1757,16 @@ def setInterfaceMACAddress(ifName, macAddr, nsName=None):
 def attachInterfaceToBridge(ifName, brName, nsName=None):
     runCmd([ 'brctl', 'addif', brName, ifName ], nsName=nsName,
            errMsg='Unable to assign virtual ethernet interface %s to bridge %s' % (ifName, brName))
+
+def flushLinkLocalAddresses(ifName, nsName=None):
+    # Flush any IPv6 link-local addresses automatically created by the system.
+    runCmd([ 'ip', '-6', 'addr', 'flush', 'dev', ifName, 'scope', 'link' ], nsName=nsName, 
+           errMsg='Unable to flush IPv6 LL addresses on interface %s in namespace %s' % (ifName, nsName))
+
+def setInterfaceAddressGenerationMode(ifName, mode, nsName=None):
+    # Set the IPv6 address generation mode for the interface.
+    runCmd([ 'ip', 'link', 'set', 'dev', ifName, 'addrgenmode', mode ], nsName=nsName, 
+           errMsg='Unable to set the IPv6 address generation mode on interface %s in namespace %s' % (ifName, nsName))
 
 def getInterfaces(nsName=None):
     out = runCmd([ 'ip', '-o', 'link', 'show' ], errMsg='Failed to enumerate interfaces', nsName=nsName)
