@@ -508,106 +508,82 @@ void UDPEndPoint::HandleDataReceived(PacketBuffer *msg)
 
 INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
 {
-    INET_ERROR lRetval = INET_NO_ERROR;
+    INET_ERROR err = INET_NO_ERROR;
 
     // IMPORTANT: This method MUST be called with the LwIP stack LOCKED!
 
-#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
+    // If a PCB hasn't been allocated yet...
     if (mUDP == NULL)
     {
-        switch (addrType)
-        {
-        case kIPAddressType_IPv6:
-#if INET_CONFIG_ENABLE_IPV4
-        case kIPAddressType_IPv4:
-#endif // INET_CONFIG_ENABLE_IPV4
-            mUDP = udp_new_ip_type(IPAddress::ToLwIPAddrType(addrType));
-            break;
-
-        default:
-            lRetval = INET_ERROR_WRONG_ADDRESS_TYPE;
-            goto exit;
-        }
-
-        if (mUDP == NULL)
-        {
-            WeaveLogError(Inet, "udp_new_ip_type failed");
-            lRetval = INET_ERROR_NO_MEMORY;
-            goto exit;
-        }
-        else
-        {
-            mLwIPEndPointType = kLwIPEndPointType_UDP;
-        }
-    }
-    else
-    {
-        const lwip_ip_addr_type lLwIPAddrType = static_cast<lwip_ip_addr_type>(IP_GET_TYPE(&mUDP->local_ip));
-
-        switch (lLwIPAddrType)
-        {
-        case IPADDR_TYPE_V6:
-            VerifyOrExit(addrType == kIPAddressType_IPv6, lRetval = INET_ERROR_WRONG_ADDRESS_TYPE);
-            break;
-
-#if INET_CONFIG_ENABLE_IPV4
-        case IPADDR_TYPE_V4:
-            VerifyOrExit(addrType == kIPAddressType_IPv4, lRetval = INET_ERROR_WRONG_ADDRESS_TYPE);
-            break;
-#endif // INET_CONFIG_ENABLE_IPV4
-
-        default:
-            break;
-        }
-    }
-#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
-    if (mUDP == NULL)
-    {
+        // Allocate a PCB of the appropriate type.
         if (addrType == kIPAddressType_IPv6)
         {
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
+            mUDP = udp_new_ip_type(IPADDR_TYPE_V6);
+#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
             mUDP = udp_new_ip6();
-            if (mUDP != NULL)
-                ip_set_option(mUDP, SOF_REUSEADDR);
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
         }
 #if INET_CONFIG_ENABLE_IPV4
-        else if (addrType == kIPAddressType_IPv4) {
+        else if (addrType == kIPAddressType_IPv4)
+        {
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
+            mUDP = udp_new_ip_type(IPADDR_TYPE_V4);
+#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
             mUDP = udp_new();
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
         }
 #endif // INET_CONFIG_ENABLE_IPV4
         else
         {
-            lRetval = INET_ERROR_WRONG_ADDRESS_TYPE;
-            goto exit;
+            ExitNow(err = INET_ERROR_WRONG_ADDRESS_TYPE);
         }
 
+        // Fail if the system has run out of PCBs.
         if (mUDP == NULL)
         {
-            WeaveLogError(Inet, "udp_new failed");
-            lRetval = INET_ERROR_NO_MEMORY;
-            goto exit;
+            WeaveLogError(Inet, "Unable to allocate UDP PCB");
+            ExitNow(err = INET_ERROR_NO_MEMORY);
         }
-        else
-        {
-            mLwIPEndPointType = kLwIPEndPointType_UDP;
-        }
+
+        // Allow multiple bindings to the same port.
+        ip_set_option(mUDP, SOF_REUSEADDR);
     }
+
+    // Otherwise, verify that the existing PCB is the correct type...
     else
     {
-#if INET_CONFIG_ENABLE_IPV4
-        const IPAddressType pcbType = PCB_ISIPV6(mUDP) ? kIPAddressType_IPv6 : kIPAddressType_IPv4;
-#else // !INET_CONFIG_ENABLE_IPV4
-        const IPAddressType pcbType = kIPAddressType_IPv6;
-#endif // !INET_CONFIG_ENABLE_IPV4
+        IPAddressType pcbAddrType;
 
-        if (addrType != pcbType) {
-            lRetval = INET_ERROR_WRONG_ADDRESS_TYPE;
-            goto exit;
+        // Get the address type of the existing PCB.
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
+        switch (static_cast<lwip_ip_addr_type>(IP_GET_TYPE(&mUDP->local_ip)))
+        {
+        case IPADDR_TYPE_V6:
+            pcbAddrType = kIPAddressType_IPv6;
+            break;
+#if INET_CONFIG_ENABLE_IPV4
+        case IPADDR_TYPE_V4:
+            pcbAddrType = kIPAddressType_IPv4;
+            break;
+#endif // INET_CONFIG_ENABLE_IPV4
+        default:
+            ExitNow(err = INET_ERROR_WRONG_ADDRESS_TYPE);
         }
+#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
+#if INET_CONFIG_ENABLE_IPV4
+        pcbAddrType = PCB_ISIPV6(mUDP) ? kIPAddressType_IPv6 : kIPAddressType_IPv4;
+#else // !INET_CONFIG_ENABLE_IPV4
+        pcbAddrType = kIPAddressType_IPv6;
+#endif // !INET_CONFIG_ENABLE_IPV4
+#endif // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
+
+        // Fail if the existing PCB is not the correct type.
+        VerifyOrExit(addrType == pcbAddrType, err = INET_ERROR_WRONG_ADDRESS_TYPE);
     }
-#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 
 exit:
-    return (lRetval);
+    return err;
 }
 
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
