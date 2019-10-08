@@ -39,10 +39,6 @@ ThreadNetwork(
     meshLocalPrefix = 'fd42:4242:4242::/64'
 )
 
-LegacyThreadNetwork(
-    name = 'legacy'
-)
-
 #===============================================================================
 # Devices
 #===============================================================================
@@ -56,21 +52,21 @@ Gateway(
     isIP4DefaultGateway = True
 )
 
-# Weave device with WiFi, Thread and Legacy Thread networks
+# Weave device with WiFi and Thread networks
 WeaveDevice(
     name = 'dev1',
     weaveNodeId = 1,
     weaveFabricId = 1,
     wifiNetwork = 'wifi',
     threadNetwork = 'thread',
-    legacyNetwork = 'legacy',
+    useLwIP = False
 )
 
-# Weave device with Thread and Legacy Thread networks only
+# Weave device with Thread network only
 WeaveDevice(
     name = 'dev2',
     weaveFabricId = 1,
     weaveNodeId = 2,
     threadNetwork = 'thread',
-    legacyNetwork = 'legacy'
+    useLwIP = False
 )
