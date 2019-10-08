@@ -293,6 +293,23 @@ exit:
 }
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
+/**
+ *  @brief Set whether IP multicast traffic should be looped back.
+ *
+ *  @param[in]   aIPVersion
+ *
+ *  @param[in]   aLoop
+ *
+ *  @retval  INET_NO_ERROR
+ *       success: multicast loopback behavior set
+ *  @retval  other
+ *       another system or platform error
+ *
+ *  @details
+ *     Set whether or not IP multicast traffic should be looped back
+ *     to this endpoint.
+ *
+ */
 INET_ERROR IPEndPointBasis::SetMulticastLoopback(IPVersion aIPVersion, bool aLoopback)
 {
     INET_ERROR          lRetval = INET_ERROR_NOT_IMPLEMENTED;
@@ -366,6 +383,33 @@ exit:
     return (lRetval);
 }
 
+/**
+ *  @brief Join an IP multicast group.
+ *
+ *  @param[in]   aInterfaceId  the indicator of the network interface to
+ *                             add to the multicast group
+ *
+ *  @param[in]   aAddress      the multicast group to add the
+ *                             interface to
+ *
+ *  @retval  INET_NO_ERROR
+ *       success: multicast group removed
+ *
+ *  @retval  INET_ERROR_UNKNOWN_INTERFACE
+ *       unknown network interface, \c aInterfaceId
+ *
+ *  @retval  INET_ERROR_WRONG_ADDRESS_TYPE
+ *       \c aAddress is not \c kIPAddressType_IPv4 or
+ *       \c kIPAddressType_IPv6 or is not multicast
+ *
+ *  @retval  other
+ *       another system or platform error
+ *
+ *  @details
+ *     Join the endpoint to the supplied multicast group on the
+ *     specified interface.
+ *
+ */
 INET_ERROR IPEndPointBasis::JoinMulticastGroup(InterfaceId aInterfaceId, const IPAddress &aAddress)
 {
     const IPAddressType lAddrType = aAddress.Type();
@@ -430,6 +474,33 @@ exit:
     return (lRetval);
 }
 
+/**
+ *  @brief Leave an IP multicast group.
+ *
+ *  @param[in]   aInterfaceId  the indicator of the network interface to
+ *                             remove from the multicast group
+ *
+ *  @param[in]   aAddress      the multicast group to remove the
+ *                             interface from
+ *
+ *  @retval  INET_NO_ERROR
+ *       success: multicast group removed
+ *
+ *  @retval  INET_ERROR_UNKNOWN_INTERFACE
+ *       unknown network interface, \c aInterfaceId
+ *
+ *  @retval  INET_ERROR_WRONG_ADDRESS_TYPE
+ *       \c aAddress is not \c kIPAddressType_IPv4 or
+ *       \c kIPAddressType_IPv6 or is not multicast
+ *
+ *  @retval  other
+ *       another system or platform error
+ *
+ *  @details
+ *     Remove the endpoint from the supplied multicast group on the
+ *     specified interface.
+ *
+ */
 INET_ERROR IPEndPointBasis::LeaveMulticastGroup(InterfaceId aInterfaceId, const IPAddress &aAddress)
 {
     const IPAddressType lAddrType = aAddress.Type();
@@ -689,17 +760,20 @@ INET_ERROR IPEndPointBasis::BindInterface(IPAddressType aAddressType, InterfaceI
     return (lRetval);
 }
 
-INET_ERROR IPEndPointBasis::SendTo(const IPAddress &aAddress, uint16_t aPort, InterfaceId aInterfaceId, PacketBuffer *aBuffer, uint16_t aSendFlags)
+INET_ERROR IPEndPointBasis::SendMsg(const IPPacketInfo *aPktInfo, Weave::System::PacketBuffer *aBuffer, uint16_t aSendFlags)
 {
-    INET_ERROR     lRetval = INET_NO_ERROR;
-    PeerSockAddr   lPeerSockAddr;
+    INET_ERROR     res = INET_NO_ERROR;
+    PeerSockAddr   peerSockAddr;
     struct iovec   msgIOV;
     uint8_t        controlData[256];
     struct msghdr  msgHeader;
+    InterfaceId    intfId = aPktInfo->Interface;
+
+    // Ensure the destination address type is compatible with the endpoint address type.
+    VerifyOrExit(mAddrType == aPktInfo->DestAddress.Type(), res = INET_ERROR_BAD_ARGS);
 
     // For now the entire message must fit within a single buffer.
-
-    VerifyOrExit(aBuffer->Next() == NULL, lRetval = INET_ERROR_MESSAGE_TOO_LONG);
+    VerifyOrExit(aBuffer->Next() == NULL, res = INET_ERROR_MESSAGE_TOO_LONG);
 
     memset(&msgHeader, 0, sizeof (msgHeader));
 
@@ -708,26 +782,25 @@ INET_ERROR IPEndPointBasis::SendTo(const IPAddress &aAddress, uint16_t aPort, In
     msgHeader.msg_iov    = &msgIOV;
     msgHeader.msg_iovlen = 1;
 
-    memset(&lPeerSockAddr, 0, sizeof (lPeerSockAddr));
-
-    msgHeader.msg_name = &lPeerSockAddr;
-
+    // Construct a sockaddr_in/sockaddr_in6 structure containing the destination information.
+    memset(&peerSockAddr, 0, sizeof (peerSockAddr));
+    msgHeader.msg_name = &peerSockAddr;
     if (mAddrType == kIPAddressType_IPv6)
     {
-        lPeerSockAddr.in6.sin6_family   = AF_INET6;
-        lPeerSockAddr.in6.sin6_port     = htons(aPort);
-        lPeerSockAddr.in6.sin6_flowinfo = 0;
-        lPeerSockAddr.in6.sin6_addr     = aAddress.ToIPv6();
-        lPeerSockAddr.in6.sin6_scope_id = aInterfaceId;
-        msgHeader.msg_namelen           = sizeof (sockaddr_in6);
+        peerSockAddr.in6.sin6_family    = AF_INET6;
+        peerSockAddr.in6.sin6_port      = htons(aPktInfo->DestPort);
+        peerSockAddr.in6.sin6_flowinfo  = 0;
+        peerSockAddr.in6.sin6_addr      = aPktInfo->DestAddress.ToIPv6();
+        peerSockAddr.in6.sin6_scope_id  = aPktInfo->Interface;
+        msgHeader.msg_namelen           = sizeof(sockaddr_in6);
     }
 #if INET_CONFIG_ENABLE_IPV4
     else
     {
-        lPeerSockAddr.in.sin_family     = AF_INET;
-        lPeerSockAddr.in.sin_port       = htons(aPort);
-        lPeerSockAddr.in.sin_addr       = aAddress.ToIPv4();
-        msgHeader.msg_namelen           = sizeof (sockaddr_in);
+        peerSockAddr.in.sin_family      = AF_INET;
+        peerSockAddr.in.sin_port        = htons(aPktInfo->DestPort);
+        peerSockAddr.in.sin_addr        = aPktInfo->DestAddress.ToIPv4();
+        msgHeader.msg_namelen           = sizeof(sockaddr_in);
     }
 #endif // INET_CONFIG_ENABLE_IPV4
 
@@ -735,69 +808,80 @@ INET_ERROR IPEndPointBasis::SendTo(const IPAddress &aAddress, uint16_t aPort, In
     // and the caller didn't supply a specific interface to send
     // on, use the bound interface. This appears to be necessary
     // for messages to multicast addresses, which under Linux
-    // don't seem to get sent out the correct inferface, despite
+    // don't seem to get sent out the correct interface, despite
     // the socket being bound.
+    if (intfId == INET_NULL_INTERFACEID)
+        intfId = mBoundIntfId;
 
-    if (aInterfaceId == INET_NULL_INTERFACEID)
-        aInterfaceId = mBoundIntfId;
-
-    if (aInterfaceId != INET_NULL_INTERFACEID)
+    // If the packet should be sent over a specific interface, or with a specific source
+    // address, construct an IP_PKTINFO/IPV6_PKTINFO "control message" to that effect
+    // add add it to the message header.  If the local OS doesn't support IP_PKTINFO/IPV6_PKTINFO
+    // fail with an error.
+    if (intfId != INET_NULL_INTERFACEID || aPktInfo->SrcAddress.Type() != kIPAddressType_Any)
     {
 #if defined(IP_PKTINFO) || defined(IPV6_PKTINFO)
-        memset(controlData, 0, sizeof (controlData));
+        memset(controlData, 0, sizeof(controlData));
         msgHeader.msg_control = controlData;
-        msgHeader.msg_controllen = sizeof (controlData);
+        msgHeader.msg_controllen = sizeof(controlData);
 
         struct cmsghdr *controlHdr = CMSG_FIRSTHDR(&msgHeader);
 
 #if INET_CONFIG_ENABLE_IPV4
-#if defined(IP_PKTINFO)
+
         if (mAddrType == kIPAddressType_IPv4)
         {
+#if defined(IP_PKTINFO)
             controlHdr->cmsg_level = IPPROTO_IP;
             controlHdr->cmsg_type  = IP_PKTINFO;
-            controlHdr->cmsg_len   = CMSG_LEN(sizeof (in_pktinfo));
+            controlHdr->cmsg_len   = CMSG_LEN(sizeof(in_pktinfo));
 
             struct in_pktinfo *pktInfo = (struct in_pktinfo *)CMSG_DATA(controlHdr);
-            pktInfo->ipi_ifindex = aInterfaceId;
+            pktInfo->ipi_ifindex = intfId;
+            pktInfo->ipi_spec_dst = aPktInfo->SrcAddress.ToIPv4();
 
-            msgHeader.msg_controllen = CMSG_SPACE(sizeof (in_pktinfo));
+            msgHeader.msg_controllen = CMSG_SPACE(sizeof(in_pktinfo));
+#else // !defined(IP_PKTINFO)
+            ExitNow(res = INET_ERROR_NOT_SUPPORTED);
+#endif // !defined(IP_PKTINFO)
         }
-#endif // defined(IP_PKTINFO)
+
 #endif // INET_CONFIG_ENABLE_IPV4
 
-#if defined(IPV6_PKTINFO)
         if (mAddrType == kIPAddressType_IPv6)
         {
-            controlHdr->cmsg_level = IPPROTO_IP;
+#if defined(IPV6_PKTINFO)
+            controlHdr->cmsg_level = IPPROTO_IPV6;
             controlHdr->cmsg_type  = IPV6_PKTINFO;
-            controlHdr->cmsg_len   = CMSG_LEN(sizeof (in6_pktinfo));
+            controlHdr->cmsg_len   = CMSG_LEN(sizeof(in6_pktinfo));
 
             struct in6_pktinfo *pktInfo = (struct in6_pktinfo *)CMSG_DATA(controlHdr);
-            pktInfo->ipi6_ifindex = aInterfaceId;
+            pktInfo->ipi6_ifindex = intfId;
+            pktInfo->ipi6_addr = aPktInfo->SrcAddress.ToIPv6();
 
-            msgHeader.msg_controllen = CMSG_SPACE(sizeof (in6_pktinfo));
+            msgHeader.msg_controllen = CMSG_SPACE(sizeof(in6_pktinfo));
+#else // !defined(IPV6_PKTINFO)
+            ExitNow(res = INET_ERROR_NOT_SUPPORTED);
+#endif // !defined(IPV6_PKTINFO)
         }
-#endif // defined(IPV6_PKTINFO)
+
 #else // !(defined(IP_PKTINFO) && defined(IPV6_PKTINFO))
-        lRetval = INET_ERROR_NOT_IMPLEMENTED
+
+        ExitNow(res = INET_ERROR_NOT_SUPPORTED);
+
 #endif // !(defined(IP_PKTINFO) && defined(IPV6_PKTINFO))
     }
 
-    if (lRetval == INET_NO_ERROR)
+    // Send IP packet.
     {
-        // Send IP packet.
-
         const ssize_t lenSent = sendmsg(mSocket, &msgHeader, 0);
-
         if (lenSent == -1)
-            lRetval = Weave::System::MapErrorPOSIX(errno);
+            res = Weave::System::MapErrorPOSIX(errno);
         else if (lenSent != aBuffer->DataLength())
-            lRetval = INET_ERROR_OUTBOUND_MESSAGE_TRUNCATED;
+            res = INET_ERROR_OUTBOUND_MESSAGE_TRUNCATED;
     }
 
 exit:
-    return (lRetval);
+    return (res);
 }
 
 INET_ERROR IPEndPointBasis::GetSocket(IPAddressType aAddressType, int aType, int aProtocol)
