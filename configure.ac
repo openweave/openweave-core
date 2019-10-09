@@ -2518,6 +2518,9 @@ AC_DEFINE(HAVE_SO_BINDTODEVICE, 1, [Define to 1 if your <sys/socket.h> header fi
 AC_MSG_RESULT([no])
 ])
 
+# Check for sys/sockio.h
+AC_CHECK_HEADERS([sys/sockio.h])
+
 #
 # Check for types and structures
 #
