@@ -31,6 +31,8 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 openweave_PYTHON                                  = \
     openweave/__init__.py                           \
     openweave/WeaveDeviceMgr.py                     \
+    openweave/WeaveDataManagementClient.py          \
+    openweave/WeaveStack.py		                \
     openweave/WeaveBleBase.py                       \
     openweave/WeaveCoreBluetoothMgr.py              \
     openweave/WeaveBluezMgr.py                      \

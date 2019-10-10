@@ -72,11 +72,16 @@ static size_t MOCK_strlcpy(char * dst, const char * src, size_t size)
     return strlen(src);
 }
 
-LocaleSettingsTraitDataSource::LocaleSettingsTraitDataSource()
-    : TraitDataSource(&LocaleSettingsTrait::TraitSchema)
+LocaleSettingsTraitDataSource::LocaleSettingsTraitDataSource():
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+     TraitUpdatableDataSource(&LocaleSettingsTrait::TraitSchema)
+#else
+     TraitDataSource(&LocaleSettingsTrait::TraitSchema)
+#endif
 {
     SetVersion(300);
     memset(mLocale, 0, sizeof(mLocale));
+    MOCK_strlcpy(mLocale, "en-US", sizeof(mLocale));
 }
 
 void LocaleSettingsTraitDataSource::Mutate()
@@ -93,6 +98,66 @@ void LocaleSettingsTraitDataSource::Mutate()
 
     Unlock();
 }
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+WEAVE_ERROR
+LocaleSettingsTraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    switch (aLeafHandle) {
+        case LocaleSettingsTrait::kPropertyHandle_active_locale:
+            char next_locale[24];
+            err = aReader.GetString(next_locale, MAX_LOCALE_SIZE);
+            SuccessOrExit(err);
+            if (strncmp(next_locale, mLocale, MAX_LOCALE_SIZE) != 0)
+            {
+                WeaveLogDetail(DataManagement, "<<  active_locale is changed from \"%s\" to \"%s\"", mLocale, next_locale);
+                memcpy(mLocale, next_locale, MAX_LOCALE_SIZE);
+            }
+
+            WeaveLogDetail(DataManagement, "<<  active_locale = \"%s\"", mLocale);
+            break;
+
+        default:
+            WeaveLogDetail(DataManagement, "<<  UNKNOWN!");
+            err = WEAVE_ERROR_TLV_TAG_NOT_FOUND;
+    }
+
+    exit:
+    return err;
+}
+
+WEAVE_ERROR
+LocaleSettingsTraitDataSource::SetData(PropertyPathHandle aHandle, TLVReader &aReader, bool aIsNull)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (aIsNull && !mSchemaEngine->IsNullable(aHandle))
+    {
+        WeaveLogDetail(DataManagement, "<< Non-nullable handle %d received a NULL", aHandle);
+
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE == 0
+        ExitNow(err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+#endif
+    }
+
+    if ((!aIsNull) && (mSchemaEngine->IsLeaf(aHandle)))
+    {
+        err = SetLeafData(aHandle, aReader);
+        // set the parent handles to non-null
+        while (aHandle != kRootPropertyPathHandle)
+        {
+            aHandle = mSchemaEngine->GetParent(aHandle);
+        }
+    }
+
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE == 0
+    exit:
+#endif
+    return err;
+}
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
 
 WEAVE_ERROR
 LocaleSettingsTraitDataSource::GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter)
@@ -116,6 +181,175 @@ exit:
     WeaveLogFunctError(err);
 
     return err;
+}
+
+
+void LocaleSettingsTraitDataSource::HandleCommandOperationTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState,
+                                                         nl::Weave::System::Error aErr)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    LocaleSettingsTraitDataSource * const datasource = reinterpret_cast<LocaleSettingsTraitDataSource *>(aAppState);
+
+    WeaveLogDetail(DataManagement, "LocaleSettingsTrait %s", __func__);
+
+    VerifyOrExit (NULL != datasource->mActiveCommand, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    // If Command was OneWay, exit and close Command.
+
+    VerifyOrExit(!datasource->mActiveCommand->IsOneWay(), err = WEAVE_NO_ERROR);
+
+exit:
+    WeaveLogFunctError(err);
+
+    if (NULL != datasource->mActiveCommand)
+    {
+        datasource->mActiveCommand->Close();
+        datasource->mActiveCommand = NULL;
+    }
+}
+
+void LocaleSettingsTraitDataSource::OnCustomCommand(nl::Weave::Profiles::DataManagement::Command * aCommand,
+                                           const nl::Weave::WeaveMessageInfo * aMsgInfo,
+                                           nl::Weave::PacketBuffer * aPayload,
+                                           const uint64_t & aCommandType,
+                                           const bool aIsExpiryTimeValid,
+                                           const int64_t & aExpiryTimeMicroSecond,
+                                           const bool aIsMustBeVersionValid,
+                                           const uint64_t & aMustBeVersion,
+                                           nl::Weave::TLV::TLVReader & aArgumentReader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t reportProfileId = nl::Weave::Profiles::kWeaveProfile_Common;
+    uint16_t reportStatusCode = nl::Weave::Profiles::Common::kStatus_BadRequest;
+
+    WeaveLogDetail(DataManagement, "LocaleSettingsTrait %s", __func__);
+
+    // verify there is no active command already running
+    // this is needed only if the implementation cannot handle more than one concurrent command per trait
+    if (NULL != mActiveCommand)
+    {
+        // we already have one active command. Reject this new one directly
+        reportProfileId = nl::Weave::Profiles::kWeaveProfile_Common;
+        reportStatusCode = nl::Weave::Profiles::Common::kStatus_OutOfMemory;
+        err = WEAVE_ERROR_NO_MEMORY;
+        ExitNow ();
+    }
+
+    // verify if this command comes with a valid EC with the right peer node ID, key ID, and authenticator
+    // more detailed example will be available when we have the security added
+
+    // Note that the version check is passed to application layer because the application layer might want to know
+    // someone is making a request.
+    if (aIsMustBeVersionValid)
+    {
+        WeaveLogDetail(DataManagement, "Actual version is 0x%" PRIx64 ", while must-be version is: 0x%" PRIx64, GetVersion(), aMustBeVersion);
+
+        if (aMustBeVersion != GetVersion())
+        {
+            reportProfileId = nl::Weave::Profiles::kWeaveProfile_WDM;
+            reportStatusCode = kStatus_VersionMismatch;
+            ExitNow ();
+        }
+    }
+
+    WeaveLogDetail(DataManagement, "Command Type ID 0x%" PRIx64, aCommandType);
+
+    // verify the command type and arguments are valid
+    // command type 1: one shot signaling without custom data in response
+    if (1 == aCommandType)
+    {
+        // Parse and validate the arguments according to schema definitions for this command
+        {
+            nl::Weave::TLV::TLVType OuterContainerType;
+            err = aArgumentReader.EnterContainer(OuterContainerType);
+            SuccessOrExit(err);
+
+            while (WEAVE_NO_ERROR == (err = aArgumentReader.Next()))
+            {
+                // usually there is only context-specific tags in argument section
+                VerifyOrExit(nl::Weave::TLV::IsContextTag(aArgumentReader.GetTag()), err = WEAVE_ERROR_INVALID_TLV_TAG);
+                switch (nl::Weave::TLV::TagNumFromTag(aArgumentReader.GetTag()))
+                {
+                    case kCmdParam_1:
+                        err = aArgumentReader.GetString(mCommandParam_1, 10);
+                        SuccessOrExit(err);
+                        WeaveLogDetail(DataManagement, "Parameter 1: %s", mCommandParam_1);
+                        break;
+
+                    case kCmdParam_2:
+                        err = aArgumentReader.GetString(mCommandParam_2, 100);
+                        SuccessOrExit(err);
+                        WeaveLogDetail(DataManagement, "Parameter 2: %s", mCommandParam_2);
+                        break;
+
+                    default:
+                        // unrecognized arguments are allowed or not is a trait-specific question
+                        ExitNow(err = WEAVE_ERROR_INVALID_TLV_TAG);
+                }
+            }
+
+            if (WEAVE_END_OF_TLV == err)
+            {
+                // if any of the parameters are mandatory, we can verify at here
+                err = WEAVE_NO_ERROR;
+            }
+            SuccessOrExit(err);
+        }
+
+        // Free the packet buffer after we parsed and processed/cached all arguments.
+        // Doing this before allocating buffer for response might help reduce the max number of packet buffer needed
+        PacketBuffer::Free(aPayload);
+        aPayload = NULL;
+
+        // If Command was OneWay, close Command and exit.
+
+        if (aCommand->IsOneWay())
+        {
+            aCommand->Close();
+            aCommand = NULL;
+            ExitNow(err = WEAVE_NO_ERROR);
+        }
+
+        // Generate a success response right here
+        {
+
+            PacketBuffer * msgBuf = PacketBuffer::New();
+            if (NULL == msgBuf)
+            {
+                // It's unlikely we'll have packet buffer to send out the status report, but let us try anyways
+                reportProfileId = nl::Weave::Profiles::kWeaveProfile_Common;
+                reportStatusCode = nl::Weave::Profiles::Common::kStatus_OutOfMemory;
+                err = WEAVE_ERROR_NO_MEMORY;
+                ExitNow ();
+            }
+
+            aCommand->SendResponse(GetVersion(), msgBuf);
+            aCommand = NULL;
+            msgBuf = NULL;
+        }
+    }
+    else
+    {
+        // unrecognized command type id
+        // default error is bad request
+        err = WEAVE_ERROR_NOT_IMPLEMENTED;
+        ExitNow();
+    }
+
+exit:
+    WeaveLogFunctError(err);
+
+    if (NULL != aCommand)
+    {
+        aCommand->SendError(reportProfileId, reportStatusCode, err);
+        aCommand = NULL;
+    }
+
+    if (aPayload)
+    {
+        PacketBuffer::Free(aPayload);
+        aPayload = NULL;
+    }
 }
 
 LocaleCapabilitiesTraitDataSource::LocaleCapabilitiesTraitDataSource()
@@ -245,9 +479,13 @@ exit:
     return err;
 }
 
-TestATraitDataSource::TestATraitDataSource()
-    : TraitDataSource(&TestATrait::TraitSchema),
-      mActiveCommand(NULL)
+TestATraitDataSource::TestATraitDataSource():
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+     TraitUpdatableDataSource(&TestATrait::TraitSchema),
+#else
+     TraitDataSource(&TestATrait::TraitSchema),
+#endif
+     mActiveCommand(NULL)
 {
     uint8_t *tmp;
     SetVersion(100);
@@ -747,6 +985,283 @@ void TestATraitDataSource::SetNullifiedPath(PropertyPathHandle aHandle, bool isN
         }
     }
 }
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+WEAVE_ERROR
+TestATraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    switch (GetPropertySchemaHandle(aLeafHandle)) {
+        case TestATrait::kPropertyHandle_TaA:
+            err = aReader.Get(taa);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_a = %u", taa);
+            break;
+
+        case TestATrait::kPropertyHandle_TaB:
+            err = aReader.Get(tab);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_b = %u", tab);
+            break;
+
+        case TestATrait::kPropertyHandle_TaC:
+            uint32_t next_tac;
+            err = aReader.Get(next_tac);
+            SuccessOrExit(err);
+            if (next_tac != tac)
+            {
+                WeaveLogDetail(DataManagement, "<<  ta_c is changed from %u to %u", tac, next_tac);
+                tac = next_tac;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  ta_c = %u", tac);
+            break;
+
+        case TestATrait::kPropertyHandle_TaD_SaA:
+            uint32_t next_tad_saa;
+            err = aReader.Get(next_tad_saa);
+            SuccessOrExit(err);
+            if (next_tad_saa != tad.saA)
+            {
+                WeaveLogDetail(DataManagement, "<<  ta_d.sa_a is changed from %u to %u", tad.saA, next_tad_saa);
+                tad.saA = next_tad_saa;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  ta_d.sa_a = %u", tad.saA);
+            break;
+
+        case TestATrait::kPropertyHandle_TaD_SaB:
+            bool next_tad_sab;
+            err = aReader.Get(next_tad_sab);
+            SuccessOrExit(err);
+            if (next_tad_sab != tad.saB)
+            {
+                WeaveLogDetail(DataManagement, "<<  ta_d.sa_b is changed from %u to %u", tad.saB, next_tad_sab);
+                tad.saB = next_tad_sab;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  ta_d.sa_b = %u", tad.saB);
+            break;
+
+        case TestATrait::kPropertyHandle_TaE:
+        {
+            TLVType outerType;
+            uint32_t i = 0;
+
+            err = aReader.EnterContainer(outerType);
+            SuccessOrExit(err);
+
+            while (((err = aReader.Next()) == WEAVE_NO_ERROR) && (i < (sizeof(tae) / sizeof(tae[0])))) {
+                uint32_t next_tae;
+                err = aReader.Get(next_tae);
+                SuccessOrExit(err);
+                if (tae[i] != next_tae)
+                {
+                    WeaveLogDetail(DataManagement, "<<  ta_e[%u] is changed from %u to %u", i, tae[i], next_tae);
+                    tae[i] = next_tae;
+                }
+
+                WeaveLogDetail(DataManagement, "<<  ta_e[%u] = %u", i, tae[i]);
+                i++;
+            }
+
+            err = aReader.ExitContainer(outerType);
+            break;
+        }
+
+        case TestATrait::kPropertyHandle_TaG:
+        {
+            if (aReader.GetType() == kTLVType_UTF8String)
+            {
+                err = aReader.GetString(tag_string, sizeof(tag_string));
+                SuccessOrExit(err);
+
+                tag_use_ref = false;
+
+                WeaveLogDetail(DataManagement, "<<  ta_g string = %s", tag_string);
+            }
+            else
+            {
+                err = aReader.Get(tag_ref);
+                SuccessOrExit(err);
+
+                tag_use_ref = true;
+
+                WeaveLogDetail(DataManagement, "<<  ta_g ref = %u", tag_ref);
+            }
+        }
+            break;
+
+        case TestATrait::kPropertyHandle_TaK:
+            err = aReader.GetBytes(&tak[0], sizeof(tak));
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_k %d bytes", sizeof(tak));
+            break;
+
+        case TestATrait::kPropertyHandle_TaL:
+            err = aReader.Get(tal);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_l = %x", tal);
+            break;
+
+        case TestATrait::kPropertyHandle_TaM:
+            err = aReader.Get(tam_resourceid);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_m = %" PRIx64 , tam_resourceid);
+            break;
+
+        case TestATrait::kPropertyHandle_TaN:
+            err = aReader.GetBytes(&tan[0], sizeof(tan));
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_n %d bytes", sizeof(tan));
+            DumpMemory(&tan[0], sizeof(tan), "WEAVE:DMG: <<  ta_n ", 16);
+            break;
+
+        case TestATrait::kPropertyHandle_TaO:
+            err = aReader.Get(tao);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_o = %d", tao);
+            break;
+
+        case TestATrait::kPropertyHandle_TaP:
+            int64_t next_tap;
+            err = aReader.Get(next_tap);
+            SuccessOrExit(err);
+
+            if (next_tap != tap)
+            {
+                WeaveLogDetail(DataManagement, "<<  ta_p is changed from %d to %d", tap, next_tap);
+                tap = next_tap;
+            }
+            WeaveLogDetail(DataManagement, "<<  ta_p = %d", tap);
+            break;
+
+        case TestATrait::kPropertyHandle_TaQ:
+            err = aReader.Get(taq);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_q %" PRId64 , taq);
+            break;
+
+        case TestATrait::kPropertyHandle_TaR:
+            err = aReader.Get(tar);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_r %u", tar);
+            break;
+
+        case TestATrait::kPropertyHandle_TaS:
+            err = aReader.Get(tas);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_s %u", tas);
+            break;
+
+        case TestATrait::kPropertyHandle_TaT:
+            err = aReader.Get(tat);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_t %u", tat);
+            break;
+
+        case TestATrait::kPropertyHandle_TaU:
+            err = aReader.Get(tau);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_u %d", tau);
+            break;
+
+        case TestATrait::kPropertyHandle_TaV:
+            err = aReader.Get(tav);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_v %u", tav);
+            break;
+
+        case TestATrait::kPropertyHandle_TaW:
+            err = aReader.GetString(&taw[0], sizeof(taw));
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_w %s", taw);
+            break;
+
+        case TestATrait::kPropertyHandle_TaX:
+            err = aReader.Get(tax);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_x %d", tax);
+            break;
+
+        case TestATrait::kPropertyHandle_TaI_Value:
+            err = aReader.Get(tai_stageditem);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  tai[%u] = %u", GetPropertyDictionaryKey(aLeafHandle), tai_stageditem);
+            break;
+
+        case TestATrait::kPropertyHandle_TaJ_Value_SaA:
+            err = aReader.Get(taj_stageditem.saA);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  taj[%u].sa_a = %u", GetPropertyDictionaryKey(aLeafHandle), taj_stageditem.saA);
+            break;
+
+        case TestATrait::kPropertyHandle_TaJ_Value_SaB:
+            err = aReader.Get(taj_stageditem.saB);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  taj[%u].sa_b = %u", GetPropertyDictionaryKey(aLeafHandle), taj_stageditem.saB);
+            break;
+
+        default:
+            WeaveLogDetail(DataManagement, "<<  UNKNOWN!");
+    }
+
+    exit:
+    return err;
+}
+
+WEAVE_ERROR
+TestATraitDataSource::SetData(PropertyPathHandle aHandle, TLVReader &aReader, bool aIsNull)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (aIsNull && !mSchemaEngine->IsNullable(aHandle))
+    {
+        WeaveLogDetail(DataManagement, "<< Non-nullable handle %d received a NULL", aHandle);
+
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE == 0
+        ExitNow(err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+#endif
+    }
+
+    SetNullifiedPath(aHandle, aIsNull);
+
+    if ((!aIsNull) && (mSchemaEngine->IsLeaf(aHandle)))
+    {
+        err = SetLeafData(aHandle, aReader);
+        // set the parent handles to non-null
+        while (aHandle != kRootPropertyPathHandle)
+        {
+            SetNullifiedPath(aHandle, aIsNull);
+            aHandle = mSchemaEngine->GetParent(aHandle);
+        }
+    }
+
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE == 0
+    exit:
+#endif
+    return err;
+}
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
 
 WEAVE_ERROR TestATraitDataSource::GetData(PropertyPathHandle aHandle,
                                           uint64_t aTagToWrite,

@@ -289,7 +289,7 @@ namespace Profiles {
         return pack(i);
     };
 
-    WEAVE_ERROR pack(MessageIterator&i);
+    WEAVE_ERROR pack(MessageIterator&i, uint32_t maxLen = 0xFFFFFFFFUL);
 
     /**
      * Return the data length assuming that the object has been packed

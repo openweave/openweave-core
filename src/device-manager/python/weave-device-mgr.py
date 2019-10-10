@@ -2,6 +2,7 @@
 
 #
 #    Copyright (c) 2013-2018 Nest Labs, Inc.
+#    Copyright (c) 2019 Google, LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,6 +66,8 @@ for relInstallDir in relWeavePackageInstallDirs:
         sys.path.insert(0, absInstallDir)
 
 from openweave import WeaveDeviceMgr
+from openweave import WeaveDataManagementClient
+
 if platform.system() == 'Darwin':
     from openweave.WeaveCoreBluetoothMgr import CoreBluetoothManager as BleManager
 elif sys.platform.startswith('linux'):
@@ -200,8 +203,10 @@ class DeviceMgrCmd(Cmd):
         DeviceMgrCmd.command_names.sort()
 
         self.bleMgr = None
-
         self.devMgr = WeaveDeviceMgr.WeaveDeviceManager()
+
+        self.wdmClient = None
+        self.traitInstance = None
 
         if (rendezvousAddr):
             try:
@@ -284,7 +289,14 @@ class DeviceMgrCmd(Cmd):
         'ble-diag-test',
         'ble-diag-test-result',
         'ble-diag-test-abort',
-        'ble-diag-test-timing'
+        'ble-diag-test-timing',
+        'create-wdm-client',
+        'new-data-sink',
+        'flush-update',
+        'refresh-data',
+        'set-data',
+        'refresh-individual-data',
+        'get-data',
     ]
 
     def parseline(self, line):
@@ -1015,8 +1027,11 @@ class DeviceMgrCmd(Cmd):
             return
 
         try:
-            self.devMgr.Close()
-            self.devMgr.CloseEndpoints()
+            if self.wdmClient:
+                self.wdmClient.close()
+            if self.devMgr:
+                self.devMgr.Close()
+                self.devMgr.CloseEndpoints()
         except WeaveDeviceMgr.DeviceManagerException, ex:
             print str(ex)
 
@@ -2420,6 +2435,115 @@ class DeviceMgrCmd(Cmd):
             return
 
         print "Stop system test complete"
+
+    def do_createwdmclient(self, line):
+        """
+          create-wdm-client
+        """
+
+        try:
+            self.wdmClient = WeaveDataManagementClient.WDMClient()
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "create wdm client complete"
+
+    def do_newdatasink(self, line):
+        """
+          new-data-sink <profileid, instanceid, path>
+        """
+        path = None
+        args = shlex.split(line)
+
+        if (len(args) == 3):
+            path = args[2]
+
+        try:
+            self.traitInstance = self.wdmClient.newDataSink(0, None, 0, int(args[0]), int(args[1]), path)
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "create new data sink complete"
+
+    def do_setdata(self, line):
+        """
+          set-data <path, value>
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) != 2):
+            print "Usage:"
+            self.do_help('set-data')
+            return
+
+        isConditional = False
+
+        try:
+            self.traitInstance.setData(args[0], args[1], isConditional)
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "set string data in trait complete"
+
+    def do_flushupdate(self, line):
+        """
+          flush-update
+        """
+        try:
+            self.wdmClient.flushUpdate()
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "flush update complete"
+
+    def do_refreshdata(self, line):
+        """
+          refresh-data
+        """
+        try:
+            self.wdmClient.refreshData()
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "refresh trait data complete"
+
+    def do_refreshindividualdata(self, line):
+        """
+          refresh-individual-data
+        """
+        try:
+            self.traitInstance.refreshData()
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "refresh individual trait data complete"
+
+    def do_getdata(self, line):
+        """
+          get-data <path>
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) != 1):
+            print "Usage:"
+            self.do_help('get-data')
+            return
+
+        try:
+            print self.traitInstance.getData(args[0])
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "get data in trait complete"
 
     def do_history(self, line):
         """
