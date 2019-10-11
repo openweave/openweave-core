@@ -629,6 +629,13 @@ bool ConvertPrivateKey(const char * inKeyB64, size_t inKeyB64Len, KeyFormat keyF
         ExitNow(res = false);
     }
 
+    // When Weave key format is requested, have EncodePrivateKey() encode to raw bytes, rather
+    // than base64, since base64 encoding is handled below.
+    if (keyFormat == kKeyFormat_Weave_Base64)
+    {
+        keyFormat = kKeyFormat_Weave_Raw;
+    }
+
     if (!EncodePrivateKey(inKeyDecoded, keyFormat, outKey, outKeyLen))
     {
         ExitNow(res = false);
