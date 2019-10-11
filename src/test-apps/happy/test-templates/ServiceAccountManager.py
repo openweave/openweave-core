@@ -39,7 +39,7 @@ options["password"] = None
 def option():
     return options.copy()
 
-apigw_fmt = 'apigw01.weave01.iad02.{tier}.nestlabs.com'
+apigw_fmt = 'apigw.{tier}.nestlabs.com'
 apigw_siac_fmt = '{siac_name}.unstable.nestlabs.com'
 
 
@@ -70,12 +70,14 @@ class ServiceClient(object):
         if ".unstable" in self.tier:
             siac_name = self.tier.split('.')[0]
             apigw = apigw_siac_fmt.format(siac_name=siac_name)
+            channel = grpc.insecure_channel('{}:9953'.format(apigw))
         else:
             apigw = apigw_fmt.format(tier=self.tier)
-
+            port = 443
+            channel_credentials = grpc.ssl_channel_credentials(None, None, None)
+            channel = grpc.secure_channel('{}:{}'.format(apigw,port), channel_credentials)
         return \
-            gateway_api_pb2_grpc.GatewayServiceStub(
-                grpc.insecure_channel('{}:9953'.format(apigw)))
+            gateway_api_pb2_grpc.GatewayServiceStub(channel)
 
     @property
     def account_id(self):
