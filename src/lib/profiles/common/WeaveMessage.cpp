@@ -851,6 +851,7 @@ bool ReferencedTLVData::isFree(void)
  * @brief Pack a ReferencedTLVData object using a TLVWriter.
  *
  * @param [in] i An iterator over the message being packed.
+ * @param [in] maxLen The maximum number of bytes that should be written to the output buffer.
  *
  * @return a WEAVE_ERROR - WEAVE_NO_ERROR if all goes well, otherwise
  * an error reflecting an inability of the writer to write the
@@ -858,7 +859,7 @@ bool ReferencedTLVData::isFree(void)
  * return an error and so fails silently.
  */
 
-WEAVE_ERROR ReferencedTLVData::pack(MessageIterator &i)
+WEAVE_ERROR ReferencedTLVData::pack(MessageIterator &i, uint32_t maxLen)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     System::PacketBuffer *theBuffer = i.GetBuffer();
@@ -868,7 +869,7 @@ WEAVE_ERROR ReferencedTLVData::pack(MessageIterator &i)
     if (theWriteCallback != NULL)
     {
         theData = i.thePoint;
-        writer.Init(theBuffer);
+        writer.Init(theBuffer, maxLen);
         theWriteCallback(writer, theAppState);
         theLength = theBuffer->DataLength() - oldDataLength;
         i.thePoint += theLength;

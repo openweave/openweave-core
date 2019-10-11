@@ -294,6 +294,18 @@
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
 /**
+ *  @def WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+ *
+ *  @brief
+ *    Enable (1) or disable (0) sending/handling update response
+ *    in Weave Data Management Next profile.
+ *
+ */
+#ifndef WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+#define WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT 1
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+
+/**
  *  @def WDM_PUBLISHER_ENABLE_VIEW
  *
  *  @brief
@@ -570,6 +582,29 @@
  */
 #ifndef WDM_MIN_UPDATE_SIZE
 #define WDM_MIN_UPDATE_SIZE 1024
+#endif /* WDM_MIN_UPDATE_SIZE */
+
+/**
+ * @def WDM_MAX_UPDATE_RESPONSE_SIZE
+ *
+ * @brief
+ *   Specify the maximum size (in bytes) of a WDM update response
+ *   payload. Note that the WDM update payload is also limited
+ *   by the size of `nl::Weave::System::PacketBuffer`
+ */
+#ifndef WDM_MAX_UPDATE_RESPONSE_SIZE
+#define WDM_MAX_UPDATE_RESPONSE_SIZE 2048
+#endif /* WDM_MAX_UPDATE_SIZE */
+
+/**
+ * @def WDM_MIN_UPDATE_RESPONSE_SIZE
+ *
+ * @brief
+ *   Specify the minimum size (in bytes) of a WDM update response
+ *   payload.
+ */
+#ifndef WDM_MIN_UPDATE_RESPONSE_SIZE
+#define WDM_MIN_UPDATE_RESPONSE_SIZE 1024
 #endif /* WDM_MIN_UPDATE_SIZE */
 
 /**

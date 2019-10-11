@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google, LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +43,7 @@
 #include <Weave/Support/ErrorStr.h>
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/DeviceManager/WeaveDeviceManager.h>
-
+#include <Weave/DeviceManager/WeaveDataManagementClient.h>
 #include <inttypes.h>
 #include <net/if.h>
 
@@ -58,7 +59,7 @@ using namespace nl::Inet;
 using namespace nl::Weave;
 using namespace nl::Weave::DeviceManager;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
-
+using namespace nl::Weave::Profiles::DataManagement;
 using DeviceDescription::IdentifyDeviceCriteria;
 
 extern "C" {
@@ -143,8 +144,6 @@ extern "C" {
     // Trampolined callback types
     typedef void (*DeviceEnumerationResponseScriptFunct)(WeaveDeviceManager *deviceMgr, const DeviceDescription::WeaveDeviceDescriptor *devdesc, const char *deviceAddrStr);
 
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_Init();
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_Shutdown();
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_DriveIO(uint32_t sleepTimeMS);
 
 #if CONFIG_NETWORK_LAYER_BLE
@@ -244,10 +243,27 @@ extern "C" {
     NL_DLL_EXPORT uint64_t nl_Weave_DeviceManager_DeviceId(WeaveDeviceManager *devMgr);
     NL_DLL_EXPORT const char *nl_Weave_DeviceManager_DeviceAddress(WeaveDeviceManager *devMgr);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_CloseEndpoints();
-    NL_DLL_EXPORT const char *nl_Weave_DeviceManager_ErrorToString(WEAVE_ERROR err);
-    NL_DLL_EXPORT const char *nl_Weave_DeviceManager_StatusReportToString(uint32_t profileId, uint16_t statusCode);
     NL_DLL_EXPORT uint8_t nl_Weave_DeviceManager_GetLogFilter();
     NL_DLL_EXPORT void nl_Weave_DeviceManager_SetLogFilter(uint8_t category);
+
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_Stack_Init();
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_Stack_Shutdown();
+    NL_DLL_EXPORT const char *nl_Weave_Stack_ErrorToString(WEAVE_ERROR err);
+    NL_DLL_EXPORT const char *nl_Weave_Stack_StatusReportToString(uint32_t profileId, uint16_t statusCode);
+
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_Init();
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_Shutdown();
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_NewWDMClient(WDMClient **outWDMClient, WeaveDeviceManager *devMgr);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_DeleteWDMClient(WDMClient *wdmClient);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_NewDataSink(WDMClient *wdmClient, uint16_t aResourceType, const uint8_t * aResourceId, size_t aResourceIdLen, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitDataSink *& apGenericTraitDataSink);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_FlushUpdate(WDMClient *wdmClient, WDMClientCompleteFunct onComplete, WDMClientErrorFunct onError);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_RefreshData(WDMClient *wdmClient, WDMClientCompleteFunct onComplete, WDMClientErrorFunct onError);
+
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitDataSink_Close(GenericTraitDataSink * apGenericTraitDataSink);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitDataSink_RefreshData(GenericTraitDataSink * apGenericTraitDataSink, WDMClient *wdmClient, WDMClientCompleteFunct onComplete, WDMClientErrorFunct onError);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitDataSink_SetBytes(GenericTraitDataSink * apGenericTraitDataSink, const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitDataSink_GetLeafBytes(GenericTraitDataSink * apGenericTraitDataSink, const char * apPath, ConstructBytesArrayFunct aCallback);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitDataSink_GetBytes(GenericTraitDataSink * apGenericTraitDataSink, const char * apPath, ConstructBytesArrayFunct aCallback);
 }
 
 static void DeviceEnumerationResponseFunctTrampoline(WeaveDeviceManager *deviceMgr, void *appReqState, const DeviceDescription::WeaveDeviceDescriptor *devdesc,
@@ -275,132 +291,6 @@ exit:
     {
         WeaveLogError(DeviceManager, "DeviceEnumerationResponseFunctTrampoline failure, err = %d", err);
     }
-}
-
-WEAVE_ERROR nl_Weave_DeviceManager_Init()
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    WeaveMessageLayer::InitContext initContext;
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS && CONFIG_NETWORK_LAYER_BLE
-    int flags;
-#endif /* WEAVE_SYSTEM_CONFIG_USE_SOCKETS && CONFIG_NETWORK_LAYER_BLE */
-
-#if !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-
-    ExitNow(err = WEAVE_ERROR_NOT_IMPLEMENTED);
-
-#else /* WEAVE_SYSTEM_CONFIG_USE_SOCKETS */
-
-    // Initialize the underlying platform secure random source.
-    err = nl::Weave::Platform::Security::InitSecureRandomDataSource(NULL, 64, NULL, 0);
-    SuccessOrExit(err);
-
-    if (sSystemLayer.State() == System::kLayerState_Initialized)
-        ExitNow();
-
-    err = sSystemLayer.Init(NULL);
-    SuccessOrExit(err);
-
-    if (Inet.State == InetLayer::kState_Initialized)
-        ExitNow();
-
-    // Initialize the InetLayer object.
-    err = Inet.Init(sSystemLayer, NULL);
-    SuccessOrExit(err);
-
-#if CONFIG_NETWORK_LAYER_BLE
-    // Initialize the BleLayer object. For now, assume Device Manager is always a central.
-    err = Ble.Init(&sBlePlatformDelegate, &sBleApplicationDelegate, &sSystemLayer);
-    SuccessOrExit(err);
-
-    initContext.ble = &Ble;
-    initContext.listenBLE = false;
-
-    // Create BLE wake pipe and make it non-blocking.
-    if (pipe(BleWakePipe) == -1)
-    {
-        err = System::MapErrorPOSIX(errno);
-        ExitNow();
-    }
-
-    // Make read end non-blocking.
-    flags = fcntl(BleWakePipe[0], F_GETFL);
-    if (flags == -1)
-    {
-        err = System::MapErrorPOSIX(errno);
-        ExitNow();
-    }
-
-    flags |= O_NONBLOCK;
-    if (fcntl(BleWakePipe[0], F_SETFL, flags) == -1)
-    {
-        err = System::MapErrorPOSIX(errno);
-        ExitNow();
-    }
-
-    // Make write end non-blocking.
-    flags = fcntl(BleWakePipe[1], F_GETFL);
-    if (flags == -1)
-    {
-        err = System::MapErrorPOSIX(errno);
-        ExitNow();
-    }
-
-    flags |= O_NONBLOCK;
-    if (fcntl(BleWakePipe[1], F_SETFL, flags) == -1)
-    {
-        err = System::MapErrorPOSIX(errno);
-        ExitNow();
-    }
-#endif /* CONFIG_NETWORK_LAYER_BLE */
-
-    // Initialize the FabricState object.
-    err = FabricState.Init();
-    SuccessOrExit(err);
-
-    FabricState.FabricId = 0; // Not a member of any fabric
-    FabricState.LocalNodeId = 1; // TODO: TEMPORARY HACK -- use a different default node id to avoid conflict with the mock device.
-
-    // Initialize the WeaveMessageLayer object.
-    initContext.systemLayer = &sSystemLayer;
-    initContext.inet = &Inet;
-    initContext.fabricState = &FabricState;
-    initContext.listenTCP = false;
-    initContext.listenUDP = true;
-
-    err = MessageLayer.Init(&initContext);
-    SuccessOrExit(err);
-
-    // Initialize the Exchange Manager object.
-    err = ExchangeMgr.Init(&MessageLayer);
-    SuccessOrExit(err);
-
-    // Initialize the Security Manager object.
-    err = SecurityMgr.Init(ExchangeMgr, sSystemLayer);
-    SuccessOrExit(err);
-
-#endif /* WEAVE_SYSTEM_CONFIG_USE_SOCKETS */
-
-exit:
-    if (err != WEAVE_NO_ERROR)
-        nl_Weave_DeviceManager_Shutdown();
-    return err;
-}
-
-WEAVE_ERROR nl_Weave_DeviceManager_Shutdown()
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    if (Inet.State == InetLayer::kState_NotInitialized)
-        ExitNow();
-
-    if (sSystemLayer.State() == System::kLayerState_NotInitialized)
-        ExitNow();
-
-    // TODO: implement this
-
-exit:
-    return err;
 }
 
 WEAVE_ERROR nl_Weave_DeviceManager_NewDeviceManager(WeaveDeviceManager **outDevMgr)
@@ -1158,6 +1048,330 @@ void nl_Weave_DeviceManager_SetLogFilter(uint8_t category)
     nl::Weave::Logging::SetLogFilter(category);
 }
 
+WEAVE_ERROR nl_Weave_Stack_Init()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveMessageLayer::InitContext initContext;
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS && CONFIG_NETWORK_LAYER_BLE
+    int flags;
+#endif /* WEAVE_SYSTEM_CONFIG_USE_SOCKETS && CONFIG_NETWORK_LAYER_BLE */
+
+#if !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+    ExitNow(err = WEAVE_ERROR_NOT_IMPLEMENTED);
+
+#else /* WEAVE_SYSTEM_CONFIG_USE_SOCKETS */
+
+    // Initialize the underlying platform secure random source.
+    err = nl::Weave::Platform::Security::InitSecureRandomDataSource(NULL, 64, NULL, 0);
+    SuccessOrExit(err);
+
+    if (sSystemLayer.State() == System::kLayerState_Initialized)
+        ExitNow();
+
+    err = sSystemLayer.Init(NULL);
+    SuccessOrExit(err);
+
+    if (Inet.State == InetLayer::kState_Initialized)
+        ExitNow();
+
+    // Initialize the InetLayer object.
+    err = Inet.Init(sSystemLayer, NULL);
+    SuccessOrExit(err);
+
+#if CONFIG_NETWORK_LAYER_BLE
+    // Initialize the BleLayer object. For now, assume Device Manager is always a central.
+    err = Ble.Init(&sBlePlatformDelegate, &sBleApplicationDelegate, &sSystemLayer);
+    SuccessOrExit(err);
+
+    initContext.ble = &Ble;
+    initContext.listenBLE = false;
+
+    // Create BLE wake pipe and make it non-blocking.
+    if (pipe(BleWakePipe) == -1)
+    {
+        err = System::MapErrorPOSIX(errno);
+        ExitNow();
+    }
+
+    // Make read end non-blocking.
+    flags = fcntl(BleWakePipe[0], F_GETFL);
+    if (flags == -1)
+    {
+        err = System::MapErrorPOSIX(errno);
+        ExitNow();
+    }
+
+    flags |= O_NONBLOCK;
+    if (fcntl(BleWakePipe[0], F_SETFL, flags) == -1)
+    {
+        err = System::MapErrorPOSIX(errno);
+        ExitNow();
+    }
+
+    // Make write end non-blocking.
+    flags = fcntl(BleWakePipe[1], F_GETFL);
+    if (flags == -1)
+    {
+        err = System::MapErrorPOSIX(errno);
+        ExitNow();
+    }
+
+    flags |= O_NONBLOCK;
+    if (fcntl(BleWakePipe[1], F_SETFL, flags) == -1)
+    {
+        err = System::MapErrorPOSIX(errno);
+        ExitNow();
+    }
+#endif /* CONFIG_NETWORK_LAYER_BLE */
+
+    // Initialize the FabricState object.
+    err = FabricState.Init();
+    SuccessOrExit(err);
+
+    FabricState.FabricId = 0; // Not a member of any fabric
+    FabricState.LocalNodeId = 1; // TODO: TEMPORARY HACK -- use a different default node id to avoid conflict with the mock device.
+
+    // Initialize the WeaveMessageLayer object.
+    initContext.systemLayer = &sSystemLayer;
+    initContext.inet = &Inet;
+    initContext.fabricState = &FabricState;
+    initContext.listenTCP = false;
+    initContext.listenUDP = true;
+
+    err = MessageLayer.Init(&initContext);
+    SuccessOrExit(err);
+
+    // Initialize the Exchange Manager object.
+    err = ExchangeMgr.Init(&MessageLayer);
+    SuccessOrExit(err);
+
+    // Initialize the Security Manager object.
+    err = SecurityMgr.Init(ExchangeMgr, sSystemLayer);
+    SuccessOrExit(err);
+#endif /* WEAVE_SYSTEM_CONFIG_USE_SOCKETS */
+
+    exit:
+    if (err != WEAVE_NO_ERROR)
+        nl_Weave_Stack_Shutdown();
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_Stack_Shutdown()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (Inet.State == InetLayer::kState_NotInitialized)
+        ExitNow();
+
+    if (sSystemLayer.State() == System::kLayerState_NotInitialized)
+        ExitNow();
+
+    // TODO: implement this
+
+    exit:
+    return err;
+}
+
+const char *nl_Weave_Stack_ErrorToString(WEAVE_ERROR err)
+{
+        return nl::ErrorStr(err);
+}
+
+const char *nl_Weave_Stack_StatusReportToString(uint32_t profileId, uint16_t statusCode)
+{
+    return nl::StatusReportStr(profileId, statusCode);
+}
+
+static void EngineEventCallback(void * const aAppState,
+                                SubscriptionEngine::EventID aEvent,
+                                const SubscriptionEngine::InEventParam & aInParam, SubscriptionEngine::OutEventParam & aOutParam)
+{
+    switch (aEvent)
+    {
+        default:
+            SubscriptionEngine::DefaultEventHandler(aEvent, aInParam, aOutParam);
+            break;
+    }
+}
+
+WEAVE_ERROR nl_Weave_DataManagementClient_Init()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    err = SubscriptionEngine::GetInstance()->Init(&ExchangeMgr, NULL, EngineEventCallback);
+    SuccessOrExit(err);
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        nl_Weave_DataManagementClient_Shutdown();
+    }
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_DataManagementClient_Shutdown()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    return err;
+}
+
+static void BindingEventCallback (void * const apAppState, const nl::Weave::Binding::EventType aEvent,
+                                  const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Binding * binding = aInParam.Source;
+
+    WeaveLogDetail(DeviceManager, "%s: Event(%d)", __func__, aEvent);
+
+    WeaveDeviceManager * const pDeviceMgr = reinterpret_cast<WeaveDeviceManager *>(apAppState);
+
+    switch (aEvent)
+    {
+        case nl::Weave::Binding::kEvent_PrepareRequested:
+            WeaveLogDetail(DeviceManager, "kEvent_PrepareRequested");
+            err = pDeviceMgr->ConfigureBinding(binding);
+            aOutParam.PrepareRequested.PrepareError = err;
+            SuccessOrExit(err);
+            break;
+
+        case nl::Weave::Binding::kEvent_PrepareFailed:
+            err = aInParam.PrepareFailed.Reason;
+            WeaveLogDetail(DeviceManager, "kEvent_PrepareFailed: reason");
+            break;
+
+        case nl::Weave::Binding::kEvent_BindingFailed:
+            err = aInParam.BindingFailed.Reason;
+            WeaveLogDetail(DeviceManager, "kEvent_BindingFailed: reason");
+            break;
+
+        case nl::Weave::Binding::kEvent_BindingReady:
+            WeaveLogDetail(DeviceManager, "kEvent_BindingReady");
+            break;
+
+        case nl::Weave::Binding::kEvent_DefaultCheck:
+            WeaveLogDetail(DeviceManager, "kEvent_DefaultCheck");
+
+        default:
+            nl::Weave::Binding::DefaultEventHandler(apAppState, aEvent, aInParam, aOutParam);
+    }
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogDetail(DeviceManager, "error in BindingEventCallback");
+    }
+}
+
+WEAVE_ERROR nl_Weave_DataManagementClient_NewWDMClient(WDMClient **outWDMClient, WeaveDeviceManager *devMgr)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Binding * pBinding = NULL;
+    pBinding = ExchangeMgr.NewBinding(BindingEventCallback, devMgr);
+    VerifyOrExit(NULL != pBinding, err = WEAVE_ERROR_NO_MEMORY);
+
+    if (pBinding->CanBePrepared())
+    {
+        err = pBinding->RequestPrepare();
+        SuccessOrExit(err);
+    }
+
+    *outWDMClient = new WDMClient();
+    VerifyOrExit(*outWDMClient != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    err = (*outWDMClient)->Init(&MessageLayer, pBinding);
+    SuccessOrExit(err);
+
+exit:
+    if (err != WEAVE_NO_ERROR && *outWDMClient != NULL)
+    {
+        delete *outWDMClient;
+        *outWDMClient = NULL;
+    }
+
+    if (NULL != pBinding)
+    {
+        pBinding->Release();
+    }
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_DataManagementClient_DeleteWDMClient(WDMClient *wdmClient)
+{
+    if (wdmClient != NULL)
+    {
+        delete wdmClient;
+    }
+
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR nl_Weave_DataManagementClient_NewDataSink(WDMClient *wdmClient, uint16_t aResourceType, const uint8_t * aResourceId, size_t aResourceIdLen, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitDataSink *& apGenericTraitDataSink)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    ResourceIdentifier resourceId;
+    if (NULL == aResourceId)
+    {
+        resourceId = ResourceIdentifier(ResourceIdentifier::RESOURCE_TYPE_RESERVED, ResourceIdentifier::SELF_NODE_ID);
+    }
+    else
+    {
+        resourceId = ResourceIdentifier(aResourceType, aResourceId, aResourceIdLen);
+    }
+
+    err = wdmClient->NewDataSink(resourceId, aProfileId, aInstanceId, apPath, apGenericTraitDataSink);
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_DataManagementClient_FlushUpdate(WDMClient *wdmClient, WDMClientCompleteFunct onComplete, WDMClientErrorFunct onError)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    err = wdmClient->FlushUpdate(NULL, onComplete, onError);
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_DataManagementClient_RefreshData(WDMClient *wdmClient, WDMClientCompleteFunct onComplete, WDMClientErrorFunct onError)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    err = wdmClient->RefreshData(NULL, onComplete, onError, NULL);
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_GenericTraitDataSink_Close(GenericTraitDataSink * apGenericTraitDataSink)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    apGenericTraitDataSink->Close();
+
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_GenericTraitDataSink_RefreshData(GenericTraitDataSink * apGenericTraitDataSink, WDMClient * apWDMClient, WDMClientCompleteFunct onComplete, WDMClientErrorFunct onError)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    err = apGenericTraitDataSink->RefreshData(apWDMClient, onComplete, onError);
+
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_GenericTraitDataSink_SetBytes(GenericTraitDataSink * apGenericTraitDataSink, const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    err = apGenericTraitDataSink->SetBytes(apPath, dataBuf, dataLen, aIsConditional);
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_GenericTraitDataSink_GetLeafBytes(GenericTraitDataSink * apGenericTraitDataSink, const char * apPath, ConstructBytesArrayFunct aCallback)
+{
+    return apGenericTraitDataSink->GetLeafBytes(apPath, aCallback);
+}
+
+WEAVE_ERROR nl_Weave_GenericTraitDataSink_GetBytes(GenericTraitDataSink * apGenericTraitDataSink, const char * apPath, ConstructBytesArrayFunct aCallback)
+{
+    return apGenericTraitDataSink->GetBytes(apPath, aCallback);
+}
 
 namespace nl {
 namespace Weave {
@@ -1165,10 +1379,10 @@ namespace Platform {
 namespace PersistedStorage {
 
 /*
- * Dummy implementations of PersistedStorage platform methods. These aren't
- * used in the context of the Python DeviceManager, but are required to satisfy
- * the linker.
- */
+* Dummy implementations of PersistedStorage platform methods. These aren't
+* used in the context of the Python DeviceManager, but are required to satisfy
+* the linker.
+*/
 
 WEAVE_ERROR Read(const char *aKey, uint32_t &aValue)
 {

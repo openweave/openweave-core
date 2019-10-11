@@ -863,7 +863,7 @@ WEAVE_ERROR SubscriptionHandler::SendSubscribeResponse(const bool aPossibleLossO
 
     // Note we're sending back a message using an EC initiated by the client
     err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscribeResponse, msgBuf,
-                           nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+                           mEC->HasPeerRequestedAck() ? nl::Weave::ExchangeContext::kSendFlag_RequestAck : 0);
     msgBuf = NULL;
     SuccessOrExit(err);
 
