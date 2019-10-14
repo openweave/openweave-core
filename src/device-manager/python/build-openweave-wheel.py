@@ -117,7 +117,7 @@ try:
     if 'TRAVIS_BUILD_NUMBER' in os.environ:
         owPackageVer = os.environ['TRAVIS_BUILD_NUMBER']
     else:
-        owPackageVer = '0.0'
+        owPackageVer = os.environ.get('OPENWEAVE_PYTHON_VERSION', '0.0')
     
     # Generate a description string with information on how/when the package
     # was built. 
