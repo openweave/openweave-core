@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.EnumSet;
 import java.math.BigInteger;
 
-public class TestMain implements WeaveDeviceManager.CompletionHandler
+public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient.CompletionHandler
 {
     public class TestFailedException extends RuntimeException
     {
@@ -72,7 +72,9 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
     }
 
     String TestResult = null;
+    long mDeviceMgrPtr;
     WeaveDeviceManager DeviceMgr;
+    WDMClient WDMClient;
     long AddNetworkId = -1;
     byte[] TestDeviceDescriptor = parseHexBinary(
         "95010024002A24010124020125033245" +
@@ -94,23 +96,9 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         ExpectResult("isConnected", "false");
         System.out.println("isConnected Test Succeeded");
 
-        TestResult = null;
-        System.out.println("ConnectDevice Test");
-        System.out.println("    Connecting to test device at 127.0.0.1");
-        DeviceMgr.beginConnectDevice(1, "127.0.0.1");
-        ExpectSuccess("ConnectDevice");
-        System.out.println("ConnectDevice Test Succeeded");
-
-        System.out.println("isConnected Test");
-        TestResult = String.valueOf(DeviceMgr.isConnected());
-        ExpectResult("isConnected", "true");
-        System.out.println("isConnected Test Succeeded");
-
-        System.out.println("Closing WeaveDeviceManager");
-        DeviceMgr.close();
-
         System.out.println("Setting Rendezvous Address");
-        DeviceMgr.setRendezvousAddress("127.0.0.1");
+
+        //DeviceMgr.setRendezvousAddress("255.255.255.255");
 
         TestResult = null;
         System.out.println("RendezvousDevice Test");
@@ -127,38 +115,58 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         System.out.format("  Device Address: %s%n", DeviceMgr.deviceAddress());
         System.out.println("deviceAddress Test Complete");
 
+        mDeviceMgrPtr = DeviceMgr.getDeviceMgrPtr();
+        WDMClient = new WDMClient(mDeviceMgrPtr);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        WDMClient.setCompletionHandler(this);
+        localSettingTrait = WDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = WDMClient.newDataSink(0, null, 593165827, 0, "/");
+
+        localSettingTrait.setString("/1", "en-US", false);
+        testCTrait.setBoolean("/1", false, false);
+        testCTrait.setSigned("/2", 15, false);
+        testCTrait.setUnsigned("/3/1", -5, false);
+        testCTrait.setBoolean("/3/2", false, false);
+        testCTrait.setUnsigned("/4", -5, false);
+
+        TestResult = null;
+        WDMClient.beginFlushUpdate();
+        ExpectSuccess("FlushUpdate");
+        System.out.println("FlushUpdate Test Succeeded");
+
+        TestResult = null;
+        WDMClient.beginRefreshData();
+        ExpectSuccess("RefreshData");
+        System.out.println("RefreshData Test Succeeded");
+
+        String localeProperty = localSettingTrait.getString("/1");
+        System.out.println("GetString " + localeProperty);
+
+        boolean tca = testCTrait.getBoolean("/1");
+        System.out.println("GetBoolean " + tca);
+
+        int tcb = testCTrait.getIntData("/2");
+        System.out.println("GetSigned " + tcb);
+
+        int tcc_sca = testCTrait.getIntData("/3/1");
+        System.out.println("GetUnsigned" + tcc_sca);
+
+        boolean tcc_scb = testCTrait.getBoolean("/3/2");
+        System.out.println("GetBoolean " + tcc_scb);
+
+        int tcd = testCTrait.getIntData("/4");
+        System.out.println("GetUnsigned " + tcd);
+
+        WDMClient.close();
         TestResult = null;
         System.out.println("Ping Test");
         System.out.println("    Pinging device...");
         DeviceMgr.beginPing();
         ExpectSuccess("Ping");
         System.out.println("Ping Test Succeeded");
-
-        System.out.println("Closing WeaveDeviceManager");
-        DeviceMgr.close();
-
-        TestResult = null;
-        System.out.println("ReconnectDevice Test");
-        System.out.println("    Reconnect with device");
-        DeviceMgr.beginReconnectDevice();
-        ExpectSuccess("ReconnectDevice");
-        System.out.println("ReconnectDevice Test Succeeded");
-
-        System.out.println("Closing WeaveDeviceManager");
-        DeviceMgr.close();
-
-        System.out.println("Closing Endpoints");
-        WeaveDeviceManager.closeEndpoints();
-
-        System.out.println("Enabling auto-reconnect");
-        DeviceMgr.setAutoReconnect(true);
-
-        TestResult = null;
-        System.out.println("ResetConfig Test");
-        System.out.println("    Resetting device configuration...");
-        DeviceMgr.beginResetConfig(ResetFlags.All);
-        ExpectSuccess("ResetConfig");
-        System.out.println("ResetConfig Test Succeeded");
 
         TestResult = null;
         System.out.println("IdentifyDevice Test");
@@ -167,132 +175,8 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         ExpectSuccess("IdentifyDevice");
         System.out.println("IdentifyDevice Test Succeeded");
 
-        TestResult = null;
-        System.out.println("ScanNetworks Test");
-        System.out.println("    Scanning for WiFi networks...");
-        ExpectedNetworkCount = 3;
-        DeviceMgr.beginScanNetworks(NetworkType.WiFi);
-        ExpectSuccess("ScanNetworks");
-        System.out.println("ScanNetworks Test Succeeded");
-
-        TestResult = null;
-        System.out.println("ScanNetworks Test");
-        System.out.println("    Scanning for Thread networks...");
-        ExpectedNetworkCount = 1;
-        DeviceMgr.beginScanNetworks(NetworkType.Thread);
-        ExpectSuccess("ScanNetworks");
-        System.out.println("ScanNetworks Test Succeeded");
-
-        TestResult = null;
-        System.out.println("ArmFailSafe Test");
-        System.out.println("    Arming config fail-safe mechanism...");
-        int failSafeToken = DeviceMgr.beginArmFailSafe(FailSafeArmMode.New);
-        ExpectSuccess("ArmFailSafe");
-        System.out.format("    Fail-safe token = %d%n", failSafeToken);
-        System.out.println("ArmFailSafe Test Succeeded");
-
-        TestResult = null;
-        System.out.println("AddNetwork Test");
-        System.out.println("    Adding new Wifi network...");
-        NetworkInfo networkInfo = NetworkInfo.MakeWiFi("Wireless-Test", WiFiMode.Managed,
-                WiFiRole.Station, WiFiSecurityType.WEP, "apassword".getBytes());
-        DeviceMgr.beginAddNetwork(networkInfo);
-        ExpectSuccess("AddNetwork");
-        System.out.println("AddNetwork Test Succeeded");
-
-        TestResult = null;
-        System.out.println("AddNetwork Test");
-        System.out.println("    Adding new Thread network...");
-        networkInfo = NetworkInfo.MakeThread("Thread-Test",
-                                        parseHexBinary("0102030405060708"),
-                                        "akey".getBytes(),
-                                        0x1234,
-                                        (byte)21);
-        DeviceMgr.beginAddNetwork(networkInfo);
-        ExpectSuccess("AddNetwork");
-        System.out.println("AddNetwork Test Succeeded");
-
-        TestResult = null;
-        System.out.println("GetNetworks Test");
-        System.out.println("    Getting configured networks...");
-        ExpectedNetworkCount = 2;
-        DeviceMgr.beginGetNetworks(GetNetworkFlags.None);
-        ExpectSuccess("GetNetworks");
-        System.out.println("GetNetworks Test Succeeded");
-
-        TestResult = null;
-        System.out.println("RemoveNetwork Test");
-        System.out.format("    Removing WiFi network %d...%n", AddNetworkId);
-        DeviceMgr.beginRemoveNetwork(AddNetworkId);
-        ExpectSuccess("RemoveNetwork");
-        System.out.println("RemoveNetwork Test Succeeded");
-
-        TestResult = null;
-        System.out.println("GetNetworks Test");
-        System.out.println("    Getting configured networks...");
-        ExpectedNetworkCount = 1;
-        DeviceMgr.beginGetNetworks(GetNetworkFlags.None);
-        ExpectSuccess("GetNetworks");
-        System.out.println("GetNetworks Test Succeeded");
-
-        TestResult = null;
-        System.out.println("GetCameraAuthData Test");
-        System.out.println("    Getting camera auth data...");
-        DeviceMgr.beginGetCameraAuthData("Ceci n'est pas un nonce.012345670123456789ABCDEF0123456789ABCDEF");
-        ExpectSuccess("GetCameraAuthData");
-        System.out.println("GetCameraAuthData Test Succeeded");
-
-        TestResult = null;
-        System.out.println("CreateFabric Test");
-        System.out.format("    Creating fabric...%n");
-        DeviceMgr.beginCreateFabric();
-        ExpectSuccess("CreateFabric");
-        System.out.println("CreateFabric Test Succeeded");
-
-        TestResult = null;
-        System.out.println("GetFabricConfig Test");
-        System.out.format("    Getting fabric configuration...%n");
-        DeviceMgr.beginGetFabricConfig();
-        ExpectSuccess("GetFabricConfig");
-        System.out.println("GetFabricConfig Test Succeeded");
-
-        TestResult = null;
-        System.out.println("LeaveFabric Test");
-        System.out.format("    Leaving fabric...%n");
-        DeviceMgr.beginLeaveFabric();
-        ExpectSuccess("LeaveFabric");
-        System.out.println("LeaveFabric Test Succeeded");
-
-        TestResult = null;
-        System.out.println("JoinExistingFabric Test");
-        System.out.format("    Joinging existing fabric...%n");
-        DeviceMgr.beginJoinExistingFabric(FabricConfig);
-        ExpectSuccess("JoinExistingFabric");
-        System.out.println("JoinExistingFabric Test Succeeded");
-
-        TestResult = null;
-        System.out.println("DisrmFailSafe Test");
-        System.out.println("    Disarming config fail-safe mechanism...");
-        DeviceMgr.beginDisarmFailSafe();
-        ExpectSuccess("DisrmFailSafe");
-        System.out.println("DisrmFailSafe Test Succeeded");
-
         System.out.println("Closing WeaveDeviceManager");
         DeviceMgr.close();
-
-        System.out.println("Decode Device Descriptor Test");
-        WeaveDeviceDescriptor deviceDesc = DeviceMgr.decodeDeviceDescriptor(TestDeviceDescriptor);
-        print(deviceDesc, "  ");
-        System.out.println("Decode Device Descriptor Test Succeeded");
-
-        System.out.println("ValidatePairingCode Test");
-        if (!DeviceMgr.isValidPairingCode("3Y0DN8"))
-            throw new TestFailedException("ValidatePairingCode");
-        if (DeviceMgr.isValidPairingCode("3Y0D8N"))
-            throw new TestFailedException("ValidatePairingCode");
-        if (DeviceMgr.isValidPairingCode("ABCDEFGHI"))
-            throw new TestFailedException("ValidatePairingCode");
-        System.out.println("ValidatePairingCode Test Succeeded");
 
         System.out.println("Forcing GC/finalization of WeaveDeviceManager object");
         DeviceMgr = null;
@@ -529,6 +413,18 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
 
     public void onStopSystemTestComplete()
     {
+    }
+
+    public void onFlushUpdateComplete()
+    {
+        System.out.println("    Flush Update complete");
+        TestResult = "Success";
+    }
+
+    public void onRefreshDataComplete()
+    {
+        System.out.println("    Refresh Data complete");
+        TestResult = "Success";
     }
 
     public void print(WeaveDeviceDescriptor deviceDesc, String prefix)

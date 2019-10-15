@@ -65,6 +65,7 @@
 #include <Weave/Profiles/data-management/SubscriptionHandler.h>
 #include <Weave/Profiles/data-management/TraitData.h>
 #include <Weave/Profiles/data-management/TraitCatalog.h>
+#include <Weave/Profiles/data-management/GenericTraitCatalogImp.h>
 #include <Weave/Profiles/data-management/NotificationEngine.h>
 #include <Weave/Profiles/data-management/SubscriptionClient.h>
 #include <Weave/Profiles/data-management/ViewClient.h>

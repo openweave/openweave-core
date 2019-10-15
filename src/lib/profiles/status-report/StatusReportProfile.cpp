@@ -81,7 +81,7 @@ WEAVE_ERROR StatusReport::init(WEAVE_ERROR aError)
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR StatusReport::pack(PacketBuffer *aBuffer)
+WEAVE_ERROR StatusReport::pack(PacketBuffer *aBuffer, uint32_t maxLen)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     MessageIterator i(aBuffer);
@@ -129,7 +129,7 @@ WEAVE_ERROR StatusReport::pack(PacketBuffer *aBuffer)
 
     else
     {
-        err = mAdditionalInfo.pack(i);
+        err = mAdditionalInfo.pack(i, maxLen - 6);
     }
 
 exit:

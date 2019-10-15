@@ -1,6 +1,7 @@
 /*
 
-    Copyright (c) 013-2017 Nest Labs, Inc.
+    Copyright (c) 2013-2018 Nest Labs, Inc.
+    Copyright (c) 2019 Google, LLC.
     All rights reserved.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -171,6 +172,11 @@ public class WeaveDeviceManager
     public String deviceAddress()
     {
         return deviceAddress(mDeviceMgrPtr);
+    }
+
+    public long getDeviceMgrPtr()
+    {
+        return mDeviceMgrPtr;
     }
 
     public CompletionHandler getCompletionHandler()

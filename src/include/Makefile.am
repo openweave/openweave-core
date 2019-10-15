@@ -603,6 +603,7 @@ $(nl_public_WeaveProfiles_source_dirstem)/data-management/MessageDef.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/ViewClient.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/TraitData.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/TraitCatalog.h \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/GenericTraitCatalogImp.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/TraitPathStore.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/SubscriptionEngine.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/SubscriptionClient.h \
@@ -642,6 +643,7 @@ $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ResourceIdenti
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ViewClient.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitData.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitCatalog.h \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/GenericTraitCatalogImp.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitPathStore.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SubscriptionEngine.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SubscriptionClient.h \
@@ -959,6 +961,10 @@ nl_public_WeaveDeviceManager_destination_dirstem = Weave/DeviceManager
 
 nl_public_WeaveDeviceManager_header_sources = \
 $(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDeviceManager.h \
+$(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDataManagementClient.h \
+$(nl_public_WeaveDeviceManager_source_dirstem)/TraitSchemaDirectory.h \
+$(nl_public_WeaveDeviceManager_source_dirstem)/schema/weave/trait/locale/LocaleSettingsTrait.h \
+$(nl_public_WeaveDeviceManager_source_dirstem)/schema/nest/test/trait/TestCTrait.h \
 $(NULL)
 
 nl_public_WeaveDeviceManager_header_paths = $(subst $(nl_public_WeaveDeviceManager_source_dirstem)/,,$(nl_public_WeaveDeviceManager_header_sources))

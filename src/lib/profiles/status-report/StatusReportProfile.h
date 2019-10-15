@@ -73,7 +73,7 @@ namespace StatusReporting {
 
         WEAVE_ERROR init(WEAVE_ERROR aError);
 
-        WEAVE_ERROR pack(PacketBuffer *aBuffer);
+        WEAVE_ERROR pack(PacketBuffer *aBuffer, uint32_t maxLen = 0xFFFFFFFFUL);
         uint16_t packedLength(void);
         static WEAVE_ERROR parse(PacketBuffer *aBuffer, StatusReport &aDestination);
 
