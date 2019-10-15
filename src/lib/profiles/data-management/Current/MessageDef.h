@@ -128,9 +128,9 @@ enum
     kStatus_InvalidSubscriptionID         = 0x28,
     kStatus_GeneralSchemaViolation        = 0x29,
     kStatus_UnpairedDeviceRejected        = 0x2A,
-    kStatus_IncompatibleDataSchemaVersion = 0x2B,
-    kStatus_MultipleFailures              = 0x2C,
-    kStatus_UpdateOutOfSequence           = 0x2D,
+    kStatus_MultipleFailures              = 0x2B,
+    kStatus_UpdateOutOfSequence           = 0x2C,
+    kStatus_IncompatibleDataSchemaVersion = 0x2D,
 };
 
 // TODO: The type is only used in a few places. We should use it everywhere.

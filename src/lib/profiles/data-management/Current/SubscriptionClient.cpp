@@ -3222,11 +3222,19 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate(bool aForce)
         SetPendingSetState(kPendingSetReady);
     }
 
-    VerifyOrExit(mPendingSetState == kPendingSetReady,
-            WeaveLogDetail(DataManagement, "%s: PendingSetState: %d; err = %s", __func__, mPendingSetState, nl::ErrorStr(err)));
+    if (mPendingSetState != kPendingSetReady)
+    {
+        WeaveLogDetail(DataManagement, "%s: PendingSetState: %d; err = %s", __func__, mPendingSetState, nl::ErrorStr(err));
+        err = WEAVE_ERROR_INCORRECT_STATE;
+        SuccessOrExit(err);
+    }
 
-    VerifyOrExit(false == IsUpdateInFlight(),
-            WeaveLogDetail(DataManagement, "%s: update already in flight", __func__));
+    if (true == IsUpdateInFlight())
+    {
+        WeaveLogDetail(DataManagement, "%s: update already in flight", __func__);
+        err = WEAVE_ERROR_INCORRECT_STATE;
+        SuccessOrExit(err);
+    }
 
     if (aForce)
     {
