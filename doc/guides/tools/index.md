@@ -15,9 +15,9 @@ Tool | Description | [Standalone build](https://openweave.io/guides/build#standa
 `weave` | Generate and manage Weave certificates | `/src/tools/weave`
 `weave-device-descriptor` | Encode and decode Weave device descriptor strings for pairing QR codes | `/src/test-apps`
 [`weave-device-mgr`](/guides/tools/device-manager) | Manage the device pairing process | `/src/device-manager/python`
-`weave-heartbeat` | Send and receive <a href="https://openweave.io/guides/weave-primer/profiles#heartbeat">_*Heartbeat*_</a> profile messages | `/src/test-apps`
+`weave-heartbeat` | Send and receive <a href="https://openweave.io/guides/weave-primer/profiles#heartbeat">Heartbeat <!-- heartbeat --></a> profile messages | `/src/test-apps`
 `weave-key-export` | Send key export requests | `/src/test-apps`
-`weave-ping`| Send and receive <a href="https://openweave.io/guides/weave-primer/profiles#echo">_*Echo*_</a> profile messages | `/src/test-apps`
+`weave-ping`| Send and receive <a href="https://openweave.io/guides/weave-primer/profiles#echo">Echo <!-- echo --></a> profile messages | `/src/test-apps`
 
 To build the target:
 
@@ -167,7 +167,7 @@ Primary WiFi MAC: 5C:F3:70:80:0E:77
 ## weave-heartbeat
 
 Use `weave-heartbeat` to send and receive
-<a href="https://openweave.io/guides/weave-primer/profiles#heartbeat">_*Heartbeat*_</a> profile messages between
+<a href="https://openweave.io/guides/weave-primer/profiles#heartbeat">Heartbeat <!-- heartbeat --></a> profile messages between
 two Weave nodes. Heartbeat provides a means to indicate liveness of one node to
 the other nodes in the network, or to check if a node remains connected to the
 fabric.
@@ -260,7 +260,7 @@ $ ./mock-device -a fd00:0:1:1::1
 ## weave-ping
 
 Use `weave-ping` to send and receive
-<a href="https://openweave.io/guides/weave-primer/profiles#echo">_*Echo*_</a> profile messages
+<a href="https://openweave.io/guides/weave-primer/profiles#echo">Echo <!-- echo --></a> profile messages
 between two Weave nodes. An Echo payload consists of arbitrary data supplied by
 the requesting node and is expected to be echoed back verbatim in the response.
 Echo provides a means to test network connectivity and latency.
