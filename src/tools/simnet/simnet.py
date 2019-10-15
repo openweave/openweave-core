@@ -1877,7 +1877,7 @@ def initSimnetIPTables(nsName=None):
     # Create the simnet IPv4 FORWARD chain and add it to the default FORWARD chain.
     runCmd([ 'iptables', '-N', namePrefix + 'FORWARD' ], nsName=nsName, 
            errMsg='Unable to create simnet iptables FORWARD chain in namespace %s' % nsName)
-    runCmd([ 'iptables', '-A', 'FORWARD', '-j', namePrefix + 'FORWARD' ], nsName=nsName, 
+    runCmd([ 'iptables', '-I', 'FORWARD', '-j', namePrefix + 'FORWARD' ], nsName=nsName, 
            errMsg='Unable to add simnet iptables FORWARD chain to default FORWARD chain in namespace %s' % nsName)
     
     # Set the policy on the default IPv4 FORWARD chain to DROP.
@@ -1893,7 +1893,7 @@ def initSimnetIPTables(nsName=None):
     # Create the simnet IPv6 FORWARD chain and add it to the default FORWARD chain.
     runCmd([ 'ip6tables', '-N', namePrefix + 'FORWARD' ], nsName=nsName, 
            errMsg='Unable to create simnet ip6tables FORWARD chain in namespace %s' % nsName)
-    runCmd([ 'ip6tables', '-A', 'FORWARD', '-j', namePrefix + 'FORWARD' ], nsName=nsName, 
+    runCmd([ 'ip6tables', '-I', 'FORWARD', '-j', namePrefix + 'FORWARD' ], nsName=nsName, 
            errMsg='Unable to add simnet ip6tables FORWARD chain to default FORWARD chain in namespace %s' % nsName)
     
     # Set the policy on the default IPv6 FORWARD chains to DROP.
