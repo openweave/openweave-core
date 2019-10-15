@@ -18,11 +18,13 @@
  */
 package nl.Weave.DeviceManager;
 
+import nl.Weave.DataManagement.*;
+
 import java.text.SimpleDateFormat;
 import java.util.EnumSet;
 import java.math.BigInteger;
 
-public class TestMain implements WeaveDeviceManager.CompletionHandler
+public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient.CompletionHandler, GenericTraitUpdatableDataSink.CompletionHandler
 {
     public class TestFailedException extends RuntimeException
     {
@@ -84,6 +86,492 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
     byte[] FabricConfig = null;
     int ExpectedNetworkCount;
 
+    void testWDMClientCreateClose(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+        mockWDMClient.close();
+    }
+
+    void testWDMClientDataSinkCreateClose(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+
+        mockWDMClient.close();
+        System.out.println("testWDMClientDataSinkCreateClose Test Succeeded");
+    }
+
+    void testWDMClientDataSinkEmptyFlushData(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+
+        TestResult = null;
+        mockWDMClient.beginFlushUpdate();
+        ExpectSuccess("FlushUpdate");
+
+        mockWDMClient.close();
+        System.out.println("testWDMClientDataSinkEmptyFlushData Test Succeeded");
+    }
+
+    void testWDMClientDataSinkSetFlushData(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+
+        localSettingTrait.setString("/1", "en-US");
+        testCTrait.setBoolean("/1", false);
+        testCTrait.setInt("/2", 15);
+        testCTrait.setUnsigned("/3/1", -5);
+        testCTrait.setBoolean("/3/2", false);
+        testCTrait.setUnsigned("/4", -5);
+
+        TestResult = null;
+        mockWDMClient.beginFlushUpdate();
+        ExpectSuccess("FlushUpdate");
+        System.out.println("testWDMClientDataSinkSetFlushData Test Succeeded");
+
+        mockWDMClient.close();
+    }
+
+    void testWDMClientDataSinkRefreshGetData(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+
+        TestResult = null;
+        mockWDMClient.beginRefreshData();
+        ExpectSuccess("RefreshData");
+
+        String localeProperty = localSettingTrait.getString("/1");
+        System.out.println("GetString " + localeProperty);
+
+        boolean tca = testCTrait.getBoolean("/1");
+        System.out.println("GetBoolean " + tca);
+
+        int tcb = testCTrait.getInt("/2");
+        System.out.println("getInt " + tcb);
+
+        int tcc_sca = testCTrait.getInt("/3/1");
+        System.out.println("GetUnsigned" + tcc_sca);
+
+        boolean tcc_scb = testCTrait.getBoolean("/3/2");
+        System.out.println("GetBoolean " + tcc_scb);
+
+        int tcd = testCTrait.getInt("/4");
+        System.out.println("GetUnsigned " + tcd);
+
+        mockWDMClient.close();
+        System.out.println("testWDMClientDataSinkRefreshGetData Test Succeeded");
+    }
+
+    void testWDMClientDataSinkRefreshIndividualGetData(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+
+        TestResult = null;
+        localSettingTrait.beginRefreshData();
+        ExpectSuccess("RefreshData");
+        System.out.println("RefreshData localSettingTrait Succeeded");
+
+        String localeProperty = localSettingTrait.getString("/1");
+        System.out.println("GetString " + localeProperty);
+
+        TestResult = null;
+        testCTrait.beginRefreshData();
+        ExpectSuccess("RefreshData");
+
+        boolean tca = testCTrait.getBoolean("/1");
+        System.out.println("GetBoolean " + tca);
+
+        int tcb = testCTrait.getInt("/2");
+        System.out.println("getInt " + tcb);
+
+        int tcc_sca = testCTrait.getInt("/3/1");
+        System.out.println("GetUnsigned" + tcc_sca);
+
+        boolean tcc_scb = testCTrait.getBoolean("/3/2");
+        System.out.println("GetBoolean " + tcc_scb);
+
+        int tcd = testCTrait.getInt("/4");
+        System.out.println("GetUnsigned " + tcd);
+
+        mockWDMClient.close();
+        System.out.println("testWDMClientDataSinkRefreshIndividualGetData Succeeded");
+    }
+
+    void testWDMClientDataSinkCloseIndividualData(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+        TestResult = null;
+        localSettingTrait.beginRefreshData();
+        ExpectSuccess("RefreshData");
+        System.out.println("RefreshData localSettingTrait Succeeded");
+
+        localSettingTrait.close();
+
+        TestResult = null;
+        testCTrait.beginRefreshData();
+        ExpectSuccess("RefreshData");
+        System.out.println("RefreshData testCTrait Succeeded");
+
+        testCTrait.close();
+
+        mockWDMClient.close();
+        System.out.println("testWDMClientDataSinkCloseIndividualData Succeeded");
+    }
+
+    void testWDMClientDataSinkSetFlushRefreshGetData(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+
+        localSettingTrait.setString("/1", "en-US");
+        testCTrait.setBoolean("/1", false);
+        testCTrait.setInt("/2", 15);
+        testCTrait.setUnsigned("/3/1", -5);
+        testCTrait.setBoolean("/3/2", false);
+        testCTrait.setUnsigned("/4", -5);
+
+        TestResult = null;
+        mockWDMClient.beginFlushUpdate();
+        ExpectSuccess("FlushUpdate");
+        System.out.println("FlushUpdate Test Succeeded");
+
+        TestResult = null;
+        mockWDMClient.beginRefreshData();
+        ExpectSuccess("RefreshData");
+        System.out.println("RefreshData Test Succeeded");
+
+        String localeProperty = localSettingTrait.getString("/1");
+        System.out.println("GetString " + localeProperty);
+
+        boolean tca = testCTrait.getBoolean("/1");
+        System.out.println("GetBoolean " + tca);
+
+        int tcb = testCTrait.getInt("/2");
+        System.out.println("getInt " + tcb);
+
+        int tcc_sca = testCTrait.getInt("/3/1");
+        System.out.println("GetUnsigned" + tcc_sca);
+
+        boolean tcc_scb = testCTrait.getBoolean("/3/2");
+        System.out.println("GetBoolean " + tcc_scb);
+
+        int tcd = testCTrait.getInt("/4");
+        System.out.println("GetUnsigned " + tcd);
+
+        mockWDMClient.close();
+        System.out.println("testWDMClientDataSinkSetFlushRefreshGetData Succeeded");
+    }
+
+    void testWDMClientDataSinkSetFlushRefreshGetBigInteger(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+
+        localSettingTrait.setString("/1", "en-US");
+        testCTrait.setBoolean("/1", false);
+        testCTrait.setInt("/2", 15);
+        testCTrait.setUnsigned("/3/1", -5);
+        testCTrait.setBoolean("/3/2", false);
+        testCTrait.setUnsigned("/4", 6);
+
+        TestResult = null;
+        mockWDMClient.beginFlushUpdate();
+        ExpectSuccess("FlushUpdate");
+        System.out.println("FlushUpdate Test Succeeded");
+
+        TestResult = null;
+        mockWDMClient.beginRefreshData();
+        ExpectSuccess("RefreshData");
+        System.out.println("RefreshData Test Succeeded");
+
+        String localeProperty = localSettingTrait.getString("/1");
+        System.out.println("GetString " + localeProperty);
+
+        boolean tca = testCTrait.getBoolean("/1");
+        System.out.println("GetBoolean " + tca);
+
+        int tcb = testCTrait.getInt("/2");
+        System.out.println("getInt " + tcb);
+
+        BigInteger tcc_sca = testCTrait.getBigInteger("/3/1", 32);
+        System.out.println("getBigInteger" + tcc_sca);
+
+        boolean tcc_scb = testCTrait.getBoolean("/3/2");
+        System.out.println("GetBoolean " + tcc_scb);
+
+        BigInteger tcd = testCTrait.getBigInteger("/4", 32);
+        System.out.println("getBigInteger " + tcd);
+
+        mockWDMClient.close();
+        System.out.println("testWDMClientDataSinkSetFlushRefreshGetBigInteger Succeeded");
+    }
+
+    void testWDMClientDataSinkSetBigIntegerFlushRefreshGetBigInteger(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+
+        localSettingTrait.setString("/1", "en-US");
+        testCTrait.setBoolean("/1", false);
+        BigInteger Element2 = new BigInteger("15");
+        testCTrait.setInt("/2", Element2);
+        BigInteger Element31 = new BigInteger("4294967291"); //-5
+        testCTrait.setUnsigned("/3/1", Element31);
+        testCTrait.setBoolean("/3/2", false);
+        BigInteger Element4 = new BigInteger("6");
+        testCTrait.setUnsigned("/4", Element4);
+
+        TestResult = null;
+        mockWDMClient.beginFlushUpdate();
+        ExpectSuccess("FlushUpdate");
+        System.out.println("FlushUpdate Test Succeeded");
+
+        TestResult = null;
+        mockWDMClient.beginRefreshData();
+        ExpectSuccess("RefreshData");
+        System.out.println("RefreshData Test Succeeded");
+
+        String localeProperty = localSettingTrait.getString("/1");
+        System.out.println("GetString " + localeProperty);
+
+        boolean tca = testCTrait.getBoolean("/1");
+        System.out.println("GetBoolean " + tca);
+
+        int tcb = testCTrait.getInt("/2");
+        System.out.println("getInt " + tcb);
+
+        BigInteger tcc_sca = testCTrait.getBigInteger("/3/1", 32);
+        System.out.println("getBigInteger" + tcc_sca);
+
+        boolean tcc_scb = testCTrait.getBoolean("/3/2");
+        System.out.println("GetBoolean " + tcc_scb);
+
+        BigInteger tcd = testCTrait.getBigInteger("/4", 32);
+        System.out.println("getBigInteger " + tcd);
+
+        mockWDMClient.close();
+        System.out.println("testWDMClientDataSinkSetBigIntegerFlushRefreshGetBigInteger Succeeded");
+    }
+
+    void testWDMClientDataSinkSetRefreshFlushGetData(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+
+        localSettingTrait.setString("/1", "en-US");
+        testCTrait.setBoolean("/1", false);
+        testCTrait.setInt("/2", 15);
+        testCTrait.setUnsigned("/3/1", -5);
+        testCTrait.setBoolean("/3/2", false);
+        testCTrait.setUnsigned("/4", -5);
+
+        TestResult = null;
+        mockWDMClient.beginRefreshData();
+        ExpectSuccess("RefreshData");
+        System.out.println("RefreshData Test Succeeded");
+
+        TestResult = null;
+        mockWDMClient.beginFlushUpdate();
+        ExpectSuccess("FlushUpdate");
+        System.out.println("FlushUpdate Test Succeeded");
+
+        String localeProperty = localSettingTrait.getString("/1");
+        System.out.println("GetString " + localeProperty);
+
+        boolean tca = testCTrait.getBoolean("/1");
+        System.out.println("GetBoolean " + tca);
+
+        int tcb = testCTrait.getInt("/2");
+        System.out.println("getInt " + tcb);
+
+        int tcc_sca = testCTrait.getInt("/3/1");
+        System.out.println("GetUnsigned" + tcc_sca);
+
+        boolean tcc_scb = testCTrait.getBoolean("/3/2");
+        System.out.println("GetBoolean " + tcc_scb);
+
+        int tcd = testCTrait.getInt("/4");
+        System.out.println("GetUnsigned " + tcd);
+
+        mockWDMClient.close();
+        System.out.println("testWDMClientDataSinkSetRefreshFlushGetData Succeeded");
+    }
+
+    void testWDMClientDataSinkSetRefreshCloseFlushRefreshGetData(long deviceMgrPtr)
+    {
+        WDMClient mockWDMClient;
+        mockWDMClient = new WDMClient(deviceMgrPtr);
+        mockWDMClient.setCompletionHandler(this);
+
+        GenericTraitUpdatableDataSink localSettingTrait;
+        GenericTraitUpdatableDataSink testCTrait;
+
+        localSettingTrait = mockWDMClient.newDataSink(0, null, 20, 0, "/");
+        testCTrait = mockWDMClient.newDataSink(0, null, 593165827, 0, "/");
+        localSettingTrait.setCompletionHandler(this);
+        testCTrait.setCompletionHandler(this);
+
+        localSettingTrait.setString("/1", "en-US");
+        testCTrait.setBoolean("/1", false);
+        testCTrait.setInt("/2", 15);
+        testCTrait.setUnsigned("/3/1", -5);
+        testCTrait.setBoolean("/3/2", false);
+        testCTrait.setUnsigned("/4", -5);
+
+        TestResult = null;
+        mockWDMClient.beginRefreshData();
+        ExpectSuccess("RefreshData");
+        System.out.println("RefreshData Test Succeeded");
+
+        localSettingTrait.close();
+        testCTrait.close();
+
+        TestResult = null;
+        mockWDMClient.beginFlushUpdate();
+        ExpectSuccess("FlushUpdate");
+        System.out.println("FlushUpdate Test Succeeded");
+
+        TestResult = null;
+        mockWDMClient.beginRefreshData();
+        ExpectSuccess("RefreshData");
+        System.out.println("RefreshData Test Succeeded");
+
+        String localeProperty = localSettingTrait.getString("/1");
+        System.out.println("GetString " + localeProperty);
+
+        boolean tca = testCTrait.getBoolean("/1");
+        System.out.println("GetBoolean " + tca);
+
+        int tcb = testCTrait.getInt("/2");
+        System.out.println("getInt " + tcb);
+
+        int tcc_sca = testCTrait.getInt("/3/1");
+        System.out.println("GetUnsigned" + tcc_sca);
+
+        boolean tcc_scb = testCTrait.getBoolean("/3/2");
+        System.out.println("GetBoolean " + tcc_scb);
+
+        int tcd = testCTrait.getInt("/4");
+        System.out.println("GetUnsigned " + tcd);
+
+        mockWDMClient.close();
+        System.out.println("testWDMClientDataSinkSetRefreshCloseFlushRefreshGetData Succeeded");
+    }
+
+    void RunMockWDMClientTest(long deviceMgrPtr)
+    {
+        System.out.println("Run Weave Data Management Start");
+        testWDMClientCreateClose(deviceMgrPtr);
+        testWDMClientDataSinkCreateClose(deviceMgrPtr);
+        testWDMClientDataSinkSetFlushData(deviceMgrPtr);
+        testWDMClientDataSinkRefreshGetData(deviceMgrPtr);
+        testWDMClientDataSinkRefreshIndividualGetData(deviceMgrPtr);
+        testWDMClientDataSinkCloseIndividualData(deviceMgrPtr);
+        testWDMClientDataSinkSetFlushRefreshGetData(deviceMgrPtr);
+        testWDMClientDataSinkSetFlushRefreshGetBigInteger(deviceMgrPtr);
+        testWDMClientDataSinkSetBigIntegerFlushRefreshGetBigInteger(deviceMgrPtr);
+        testWDMClientDataSinkSetRefreshFlushGetData(deviceMgrPtr);
+        testWDMClientDataSinkSetRefreshCloseFlushRefreshGetData(deviceMgrPtr);
+        System.out.println("Run Weave Data Management Complete");
+    }
+
     void RunUnitTests()
     {
         DeviceMgr = new WeaveDeviceManager();
@@ -93,7 +581,7 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         TestResult = String.valueOf(DeviceMgr.isConnected());
         ExpectResult("isConnected", "false");
         System.out.println("isConnected Test Succeeded");
-
+/*
         TestResult = null;
         System.out.println("ConnectDevice Test");
         System.out.println("    Connecting to test device at 127.0.0.1");
@@ -111,7 +599,7 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
 
         System.out.println("Setting Rendezvous Address");
         DeviceMgr.setRendezvousAddress("127.0.0.1");
-
+*/
         TestResult = null;
         System.out.println("RendezvousDevice Test");
         System.out.println("    Rendezvous with device at 127.0.0.1");
@@ -127,13 +615,16 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         System.out.format("  Device Address: %s%n", DeviceMgr.deviceAddress());
         System.out.println("deviceAddress Test Complete");
 
+        long deviceMgrPtr = DeviceMgr.getDeviceMgrPtr();
+        RunMockWDMClientTest(deviceMgrPtr);
+
         TestResult = null;
         System.out.println("Ping Test");
         System.out.println("    Pinging device...");
         DeviceMgr.beginPing();
         ExpectSuccess("Ping");
         System.out.println("Ping Test Succeeded");
-
+/*
         System.out.println("Closing WeaveDeviceManager");
         DeviceMgr.close();
 
@@ -276,10 +767,10 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         DeviceMgr.beginDisarmFailSafe();
         ExpectSuccess("DisrmFailSafe");
         System.out.println("DisrmFailSafe Test Succeeded");
-
+*/
         System.out.println("Closing WeaveDeviceManager");
         DeviceMgr.close();
-
+/*
         System.out.println("Decode Device Descriptor Test");
         WeaveDeviceDescriptor deviceDesc = DeviceMgr.decodeDeviceDescriptor(TestDeviceDescriptor);
         print(deviceDesc, "  ");
@@ -293,7 +784,7 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         if (DeviceMgr.isValidPairingCode("ABCDEFGHI"))
             throw new TestFailedException("ValidatePairingCode");
         System.out.println("ValidatePairingCode Test Succeeded");
-
+*/
         System.out.println("Forcing GC/finalization of WeaveDeviceManager object");
         DeviceMgr = null;
         for (int i = 0; i < 3; i++) {
@@ -529,6 +1020,18 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
 
     public void onStopSystemTestComplete()
     {
+    }
+
+    public void onFlushUpdateComplete()
+    {
+        System.out.println("    Flush Update complete");
+        TestResult = "Success";
+    }
+
+    public void onRefreshDataComplete()
+    {
+        System.out.println("    Refresh Data complete");
+        TestResult = "Success";
     }
 
     public void print(WeaveDeviceDescriptor deviceDesc, String prefix)

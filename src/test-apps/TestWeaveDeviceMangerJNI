@@ -50,5 +50,5 @@ fi
 
 export WEAVE_IPV4_LISTEN_ADDR=127.0.0.2
 
-java --add-modules java.xml.bind -verbose:jni -Xcheck:jni -Djava.library.path=${LIB_DIR} -jar ${JAR_FILE} nl.Weave.DeviceManager.TestMain
+/usr/local/buildtools/java/jdk9/bin/java --add-modules java.xml.bind -verbose:jni -Xcheck:jni -Djava.library.path=${LIB_DIR} -jar ${JAR_FILE} nl.Weave.DeviceManager.TestMain
 

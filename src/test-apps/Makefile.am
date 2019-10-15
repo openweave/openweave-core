@@ -1036,6 +1036,8 @@ check_SCRIPTS                                 +=                \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py       \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py       \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py       \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_04.py       \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_05.py       \
     $(NULL)
 
 endif # WEAVE_RUN_HAPPY_WDM

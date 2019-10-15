@@ -544,6 +544,10 @@ top_srcdir = @top_srcdir@
 openweave_PYTHON = \
     openweave/__init__.py                           \
     openweave/WeaveDeviceMgr.py                     \
+    openweave/WDMClient.py         				    \
+    openweave/GenericTraitUpdatableDataSink.py      \
+    openweave/WeaveStack.py		                    \
+    openweave/WeaveTLV.py		                    \
     openweave/WeaveBleBase.py                       \
     openweave/WeaveCoreBluetoothMgr.py              \
     openweave/WeaveBluezMgr.py                      \
@@ -934,9 +938,9 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_FALSE@install-exec-local:
-@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_FALSE@uninstall-local:
 @WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_FALSE@clean-local:
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_FALSE@uninstall-local:
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_FALSE@install-exec-local:
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-local \

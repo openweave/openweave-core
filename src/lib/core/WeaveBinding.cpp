@@ -1912,8 +1912,12 @@ Binding::Configuration& Binding::Configuration::ConfigureFromMessage(
     // link-local address because we need to specify the interface when we are
     // sending to a link local address. Otherwise, defer to the routing logic
     // to choose the outgoing interface.
-    TargetAddress_IP(apPktInfo->SrcAddress, apPktInfo->SrcPort,
-                     apPktInfo->SrcAddress.IsIPv6LinkLocal() ? apPktInfo->Interface : INET_NULL_INTERFACEID);
+
+    if (apConnection == NULL)
+    {
+        TargetAddress_IP(apPktInfo->SrcAddress, apPktInfo->SrcPort,
+                         apPktInfo->SrcAddress.IsIPv6LinkLocal() ? apPktInfo->Interface : INET_NULL_INTERFACEID);
+    }
 
     if (apConnection != NULL)
     {

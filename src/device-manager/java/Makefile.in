@@ -581,6 +581,8 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_JAVA_TRUE@    nl/Weave/DeviceManager/WeaveDeviceException.java        \
 @WEAVE_WITH_JAVA_TRUE@    nl/Weave/DeviceManager/DeviceFeatures.java              \
 @WEAVE_WITH_JAVA_TRUE@    nl/Weave/DeviceManager/NevisPairingCodeDecoding.java    \
+@WEAVE_WITH_JAVA_TRUE@	nl/Weave/DataManagement/WDMClient.java 				    \
+@WEAVE_WITH_JAVA_TRUE@	nl/Weave/DataManagement/GenericTraitUpdatableDataSink.java \
 @WEAVE_WITH_JAVA_TRUE@    $(NULL)
 
 @WEAVE_WITH_JAVA_TRUE@WeaveDeviceManager_jar_JFLAGS = -source 6 -target 6

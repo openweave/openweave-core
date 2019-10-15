@@ -2,6 +2,7 @@
 
 #
 #    Copyright (c) 2013-2018 Nest Labs, Inc.
+#    Copyright (c) 2019 Google, LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +24,7 @@
 #
 
 from builtins import range
+import ast
 import sys
 import os
 import platform
@@ -64,7 +66,11 @@ for relInstallDir in relWeavePackageInstallDirs:
     if os.path.isdir(os.path.join(absInstallDir, 'openweave')):
         sys.path.insert(0, absInstallDir)
 
+from openweave import WeaveStack
 from openweave import WeaveDeviceMgr
+from openweave import WDMClient
+from openweave import GenericTraitUpdatableDataSink
+
 if platform.system() == 'Darwin':
     from openweave.WeaveCoreBluetoothMgr import CoreBluetoothManager as BleManager
 elif sys.platform.startswith('linux'):
@@ -200,13 +206,15 @@ class DeviceMgrCmd(Cmd):
         DeviceMgrCmd.command_names.sort()
 
         self.bleMgr = None
-
         self.devMgr = WeaveDeviceMgr.WeaveDeviceManager()
+
+        self.wdmClient = None
+        self.traitInstance = None
 
         if (rendezvousAddr):
             try:
                 self.devMgr.SetRendezvousAddress(rendezvousAddr)
-            except WeaveDeviceMgr.DeviceManagerException, ex:
+            except WeaveStack.WeaveStackException, ex:
                 print str(ex)
                 return
 
@@ -284,7 +292,16 @@ class DeviceMgrCmd(Cmd):
         'ble-diag-test',
         'ble-diag-test-result',
         'ble-diag-test-abort',
-        'ble-diag-test-timing'
+        'ble-diag-test-timing',
+        'create-wdm-client',
+        'close-wdm-client',
+        'new-data-sink',
+        'flush-update',
+        'refresh-data',
+        'refresh-individual-data',
+        'close-individual-trait',
+        'set-data',
+        'get-data',
     ]
 
     def parseline(self, line):
@@ -403,7 +420,7 @@ class DeviceMgrCmd(Cmd):
                                          targetVendorId=options.targetVendorId,
                                          targetProductId=options.targetProductId,
                                          targetDeviceId=options.targetDeviceId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -424,7 +441,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.StopDeviceEnumeration()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -498,7 +515,7 @@ class DeviceMgrCmd(Cmd):
                 self.devMgr.ConnectDevice(deviceId=nodeId, deviceAddr=addr,
                                           pairingCode=options.pairingCode,
                                           accessToken=options.accessToken)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -845,7 +862,7 @@ class DeviceMgrCmd(Cmd):
                                          targetVendorId=options.targetVendorId,
                                          targetProductId=options.targetProductId,
                                          targetDeviceId=options.targetDeviceId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -899,7 +916,7 @@ class DeviceMgrCmd(Cmd):
         try:
             self.devMgr.PassiveRendezvousDevice(pairingCode=options.pairingCode,
                                                 accessToken=options.accessToken)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -974,7 +991,7 @@ class DeviceMgrCmd(Cmd):
             self.devMgr.RemotePassiveRendezvous(rendezvousDeviceAddr=options.joinerAddr,
                     pairingCode=options.pairingCode, accessToken=options.accessToken,
                     rendezvousTimeout=options.rendezvousTimeout, inactivityTimeout=options.inactivityTimeout)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -996,7 +1013,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.ReconnectDevice()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1015,9 +1032,13 @@ class DeviceMgrCmd(Cmd):
             return
 
         try:
-            self.devMgr.Close()
-            self.devMgr.CloseEndpoints()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+            if self.wdmClient:
+                self.wdmClient.close()
+                self.wdmClient = None
+            if self.devMgr:
+                self.devMgr.Close()
+                self.devMgr.CloseEndpoints()
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
 
     def do_enableconnectionmonitor(self, line):
@@ -1062,7 +1083,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.EnableConnectionMonitor(interval, timeout)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1083,7 +1104,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.DisableConnectionMonitor()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1113,7 +1134,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             scanResult = self.devMgr.ScanNetworks(networkType)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1181,7 +1202,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             addResult = self.devMgr.AddNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1305,7 +1326,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             addResult = self.devMgr.AddNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1380,7 +1401,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             addResult = self.devMgr.AddNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1439,7 +1460,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.UpdateNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1475,7 +1496,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.RemoveNetwork(networkId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1504,7 +1525,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             getResult = self.devMgr.GetNetworks(flags)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1534,7 +1555,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             getResult = self.devMgr.GetCameraAuthData(args[0])
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1572,7 +1593,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.EnableNetwork(networkId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1608,7 +1629,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.DisableNetwork(networkId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1644,7 +1665,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.TestNetworkConnectivity(networkId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1669,7 +1690,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetRendezvousMode(int(args[0]))
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1690,7 +1711,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.GetLastNetworkProvisioningResult()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1711,7 +1732,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.Ping()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1732,7 +1753,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             deviceDesc = self.devMgr.IdentifyDevice()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1759,7 +1780,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             tokenPairingBundle = self.devMgr.PairToken(args[0])
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1782,7 +1803,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             result = self.devMgr.UnpairToken()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1803,7 +1824,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.CreateFabric()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1824,7 +1845,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.LeaveFabric()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1845,7 +1866,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             fabricConfig = self.devMgr.GetFabricConfig()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1880,7 +1901,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.JoinExistingFabric(fabricConfig)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1927,7 +1948,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.RegisterServicePairAccount(options.serviceId, options.accountId, options.serviceConfig, options.pairingToken, options.pairingInitData)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1961,7 +1982,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.UpdateService(options.serviceId, options.serviceConfig)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -1992,7 +2013,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.UnregisterService(options.serviceId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -2043,7 +2064,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.ArmFailSafe(armMode, failSafeToken)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -2064,7 +2085,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.DisarmFailSafe()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -2094,7 +2115,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.ResetConfig(resetFlags)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -2120,7 +2141,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetRendezvousAddress(addr)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -2149,7 +2170,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetAutoReconnect(autoReconnect)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -2187,7 +2208,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetLogFilter(category)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -2217,7 +2238,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetRendezvousLinkLocal(rendezvousLinkLocal)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -2247,7 +2268,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetConnectTimeout(timeoutMS)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -2393,7 +2414,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.StartSystemTest(WeaveDeviceMgr.SystemTest_ProductList[productName], testId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
@@ -2415,11 +2436,183 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.StopSystemTest()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
 
         print "Stop system test complete"
+
+    def do_createwdmclient(self, line):
+        """
+          create-wdm-client
+        """
+        if self.wdmClient != None:
+            print "wdmclient has initialized"
+            return
+
+        try:
+            self.wdmClient = WDMClient.WDMClient()
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "create wdm client complete"
+
+    def do_closewdmclient(self, line):
+        """
+          close-wdm-client
+        """
+        try:
+            if self.wdmClient:
+                self.wdmClient.close()
+                self.wdmClient = None
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "close wdm client complete"
+
+    def do_newdatasink(self, line):
+        """
+          new-data-sink <profileid, instanceid, path>
+        """
+        if self.wdmClient == None:
+            print "wdmclient not initialized"
+            return
+
+        args = shlex.split(line)
+
+        if (len(args) == 3):
+            path = args[2]
+        else:
+            path = None
+
+        try:
+            self.traitInstance = self.wdmClient.newDataSink(0, None, 0, int(args[0]), int(args[1]), path)
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "new data sink complete"
+
+    def do_flushupdate(self, line):
+        """
+          flush-update
+        """
+        if self.wdmClient == None:
+            print "wdmclient not initialized"
+            return
+
+        try:
+            self.wdmClient.flushUpdate()
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "flush update complete"
+
+    def do_refreshdata(self, line):
+        """
+          refresh-data
+        """
+        if self.wdmClient == None:
+            print "wdmclient not initialized"
+            return
+
+        try:
+            self.wdmClient.refreshData()
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "refresh trait data complete"
+
+    def do_refreshindividualdata(self, line):
+        """
+          refresh-individual-data for current trait instance
+        """
+        if self.wdmClient == None or self.traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        try:
+            self.traitInstance.refreshData()
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "refresh individual trait data complete"
+
+    def do_closeindividualtrait(self, line):
+        """
+          close-individual-trait
+        """
+        if self.wdmClient == None or self.traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        try:
+            self.traitInstance.close()
+            self.traitInstance = None
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "close current trait"
+
+    def do_setdata(self, line):
+        """
+          set-data <path, value>
+        """
+        if self.wdmClient == None or self.traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        args = shlex.split(line)
+
+        if (len(args) != 2):
+            print "Usage:"
+            self.do_help('set-data')
+            return
+
+        isConditional = False
+
+        try:
+            val = ast.literal_eval(args[1])
+        except:
+            val = args[1]
+
+        try:
+            self.traitInstance.setData(args[0], val, isConditional)
+            print "set string data in trait complete"
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+    def do_getdata(self, line):
+        """
+          get-tlv-data <path>
+        """
+
+        if self.wdmClient == None or self.traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        args = shlex.split(line)
+
+        if (len(args) != 1):
+            print "Usage:"
+            self.do_help('get-data')
+            return
+
+        try:
+            val = self.traitInstance.getData(args[0])
+            print val
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "get data in trait complete"
 
     def do_history(self, line):
         """
