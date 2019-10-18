@@ -1005,13 +1005,13 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::DoInit(otInstan
     otIp6SetSlaacEnabled(otInst, false);
 #endif
 
-    // Enable the Thread IPv6 interface.
-    otErr = otIp6SetEnabled(otInst, true);
-    VerifyOrExit(otErr == OT_ERROR_NONE, err = MapOpenThreadError(otErr));
-
     // If the Thread stack has been provisioned, but is not currently enabled, enable it now.
     if (otThreadGetDeviceRole(mOTInst) == OT_DEVICE_ROLE_DISABLED && otDatasetIsCommissioned(otInst))
     {
+        // Enable the Thread IPv6 interface.
+        otErr = otIp6SetEnabled(otInst, true);
+        VerifyOrExit(otErr == OT_ERROR_NONE, err = MapOpenThreadError(otErr));
+
         otErr = otThreadSetEnabled(otInst, true);
         VerifyOrExit(otErr == OT_ERROR_NONE, err = MapOpenThreadError(otErr));
     }
