@@ -591,6 +591,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/dd/test_weave_dd_01.py                          \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py            \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/wrmp/test_weave_wrmp_01.py                      \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/ip_comms/test_weave_udp.py                      \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__append_43 = \
@@ -1427,7 +1428,7 @@ TestWdmUpdateResponse_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWdmUpdateResponse_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am__TestWeaveCert_SOURCES_DIST = TestWeaveCert.cpp \
-	TestWeaveCertData.cpp
+	TestWeaveCertData.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestWeaveCert_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveCert.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveCertData.$(OBJEXT) \
@@ -2465,7 +2466,8 @@ am__EXEEXT_34 =
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/messagelayer/test_weave_messagelayer_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/dd/test_weave_dd_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/wrmp/test_weave_wrmp_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/wrmp/test_weave_wrmp_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/ip_comms/test_weave_udp.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_38 = happy/tests/standalone/inet/test_inet_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/inet/test_inet_dns_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/inet/test_inet_multicast_01.py
@@ -3329,7 +3331,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_SOURCES = TestWarm.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_LDADD = libWeaveTestGroupKeyStore.a $(COMMON_LDADD)
-@WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_SOURCES = TestWeaveCert.cpp TestWeaveCertData.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_SOURCES = TestWeaveCert.cpp TestWeaveCertData.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveEncoding_SOURCES = TestWeaveEncoding.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveEncoding_LDADD = 
@@ -8470,6 +8472,13 @@ happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py.log: happy/tests/sta
 happy/tests/standalone/wrmp/test_weave_wrmp_01.py.log: happy/tests/standalone/wrmp/test_weave_wrmp_01.py
 	@p='happy/tests/standalone/wrmp/test_weave_wrmp_01.py'; \
 	b='happy/tests/standalone/wrmp/test_weave_wrmp_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/ip_comms/test_weave_udp.py.log: happy/tests/standalone/ip_comms/test_weave_udp.py
+	@p='happy/tests/standalone/ip_comms/test_weave_udp.py'; \
+	b='happy/tests/standalone/ip_comms/test_weave_udp.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

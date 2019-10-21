@@ -1117,6 +1117,7 @@ check_SCRIPTS                                                           += \
     happy/tests/standalone/dd/test_weave_dd_01.py                          \
     happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py            \
     happy/tests/standalone/wrmp/test_weave_wrmp_01.py                      \
+    happy/tests/standalone/ip_comms/test_weave_udp.py                      \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_CORE
 
