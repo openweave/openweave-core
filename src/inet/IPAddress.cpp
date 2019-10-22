@@ -263,6 +263,11 @@ bool IPAddress::IsMulticast(void) const
     return (IsIPv6Multicast() || IsIPv4Multicast());
 }
 
+bool IPAddress::IsIPv6(void) const
+{
+    return *this != Any && !IsIPv4();
+}
+
 // Is address an IPv6 multicast address?
 bool IPAddress::IsIPv6Multicast(void) const
 {
@@ -459,6 +464,17 @@ IPAddress IPAddress::MakeIPv6PrefixMulticast(uint8_t aScope, uint8_t aPrefixLeng
 
     return (MakeIPv6TransientMulticast(lFlags, aScope, lGroupId));
 }
+
+IPAddress IPAddress::MakeIPv4Broadcast(void)
+{
+    IPAddress ipAddr;
+    ipAddr.Addr[0] = 0;
+    ipAddr.Addr[1] = 0;
+    ipAddr.Addr[2] = htonl(0xFFFF);
+    ipAddr.Addr[3] = 0xFFFFFFFF;
+    return ipAddr;
+}
+
 
 } // namespace Inet
 } // namespace nl
