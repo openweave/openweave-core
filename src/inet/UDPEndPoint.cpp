@@ -223,6 +223,30 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
     mBoundPort = port;
     mBoundIntfId = intfId;
 
+    // If an ephemeral port was requested, retrieve the actual bound port.
+    if (port == 0)
+    {
+        union
+        {
+            struct sockaddr     any;
+            struct sockaddr_in  in;
+            struct sockaddr_in6 in6;
+        } boundAddr;
+        socklen_t boundAddrLen = sizeof(boundAddr);
+
+        if (getsockname(mSocket, &boundAddr.any, &boundAddrLen) == 0)
+        {
+            if (boundAddr.any.sa_family == AF_INET)
+            {
+                mBoundPort = ntohs(boundAddr.in.sin_port);
+            }
+            else if (boundAddr.any.sa_family == AF_INET6)
+            {
+                mBoundPort = ntohs(boundAddr.in6.sin6_port);
+            }
+        }
+    }
+
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     if (res == INET_NO_ERROR)
@@ -731,6 +755,17 @@ InterfaceId UDPEndPoint::GetBoundInterface(void)
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     return mBoundIntfId;
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+}
+
+uint16_t UDPEndPoint::GetBoundPort(void)
+{
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+    return mUDP->local_port;
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    return mBoundPort;
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
