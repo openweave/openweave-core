@@ -239,6 +239,9 @@ ExchangeContext *WeaveExchangeManager::NewContext(const uint64_t &peerNodeId, co
         ec->OnAckRcvd = NULL;
         ec->OnSendError = NULL;
 #endif
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+        ec->SetUseEphemeralUDPPort(MessageLayer->EphemeralUDPPortEnabled());
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
         WeaveLogProgress(ExchangeManager, "ec id: %d, AppState: 0x%x", EXCHANGE_CONTEXT_ID(ec - ContextPool), ec->AppState);
     }
     return ec;
@@ -643,7 +646,7 @@ void WeaveExchangeManager::DispatchMessage(WeaveMessageInfo *msgInfo, PacketBuff
     WEAVE_ERROR  err                       = WEAVE_NO_ERROR;
 
     // Decode the exchange header.
-    err = DecodeHeader(&exchangeHeader, msgBuf);
+    err = DecodeHeader(&exchangeHeader, msgInfo, msgBuf);
     SuccessOrExit(err);
 
     //Check if the version is supported
@@ -883,6 +886,12 @@ void WeaveExchangeManager::DispatchMessage(WeaveMessageInfo *msgInfo, PacketBuff
         }
 #endif
 
+        // If support for ephemeral UDP ports is enabled, arrange to send outbound messages on this exchange from the
+        // local ephemeral UDP port IF the inbound message that initiated the exchange was sent TO the local ephemeral port.
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+        ec->SetUseEphemeralUDPPort(GetFlag(msgInfo->Flags, kWeaveMessageFlag_ViaEphemeralUDPPort));
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
         // Add a reservation for the message encryption key.  This will ensure the key is not removed until the exchange is freed.
         MessageLayer->SecurityMgr->ReserveKey(ec->PeerNodeId, ec->KeyId);
 
@@ -1040,7 +1049,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveExchangeManager::DecodeHeader(WeaveExchangeHeader *exchangeHeader, PacketBuffer *buf)
+WEAVE_ERROR WeaveExchangeManager::DecodeHeader(WeaveExchangeHeader *exchangeHeader, WeaveMessageInfo *msgInfo, PacketBuffer *buf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -1079,6 +1088,8 @@ WEAVE_ERROR WeaveExchangeManager::DecodeHeader(WeaveExchangeHeader *exchangeHead
 #endif
 
     buf->SetStart(p);
+
+    SetFlag(msgInfo->Flags, kWeaveMessageFlag_FromInitiator, GetFlag(exchangeHeader->Flags, kWeaveExchangeFlag_Initiator));
 
 exit:
     return err;
@@ -1562,7 +1573,12 @@ WEAVE_ERROR WeaveExchangeManager::SendFromRetransTable(RetransTableEntry *entry)
 
     if (ec)
     {
-        msgSendFlags |= kWeaveMessageFlag_RetainBuffer;
+        SetFlag(msgSendFlags, kWeaveMessageFlag_RetainBuffer);
+
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+        SetFlag(msgSendFlags, kWeaveMessageFlag_ViaEphemeralUDPPort, ec->UseEphemeralUDPPort());
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
         //Locally store the start and length;
         p = entry->msgBuf->Start();
         len = entry->msgBuf->DataLength();

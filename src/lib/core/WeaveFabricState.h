@@ -525,38 +525,10 @@ public:
 
     WEAVE_ERROR GetSessionState(uint64_t remoteNodeId, uint16_t keyId, uint8_t encType, WeaveConnection *con, WeaveSessionState& outSessionState);
 
-    /**
-     * This method returns an IPAddress representing the ULA of a Thread Node.
-     * This variant allows for a subnet to be specified.
-     *
-     * @param[in] nodeId            The Node ID number of the node in question.
-     *
-     * @param[in] subnet            The desired subnet of the ULA.
-     *
-     * @retval IPAddress            An IPAddress object.
-     */
     IPAddress SelectNodeAddress(uint64_t nodeId, uint16_t subnet) const;
-
-    /**
-     * This method returns an IPAddress representing the ULA of a Thread Node.
-     * This variant uses the fabric state's default subnet.
-     *
-     * @param[in] nodeId            The Node ID number of the node in question.
-     *
-     * @retval IPAddress            An IPAddress object.
-     */
     IPAddress SelectNodeAddress(uint64_t nodeId) const;
-
-    /**
-     * This method returns true if the given IP Address represents a node
-     * within the local fabric.
-     *
-     * @param[in] addr              The IP Address being checked.
-     *
-     * @retval bool                 Whether or not the IP represents a
-     *                              node in the local fabric.
-     */
     bool IsFabricAddress(const IPAddress &addr) const;
+    bool IsLocalFabricAddress(const IPAddress &addr) const;
 
     WEAVE_ERROR GetPassword(uint8_t pwSrc, const char *& ps, uint16_t& pwLen);
 
@@ -583,23 +555,9 @@ public:
 #if WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
     void OnMsgCounterSyncRespRcvd(uint64_t peerNodeId, uint32_t peerMsgId, uint32_t requestorMsgCounter);
     void OnMsgCounterSyncReqSent(uint32_t messageId);
-
-    /**
-     * This method returns true if at least one peer's message counter
-     * synchronization request is in progress.
-     *
-     * @retval bool                 Whether or not peer's message counter synchronization
-     *                              is in progress.
-     */
-    bool IsMsgCounterSyncReqInProgress(void)
-    {
-        return (MsgCounterSyncStatus & kFlag_ReqInProgress) != 0;
-    }
-
+    bool IsMsgCounterSyncReqInProgress(void);
     WEAVE_ERROR GetMsgEncKeyIdForAppGroup(uint32_t appGroupGlobalId, uint32_t rootKeyId, bool useRotatingKey, uint32_t& keyId);
-
     WEAVE_ERROR CheckMsgEncForAppGroup(const WeaveMessageInfo *msgInfo, uint32_t appGroupGlobalId, uint32_t rootKeyId, bool requireRotatingKey);
-
 #endif // WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
 
 private:
@@ -666,6 +624,21 @@ private:
 };
 
 
+/**
+ * This method returns true if at least one peer's message counter
+ * synchronization request is in progress.
+ *
+ * @retval bool                 Whether or not peer's message counter synchronization
+ *                              is in progress.
+ */
+inline bool WeaveFabricState::IsMsgCounterSyncReqInProgress(void)
+{
+    return (MsgCounterSyncStatus & kFlag_ReqInProgress) != 0;
+}
+
+
+
+
 #if WEAVE_CONFIG_SECURITY_TEST_MODE
 
 enum
@@ -679,6 +652,9 @@ enum
 extern void WeaveEncryptionKeyToString(uint8_t encType, const WeaveEncryptionKey& key, char *buf, size_t bufSize);
 
 #endif // WEAVE_CONFIG_SECURITY_TEST_MODE
+
+
+
 
 
 } // namespace nl

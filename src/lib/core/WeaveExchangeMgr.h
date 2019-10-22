@@ -131,7 +131,7 @@ public:
     WeaveConnection *Con;                       /**< [READ ONLY] Associated Weave connection. */
     uint64_t PeerNodeId;                        /**< [READ ONLY] Node ID of peer node. */
     IPAddress PeerAddr;                         /**< [READ ONLY] IP address of peer node. */
-    InterfaceId PeerIntf;                       /**< [READ ONLY] Interface over which peer can be reached. (Only meaningful for UDP.) */
+    InterfaceId PeerIntf;                       /**< [READ ONLY] Outbound interface to be used when sending messages to the peer. (Only meaningful for UDP.) */
     uint16_t PeerPort;                          /**< [READ ONLY] Port of peer node. */
     uint16_t ExchangeId;                        /**< [READ ONLY] Assigned exchange ID. */
     void *AppState;                             /**< Pointer to application-specific state object. */
@@ -145,18 +145,22 @@ public:
 #endif
     enum
     {
-        kSendFlag_AutoRetrans            = 0x0001, /**< Used to indicate that automatic retransmission is enabled. */
-        kSendFlag_ExpectResponse         = 0x0002, /**< Used to indicate that a response is expected within a specified timeout. */
-        kSendFlag_RetransmissionTrickle  = 0x0004, /**< Used to indicate the requirement of retransmissions for Trickle. */
-        kSendFlag_DelaySend              = 0x0008, /**< Used to indicate that the sending of the current message needs to be delayed. */
-        kSendFlag_ReuseMessageId         = 0x0010, /**< Used to indicate that the message ID in the message header can be reused. */
-        kSendFlag_ReuseSourceId          = 0x0020, /**< Used to indicate that the source node ID in the message header can be reused. */
-        kSendFlag_RetainBuffer           = 0x0040, /**< Used to indicate that the message buffer should not be freed after sending. */
-        kSendFlag_AlreadyEncoded         = 0x0080, /**< Used to indicate that the message is already encoded. */
-        kSendFlag_MulticastFromLinkLocal = 0x0100, /**< Used to indicate that the source address of a multicast message should be link local. */
-        kSendFlag_FromInitiator          = 0x0200, /**< Used to indicate that the current message is the initiator of the exchange. */
-        kSendFlag_RequestAck             = 0x0400, /**< Used to send a WRM message requesting an acknowledgment. */
-        kSendFlag_NoAutoRequestAck       = 0x0800, /**< Suppress the auto-request acknowledgment feature when sending a message. */
+        kSendFlag_AutoRetrans                   = 0x0001, /**< Used to indicate that automatic retransmission is enabled. */
+        kSendFlag_ExpectResponse                = 0x0002, /**< Used to indicate that a response is expected within a specified timeout. */
+        kSendFlag_RetransmissionTrickle         = 0x0004, /**< Used to indicate the requirement of retransmissions for Trickle. */
+        kSendFlag_DelaySend                     = 0x0008, /**< Used to indicate that the sending of the current message needs to be delayed. */
+        kSendFlag_ReuseMessageId                = 0x0010, /**< Used to indicate that the message ID in the message header can be reused. */
+        kSendFlag_ReuseSourceId                 = 0x0020, /**< Used to indicate that the source node ID in the message header can be reused. */
+        kSendFlag_RetainBuffer                  = 0x0040, /**< Used to indicate that the message buffer should not be freed after sending. */
+        kSendFlag_AlreadyEncoded                = 0x0080, /**< Used to indicate that the message is already encoded. */
+        kSendFlag_DefaultMulticastSourceAddress = 0x0100, /**< Used to indicate that default IPv6 source address selection should be used when
+                                                               sending IPv6 multicast messages. */
+        kSendFlag_FromInitiator                 = 0x0200, /**< Used to indicate that the current message is the initiator of the exchange. */
+        kSendFlag_RequestAck                    = 0x0400, /**< Used to send a WRM message requesting an acknowledgment. */
+        kSendFlag_NoAutoRequestAck              = 0x0800, /**< Suppress the auto-request acknowledgment feature when sending a message. */
+
+        kSendFlag_MulticastFromLinkLocal        = kSendFlag_DefaultMulticastSourceAddress,
+                                                          /**< Deprecated alias for \c kSendFlag_DefaultMulticastSourceAddress */
     };
 
     bool IsInitiator(void) const;
@@ -183,6 +187,10 @@ public:
     void SetAutoReleaseKey(bool autoReleaseKey);
     bool ShouldAutoReleaseConnection() const;
     void SetShouldAutoReleaseConnection(bool autoReleaseCon);
+    bool UseEphemeralUDPPort(void) const;
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    void SetUseEphemeralUDPPort(bool val);
+#endif
 
     WEAVE_ERROR SendMessage(uint32_t profileId, uint8_t msgType, PacketBuffer *msgPayload, uint16_t sendFlags = 0, void *msgCtxt = 0);
     WEAVE_ERROR SendMessage(uint32_t profileId, uint8_t msgType, PacketBuffer *msgBuf, uint16_t sendFlags, WeaveMessageInfo * msgInfo, void *msgCtxt = 0);
@@ -529,7 +537,7 @@ private:
     static void HandleMessageReceived(WeaveMessageLayer *msgLayer, WeaveMessageInfo *msgInfo, PacketBuffer *msgBuf);
     static void HandleMessageReceived(WeaveConnection *con, WeaveMessageInfo *msgInfo, PacketBuffer *msgBuf);
     static WEAVE_ERROR PrependHeader(WeaveExchangeHeader *exchangeHeader, PacketBuffer *buf);
-    static WEAVE_ERROR DecodeHeader(WeaveExchangeHeader *exchangeHeader, PacketBuffer *buf);
+    static WEAVE_ERROR DecodeHeader(WeaveExchangeHeader *exchangeHeader, WeaveMessageInfo *msgInfo, PacketBuffer *buf);
 
     void InitBindingPool(void);
     Binding * AllocBinding(void);
@@ -541,6 +549,15 @@ private:
 
     WeaveExchangeManager(const WeaveExchangeManager&); // not defined
 };
+
+#if !WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+inline bool ExchangeContext::UseEphemeralUDPPort(void) const
+{
+    return false;
+}
+
+#endif // !WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
 
 
 } // namespace Weave

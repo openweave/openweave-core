@@ -132,11 +132,17 @@ typedef enum WeaveMessageFlags
     kWeaveMessageFlag_DelaySend                         = 0x00000040, /**< Indicates that the sending of the message needs to be delayed. */
     kWeaveMessageFlag_RetainBuffer                      = 0x00000080, /**< Indicates that the message buffer should not be freed after sending. */
     kWeaveMessageFlag_MessageEncoded                    = 0x00001000, /**< Indicates that the Weave message is already encoded. */
-    kWeaveMessageFlag_MulticastFromLinkLocal            = 0x00002000, /**< Indicates that a link-local source address should be used when the
-                                                                           message is sent to an IPv6 multicast address. */
+    kWeaveMessageFlag_DefaultMulticastSourceAddress     = 0x00002000, /**< Indicates that default IPv6 source address selection should be used when
+                                                                           sending IPv6 multicast messages. */
     kWeaveMessageFlag_PeerRequestedAck                  = 0x00004000, /**< Indicates that the sender of the  message requested an acknowledgment. */
     kWeaveMessageFlag_DuplicateMessage                  = 0x00008000, /**< Indicates that the message is a duplicate of a previously received message. */
     kWeaveMessageFlag_PeerGroupMsgIdNotSynchronized     = 0x00010000, /**< Indicates that the peer's group key message counter is not synchronized. */
+	kWeaveMessageFlag_FromInitiator                     = 0x00020000, /**< Indicates that the source of the message is the initiator of the
+																		   Weave exchange. */
+    kWeaveMessageFlag_ViaEphemeralUDPPort               = 0x00040000, /**< Indicates that message is being sent/received via the local ephemeral UDP port. */
+
+    kWeaveMessageFlag_MulticastFromLinkLocal            = kWeaveMessageFlag_DefaultMulticastSourceAddress,
+                                                                      /**< Deprecated alias for \c kWeaveMessageFlag_DefaultMulticastSourceAddress */
 
     // NOTE: The bit positions of the following flags correspond to flag fields in an encoded
     // Weave message header.
@@ -496,8 +502,9 @@ public:
      */
     enum State
     {
-        kState_NotInitialized = 0,        /**< State when the WeaveMessageLayer is not initialized. */
-        kState_Initialized = 1            /**< State when the WeaveMessageLayer is initialized. */
+        kState_NotInitialized = 0,          /**< State when the WeaveMessageLayer is not initialized. */
+        kState_Initializing = 1,            /**< State when the WeaveMessageLayer is in the process of being initialized. */
+        kState_Initialized = 2              /**< State when the WeaveMessageLayer is initialized. */
     };
 
     /**
@@ -515,11 +522,15 @@ public:
         System::Layer*      systemLayer;    /**< A pointer to the SystemLayer object. */
         WeaveFabricState*   fabricState;    /**< A pointer to the WeaveFabricState object. */
         InetLayer*          inet;           /**< A pointer to the InetLayer object. */
-        bool                listenTCP;      /**< Boolean flag to indicate if listening over TCP. */
-        bool                listenUDP;      /**< Boolean flag to indicate if listening over UDP. */
+        bool                listenTCP;      /**< Accept inbound Weave TCP connections from remote peers on the Weave port. */
+        bool                listenUDP;      /**< Accept unsolicited inbound Weave UDP messages from remote peers on the Weave port. */
 #if CONFIG_NETWORK_LAYER_BLE
         BleLayer*           ble;            /**< A pointer to the BleLayer object. */
-        bool                listenBLE;      /**< Boolean flag to indicate if listening over BLE. */
+        bool                listenBLE;      /**< Accept inbound Weave over BLE connections from remote peers. */
+#endif
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+        bool                enableEphemeralUDPPort;
+                                            /**< Initiate Weave UDP exchanges from an ephemeral UDP source port. */
 #endif
 
         /**
@@ -536,6 +547,9 @@ public:
 #if CONFIG_NETWORK_LAYER_BLE
             ble = NULL;
             listenBLE = true;
+#endif
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+            enableEphemeralUDPPort = false;
 #endif
         };
     };
@@ -670,9 +684,19 @@ public:
     WEAVE_ERROR RefreshEndpoints(void);
     WEAVE_ERROR CloseEndpoints(void);
 
-#if INET_CONFIG_ENABLE_IPV4
+    bool IPv4ListenEnabled(void) const;
+    bool IPv6ListenEnabled(void) const;
+    bool TCPListenEnabled(void) const;
+    void SetTCPListenEnabled(bool val);
+    bool UDPListenEnabled(void) const;
+    void SetUDPListenEnabled(bool val);
+    bool UnsecuredListenEnabled(void) const;
+    bool EphemeralUDPPortEnabled(void) const;
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    void SetEphemeralUDPPortEnabled(bool val);
+#endif
+
     bool IsBoundToLocalIPv4Address(void) const;
-#endif // INET_CONFIG_ENABLE_IPV4
     bool IsBoundToLocalIPv6Address(void) const;
 
     /**
@@ -695,27 +719,26 @@ public:
 private:
     enum
     {
-#if INET_CONFIG_ENABLE_IPV4
-        kFlag_ListenIPv4          = 0x01,
-#endif // INET_CONFIG_ENABLE_IPV4
-        kFlag_ListenIPv6          = 0x02,
-        kFlag_ListenTCP           = 0x04,
-        kFlag_ListenUDP           = 0x08,
-        kFlag_ListenUnsecured     = 0x10,
-        kFlag_ListenBLE           = 0x20,
+        kFlag_ListenTCP                 = 0x01,
+        kFlag_ListenUDP                 = 0x02,
+        kFlag_ListenUnsecured           = 0x04,
+        kFlag_EphemeralUDPPortEnabled   = 0x08,
+        kFlag_ForceRefreshUDPEndPoints  = 0x10,
     };
 
     TCPEndPoint *mIPv6TCPListen;
     UDPEndPoint *mIPv6UDP;
-    UDPEndPoint *mIPv6UDPLocalAddr[WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS];
-    InterfaceId mInterfaces[WEAVE_CONFIG_MAX_INTERFACES];
-    WeaveConnection mConPool[WEAVE_CONFIG_MAX_CONNECTIONS]; // TODO: rename to mConPool
+    WeaveConnection mConPool[WEAVE_CONFIG_MAX_CONNECTIONS];
     WeaveConnectionTunnel mTunnelPool[WEAVE_CONFIG_MAX_TUNNELS];
     uint8_t mFlags;
 
 #if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
     UDPEndPoint *mIPv6UDPMulticastRcv;
-#endif
+#if INET_CONFIG_ENABLE_IPV4
+    UDPEndPoint *mIPv4UDPBroadcastRcv;
+#endif // INET_CONFIG_ENABLE_IPV4
+#endif // WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+
 #if WEAVE_CONFIG_ENABLE_UNSECURED_TCP_LISTEN
     TCPEndPoint *mUnsecuredIPv6TCPListen;
 #endif
@@ -725,6 +748,13 @@ private:
     TCPEndPoint *mIPv4TCPListen;
 #endif // INET_CONFIG_ENABLE_IPV4
 
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    UDPEndPoint *mIPv6EphemeralUDP;
+#if INET_CONFIG_ENABLE_IPV4
+    UDPEndPoint *mIPv4EphemeralUDP;
+#endif // INET_CONFIG_ENABLE_IPV4
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
     // To set and clear, use SetOnUnsecuredConnectionReceived() and ClearOnUnsecuredConnectionReceived().
     ConnectionReceiveFunct OnUnsecuredConnectionReceived;
     CallbackRemovedFunct OnUnsecuredConnectionCallbacksRemoved;
@@ -733,11 +763,16 @@ private:
 
     WEAVE_ERROR EnableUnsecuredListen(void);
     WEAVE_ERROR DisableUnsecuredListen(void);
-    bool IsUnsecuredListenEnabled(void) const;
 
     void SignalMessageLayerActivityChanged(void);
 
-    WEAVE_ERROR SendMessage(const IPAddress &destAddr, uint16_t destPort, InterfaceId sendIntfId, PacketBuffer *payload, uint16_t udpSendFlags);
+    void CloseListeningEndpoints(void);
+
+    WEAVE_ERROR RefreshEndpoint(TCPEndPoint *& endPoint, bool enable, const char * name, IPAddressType addrType, IPAddress addr, uint16_t port);
+    WEAVE_ERROR RefreshEndpoint(UDPEndPoint *& endPoint, bool enable, const char * name, IPAddressType addrType, IPAddress addr, uint16_t port, InterfaceId intfId);
+
+    WEAVE_ERROR SendMessage(const IPAddress &destAddr, uint16_t destPort, InterfaceId sendIntfId, PacketBuffer *payload, uint32_t msgFlags);
+    WEAVE_ERROR SelectOutboundUDPEndPoint(const IPAddress & destAddr, uint32_t msgFlags, UDPEndPoint *& ep);
     WEAVE_ERROR SelectDestNodeIdAndAddress(uint64_t& destNodeId, IPAddress& destAddr);
     WEAVE_ERROR DecodeMessage(PacketBuffer *msgBuf, uint64_t sourceNodeId, WeaveConnection *con,
             WeaveMessageInfo *msgInfo, uint8_t **rPayload, uint16_t *rPayloadLen);
@@ -746,6 +781,7 @@ private:
     WEAVE_ERROR DecodeMessageWithLength(PacketBuffer *msgBuf, uint64_t sourceNodeId, WeaveConnection *con,
             WeaveMessageInfo *msgInfo, uint8_t **rPayload, uint16_t *rPayloadLen, uint32_t *rFrameLen);
     void GetIncomingTCPConCount(const IPAddress &peerAddr, uint16_t &count, uint16_t &countFromIP);
+    void CheckForceRefreshUDPEndPointsNeeded(WEAVE_ERROR udpSendErr);
 
     static void HandleUDPMessage(UDPEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo);
     static void HandleUDPReceiveError(UDPEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo);
@@ -756,6 +792,7 @@ private:
                                       const uint8_t *inData, uint16_t inLen, uint8_t *outBuf);
     static void ComputeIntegrityCheck_AES128CTRSHA1(const WeaveMessageInfo *msgInfo, const uint8_t *key,
                                                     const uint8_t *inData, uint16_t inLen, uint8_t *outBuf);
+    static WEAVE_ERROR FilterUDPSendError(WEAVE_ERROR err, bool isMulticast);
     static bool IsIgnoredMulticastSendError(WEAVE_ERROR err);
 
     static bool IsSendErrorNonCritical(WEAVE_ERROR err);
@@ -772,28 +809,126 @@ private:
 
 };
 
+/**
+ *  Check if the WeaveMessageLayer is configured to listen for inbound communications
+ *  over IPv4.
+ */
+inline bool WeaveMessageLayer::IPv4ListenEnabled(void) const
+{
+    // When IPv4 is supported, and the targeted listen feature is enabled, enable IPv4 listening
+    // when the message layer has been bound to a specific IPv4 listening address OR the message
+    // layer has not been bound to any address (IPv4 or IPv6).
+    //
+    // Otherwise, when the targeted listen feature is NOT enabled, always listen on IPv4 if it is
+    // supported.
+    //
 #if INET_CONFIG_ENABLE_IPV4
+    return IsBoundToLocalIPv4Address() || !IsBoundToLocalIPv6Address();
+#else
+    return false;
+#endif
+}
+
+/**
+ *  Check if the WeaveMessageLayer is configured to listen for inbound communications
+ *  over IPv4.
+ */
+inline bool WeaveMessageLayer::IPv6ListenEnabled(void) const
+{
+    // When the targeted listen feature is enabled, enable IPv6 listening when the message layer has
+    // been bound to a specific IPv6 listening address OR the message
+    // layer has not been bound to any address (IPv4 or IPv6).
+    //
+    // Otherwise, when the targeted listen feature is NOT enabled, always listen on IPv6.
+    //
+    return IsBoundToLocalIPv6Address() || !IsBoundToLocalIPv4Address();
+}
+
+/**
+ *  Check if the WeaveMessageLayer is configured to listen for inbound TCP connections.
+ */
+inline bool WeaveMessageLayer::TCPListenEnabled(void) const
+{
+    return GetFlag(mFlags, kFlag_ListenTCP);
+}
+
+/**
+ *  Enable or disable listening for inbound TCP connections in the WeaveMessageLayer.
+ *
+ *  NOTE: \c RefreshEndpoints() must be called after the TCP listening state is changed.
+ */
+inline void WeaveMessageLayer::SetTCPListenEnabled(bool val)
+{
+    SetFlag(mFlags, kFlag_ListenTCP, val);
+}
+
+/**
+ *  Check if the WeaveMessageLayer is configured to listen for inbound UDP messages.
+ */
+inline bool WeaveMessageLayer::UDPListenEnabled(void) const
+{
+    return GetFlag(mFlags, kFlag_ListenUDP);
+}
+
+/**
+ *  Enable or disable listening for inbound UDP messages in the WeaveMessageLayer.
+ *
+ *  NOTE: \c RefreshEndpoints() must be called after the UDP listening state is changed.
+ */
+inline void WeaveMessageLayer::SetUDPListenEnabled(bool val)
+{
+    SetFlag(mFlags, kFlag_ListenUDP, val);
+}
+
+/**
+ *  Check if locally initiated Weave UDP exchanges should be sent from an ephemeral
+ *  UDP source port.
+ */
+inline bool WeaveMessageLayer::EphemeralUDPPortEnabled(void) const
+{
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    return GetFlag(mFlags, kFlag_EphemeralUDPPortEnabled);
+#else
+    return false;
+#endif
+}
+
+/**
+ *  Enable or disabled initiating Weave UDP exchanges from an ephemeral UDP source port.
+ *
+ *  NOTE: \c RefreshEndpoints() must be called after the ephemeral port state is changed.
+ */
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+inline void WeaveMessageLayer::SetEphemeralUDPPortEnabled(bool val)
+{
+    SetFlag(mFlags, kFlag_EphemeralUDPPortEnabled, val);
+}
+
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+/**
+ *  Check if unsecured listening is enabled.
+ */
+inline bool WeaveMessageLayer::UnsecuredListenEnabled() const
+{
+    return GetFlag(mFlags, kFlag_ListenUnsecured);
+}
+
 /**
  *  Check if the WeaveMessageLayer is bound to a local IPv4 address.
- *
- *  @return true if check succeeds, otherwise false.
- *
  */
 inline bool WeaveMessageLayer::IsBoundToLocalIPv4Address(void) const
 {
-#if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+#if INET_CONFIG_ENABLE_IPV4 && WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
     return FabricState->ListenIPv4Addr != IPAddress::Any;
 #else
     return false;
 #endif
 }
-#endif // INET_CONFIG_ENABLE_IPV4
 
 /**
  *  Check if the WeaveMessageLayer is bound to a local IPv6 address.
- *
- *  @return true if check succeeds, otherwise false.
- *
  */
 inline bool WeaveMessageLayer::IsBoundToLocalIPv6Address(void) const
 {
@@ -803,6 +938,8 @@ inline bool WeaveMessageLayer::IsBoundToLocalIPv6Address(void) const
     return false;
 #endif
 }
+
+
 
 /**
  * Bit field definitions for IEEE EUI-64 Identifiers.

@@ -29,8 +29,6 @@
 
 // ==================== General Platform Adaptations ====================
 
-#define WEAVE_CONFIG_MAX_INTERFACES 4
-#define WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS 4
 #define WEAVE_CONFIG_MAX_TUNNELS 0
 #define WEAVE_CONFIG_ENABLE_TUNNELING 1
 #define WEAVE_CONFIG_PERSISTED_STORAGE_ENC_MSG_CNTR_ID "enc-msg-counter"
