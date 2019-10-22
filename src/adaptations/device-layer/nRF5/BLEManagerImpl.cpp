@@ -614,7 +614,7 @@ void BLEManagerImpl::HandleSoftDeviceBLEEvent(const WeaveDeviceEvent * event)
         WeaveLogProgress(DeviceLayer, "BLE GATT Server timeout (con %" PRIu16 ")", bleEvent->evt.gatts_evt.conn_handle);
         err = sd_ble_gap_disconnect(bleEvent->evt.gatts_evt.conn_handle,
                                     BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-        APP_ERROR_CHECK(err);
+        SuccessOrExit(err);
         break;
 
     case BLE_GATTS_EVT_WRITE:
