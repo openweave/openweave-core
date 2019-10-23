@@ -44,6 +44,22 @@
 using namespace nl::Inet;
 using namespace nl::Weave::System;
 
+#define TOOL_NAME "TestInetEndPoint"
+
+static HelpOptions gHelpOptions(
+    TOOL_NAME,
+    "Usage: " TOOL_NAME " [<options...>]\n",
+    WEAVE_VERSION_STRING "\n" WEAVE_TOOL_COPYRIGHT
+);
+
+static OptionSet *gToolOptionSets[] =
+{
+    &gNetworkOptions,
+    &gFaultInjectionOptions,
+    &gHelpOptions,
+    NULL
+};
+
 bool callbackHandlerCalled = false;
 
 void HandleDNSResolveComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray)
@@ -139,27 +155,36 @@ static void TestResolveHostAddress(nlTestSuite *inSuite, void *inContext)
     err = Inet.ResolveHostAddress(testHostName1, 1, testDestAddr, HandleDNSResolveComplete, &callbackHandlerCalled);
     NL_TEST_ASSERT(inSuite, err == INET_NO_ERROR);
 
-    while (!callbackHandlerCalled)
+    if (err == INET_NO_ERROR)
     {
-        ServiceNetwork(sleepTime);
+        while (!callbackHandlerCalled)
+        {
+            ServiceNetwork(sleepTime);
+        }
     }
 
     callbackHandlerCalled = false;
     err = Inet.ResolveHostAddress(testHostName2, 1, testDestAddr, HandleDNSResolveComplete, &callbackHandlerCalled);
     NL_TEST_ASSERT(inSuite, err == INET_NO_ERROR);
 
-    while (!callbackHandlerCalled)
+    if (err == INET_NO_ERROR)
     {
-        ServiceNetwork(sleepTime);
+        while (!callbackHandlerCalled)
+        {
+            ServiceNetwork(sleepTime);
+        }
     }
 
     callbackHandlerCalled = false;
     err = Inet.ResolveHostAddress(testHostName3, 1, testDestAddr, HandleDNSResolveComplete, &callbackHandlerCalled);
     NL_TEST_ASSERT(inSuite, err == INET_NO_ERROR);
 
-    while (!callbackHandlerCalled)
+    if (err == INET_NO_ERROR)
     {
-        ServiceNetwork(sleepTime);
+        while (!callbackHandlerCalled)
+        {
+            ServiceNetwork(sleepTime);
+        }
     }
 
     err = Inet.ResolveHostAddress(testHostName2, 0, testDestAddr, HandleDNSResolveComplete, &callbackHandlerCalled);
@@ -210,16 +235,17 @@ static void TestInetInterface(nlTestSuite *inSuite, void *inContext)
     char intName[20];
     InterfaceId intId;
     IPAddress addr;
+    IPPrefix addrWithPrefix;
     INET_ERROR err;
 
     err = InterfaceNameToId("0", intId);
     NL_TEST_ASSERT(inSuite, err != INET_NO_ERROR);
 
-    err = GetInterfaceName((InterfaceId)1, intName, 0);
-    NL_TEST_ASSERT(inSuite, err == INET_ERROR_NO_MEMORY);
-
     err = GetInterfaceName(INET_NULL_INTERFACEID, intName, 0);
     NL_TEST_ASSERT(inSuite, err == INET_ERROR_NO_MEMORY);
+
+    err = GetInterfaceName(INET_NULL_INTERFACEID, intName, sizeof(intName));
+    NL_TEST_ASSERT(inSuite, err == INET_NO_ERROR && intName[0] == '\0');
 
     err = Inet.GetInterfaceFromAddr(addr, intId);
     NL_TEST_ASSERT(inSuite, intId == INET_NULL_INTERFACEID);
@@ -228,30 +254,57 @@ static void TestInetInterface(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, err == INET_ERROR_BAD_ARGS);
 
     printf("    Interfaces:\n");
-    for (; intIterator.HasCurrent(); intIterator.Next()) {
+    for (; intIterator.HasCurrent(); intIterator.Next())
+    {
         intId = intIterator.GetInterface();
-        memset(intName, 0, sizeof(intName));
-        GetInterfaceName(intId, intName, sizeof(intName));
-        printf("     interface id: 0x%" PRIxPTR ", interface name: %s, %s multicast\n",
+        NL_TEST_ASSERT(inSuite, intId != INET_NULL_INTERFACEID);
+        memset(intName, 42, sizeof(intName));
+        err = intIterator.GetInterfaceName(intName, sizeof(intName));
+        NL_TEST_ASSERT(inSuite, err == INET_NO_ERROR);
+        printf("     interface id: 0x%" PRIxPTR ", interface name: %s, interface state: %s, %s multicast, %s broadcast addr\n",
                (uintptr_t)(intId),
                intName,
-               intIterator.SupportsMulticast() ? "support" : "don't support");
+			   intIterator.IsUp() ? "UP" : "DOWN",
+               intIterator.SupportsMulticast() ? "supports" : "no",
+               intIterator.HasBroadcastAddress() ? "has" : "no");
 
         Inet.GetLinkLocalAddr(intId, &addr);
         Inet.MatchLocalIPv6Subnet(addr);
     }
+    NL_TEST_ASSERT(inSuite, !intIterator.Next());
+    NL_TEST_ASSERT(inSuite, intIterator.GetInterface() == INET_NULL_INTERFACEID);
+    NL_TEST_ASSERT(inSuite, intIterator.GetInterfaceName(intName, sizeof(intName)) == INET_ERROR_INCORRECT_STATE);
     NL_TEST_ASSERT(inSuite, !intIterator.SupportsMulticast());
+    NL_TEST_ASSERT(inSuite, !intIterator.HasBroadcastAddress());
 
     printf("    Addresses:\n");
     for (; addrIterator.HasCurrent(); addrIterator.Next()) {
         addr = addrIterator.GetAddress();
-        char buf[80];
-        addr.ToString(buf, 80);
-        printf("     %s, %s multicast, prefix length: %d\n", buf,
-               addrIterator.SupportsMulticast() ? "support":"don't support",
-               addrIterator.GetIPv6PrefixLength());
+        addrIterator.GetAddressWithPrefix(addrWithPrefix);
+        char addrStr[80];
+        addrWithPrefix.IPAddr.ToString(addrStr, sizeof(addrStr));
+        intId = addrIterator.GetInterfaceId();
+        NL_TEST_ASSERT(inSuite, intId != INET_NULL_INTERFACEID);
+        memset(intName, 42, sizeof(intName));
+        err = addrIterator.GetInterfaceName(intName, sizeof(intName));
+        NL_TEST_ASSERT(inSuite, err == INET_NO_ERROR);
+        NL_TEST_ASSERT(inSuite, intName[0] != '\0' && memchr(intName, '\0', sizeof(intName)) != NULL);
+        printf("     %s/%d, interface id: 0x%" PRIxPTR ", interface name: %s, interface state: %s, %s multicast, %s broadcast addr\n",
+               addrStr,
+			   addrWithPrefix.Length,
+			   (uintptr_t)(intId),
+               intName,
+               addrIterator.IsUp() ? "UP" : "DOWN",
+               addrIterator.SupportsMulticast() ? "supports" : "no",
+               addrIterator.HasBroadcastAddress() ? "has" : "no");
     }
+    NL_TEST_ASSERT(inSuite, !addrIterator.Next());
+    addrIterator.GetAddressWithPrefix(addrWithPrefix);
+    NL_TEST_ASSERT(inSuite, addrWithPrefix.IsZero());
+    NL_TEST_ASSERT(inSuite, addrIterator.GetInterface() == INET_NULL_INTERFACEID);
+    NL_TEST_ASSERT(inSuite, addrIterator.GetInterfaceName(intName, sizeof(intName)) == INET_ERROR_INCORRECT_STATE);
     NL_TEST_ASSERT(inSuite, !addrIterator.SupportsMulticast());
+    NL_TEST_ASSERT(inSuite, !addrIterator.HasBroadcastAddress());
 }
 
 static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
@@ -319,10 +372,6 @@ static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
     err = testRaw6EP->BindIPv6LinkLocal(intId, addr_v4);
     NL_TEST_ASSERT(inSuite, err == INET_ERROR_WRONG_ADDRESS_TYPE);
 #endif // INET_CONFIG_ENABLE_IPV4
-    err = testRaw6EP->BindIPv6LinkLocal((InterfaceId)-1, addr);
-    NL_TEST_ASSERT(inSuite, err != INET_NO_ERROR);
-    err = testRaw6EP->BindInterface(kIPAddressType_Unknown, (InterfaceId)-1);
-    NL_TEST_ASSERT(inSuite, err != INET_NO_ERROR);
     err = testRaw6EP->BindInterface(kIPAddressType_Unknown, INET_NULL_INTERFACEID);
     NL_TEST_ASSERT(inSuite, err != INET_NO_ERROR);
 
@@ -549,6 +598,13 @@ static int TestTeardown(void *inContext)
 
 int main(int argc, char *argv[])
 {
+    SetSIGUSR1Handler();
+
+    if (!ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets, NULL))
+    {
+        exit(EXIT_FAILURE);
+    }
+
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     nlTestSuite theSuite = {
         "inet-endpoint",
