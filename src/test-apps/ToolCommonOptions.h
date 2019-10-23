@@ -86,6 +86,7 @@ enum
     kToolCommonOpt_TAKEReauth,
     kToolCommonOpt_PairingCode,
     kToolCommonOpt_PersistentCntrFile,
+    kToolCommonOpt_UseEphemeralUDPPort,
     kToolCommonOpt_GroupEncKeyId,
     kToolCommonOpt_GroupEncKeyType,
     kToolCommonOpt_GroupEncRootKey,
@@ -142,6 +143,7 @@ public:
     bool LocalNodeIdSet;
     bool SubnetIdSet;
     const char *PairingCode;
+    bool UseEphemeralUDPPort;
 
     // TODO (arg clean up): add common function to infer ids from local address and remove duplicate code from tool main functions.
 
