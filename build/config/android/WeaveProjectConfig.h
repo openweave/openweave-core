@@ -25,6 +25,12 @@
 #ifndef WEAVEPROJECTCONFIG_H
 #define WEAVEPROJECTCONFIG_H
 
+// Enable use of an ephemeral UDP source port for locally initiated Weave exchanges.
+#define WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT 1
+
+// Enable UDP listening on demand in the WeaveDeviceManager
+#define WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP 1
+
 // Enable passcode encryption configuration 1
 #define WEAVE_CONFIG_SUPPORT_PASSCODE_CONFIG1_TEST_ONLY     1
 

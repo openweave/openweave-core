@@ -1725,7 +1725,7 @@ void WeaveMessageLayer::HandleUDPMessage(UDPEndPoint *endPoint, PacketBuffer *ms
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(MessageLayer, "HandleUDPMessage Error %d", err);
+        WeaveLogError(MessageLayer, "HandleUDPMessage Error %s", nl::ErrorStr(err));
 
         PacketBuffer::Free(msg);
 
@@ -1743,7 +1743,7 @@ exit:
 
 void WeaveMessageLayer::HandleUDPReceiveError(UDPEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo)
 {
-    WeaveLogError(MessageLayer, "HandleUDPReceiveError Error %d", err);
+    WeaveLogError(MessageLayer, "HandleUDPReceiveError Error %s", nl::ErrorStr(err));
 
     WeaveMessageLayer *msgLayer = (WeaveMessageLayer *) endPoint->AppState;
     if (msgLayer->OnReceiveError != NULL)

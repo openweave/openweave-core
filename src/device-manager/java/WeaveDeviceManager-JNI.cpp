@@ -341,21 +341,29 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
     err = sFabricState.Init();
     SuccessOrExit(err);
 
-    // TODO: TEMPORARY HACK -- use a different default node id to avoid conflict with the mock device.
-    sFabricState.LocalNodeId = 2;
-
-    // Set the fabric ID to unset
+    // Not a member of a fabric.
     sFabricState.FabricId = 0;
+
+    // Generate a unique node id for local Weave stack.
+    err = GenerateWeaveNodeId(sFabricState.LocalNodeId);
+    SuccessOrExit(err);
 
     // Initialize the WeaveMessageLayer object.
     initContext.systemLayer = &sSystemLayer;
     initContext.inet = &sInet;
     initContext.fabricState = &sFabricState;
     initContext.listenTCP = false;
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    initContext.listenUDP = false;
+#else
     initContext.listenUDP = true;
+#endif
 #if CONFIG_NETWORK_LAYER_BLE
     initContext.ble = &sBle;
     initContext.listenBLE = true;
+#endif
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    initContext.enableEphemeralUDPPort = true;
 #endif
     err = sMessageLayer.Init(&initContext);
     SuccessOrExit(err);

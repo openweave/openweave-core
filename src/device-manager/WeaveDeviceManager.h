@@ -437,6 +437,14 @@ private:
     // Use by static HandleConnectionReceived callback.
     static WeaveDeviceManager *sListeningDeviceMgr;
 
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    bool mUDPEnabled;
+    static uint32_t sUDPDemandEnableCount;
+
+    WEAVE_ERROR EnableUDP(void);
+    WEAVE_ERROR DisableUDP(void);
+#endif
+
     WEAVE_ERROR DoRemotePassiveRendezvous(const IPAddress rendezvousDeviceAddr, const uint16_t rendezvousTimeout,
             const uint16_t inactivityTimeout, void *appReqState, CompleteFunct onComplete, ErrorFunct onError);
 

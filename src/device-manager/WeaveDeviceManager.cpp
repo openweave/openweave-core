@@ -139,6 +139,9 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mUseAccessToken = true;
     mConnectedToRemoteDevice = false;
     mIsUnsecuredConnectionListenerSet = false;
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    mUDPEnabled = false;
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
     mPingSize = 0;
     mTokenPairingCertificate = NULL;
     mTokenPairingCertificateLen = 0;
@@ -385,10 +388,11 @@ WEAVE_ERROR WeaveDeviceManager::InitiateDeviceEnumeration()
 
     VerifyOrExit(kOpState_EnumerateDevices == mOpState, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    // Refresh the message layer endpoints to cope with changes in network interface status
-    // (e.g. new addresses being assigned).
-    err = mMessageLayer->RefreshEndpoints();
+    // Enable UDP if not already enabled.
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    err = EnableUDP();
     SuccessOrExit(err);
+#endif //WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
 
     // Form an Identify device request containing the device criteria specified by the application.
     reqMsg.TargetFabricId = mDeviceCriteria.TargetFabricId;
@@ -423,7 +427,13 @@ WEAVE_ERROR WeaveDeviceManager::InitiateDeviceEnumeration()
         mCurReq->OnMessageReceived = HandleDeviceEnumerationIdentifyResponse;
     }
 
-    WeaveLogProgress(DeviceManager, "Sending IdentifyRequest to enumerate devices");
+#if WEAVE_PROGRESS_LOGGING
+    {
+        char peerDescStr[ExchangeContext::kGetPeerDescription_MaxLength];
+        mCurReq->GetPeerDescription(peerDescStr, sizeof(peerDescStr));
+        WeaveLogProgress(DeviceManager, "Sending IdentifyRequest to enumerate devices (target %s)", peerDescStr);
+    }
+#endif
 
     // Send an Identify message over UDP to the specified rendezvous address.  Typically the rendezvous address
     // will be an multicast/broadcast address, however this can be changed by the application.
@@ -488,7 +498,7 @@ void WeaveDeviceManager::StopDeviceEnumeration()
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceManager, "StopDeviceEnumeration failure: err = %d", err);
+        WeaveLogError(DeviceManager, "StopDeviceEnumeration failure: err = %s", nl::ErrorStr(err));
     }
 }
 
@@ -1004,7 +1014,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceManager, "RemotePassiveRendezvous failed, err = %d", err);
+        WeaveLogError(DeviceManager, "RemotePassiveRendezvous failed, err = %s", nl::ErrorStr(err));
 
         // Cancel RemotePassiveRendezvous timer, clear OpState and free saved copy of pairing code, leaving
         // connection to assisting device open.
@@ -1259,7 +1269,7 @@ void WeaveDeviceManager::Close(bool graceful)
     // Cancel our unsecured listen, if enabled.
     err = ClearUnsecuredConnectionHandler();
     if (err != WEAVE_NO_ERROR)
-        WeaveLogProgress(DeviceControl, "ClearUnsecuredConnectionListener failed, err = %d", err);
+        WeaveLogProgress(DeviceControl, "ClearUnsecuredConnectionListener failed, err = %s", nl::ErrorStr(err));
 
     // If this instance of the device manager was performing a passive rendezvous, clear any associated state.
     if (sListeningDeviceMgr == this)
@@ -2715,6 +2725,11 @@ void WeaveDeviceManager::ClearRequestState()
 
 void WeaveDeviceManager::ClearOpState()
 {
+    // Disable UDP if it was enabled on demand.
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    DisableUDP();
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+
     if (mCurReqMsgRetained != NULL)
     {
         PacketBuffer::Free(mCurReqMsgRetained);
@@ -2725,6 +2740,69 @@ void WeaveDeviceManager::ClearOpState()
 
     mOpState = kOpState_Idle;
 }
+
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+
+uint32_t WeaveDeviceManager::sUDPDemandEnableCount = 0;
+
+WEAVE_ERROR WeaveDeviceManager::EnableUDP(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // If UDP listening is NOT already enabled in the Weave Message Layer,
+    // enable it now.  Track the number of times UDP is automatically enabled
+    // across all WeaveDeviceManager instances so that it can be automatically
+    // disabled when no longer needed.
+    if (!mMessageLayer->UDPListenEnabled())
+    {
+        WeaveLogProgress(DeviceManager, "Enabling UDP listen");
+        mMessageLayer->SetUDPListenEnabled(true);
+        err = mMessageLayer->RefreshEndpoints();
+        SuccessOrExit(err);
+
+        if (!mUDPEnabled)
+        {
+            sUDPDemandEnableCount++;
+            mUDPEnabled = true;
+        }
+    }
+    else
+    {
+        if (sUDPDemandEnableCount > 0 && !mUDPEnabled)
+        {
+            sUDPDemandEnableCount++;
+            mUDPEnabled = true;
+        }
+    }
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::DisableUDP(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // If UDP listening was enabled on demand, disable is once there are no
+    // WeaveDeviceManager instances need it.
+    if (mUDPEnabled)
+    {
+        mUDPEnabled = false;
+        sUDPDemandEnableCount--;
+        if (sUDPDemandEnableCount == 0)
+        {
+            WeaveLogProgress(DeviceManager, "Disabling UDP listen");
+            mMessageLayer->SetUDPListenEnabled(false);
+            err = mMessageLayer->RefreshEndpoints();
+            SuccessOrExit(err);
+        }
+    }
+
+exit:
+    return err;
+}
+
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
 
 void WeaveDeviceManager::HandleUnsecuredConnectionCallbackRemoved(void *appState)
 {
@@ -2771,14 +2849,17 @@ WEAVE_ERROR WeaveDeviceManager::InitiateConnection()
     // If starting from the NotConnected state, reset the connection identify count.
     if (mConState == kConnectionState_NotConnected)
     {
-        WeaveLogProgress(DeviceManager, "Initiating connection to device");
+        WeaveLogProgress(DeviceManager, (mOpState == kOpState_RendezvousDevice)
+                ? "Initiating rendezvous for device"
+                : "Initiating connection to device");
         mConTryCount = 0;
     }
 
-    // Refresh the message layer endpoints to cope with changes in network interface status
-    // (e.g. new addresses being assigned).
-    err = mMessageLayer->RefreshEndpoints();
+    // Enable UDP if not already enabled.
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    err = EnableUDP();
     SuccessOrExit(err);
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
 
     // Form an Identify device request containing the device criteria specified by the application.
     reqMsg.TargetFabricId = mDeviceCriteria.TargetFabricId;
@@ -2819,7 +2900,13 @@ WEAVE_ERROR WeaveDeviceManager::InitiateConnection()
         // TODO setup request timeout
     }
 
-    WeaveLogProgress(DeviceManager, "Sending IdentifyRequest to locate device");
+#if WEAVE_PROGRESS_LOGGING
+    {
+        char peerDescStr[ExchangeContext::kGetPeerDescription_MaxLength];
+        mCurReq->GetPeerDescription(peerDescStr, sizeof(peerDescStr));
+        WeaveLogProgress(DeviceManager, "Sending IdentifyRequest to locate device (target %s)", peerDescStr);
+    }
+#endif
 
     mConState = kConnectionState_IdentifyDevice;
 
@@ -2950,7 +3037,7 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        WeaveLogError(DeviceManager, "HandleDeviceEnumerationIdentifyResponse failure: err = %d", err);
+        WeaveLogError(DeviceManager, "HandleDeviceEnumerationIdentifyResponse failure: err = %s", nl::ErrorStr(err));
         devMgr->mOnError(devMgr, devMgr->mAppReqState, err, NULL);
     }
 }
@@ -2994,6 +3081,12 @@ void WeaveDeviceManager::HandleConnectionIdentifyResponse(ExchangeContext *ec, c
 
     // Cancel the identify timer.
     devMgr->mSystemLayer->CancelTimer(HandleConnectionIdentifyTimeout, devMgr);
+
+    // Disable UDP if it was enabled on demand.
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    err = devMgr->DisableUDP();
+    SuccessOrExit(err);
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
 
     // If we got an Identify response...
     if (profileId == kWeaveProfile_DeviceDescription && msgType == kMessageType_IdentifyResponse)
@@ -3161,7 +3254,7 @@ void WeaveDeviceManager::HandleDeviceEnumerationTimeout(System::Layer* aSystemLa
 exit:
     if (lError != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceManager, "HandleDeviceEnumerationTimeout failure, err = %d", lError);
+        WeaveLogError(DeviceManager, "HandleDeviceEnumerationTimeout failure, err = %s", nl::ErrorStr(lError));
     }
 }
 
