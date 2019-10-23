@@ -3556,7 +3556,7 @@ jlong Java_nl_Weave_DeviceManager_WDMClient_newDataSink(JNIEnv *env, jobject sel
     VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     pthread_mutex_lock(&sStackLock);
-    err = wdmClient->NewDataSink(resId, (uint32_t)profileId, (uint64_t)instanceId, pPathStr, pDataSink);
+    err = wdmClient->NewDataSink(resId, (uint32_t)profileId, (uint64_t)instanceId, pPathStr, NULL, pDataSink);
     pthread_mutex_unlock(&sStackLock);
 
 exit:

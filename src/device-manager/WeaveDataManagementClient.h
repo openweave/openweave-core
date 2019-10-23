@@ -137,7 +137,7 @@ public:
 
     void Close(void);
 
-    WEAVE_ERROR NewDataSink(const ResourceIdentifier & aResourceId, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitUpdatableDataSink *& apGenericTraitUpdatableDataSink);
+    WEAVE_ERROR NewDataSink(const ResourceIdentifier & aResourceId, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, TraitSchemaEngine::Schema *apSchemaEngine, GenericTraitUpdatableDataSink *& apGenericTraitUpdatableDataSink);
 
     WEAVE_ERROR FlushUpdate(void* apAppReqState, void* apContext, WDMClientCompleteFunct onComplete, WDMClientErrorFunct onError);
 

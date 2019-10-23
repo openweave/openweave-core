@@ -164,12 +164,13 @@ private:
  *         paths/data for any given trait. These tables are what will be the eventual output of 'code-gen' (The term itself being
  *         somewhat misleading given the absence of any generated code :P)
  */
-class TraitSchemaEngine
+class NL_DLL_EXPORT TraitSchemaEngine
 {
 public:
     /* Provides information about a particular path handle including its parent property schema handle,
      * its context tag and its name.
      */
+
     struct PropertyInfo
     {
         PropertySchemaHandle mParentHandle;
@@ -202,6 +203,8 @@ public:
         const ConstSchemaVersionRange *mVersionRange;     ///< Range of versions supported by this trait
 #endif
     };
+
+    TraitSchemaEngine(Schema aSchema):mSchema(aSchema) { };
 
     /* While traits can have deep nested structures (which can include dictionaries), application logic is only expected to provide
      * getters/setters for 'leaf' nodes in the schema. If one can visualize a schema as a tree (a directed graph where you can have

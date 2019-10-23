@@ -256,7 +256,7 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_Shutdown();
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_NewWDMClient(WDMClient **outWDMClient, WeaveDeviceManager *devMgr);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_DeleteWDMClient(WDMClient *wdmClient);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_NewDataSink(WDMClient *wdmClient, uint16_t aResourceType, const uint8_t * aResourceId, size_t aResourceIdLen, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitUpdatableDataSink ** outGenericTraitUpdatableDataSink);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_NewDataSink(WDMClient *wdmClient, uint16_t aResourceType, const uint8_t * aResourceId, size_t aResourceIdLen, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, TraitSchemaEngine::Schema *apSchema, GenericTraitUpdatableDataSink ** outGenericTraitUpdatableDataSink);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_FlushUpdate(WDMClient *wdmClient, WDMClientCompleteFunct onComplete, WDMClientErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DataManagementClient_RefreshData(WDMClient *wdmClient, WDMClientCompleteFunct onComplete, WDMClientErrorFunct onError);
 
@@ -1309,7 +1309,7 @@ WEAVE_ERROR nl_Weave_DataManagementClient_DeleteWDMClient(WDMClient *wdmClient)
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR nl_Weave_DataManagementClient_NewDataSink(WDMClient *wdmClient, uint16_t aResourceType, const uint8_t * aResourceId, size_t aResourceIdLen, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitUpdatableDataSink ** outGenericTraitUpdatableDataSink)
+WEAVE_ERROR nl_Weave_DataManagementClient_NewDataSink(WDMClient *wdmClient, uint16_t aResourceType, const uint8_t * aResourceId, size_t aResourceIdLen, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, TraitSchemaEngine::Schema *apSchema, GenericTraitUpdatableDataSink ** outGenericTraitUpdatableDataSink)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     ResourceIdentifier resourceId;
@@ -1322,7 +1322,7 @@ WEAVE_ERROR nl_Weave_DataManagementClient_NewDataSink(WDMClient *wdmClient, uint
         resourceId = ResourceIdentifier(aResourceType, aResourceId, aResourceIdLen);
     }
 
-    err = wdmClient->NewDataSink(resourceId, aProfileId, aInstanceId, apPath, *outGenericTraitUpdatableDataSink);
+    err = wdmClient->NewDataSink(resourceId, aProfileId, aInstanceId, apPath, apSchema, *outGenericTraitUpdatableDataSink);
     return err;
 }
 
