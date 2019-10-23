@@ -69,8 +69,8 @@ UINT64_MAX                              = 18446744073709551615
 
 class TLVWriter(object):
     
-    def __init__(self, encoding=bytearray(), implicitProfile=None):
-        self._encoding = encoding
+    def __init__(self, encoding=None, implicitProfile=None):
+        self._encoding = encoding if encoding is not None else bytearray()
         self._implicitProfile = implicitProfile
         self._containerStack = []
 
