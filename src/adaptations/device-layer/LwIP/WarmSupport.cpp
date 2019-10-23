@@ -132,6 +132,15 @@ PlatformResult AddRemoveHostAddress(InterfaceType inInterfaceType, const Inet::I
     else
     {
         lwipErr = netif_remove_ip6_address_with_route(netif, &ip6addr, inPrefixLength);
+        // There are two possible errors from netif_remove_ip6_address: ERR_ARG
+        // if call was made with wrong arguments, or ERR_VAL if the action could
+        // not be performed (e.g. the address was already removed).  We squash
+        // ERR_VAL, and return SUCCESS so that WARM can set its state correctly.
+        if (lwipErr == ERR_VAL)
+        {
+            WeaveLogProgress(DeviceLayer, "netif_remove_ip6_address_with_route: Already removed");
+            lwipErr = ERR_OK;
+        }
         err = System::MapErrorLwIP(lwipErr);
         if (err != WEAVE_NO_ERROR)
         {
@@ -311,6 +320,16 @@ PlatformResult AddRemoveThreadAddress(InterfaceType inInterfaceType, const Inet:
     else
     {
         otErr = otIp6RemoveUnicastAddress(ThreadStackMgrImpl().OTInstance(), &otAddress.mAddress);
+        // There are two possible errors from otIp6RemoveUnicastAddress:
+        // OT_ERROR_INVALID_ARGS if the address was a multicast address, and
+        // OT_ERROR_NOT_FOUND if the address does not exist on the thread
+        // interface.  We squash the OT_ERROR_NOT_FOUND so that WARM sets its
+        // state correctly.
+        if (otErr == OT_ERROR_NOT_FOUND)
+        {
+            WeaveLogProgress(DeviceLayer, "otIp6RemoveUnicastAddress: already removed");
+            otErr = OT_ERROR_NONE;
+        }
     }
 
     ThreadStackMgrImpl().UnlockThreadStack();
@@ -442,4 +461,3 @@ const char * WarmInterfaceTypeToStr(InterfaceType inInterfaceType)
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
-
