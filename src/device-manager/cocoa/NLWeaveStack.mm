@@ -182,8 +182,12 @@ exit:
     err = _mFabricState.Init();
     SuccessOrExit(err);
 
-    // TODO: TEMPORARY HACK -- use a different default node id to avoid conflict with the mock device.
-    _mFabricState.LocalNodeId = 2;
+    // Not a member of a fabric.
+    _mFabricState.FabricId = 0;
+
+    // Generate a unique node id for local Weave stack.
+    err = GenerateWeaveNodeId(_mFabricState.LocalNodeId);
+    SuccessOrExit(err);
 
     // Configure the weave listening address, if one was provided
     {
@@ -227,6 +231,9 @@ exit:
     initContext.fabricState = &_mFabricState;
     initContext.listenTCP = false;
     initContext.listenUDP = true;
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    initContext.enableEphemeralUDPPort = true;
+#endif
     err = _mMessageLayer.Init(&initContext);
     SuccessOrExit(err);
 

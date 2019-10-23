@@ -24,7 +24,7 @@
 #ifndef WEAVEPROJECTCONFIG_H
 #define WEAVEPROJECTCONFIG_H
 
-
+// Enable use of an ephemeral UDP source port for locally initiated Weave exchanges.
 #define WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT 1
 
 // Configure WDM for event offload

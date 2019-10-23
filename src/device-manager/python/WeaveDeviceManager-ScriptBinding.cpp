@@ -359,7 +359,10 @@ WEAVE_ERROR nl_Weave_DeviceManager_Init()
     SuccessOrExit(err);
 
     FabricState.FabricId = 0; // Not a member of any fabric
-    FabricState.LocalNodeId = 1; // TODO: TEMPORARY HACK -- use a different default node id to avoid conflict with the mock device.
+
+    // Generate a unique node id for local Weave stack.
+    err = GenerateWeaveNodeId(FabricState.LocalNodeId);
+    SuccessOrExit(err);
 
     // Initialize the WeaveMessageLayer object.
     initContext.systemLayer = &sSystemLayer;
@@ -367,6 +370,9 @@ WEAVE_ERROR nl_Weave_DeviceManager_Init()
     initContext.fabricState = &FabricState;
     initContext.listenTCP = false;
     initContext.listenUDP = true;
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    initContext.enableEphemeralUDPPort = true;
+#endif
 
     err = MessageLayer.Init(&initContext);
     SuccessOrExit(err);
