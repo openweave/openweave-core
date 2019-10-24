@@ -84,7 +84,7 @@ DUMMY_SERVICE_CONFIG = '1QAADwABADYBFTABCQCoNCLp2XXkVSQCBDcDJxMBAADu7jC0GBgmBJUj
 DUMMY_INIT_DATA = '{where_id: 00000000-0000-0000-0000-000100000010, structure_id: 8ae7af80-f152-11e5-ae52-22000b1905e2, spoken_where_id: 00000000-0000-0000-0000-000100000010}'
 
 localSettingsTraitschema = {'ProfileId': 20, 'SchemaMap': [(1, 1)], 'TreeDepth': 1, 'MaxParentPathHandle': 2}
-testCTraitschema = {'ProfileId': 593165827, 'SchemaMap': [(1, 1), (1, 2), (1, 3), (4, 1), (4, 2), (1, 4)], 'TreeDepth': 2, 'MaxParentPathHandle': 2, 'VersionRange': (1, 2)}
+testCTraitschema = {'ProfileId': 593165827, 'SchemaMap': [(1, 1), (1, 2), (1, 3), (4, 1), (4, 2), (1, 4)], 'TreeDepth': 2, 'MaxParentPathHandle': 2, 'VersionRange': {"MinVersion": 1, "MaxVersion": 2}}
 
 def DecodeBase64Option(option, opt, value):
     try:
@@ -137,7 +137,7 @@ class MockWeaveDataManagementClientImp():
 
         print "close wdm client complete"
 
-    def newDataSink(self, profileid, instanceid, path, schema):
+    def newDataSink(self, instanceid, path, schema):
         """
           new-data-sink <profileid, instanceid, path, schema>
         """
@@ -146,7 +146,7 @@ class MockWeaveDataManagementClientImp():
             return
 
         try:
-            traitInstance = self.wdmClient.newDataSink(0, None, 0, profileid, instanceid, path, schema)
+            traitInstance = self.wdmClient.newDataSink(0, None, 0, instanceid, path, schema)
         except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
@@ -247,15 +247,15 @@ def testWDMClientCreateClose(testObject):
 
 def testWDMClientDataSinkCreateClose(testObject):
     testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", localSettingsTraitschema)
-    TestCTrait = testObject.newDataSink(593165827, 0, "/", testCTraitschema)
+    LocaleSettingTrait = testObject.newDataSink(0, "/", localSettingsTraitschema)
+    TestCTrait = testObject.newDataSink(0, "/", testCTraitschema)
     testObject.closeWdmClient()
     print "testWDMClientDataSinkCreateClose completes"
 
 def testWDMClientDataSinkSetFlushData(testObject):
     testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", localSettingsTraitschema)
-    TestCTrait = testObject.newDataSink(593165827, 0, "/", testCTraitschema)
+    LocaleSettingTrait = testObject.newDataSink(0, "/", localSettingsTraitschema)
+    TestCTrait = testObject.newDataSink(0, "/", testCTraitschema)
     testObject.setData(LocaleSettingTrait, "/1", "en-US")
     testObject.setData(TestCTrait, "/1", False)
     testObject.setData(TestCTrait, "/2", 15)
@@ -268,15 +268,15 @@ def testWDMClientDataSinkSetFlushData(testObject):
 
 def testWDMClientDataSinkRefreshData(testObject):
     testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", localSettingsTraitschema)
-    TestCTrait = testObject.newDataSink(593165827, 0, "/", testCTraitschema)
+    LocaleSettingTrait = testObject.newDataSink(0, "/", localSettingsTraitschema)
+    TestCTrait = testObject.newDataSink(0, "/", testCTraitschema)
     testObject.refreshData()
     testObject.closeWdmClient()
     print "testWDMClientDataSinkRefreshData completes"
 
 def testWDMClientDataSinkRefreshIndividualData(testObject):
     testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", localSettingsTraitschema)
+    LocaleSettingTrait = testObject.newDataSink(0, "/", localSettingsTraitschema)
     TestCTrait = testObject.newDataSink(593165827, 0, "/", testCTraitschema)
     testObject.refreshIndividualData(LocaleSettingTrait)
     testObject.refreshIndividualData(TestCTrait)
@@ -285,8 +285,8 @@ def testWDMClientDataSinkRefreshIndividualData(testObject):
 
 def testWDMClientDataSinkRefreshGetData(testObject):
     testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", localSettingsTraitschema)
-    TestCTrait = testObject.newDataSink(593165827, 0, "/", testCTraitschema)
+    LocaleSettingTrait = testObject.newDataSink(0, "/", localSettingsTraitschema)
+    TestCTrait = testObject.newDataSink(0, "/", testCTraitschema)
     testObject.refreshData()
     testObject.getData(LocaleSettingTrait, "/1")
     testObject.getData(TestCTrait, "/1")
@@ -299,8 +299,8 @@ def testWDMClientDataSinkRefreshGetData(testObject):
 
 def testWDMClientDataSinkCloseIndividualData(testObject):
     testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", localSettingsTraitschema)
-    TestCTrait = testObject.newDataSink(593165827, 0, "/", testCTraitschema)
+    LocaleSettingTrait = testObject.newDataSink(0, "/", localSettingsTraitschema)
+    TestCTrait = testObject.newDataSink(0, "/", testCTraitschema)
     testObject.refreshIndividualData(LocaleSettingTrait)
     testObject.closeIndividualTrait(LocaleSettingTrait)
     testObject.refreshIndividualData(TestCTrait)
@@ -310,8 +310,8 @@ def testWDMClientDataSinkCloseIndividualData(testObject):
 
 def testWDMClientDataSinkSetFlushRefreshGetData(testObject):
     testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", localSettingsTraitschema)
-    TestCTrait = testObject.newDataSink(593165827, 0, "/", testCTraitschema)
+    LocaleSettingTrait = testObject.newDataSink(0, "/", localSettingsTraitschema)
+    TestCTrait = testObject.newDataSink(0, "/", testCTraitschema)
     testObject.setData(LocaleSettingTrait, "/1", "en-US")
     testObject.setData(TestCTrait, "/1", False)
     testObject.setData(TestCTrait, "/2", 15)
@@ -331,8 +331,8 @@ def testWDMClientDataSinkSetFlushRefreshGetData(testObject):
 
 def testWDMClientDataSinkSetRefreshFlushGetData(testObject):
     testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", localSettingsTraitschema)
-    TestCTrait = testObject.newDataSink(593165827, 0, "/", testCTraitschema)
+    LocaleSettingTrait = testObject.newDataSink(0, "/", localSettingsTraitschema)
+    TestCTrait = testObject.newDataSink(0, "/", testCTraitschema)
     testObject.setData(LocaleSettingTrait, "/1", "en-US")
     testObject.setData(TestCTrait, "/1", False)
     testObject.setData(TestCTrait, "/2", 15)

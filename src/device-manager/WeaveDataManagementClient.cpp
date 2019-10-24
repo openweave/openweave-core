@@ -975,36 +975,44 @@ exit:
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR WDMClient::NewDataSink(const ResourceIdentifier & aResourceId, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, TraitSchemaEngine::Schema *apSchema, GenericTraitUpdatableDataSink *& apGenericTraitUpdatableDataSink)
+WEAVE_ERROR WDMClient::NewDataSink(const ResourceIdentifier & aResourceId, uint64_t aInstanceId, const char * apPath,
+        uint32_t aProfileId,  PropertyInfo * apSchemaHandleTbl, uint32_t aNumSchemaHandleEntries,
+        uint32_t aTreeDepth, ConstSchemaVersionRange * apVersionRange, GenericTraitUpdatableDataSink *& apGenericTraitUpdatableDataSink)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     PropertyPathHandle handle = kNullPropertyPathHandle;
     const TraitSchemaEngine *pSchemaEngine = NULL;
     TraitSchemaEngine::PropertyInfo *pSchemaHandleTbl = NULL;
     ConstSchemaVersionRange *pSchemaVersionRange = NULL;
-    int len = 0;
+    TraitSchemaEngine::Schema schema;
 
-    VerifyOrExit(apSchema != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
-    VerifyOrExit(apSchema->mSchemaHandleTbl != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(apSchemaHandleTbl != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
     VerifyOrExit(WEAVE_NO_ERROR != GetDataSink(aResourceId, aProfileId, aInstanceId, apGenericTraitUpdatableDataSink), WeaveLogDetail(DataManagement, "Trait exist"));
 
-    len = apSchema->mNumSchemaHandleEntries;
-    pSchemaHandleTbl =  new TraitSchemaEngine::PropertyInfo[len];
+    schema.mProfileId = aProfileId;
+    pSchemaHandleTbl =  new TraitSchemaEngine::PropertyInfo[aNumSchemaHandleEntries];
     VerifyOrExit(pSchemaHandleTbl != NULL, err = WEAVE_ERROR_NO_MEMORY);
-    memcpy(pSchemaHandleTbl, apSchema->mSchemaHandleTbl, len*sizeof(TraitSchemaEngine::PropertyInfo));
-    apSchema->mSchemaHandleTbl = pSchemaHandleTbl;
+    memcpy(pSchemaHandleTbl, apSchemaHandleTbl, aNumSchemaHandleEntries*sizeof(TraitSchemaEngine::PropertyInfo));
+    schema.mSchemaHandleTbl = pSchemaHandleTbl;
+    schema.mNumSchemaHandleEntries = aNumSchemaHandleEntries;
+    schema.mTreeDepth = aTreeDepth;
 
-    if (apSchema->mVersionRange != NULL)
+#if (TDM_EXTENSION_SUPPORT) || (TDM_VERSIONING_SUPPORT)
+    schema.mMaxParentPathHandle = 2;
+#endif
+#if (TDM_VERSIONING_SUPPORT)
+    if (VersionRange != NULL)
     {
         pSchemaVersionRange = new ConstSchemaVersionRange();
         VerifyOrExit(pSchemaVersionRange != NULL, err = WEAVE_ERROR_NO_MEMORY);
-        *pSchemaVersionRange = *(apSchema->mVersionRange);
-        apSchema->mVersionRange = pSchemaVersionRange;
+        *pSchemaVersionRange = *(apVersionRange);
+        schema.mVersionRange = pSchemaVersionRange;
         WeaveLogDetail(DataManagement, "Trait version range is between %d and %d", apSchema->mVersionRange->mMinVersion, apSchema->mVersionRange->mMaxVersion);
     }
+#endif
 
-    pSchemaEngine = new TraitSchemaEngine(*apSchema);
+    pSchemaEngine = new TraitSchemaEngine(schema);
     VerifyOrExit(pSchemaEngine != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     apGenericTraitUpdatableDataSink = new GenericTraitUpdatableDataSink(pSchemaEngine);

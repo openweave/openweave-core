@@ -97,21 +97,6 @@ class _VersionRangeStruct(Structure):
         ("MaxVersion",  c_uint16),
     ]
 
-class _SchemaStruct(Structure):
-    _fields_ = [
-        ('ProfileId', c_uint32),
-        ('SchemaMap', POINTER(_PropertyInfoStruct)),
-        ('NumSchemaHandleEntries', c_uint32),
-        ('TreeDepth', c_uint32),
-        ('MaxParentPathHandle', c_uint32),
-        ('IsDictionaryBitfield', c_void_p),
-        ('IsOptionalBitfield', c_void_p),
-        ('IsImplementedBitfield', c_void_p),
-        ('IsNullableBitfield', c_void_p),
-        ('IsEphemeralBitfield', c_void_p),
-        ('VersionRange', POINTER(_VersionRangeStruct)),
-    ]
-
 class GenericTraitUpdatableDataSink:
     def __init__(self, traitInstance, wdmClient):
         self.traitInstance = traitInstance
@@ -342,33 +327,24 @@ class WDMClient():
         self._weaveStack = None
         self._datamanagmentLib = None
 
-    def newDataSink(self, resourceType, resourceId, resourceIdLen, profileId, instanceId, path, schema):
+    def newDataSink(self, resourceType, resourceId, resourceIdLen, instanceId, path, schema):
         traitInstance = c_void_p(None)
+        VersionRange = None
         if (self._wdmClient == None):
             print "wdmClient is not ready"
             return
 
-        schemaStruct = _SchemaStruct()
-        schemaStruct.ProfileId = schema["ProfileId"]
-        schemaMap = schema["SchemaMap"]
-        schemaMapLen  = len(schemaMap)
-        schemaStruct.SchemaMap = (_PropertyInfoStruct * schemaMapLen)(*schemaMap)
-        schemaStruct.NumSchemaHandleEntries = len(schemaMap)
-        schemaStruct.TreeDepth = schema["TreeDepth"]
-        schemaStruct.MaxParentPathHandle = schema["MaxParentPathHandle"]
-        schemaStruct.IsDictionaryBitfield = schema["IsDictionaryBitfield"] if "IsDictionaryBitfield" in schema else None
-        schemaStruct.IsOptionalBitfield = schema["IsOptionalBitfield"] if "IsOptionalBitfield" in schema else None
-        schemaStruct.IsImplementedBitfield = schema["IsImplementedBitfield"] if "IsImplementedBitfield" in schema else None
-        schemaStruct.IsNullableBitfield = schema["IsNullableBitfield"] if "IsNullableBitfield" in schema else None
-        schemaStruct.IsEphemeralBitfield = schema["IsEphemeralBitfield"] if "IsEphemeralBitfield" in schema else None
+        schemaHandleTbl = (_PropertyInfoStruct * schema["NumSchemaHandleEntries"])(*schema["SchemaHandleTbl"])
 
         if "VersionRange" in schema:
-            schemaStruct.VersionRange  = pointer(_VersionRangeStruct(*schema["VersionRange"]))
-        else:
-            schemaStruct.VersionRange = None
+            VersionRange  = _VersionRangeStruct()
+            VersionRange.MinVersion = schema["VersionRange"]["MinVersion"]
+            VersionRange.MaxVersion = schema["VersionRange"]["MaxVersion"]
 
         res = self._weaveStack.Call(
-            lambda: self._datamanagmentLib.nl_Weave_DataManagementClient_NewDataSink(self._wdmClient, resourceType, resourceId, resourceIdLen, profileId, instanceId, path, schemaStruct, pointer(traitInstance))
+            lambda: self._datamanagmentLib.nl_Weave_DataManagementClient_NewDataSink(self._wdmClient, resourceType, resourceId, resourceIdLen,
+                                                                                     instanceId, path, schema["ProfileId"], schemaHandleTbl, schema["NumSchemaHandleEntries"],
+                                                                                     schema["TreeDepth"], pointer(VersionRange), pointer(traitInstance))
         )
         if (res != 0):
             raise self._weaveStack.ErrorToException(res)
@@ -414,7 +390,7 @@ class WDMClient():
             self._datamanagmentLib.nl_Weave_DataManagementClient_DeleteWDMClient.argtypes = [ c_void_p ]
             self._datamanagmentLib.nl_Weave_DataManagementClient_DeleteWDMClient.restype = c_uint32
 
-            self._datamanagmentLib.nl_Weave_DataManagementClient_NewDataSink.argtypes = [ c_void_p, c_uint16, c_void_p, c_uint32, c_uint32, c_uint64, c_char_p, POINTER(_SchemaStruct), c_void_p ]
+            self._datamanagmentLib.nl_Weave_DataManagementClient_NewDataSink.argtypes = [ c_void_p, c_uint16, c_void_p, c_uint32, c_uint64, c_char_p, c_uint32, POINTER(_PropertyInfoStruct), c_uint32, c_uint32, POINTER(_VersionRangeStruct), c_void_p ]
             self._datamanagmentLib.nl_Weave_DataManagementClient_NewDataSink.restype = c_uint32
 
             self._datamanagmentLib.nl_Weave_DataManagementClient_FlushUpdate.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]

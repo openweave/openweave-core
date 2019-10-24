@@ -2473,7 +2473,7 @@ class DeviceMgrCmd(Cmd):
 
     def do_newdatasink(self, line):
         """
-          new-data-sink <profileid, instanceid, path, schema>
+          new-data-sink <instanceid, path, schema>
         """
         if self.wdmClient == None:
             print "wdmclient not initialized"
@@ -2482,10 +2482,11 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
 
-        schema = ast.literal_eval(args[3])
+        schema = ast.literal_eval(args[2])
+        print schema
 
         try:
-            self.traitInstance = self.wdmClient.newDataSink(0, None, 0, int(args[0]), int(args[1]), args[2], schema)
+            self.traitInstance = self.wdmClient.newDataSink(0, None, 0, int(args[0]), args[1], schema)
         except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
