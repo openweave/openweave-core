@@ -38,6 +38,7 @@
 #include <InetLayer/IPPrefix.h>
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#include <lwip/tcpip.h>
 #include <lwip/sys.h>
 #include <lwip/netif.h>
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
