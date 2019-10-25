@@ -3249,6 +3249,11 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate(bool aForce)
 exit:
     UnlockUpdateMutex();
 
+    if (mPendingSetState == kPendingSetEmpty)
+    {
+        NoMorePendingEventCbHelper();
+    }
+
     return err;
 }
 
