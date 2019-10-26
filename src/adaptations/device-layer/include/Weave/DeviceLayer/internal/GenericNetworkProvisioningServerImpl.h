@@ -41,6 +41,7 @@ protected:
     using NetworkInfo = ::nl::Weave::DeviceLayer::Internal::DeviceNetworkInfo;
     using NetworkType_t = ::nl::Weave::Profiles::NetworkProvisioning::NetworkType;
     using PacketBuffer = ::nl::Weave::System::PacketBuffer;
+    using WiFiSecurityType_t = ::nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
 
     // ===== Members that implement the NetworkProvisioningServer abstract interface
 

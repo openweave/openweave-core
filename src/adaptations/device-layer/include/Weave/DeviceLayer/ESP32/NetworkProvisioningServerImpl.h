@@ -63,6 +63,7 @@ private:
     void HandleScanDone(void);
     static NetworkProvisioningServerImpl & Instance(void);
     static void HandleScanTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
+    static bool IsSupportedWiFiSecurityType(WiFiSecurityType_t wifiSecType);
 
     // ===== Members for internal use by the following friends.
 
