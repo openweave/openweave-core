@@ -326,6 +326,16 @@
 #endif
 
 /**
+ * WEAVE_DEVICE_CONFIG_SINGLE_WOBLE_CONNECTION
+ *
+ * Limit support for Weave-over-BLE (WoBLE) to a single connection.
+ * When set, WoBLE advertisements will stop while a WoBLE connection is active.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_WOBLE_SINGLE_CONNECTION
+#define WEAVE_DEVICE_CONFIG_WOBLE_SINGLE_CONNECTION 0
+#endif
+
+/**
  * WEAVE_DEVICE_CONFIG_BLE_DEVICE_NAME_PREFIX
  *
  * A prefix string used in forming the BLE device name.  The remainder of the name

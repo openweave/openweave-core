@@ -375,7 +375,12 @@ void BLEManagerImpl::DriveBLEState(void)
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     // If the application has enabled WoBLE and BLE advertising...
-    if (mServiceMode == ConnectivityManager::kWoBLEServiceMode_Enabled && GetFlag(mFlags, kFlag_AdvertisingEnabled))
+    if (mServiceMode == ConnectivityManager::kWoBLEServiceMode_Enabled && GetFlag(mFlags, kFlag_AdvertisingEnabled)
+#if WEAVE_DEVICE_CONFIG_WOBLE_SINGLE_CONNECTION
+        // and no connections are active...
+        && (mNumGAPCons == 0)
+#endif
+        )
     {
         // Start/re-start advertising if not already started, or if there is a pending change
         // to the advertising configuration.
