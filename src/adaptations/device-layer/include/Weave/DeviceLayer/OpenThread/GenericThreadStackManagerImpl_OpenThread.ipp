@@ -444,6 +444,9 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadDevic
         case ConnectivityManager::kThreadDeviceType_SleepyEndDevice:
             deviceTypeStr = "SLEEPY END DEVICE";
             break;
+        default:
+            deviceTypeStr = "(unknown)";
+            break;
         }
         WeaveLogProgress(DeviceLayer, "Setting OpenThread device type to %s", deviceTypeStr);
     }
@@ -469,6 +472,8 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadDevic
     case ConnectivityManager::kThreadDeviceType_SleepyEndDevice:
         linkMode.mDeviceType = false;
         linkMode.mRxOnWhenIdle = false;
+        break;
+    default:
         break;
     }
 

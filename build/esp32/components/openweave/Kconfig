@@ -582,7 +582,24 @@ menu "OpenWeave Device Layer"
             help
                 The interval (in units of 0.625ms) at which the device will send BLE advertisements while
                 in slow advertising mode.
-    
+
+        config WOBLE_SINGLE_CONNECTION
+            bool "Single Connection Mode"
+            default n
+            depends on ENABLE_WOBLE
+            help
+                Limit support for Weave-over-BLE (WoBLE) to a single inbound connection.
+                
+                When set, WoBLE advertisements will stop while a WoBLE connection is active.
+
+        config WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED
+            bool "Disable Advertising when Provisioned"
+            default n
+            depends on ENABLE_WOBLE
+            help
+                Automatically disable Weave-over-BLE (WoBLE) advertising when the device transitions
+                to a fully provisioned state.
+        
     endmenu
 
     menu "Weave Trait Manager"

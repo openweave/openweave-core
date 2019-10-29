@@ -74,6 +74,7 @@ private:
 
     friend class PlatformManagerImpl;
     friend class ConfigurationManagerImpl;
+    friend class Internal::BLEManagerImpl;
     friend class Internal::DeviceControlServer;
     template<class> friend class Internal::GenericPlatformManagerImpl;
     template<class> friend class Internal::GenericConfigurationManagerImpl;
@@ -98,6 +99,8 @@ private:
     WEAVE_ERROR SetThreadPollingConfig(const ConnectivityManager::ThreadPollingConfig & pollingConfig);
     bool HaveMeshConnectivity(void);
     void OnMessageLayerActivityChanged(bool messageLayerIsActive);
+    void OnWoBLEAdvertisingStart(void);
+    void OnWoBLEAdvertisingStop(void);
 
 protected:
 
@@ -251,6 +254,16 @@ inline bool ThreadStackManager::HaveMeshConnectivity(void)
 inline void ThreadStackManager::OnMessageLayerActivityChanged(bool messageLayerIsActive)
 {
     return static_cast<ImplClass*>(this)->_OnMessageLayerActivityChanged(messageLayerIsActive);
+}
+
+inline void ThreadStackManager::OnWoBLEAdvertisingStart(void)
+{
+    static_cast<ImplClass*>(this)->_OnWoBLEAdvertisingStart();
+}
+
+inline void ThreadStackManager::OnWoBLEAdvertisingStop(void)
+{
+    static_cast<ImplClass*>(this)->_OnWoBLEAdvertisingStop();
 }
 
 inline WEAVE_ERROR ThreadStackManager::GetAndLogThreadStatsCounters(void)

@@ -89,10 +89,11 @@ class BLEManagerImpl final
 
     enum
     {
-        kFlag_AdvertisingEnabled                = 0x0001,
-        kFlag_FastAdvertisingEnabled            = 0x0002,
-        kFlag_Advertising                       = 0x0004,
-        kFlag_AdvertisingConfigChangePending    = 0x0008,
+        kFlag_AsyncInitCompleted                = 0x0001,
+        kFlag_AdvertisingEnabled                = 0x0002,
+        kFlag_FastAdvertisingEnabled            = 0x0004,
+        kFlag_Advertising                       = 0x0008,
+        kFlag_AdvertisingConfigChangePending    = 0x0010,
     };
 
     enum

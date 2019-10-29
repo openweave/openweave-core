@@ -90,17 +90,18 @@ class BLEManagerImpl final
 
     enum
     {
-        kFlag_ESPBLELayerInitialized    = 0x0001,
-        kFlag_AppRegistered             = 0x0002,
-        kFlag_AttrsRegistered           = 0x0004,
-        kFlag_GATTServiceStarted        = 0x0008,
-        kFlag_AdvertisingConfigured     = 0x0010,
-        kFlag_Advertising               = 0x0020,
-        kFlag_ControlOpInProgress       = 0x0040,
+        kFlag_AsyncInitCompleted        = 0x0001,
+        kFlag_ESPBLELayerInitialized    = 0x0002,
+        kFlag_AppRegistered             = 0x0004,
+        kFlag_AttrsRegistered           = 0x0008,
+        kFlag_GATTServiceStarted        = 0x0010,
+        kFlag_AdvertisingConfigured     = 0x0020,
+        kFlag_Advertising               = 0x0040,
+        kFlag_ControlOpInProgress       = 0x0080,
 
-        kFlag_AdvertisingEnabled        = 0x0080,
-        kFlag_FastAdvertisingEnabled    = 0x0100,
-        kFlag_UseCustomDeviceName       = 0x0200,
+        kFlag_AdvertisingEnabled        = 0x0100,
+        kFlag_FastAdvertisingEnabled    = 0x0200,
+        kFlag_UseCustomDeviceName       = 0x0400,
     };
 
     enum

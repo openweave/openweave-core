@@ -242,6 +242,21 @@ void BLEManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
         HandleConnectionError(event->WoBLEConnectionError.ConId, event->WoBLEConnectionError.Reason);
         break;
 
+    // If WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED is enabled, and there is a change to the
+    // device's provisioning state, then automatically disable WoBLE advertising if the device
+    // is now fully provisioned.
+#if WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED
+    case DeviceEventType::kFabricMembershipChange:
+    case DeviceEventType::kServiceProvisioningChange:
+    case DeviceEventType::kAccountPairingChange:
+        if (ConfigurationMgr().IsFullyProvisioned())
+        {
+            SetAdvertisingEnabled(false);
+            WeaveLogProgress(DeviceLayer, "WoBLE advertising disabled because device is fully provisioned");
+        }
+        break;
+#endif // WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED
+
     default:
         break;
     }
@@ -348,6 +363,22 @@ void BLEManagerImpl::DriveBLEState(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    // Perform any initialization actions that must occur after the Weave task is running.
+    if (!GetFlag(mFlags, kFlag_AsyncInitCompleted))
+    {
+        SetFlag(mFlags, kFlag_AsyncInitCompleted);
+
+        // If WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED is enabled,
+        // disable WoBLE advertising if the device is fully provisioned.
+#if WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED
+        if (ConfigurationMgr().IsFullyProvisioned())
+        {
+            ClearFlag(mFlags, kFlag_AdvertisingEnabled);
+            WeaveLogProgress(DeviceLayer, "WoBLE advertising disabled because device is fully provisioned");
+        }
+#endif // WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED
+    }
+
     // If there's already a control operation in progress, wait until it completes.
     VerifyOrExit(!GetFlag(mFlags, kFlag_ControlOpInProgress), /* */);
 
@@ -404,7 +435,12 @@ void BLEManagerImpl::DriveBLEState(void)
     }
 
     // Start advertising if needed...
-    if (mServiceMode == ConnectivityManager::kWoBLEServiceMode_Enabled && GetFlag(mFlags, kFlag_AdvertisingEnabled))
+    if (mServiceMode == ConnectivityManager::kWoBLEServiceMode_Enabled && GetFlag(mFlags, kFlag_AdvertisingEnabled)
+#if WEAVE_DEVICE_CONFIG_WOBLE_SINGLE_CONNECTION
+        // and no connections are active...
+        && (_NumConnections() == 0)
+#endif
+        )
     {
         // Configure advertising data if needed.
         if (!GetFlag(mFlags, kFlag_AdvertisingConfigured))
@@ -648,6 +684,11 @@ WEAVE_ERROR BLEManagerImpl::StartAdvertising(void)
         ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,  // adv_filter_policy
     };
 
+    // Inform the ThreadStackManager that WoBLE advertising is about to start.
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    ThreadStackMgr().OnWoBLEAdvertisingStart();
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
     // Advertise connectable if we haven't reached the maximum number of connections.
     size_t numCons = NumConnections();
     bool connectable = (numCons < kMaxConnections);
@@ -659,7 +700,7 @@ WEAVE_ERROR BLEManagerImpl::StartAdvertising(void)
         ? WEAVE_DEVICE_CONFIG_BLE_FAST_ADVERTISING_INTERVAL
         : WEAVE_DEVICE_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL;
 
-    WeaveLogProgress(DeviceLayer, "Configuring BLE advertising (interval %" PRIu32 " ms, %sconnectable, device name %s)",
+    WeaveLogProgress(DeviceLayer, "Configuring WoBLE advertising (interval %" PRIu32 " ms, %sconnectable, device name %s)",
              (((uint32_t)advertParams.adv_int_min) * 10) / 16,
              (connectable) ? "" : "non-",
              mDeviceName);
@@ -798,8 +839,10 @@ void BLEManagerImpl::HandleGATTCommEvent(esp_gatts_cb_event_t event, esp_gatt_if
         // Allocate a connection state record for the new connection.
         GetConnectionState(param->mtu.conn_id, true);
 
-        // Receiving a connection stops the advertising processes, so force it to be re-enabled.
+        // Receiving a connection stops the advertising processes, so update the advertising state accordingly.
         ClearFlag(mFlags, kFlag_Advertising);
+
+        // Re-evaluate the advertising state in light of the new connection.
         PlatformMgr().ScheduleWork(DriveBLEState, 0);
 
         break;
@@ -1168,7 +1211,7 @@ void BLEManagerImpl::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb
             ExitNow(err = ESP_ERR_INVALID_RESPONSE);
         }
 
-        WeaveLogProgress(DeviceLayer, "BLE advertising started");
+        WeaveLogProgress(DeviceLayer, "WoBLE advertising started");
 
         SetFlag(sInstance.mFlags, kFlag_Advertising);
         ClearFlag(sInstance.mFlags, kFlag_ControlOpInProgress);
@@ -1183,10 +1226,15 @@ void BLEManagerImpl::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb
             ExitNow(err = ESP_ERR_INVALID_RESPONSE);
         }
 
-        WeaveLogProgress(DeviceLayer, "BLE advertising stopped");
-
         ClearFlag(sInstance.mFlags, kFlag_Advertising);
         ClearFlag(sInstance.mFlags, kFlag_ControlOpInProgress);
+
+        WeaveLogProgress(DeviceLayer, "WoBLE advertising stopped");
+
+        // Inform the ThreadStackManager that WoBLE advertising has stopped.
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+        ThreadStackMgr().OnWoBLEAdvertisingStop();
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 
         break;
 

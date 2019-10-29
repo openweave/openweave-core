@@ -73,6 +73,8 @@ public:
 
     using ThreadStackManager::InitThreadStack;
     WEAVE_ERROR InitThreadStack(otInstance * otInst);
+    void _OnWoBLEAdvertisingStart(void);
+    void _OnWoBLEAdvertisingStop(void);
 
 private:
 

@@ -716,6 +716,22 @@ bool GenericConfigurationManagerImpl<ImplClass>::_IsPairedToAccount()
 }
 
 template<class ImplClass>
+bool GenericConfigurationManagerImpl<ImplClass>::_IsFullyProvisioned()
+{
+    return
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+            ConnectivityMgr().IsWiFiStationProvisioned() &&
+#endif
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+            ConnectivityMgr().IsThreadProvisioned() &&
+#endif
+#if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
+            Impl()->IsPairedToAccount() &&
+#endif
+            Impl()->IsMemberOfFabric();
+}
+
+template<class ImplClass>
 WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_ComputeProvisioningHash(uint8_t * hashBuf, size_t hashBufSize)
 {
     using HashAlgo = Platform::Security::SHA256;
