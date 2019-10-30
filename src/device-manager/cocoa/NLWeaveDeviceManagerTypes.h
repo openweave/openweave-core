@@ -82,7 +82,11 @@ typedef NS_ENUM(NSInteger, NLWiFiSecurityType) {
     kNLWiFiSecurityType_WPA2MixedPersonal = 5,
     kNLWiFiSecurityType_WPAEnterprise = 6,
     kNLWiFiSecurityType_WPA2Enterprise = 7,
-    kNLWiFiSecurityType_WPA2MixedEnterprise = 8
+    kNLWiFiSecurityType_WPA2MixedEnterprise = 8,
+    kNLWiFiSecurityType_WPA3Personal = 9,
+    kNLWiFiSecurityType_WPA3MixedPersonal = 10,
+    kNLWiFiSecurityType_WPA3Enterprise = 11,
+    kNLWiFiSecurityType_WPA3MixedEnterprise = 12
 };
 
 // Device Descriptor

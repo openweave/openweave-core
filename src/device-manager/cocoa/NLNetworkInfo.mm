@@ -243,6 +243,14 @@ const int NLThreadChannel_NotSpecified = -1;
         return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA2Enterprise;
     case kNLWiFiSecurityType_WPA2MixedEnterprise:
         return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA2MixedEnterprise;
+    case kNLWiFiSecurityType_WPA3Personal:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA3Personal;
+    case kNLWiFiSecurityType_WPA3MixedPersonal:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA3MixedPersonal;
+    case kNLWiFiSecurityType_WPA3Enterprise:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA3Enterprise;
+    case kNLWiFiSecurityType_WPA3MixedEnterprise:
+        return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_WPA3MixedEnterprise;
     default:
         return nl::Weave::Profiles::NetworkProvisioning::kWiFiSecurityType_NotSpecified;
     }

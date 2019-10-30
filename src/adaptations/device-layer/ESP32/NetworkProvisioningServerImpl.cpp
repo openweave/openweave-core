@@ -355,6 +355,16 @@ void NetworkProvisioningServerImpl::HandleScanTimeOut(::nl::Weave::System::Layer
 
 #endif // WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
+bool NetworkProvisioningServerImpl::IsSupportedWiFiSecurityType(WiFiSecurityType_t wifiSecType)
+{
+    return (wifiSecType == kWiFiSecurityType_None ||
+            wifiSecType == kWiFiSecurityType_WEP ||
+            wifiSecType == kWiFiSecurityType_WPAPersonal ||
+            wifiSecType == kWiFiSecurityType_WPA2Personal ||
+            wifiSecType == kWiFiSecurityType_WPA2Enterprise);
+}
+
+
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave

@@ -27,7 +27,11 @@ public enum WiFiSecurityType
     WPA2MixedPersonal(5),
     WPAEnterprise(6),
     WPA2Enterprise(7),
-    WPA2MixedEnterprise(8);
+    WPA2MixedEnterprise(8),
+    WPA3Personal(9),
+    WPA3MixedPersonal(10),
+    WPA3Enterprise(11),
+    WPA3MixedEnterprise(12);
 
     WiFiSecurityType(int v)
     {

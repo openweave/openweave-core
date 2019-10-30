@@ -862,11 +862,8 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
     }
 
-    if (netInfo.WiFiSecurityType != kWiFiSecurityType_None &&
-        netInfo.WiFiSecurityType != kWiFiSecurityType_WEP &&
-        netInfo.WiFiSecurityType != kWiFiSecurityType_WPAPersonal &&
-        netInfo.WiFiSecurityType != kWiFiSecurityType_WPA2Personal &&
-        netInfo.WiFiSecurityType != kWiFiSecurityType_WPA2Enterprise)
+    // Defer to the implementation class to determine if the proposed security type is supported.
+    if (!ImplClass::IsSupportedWiFiSecurityType(netInfo.WiFiSecurityType))
     {
         WeaveLogProgress(DeviceLayer, "%sUnsupported WiFi station security type: %d", sLogPrefix, netInfo.WiFiSecurityType);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
