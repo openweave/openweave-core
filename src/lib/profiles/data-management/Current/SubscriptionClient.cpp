@@ -2913,6 +2913,7 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
     {
         numPending = mPendingUpdateSet.GetNumItems();
         mPendingUpdateSet.Clear();
+        SetPendingSetState(kPendingSetEmpty);
 
         numInProgress = mInProgressUpdateList.GetNumItems();
         mInProgressUpdateList.Clear();
