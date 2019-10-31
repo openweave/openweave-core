@@ -533,7 +533,7 @@ public:
 private:
     PropertyPathHandle _GetChildHandle(PropertyPathHandle aParentHandle, uint8_t aContextTag) const;
     bool GetBitFromPathHandleBitfield(uint8_t * aBitfield, PropertyPathHandle aPathHandle) const;
-
+    WEAVE_ERROR ParseTagString(const char *apTagString, char **apEndptr, uint64_t& aParseRes, bool &anyParsed) const;
 public:
     const Schema mSchema;
 };

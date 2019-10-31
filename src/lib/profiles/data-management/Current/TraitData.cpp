@@ -88,17 +88,84 @@ WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath (PropertyPathHandle aPathhandl
     return err;
 }
 
+WEAVE_ERROR TraitSchemaEngine::ParseTagString(const char *apTagString, char **apEndptr, uint64_t& aParseRes, bool & aAnyParsed) const
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    const char *data;
+    uint64_t sum = 0;
+    int c;
+    bool anyParsed = false;
+    uint64_t threshold = ULLONG_MAX / (uint64_t)10;
+    int remainder = ULLONG_MAX % (uint64_t)10;
+
+    VerifyOrExit(apTagString != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+    data = apTagString;
+
+    c = (unsigned char) *data++;
+    VerifyOrExit(c == '/', err = WEAVE_ERROR_INVALID_TLV_TAG);
+
+    c = (unsigned char) *data ++;
+    VerifyOrExit(c != '/', err = WEAVE_ERROR_INVALID_TLV_TAG);
+
+    if (c == '\0')
+    {
+        goto exit;
+    }
+
+    for (sum = 0;; c = (unsigned char) *data++)
+    {
+        if (c >= '0' && c <= '9')
+        {
+            c -= '0';
+        }
+        else if (c == '/' || c == '\0')
+        {
+            break;
+        }
+        else
+        {
+            err = WEAVE_ERROR_INVALID_TLV_TAG;
+            SuccessOrExit(err);
+        }
+
+        if (sum > threshold || (sum == threshold && c > remainder))
+        {
+            anyParsed = false;
+            sum = ULLONG_MAX;
+            err = WEAVE_ERROR_INVALID_TLV_TAG;
+            SuccessOrExit(err);
+        }
+        else
+        {
+            anyParsed = true;
+            sum *= (uint64_t)10;
+            sum += c;
+        }
+    }
+
+exit:
+    if (apEndptr != 0)
+    {
+        *apEndptr = (char *) (anyParsed ? data - 1 : apTagString);
+    }
+
+    aParseRes = sum;
+    aAnyParsed = anyParsed;
+    return err;
+}
+
 WEAVE_ERROR TraitSchemaEngine::MapPathToHandle(const char * aPathString, PropertyPathHandle & aHandle) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     PropertyPathHandle childProperty, curProperty;
-    nl::Weave::TLV::TLVType dummyContainerType = kTLVType_Path;
-    char *token = NULL;
-    char *pathStringCopy = (char *)malloc(strlen(aPathString) + 1);
-    VerifyOrExit(pathStringCopy != NULL, err = WEAVE_ERROR_NO_MEMORY);
+    char *parseBeg, *parseEnd;
+    uint64_t parseRes = 0;
+    uint64_t tag = 0;
+    bool anyParsed = false;
+    VerifyOrExit(aPathString != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    strcpy(pathStringCopy, aPathString);
-    token = strtok(pathStringCopy, "/");
+    err = ParseTagString(aPathString, &parseEnd, parseRes, anyParsed);
+    SuccessOrExit(err);
 
     // initialize the out argument to NULL
     aHandle = kNullPropertyPathHandle;
@@ -106,16 +173,20 @@ WEAVE_ERROR TraitSchemaEngine::MapPathToHandle(const char * aPathString, Propert
     // Set our starting point for traversal to the root node.
     curProperty = kRootPropertyPathHandle;
 
+    VerifyOrExit(anyParsed, );
+
+    parseBeg = parseEnd;
     // Descend into our schema tree using the tags encountered to help navigate through the various branches.
-    while (token!= NULL)
+    do
     {
-        // Todo: currently it does not support dictionary
-        const uint64_t tag = atoi(token) | kSpecialTagMarker;
-        // If it's a profile tag, we know we're dealing with a dictionary item - get the appropriate dictionary item. Otherwise,
-        // treat it like a regular child node.
+        // Todo: add dictionary support, not yet supported
+        VerifyOrExit(parseRes < kContextTagMaxNum, err = WEAVE_ERROR_INVALID_TLV_TAG);
+        tag = ContextTag(parseRes);
+
         if (IsProfileTag(tag))
         {
             err = WEAVE_ERROR_NOT_IMPLEMENTED;
+            SuccessOrExit(err);
         }
         else
         {
@@ -125,24 +196,31 @@ WEAVE_ERROR TraitSchemaEngine::MapPathToHandle(const char * aPathString, Propert
         if (IsNullPropertyPathHandle(childProperty))
         {
             err = WEAVE_ERROR_TLV_TAG_NOT_FOUND;
-            break;
+            SuccessOrExit(err);
         }
 
         // Set the current node.
         curProperty = childProperty;
-        token = strtok(NULL, "/");
-    }
 
+        if (*parseEnd == 0)
+        {
+            break;
+        }
+        parseBeg = parseEnd;
+        err = ParseTagString(parseBeg, &parseEnd, parseRes, anyParsed);
+        SuccessOrExit(err);
+        if (!anyParsed)
+        {
+            err = WEAVE_ERROR_INVALID_TLV_TAG;
+            SuccessOrExit(err);
+        }
+    }
+    while (1);
+
+exit:
     if (err == WEAVE_NO_ERROR)
     {
         aHandle = curProperty;
-    }
-
-exit:
-    if (NULL != pathStringCopy)
-    {
-        free(pathStringCopy);
-        pathStringCopy = NULL;
     }
 
     return err;
