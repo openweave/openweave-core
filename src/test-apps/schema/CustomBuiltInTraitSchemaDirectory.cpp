@@ -21,24 +21,39 @@
  *      TraitSchemaDirectory which locate the trait schema from different trait header files
  */
 
-#ifndef TRAIT_SCHEMA_DIRECTORY_H_
-#define TRAIT_SCHEMA_DIRECTORY_H_
 
-#include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
-#include <Weave/Profiles/data-management/DataManagement.h>
+// This is a .cpp file in openweave-core that includes the "custom built-in schema"
+// source file, if defined...
+
+#include <Weave/DeviceManager/TraitSchemaDirectory.h>
+#include <weave/trait/locale/LocaleSettingsTrait.h>
+#include <nest/test/trait/TestCTrait.h>
 
 namespace nl {
 namespace Weave {
 namespace DeviceManager {
 using namespace ::nl::Weave::Profiles::DataManagement_Current;
 
-class TraitSchemaDirectory {
-public:
-    static const nl::Weave::Profiles::DataManagement::TraitSchemaEngine * GetTraitSchemaEngine(uint32_t aProfileId);
-};
+const TraitSchemaEngine * TraitSchemaDirectory::GetTraitSchemaEngine(uint32_t aProfileId)
+{
+    if (aProfileId == ::Weave::Trait::Locale::LocaleSettingsTrait::kWeaveProfileId)
+    {
+        return &::Weave::Trait::Locale::LocaleSettingsTrait::TraitSchema;
+    }
+    if (aProfileId == ::Schema::Nest::Test::Trait::TestCTrait::kWeaveProfileId)
+    {
+        return &::Schema::Nest::Test::Trait::TestCTrait::TraitSchema;
+    }
+    else
+    {
+        return NULL;
+    }
+}
 
 } // namespace DeviceManager
 } // namespace Weave
 } // namespace nl
 
-#endif // TRAIT_SCHEMA_DIRECTORY_H_
+#include <weave/trait/locale/LocaleSettingsTrait.cpp>
+#include <nest/test/trait/TestCTrait.cpp>
+

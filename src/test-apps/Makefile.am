@@ -1414,6 +1414,7 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            TestWdmSubscriptionlessNotificationReceiver.cpp		\
                                            schema/nest/test/trait/TestATrait.cpp			\
                                            schema/nest/test/trait/TestBTrait.cpp			\
+                                           schema/nest/test/trait/TestCTrait.cpp            \
                                            schema/nest/test/trait/TestETrait.cpp			\
                                            schema/nest/test/trait/TestCommon.cpp \
                                            schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
@@ -1444,6 +1445,7 @@ TestWdmOneWayCommandReceiver_SOURCES     = TestWdmOneWayCommandReceiver.cpp				\
                                            MockEvents.cpp						\
                                            schema/nest/test/trait/TestATrait.cpp			\
                                            schema/nest/test/trait/TestBTrait.cpp			\
+                                           schema/nest/test/trait/TestCTrait.cpp			\
                                            schema/nest/test/trait/TestETrait.cpp			\
                                            schema/nest/test/trait/TestCommon.cpp                        \
                                            schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
@@ -1477,6 +1479,7 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            MockSourceTraits.cpp                                     \
                                            schema/nest/test/trait/TestATrait.cpp                    \
                                            schema/nest/test/trait/TestBTrait.cpp                    \
+                                           schema/nest/test/trait/TestCTrait.cpp                    \
                                            schema/nest/test/trait/TestETrait.cpp                    \
                                            schema/nest/test/trait/TestCommon.cpp \
                                            schema/weave/trait/locale/LocaleSettingsTrait.cpp        \

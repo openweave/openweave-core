@@ -15,7 +15,8 @@
 @SET_MAKE@
 
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2019 Google, LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -358,20 +359,27 @@ DIST_COMMON = $(srcdir)/../system/SystemLayer.am \
 @CONFIG_HAVE_HEAP_TRUE@am__append_14 = \
 @CONFIG_HAVE_HEAP_TRUE@    @top_builddir@/src/device-manager/WeaveDeviceManager.cpp     \
 @CONFIG_HAVE_HEAP_TRUE@    @top_builddir@/src/device-manager/WeaveDataManagementClient.cpp     \
-@CONFIG_HAVE_HEAP_TRUE@    @top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp     \
-@CONFIG_HAVE_HEAP_TRUE@    @top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp     \
+@CONFIG_HAVE_HEAP_TRUE@    @top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp     \
 @CONFIG_HAVE_HEAP_TRUE@    $(NULL)
 
 @CONFIG_HAVE_HEAP_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_15 = \
 @CONFIG_HAVE_HEAP_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@    @top_builddir@/src/device-manager/WoBleTest.cpp              \
 @CONFIG_HAVE_HEAP_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@    $(NULL)
 
-@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_16 = \
+@WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE_TRUE@am__append_16 = \
+@WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE_TRUE@    -I$(WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE)              \
+@WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE_TRUE@    $(NULL)
+
+@WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE_FALSE@am__append_17 = \
+@WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE_FALSE@    -I$(top_srcdir)/src/test-apps/schema                      \
+@WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE_FALSE@    $(NULL)
+
+@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_18 = \
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@    -I$(top_srcdir)/src/device-manager \
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@    $(NULL)
 
-@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_17 = $(nl_BleLayer_sources)
-@WEAVE_BUILD_WARM_TRUE@am__append_18 = $(nl_Warm_sources)
+@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_19 = $(nl_BleLayer_sources)
+@WEAVE_BUILD_WARM_TRUE@am__append_20 = $(nl_Warm_sources)
 subdir = src/lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/ax_check_compiler.m4 \
@@ -482,8 +490,7 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/inet/InetFaultInjection.cpp \
 	@top_builddir@/src/device-manager/WeaveDeviceManager.cpp \
 	@top_builddir@/src/device-manager/WeaveDataManagementClient.cpp \
-	@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp \
-	@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp \
+	@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp \
 	@top_builddir@/src/device-manager/WoBleTest.cpp \
 	@top_builddir@/src/ble/BleLayer.cpp \
 	@top_builddir@/src/ble/BLEEndPoint.cpp \
@@ -681,8 +688,7 @@ am__objects_10 =  \
 	$(am__objects_9)
 @CONFIG_HAVE_HEAP_TRUE@am__objects_11 = @top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.$(OBJEXT) \
 @CONFIG_HAVE_HEAP_TRUE@	@top_builddir@/src/device-manager/libWeave_a-WeaveDataManagementClient.$(OBJEXT) \
-@CONFIG_HAVE_HEAP_TRUE@	@top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.$(OBJEXT) \
-@CONFIG_HAVE_HEAP_TRUE@	@top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.$(OBJEXT)
+@CONFIG_HAVE_HEAP_TRUE@	@top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.$(OBJEXT)
 @CONFIG_HAVE_HEAP_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__objects_12 = @top_builddir@/src/device-manager/libWeave_a-WoBleTest.$(OBJEXT)
 am__objects_13 = $(am__objects_11) $(am__objects_12)
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@am__objects_14 = @top_builddir@/src/device-manager/libWeave_a-WoBleTest.$(OBJEXT)
@@ -1087,6 +1093,7 @@ VISIBILITY_CFLAGS = @VISIBILITY_CFLAGS@
 VISIBILITY_CXXFLAGS = @VISIBILITY_CXXFLAGS@
 VISIBILITY_OBJCFLAGS = @VISIBILITY_OBJCFLAGS@
 VISIBILITY_OBJCXXCFLAGS = @VISIBILITY_OBJCXXCFLAGS@
+WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE = @WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE@
 WEAVE_DEVICE_LAYER_TARGET = @WEAVE_DEVICE_LAYER_TARGET@
 WEAVE_DEVICE_LAYER_TARGET_ESP32 = @WEAVE_DEVICE_LAYER_TARGET_ESP32@
 WEAVE_DEVICE_LAYER_TARGET_NRF5 = @WEAVE_DEVICE_LAYER_TARGET_NRF5@
@@ -1376,11 +1383,12 @@ lib_LIBRARIES = libWeave.a
 libWeave_a_CPPFLAGS = -I$(top_srcdir)/src/include \
 	-I$(top_srcdir)/third_party/openssl-jpake/openssl/include \
 	$(nl_SystemLayer_CPPFLAGS) $(nl_InetLayer_CPPFLAGS) \
-	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) $(NULL) $(am__append_16)
+	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) $(NULL) $(am__append_16) \
+	$(am__append_17) $(am__append_18)
 libWeave_a_SOURCES = $(nl_SystemLayer_sources) $(nl_InetLayer_sources) \
-	$(nl_DeviceManager_sources) $(am__append_17) \
+	$(nl_DeviceManager_sources) $(am__append_19) \
 	$(nl_WeaveCore_sources) $(nl_WeaveSupport_sources) \
-	$(nl_WeaveProfiles_sources) $(am__append_18)
+	$(nl_WeaveProfiles_sources) $(am__append_20)
 
 # If and ONLY if Weave has been configured to use the interal OpenSSL, then 
 # include the OpenSSL objects in with libWeave.a.  Effectively, the internal
@@ -1591,22 +1599,9 @@ clean-libLIBRARIES:
 @top_builddir@/src/device-manager/libWeave_a-WeaveDataManagementClient.$(OBJEXT):  \
 	@top_builddir@/src/device-manager/$(am__dirstamp) \
 	@top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/device-manager/schema/weave/trait/locale/$(am__dirstamp):
-	@$(MKDIR_P) @top_builddir@/src/device-manager/schema/weave/trait/locale
-	@: > @top_builddir@/src/device-manager/schema/weave/trait/locale/$(am__dirstamp)
-@top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)
-	@: > @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.$(OBJEXT): @top_builddir@/src/device-manager/schema/weave/trait/locale/$(am__dirstamp) \
-	@top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/device-manager/schema/nest/test/trait/$(am__dirstamp):
-	@$(MKDIR_P) @top_builddir@/src/device-manager/schema/nest/test/trait
-	@: > @top_builddir@/src/device-manager/schema/nest/test/trait/$(am__dirstamp)
-@top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)
-	@: > @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.$(OBJEXT): @top_builddir@/src/device-manager/schema/nest/test/trait/$(am__dirstamp) \
-	@top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.$(OBJEXT):  \
+	@top_builddir@/src/device-manager/$(am__dirstamp) \
+	@top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/device-manager/libWeave_a-WoBleTest.$(OBJEXT):  \
 	@top_builddir@/src/device-manager/$(am__dirstamp) \
 	@top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp)
@@ -2233,8 +2228,6 @@ mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f @top_builddir@/src/ble/*.$(OBJEXT)
 	-rm -f @top_builddir@/src/device-manager/*.$(OBJEXT)
-	-rm -f @top_builddir@/src/device-manager/schema/nest/test/trait/*.$(OBJEXT)
-	-rm -f @top_builddir@/src/device-manager/schema/weave/trait/locale/*.$(OBJEXT)
 	-rm -f @top_builddir@/src/inet/*.$(OBJEXT)
 	-rm -f @top_builddir@/src/lib/core/*.$(OBJEXT)
 	-rm -f @top_builddir@/src/lib/profiles/bulk-data-transfer/*.$(OBJEXT)
@@ -2275,11 +2268,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libWeave_a-BleLayer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libWeave_a-BleUUID.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libWeave_a-WoBle.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-BuiltInTraitSchemaDirectory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WeaveDataManagementClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WeaveDeviceManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/libWeave_a-TestCTrait.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/libWeave_a-LocaleSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libWeave_a-AsyncDNSResolverSockets.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libWeave_a-DNSResolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libWeave_a-EndPointBasis.Po@am__quote@
@@ -2893,33 +2885,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/libWeave_a-WeaveDataManagementClient.obj `if test -f '@top_builddir@/src/device-manager/WeaveDataManagementClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/WeaveDataManagementClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/WeaveDataManagementClient.cpp'; fi`
 
-@top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.o: @top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.o -MD -MP -MF @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/libWeave_a-LocaleSettingsTrait.Tpo -c -o @top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.o `test -f '@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/libWeave_a-LocaleSettingsTrait.Tpo @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/libWeave_a-LocaleSettingsTrait.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp' object='@top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.o' libtool=no @AMDEPBACKSLASH@
+@top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.o: @top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.o -MD -MP -MF @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-BuiltInTraitSchemaDirectory.Tpo -c -o @top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.o `test -f '@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-BuiltInTraitSchemaDirectory.Tpo @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-BuiltInTraitSchemaDirectory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp' object='@top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.o `test -f '@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.o `test -f '@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp
 
-@top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.obj: @top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.obj -MD -MP -MF @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/libWeave_a-LocaleSettingsTrait.Tpo -c -o @top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.obj `if test -f '@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/libWeave_a-LocaleSettingsTrait.Tpo @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/libWeave_a-LocaleSettingsTrait.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp' object='@top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.obj' libtool=no @AMDEPBACKSLASH@
+@top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.obj: @top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.obj -MD -MP -MF @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-BuiltInTraitSchemaDirectory.Tpo -c -o @top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.obj `if test -f '@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-BuiltInTraitSchemaDirectory.Tpo @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-BuiltInTraitSchemaDirectory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp' object='@top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/schema/weave/trait/locale/libWeave_a-LocaleSettingsTrait.obj `if test -f '@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/schema/weave/trait/locale/LocaleSettingsTrait.cpp'; fi`
-
-@top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.o: @top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.o -MD -MP -MF @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/libWeave_a-TestCTrait.Tpo -c -o @top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.o `test -f '@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/libWeave_a-TestCTrait.Tpo @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/libWeave_a-TestCTrait.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp' object='@top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.o `test -f '@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp
-
-@top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.obj: @top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.obj -MD -MP -MF @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/libWeave_a-TestCTrait.Tpo -c -o @top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.obj `if test -f '@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/libWeave_a-TestCTrait.Tpo @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/libWeave_a-TestCTrait.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp' object='@top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/schema/nest/test/trait/libWeave_a-TestCTrait.obj `if test -f '@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/schema/nest/test/trait/TestCTrait.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/libWeave_a-BuiltInTraitSchemaDirectory.obj `if test -f '@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp'; fi`
 
 @top_builddir@/src/device-manager/libWeave_a-WoBleTest.o: @top_builddir@/src/device-manager/WoBleTest.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/libWeave_a-WoBleTest.o -MD -MP -MF @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Tpo -c -o @top_builddir@/src/device-manager/libWeave_a-WoBleTest.o `test -f '@top_builddir@/src/device-manager/WoBleTest.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/WoBleTest.cpp
@@ -5300,10 +5278,6 @@ distclean-generic:
 	-rm -f @top_builddir@/src/ble/$(am__dirstamp)
 	-rm -f @top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp)
 	-rm -f @top_builddir@/src/device-manager/$(am__dirstamp)
-	-rm -f @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-	-rm -f @top_builddir@/src/device-manager/schema/nest/test/trait/$(am__dirstamp)
-	-rm -f @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR)/$(am__dirstamp)
-	-rm -f @top_builddir@/src/device-manager/schema/weave/trait/locale/$(am__dirstamp)
 	-rm -f @top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
 	-rm -f @top_builddir@/src/inet/$(am__dirstamp)
 	-rm -f @top_builddir@/src/lib/core/$(DEPDIR)/$(am__dirstamp)
@@ -5376,7 +5350,7 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf @top_builddir@/src/ble/$(DEPDIR) @top_builddir@/src/device-manager/$(DEPDIR) @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR) @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR) @top_builddir@/src/inet/$(DEPDIR) @top_builddir@/src/lib/core/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/$(DEPDIR) @top_builddir@/src/lib/profiles/common/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR) @top_builddir@/src/lib/profiles/device-control/$(DEPDIR) @top_builddir@/src/lib/profiles/device-description/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR) @top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR) @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/security/$(DEPDIR) @top_builddir@/src/lib/profiles/service-directory/$(DEPDIR) @top_builddir@/src/lib/profiles/service-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/software-update/$(DEPDIR) @top_builddir@/src/lib/profiles/status-report/$(DEPDIR) @top_builddir@/src/lib/profiles/time/$(DEPDIR) @top_builddir@/src/lib/profiles/token-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/dropcam-legacy-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/thermostat/$(DEPDIR) @top_builddir@/src/lib/profiles/weave-tunneling/$(DEPDIR) @top_builddir@/src/lib/support/$(DEPDIR) @top_builddir@/src/lib/support/crypto/$(DEPDIR) @top_builddir@/src/lib/support/logging/$(DEPDIR) @top_builddir@/src/lib/support/pairing-code/$(DEPDIR) @top_builddir@/src/lib/support/verhoeff/$(DEPDIR) @top_builddir@/src/system/$(DEPDIR) @top_builddir@/src/warm/$(DEPDIR)
+	-rm -rf @top_builddir@/src/ble/$(DEPDIR) @top_builddir@/src/device-manager/$(DEPDIR) @top_builddir@/src/inet/$(DEPDIR) @top_builddir@/src/lib/core/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/$(DEPDIR) @top_builddir@/src/lib/profiles/common/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR) @top_builddir@/src/lib/profiles/device-control/$(DEPDIR) @top_builddir@/src/lib/profiles/device-description/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR) @top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR) @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/security/$(DEPDIR) @top_builddir@/src/lib/profiles/service-directory/$(DEPDIR) @top_builddir@/src/lib/profiles/service-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/software-update/$(DEPDIR) @top_builddir@/src/lib/profiles/status-report/$(DEPDIR) @top_builddir@/src/lib/profiles/time/$(DEPDIR) @top_builddir@/src/lib/profiles/token-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/dropcam-legacy-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/thermostat/$(DEPDIR) @top_builddir@/src/lib/profiles/weave-tunneling/$(DEPDIR) @top_builddir@/src/lib/support/$(DEPDIR) @top_builddir@/src/lib/support/crypto/$(DEPDIR) @top_builddir@/src/lib/support/logging/$(DEPDIR) @top_builddir@/src/lib/support/pairing-code/$(DEPDIR) @top_builddir@/src/lib/support/verhoeff/$(DEPDIR) @top_builddir@/src/system/$(DEPDIR) @top_builddir@/src/warm/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -5422,7 +5396,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf @top_builddir@/src/ble/$(DEPDIR) @top_builddir@/src/device-manager/$(DEPDIR) @top_builddir@/src/device-manager/schema/nest/test/trait/$(DEPDIR) @top_builddir@/src/device-manager/schema/weave/trait/locale/$(DEPDIR) @top_builddir@/src/inet/$(DEPDIR) @top_builddir@/src/lib/core/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/$(DEPDIR) @top_builddir@/src/lib/profiles/common/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR) @top_builddir@/src/lib/profiles/device-control/$(DEPDIR) @top_builddir@/src/lib/profiles/device-description/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR) @top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR) @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/security/$(DEPDIR) @top_builddir@/src/lib/profiles/service-directory/$(DEPDIR) @top_builddir@/src/lib/profiles/service-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/software-update/$(DEPDIR) @top_builddir@/src/lib/profiles/status-report/$(DEPDIR) @top_builddir@/src/lib/profiles/time/$(DEPDIR) @top_builddir@/src/lib/profiles/token-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/dropcam-legacy-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/thermostat/$(DEPDIR) @top_builddir@/src/lib/profiles/weave-tunneling/$(DEPDIR) @top_builddir@/src/lib/support/$(DEPDIR) @top_builddir@/src/lib/support/crypto/$(DEPDIR) @top_builddir@/src/lib/support/logging/$(DEPDIR) @top_builddir@/src/lib/support/pairing-code/$(DEPDIR) @top_builddir@/src/lib/support/verhoeff/$(DEPDIR) @top_builddir@/src/system/$(DEPDIR) @top_builddir@/src/warm/$(DEPDIR)
+	-rm -rf @top_builddir@/src/ble/$(DEPDIR) @top_builddir@/src/device-manager/$(DEPDIR) @top_builddir@/src/inet/$(DEPDIR) @top_builddir@/src/lib/core/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/$(DEPDIR) @top_builddir@/src/lib/profiles/common/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR) @top_builddir@/src/lib/profiles/device-control/$(DEPDIR) @top_builddir@/src/lib/profiles/device-description/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR) @top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR) @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/security/$(DEPDIR) @top_builddir@/src/lib/profiles/service-directory/$(DEPDIR) @top_builddir@/src/lib/profiles/service-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/software-update/$(DEPDIR) @top_builddir@/src/lib/profiles/status-report/$(DEPDIR) @top_builddir@/src/lib/profiles/time/$(DEPDIR) @top_builddir@/src/lib/profiles/token-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/dropcam-legacy-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/thermostat/$(DEPDIR) @top_builddir@/src/lib/profiles/weave-tunneling/$(DEPDIR) @top_builddir@/src/lib/support/$(DEPDIR) @top_builddir@/src/lib/support/crypto/$(DEPDIR) @top_builddir@/src/lib/support/logging/$(DEPDIR) @top_builddir@/src/lib/support/pairing-code/$(DEPDIR) @top_builddir@/src/lib/support/verhoeff/$(DEPDIR) @top_builddir@/src/system/$(DEPDIR) @top_builddir@/src/warm/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

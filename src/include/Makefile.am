@@ -963,8 +963,6 @@ nl_public_WeaveDeviceManager_header_sources = \
 $(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDeviceManager.h \
 $(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDataManagementClient.h \
 $(nl_public_WeaveDeviceManager_source_dirstem)/TraitSchemaDirectory.h \
-$(nl_public_WeaveDeviceManager_source_dirstem)/schema/weave/trait/locale/LocaleSettingsTrait.h \
-$(nl_public_WeaveDeviceManager_source_dirstem)/schema/nest/test/trait/TestCTrait.h \
 $(NULL)
 
 nl_public_WeaveDeviceManager_header_paths = $(subst $(nl_public_WeaveDeviceManager_source_dirstem)/,,$(nl_public_WeaveDeviceManager_header_sources))

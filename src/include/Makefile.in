@@ -570,6 +570,7 @@ VISIBILITY_CFLAGS = @VISIBILITY_CFLAGS@
 VISIBILITY_CXXFLAGS = @VISIBILITY_CXXFLAGS@
 VISIBILITY_OBJCFLAGS = @VISIBILITY_OBJCFLAGS@
 VISIBILITY_OBJCXXCFLAGS = @VISIBILITY_OBJCXXCFLAGS@
+WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE = @WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE@
 WEAVE_DEVICE_LAYER_TARGET = @WEAVE_DEVICE_LAYER_TARGET@
 WEAVE_DEVICE_LAYER_TARGET_ESP32 = @WEAVE_DEVICE_LAYER_TARGET_ESP32@
 WEAVE_DEVICE_LAYER_TARGET_NRF5 = @WEAVE_DEVICE_LAYER_TARGET_NRF5@
@@ -1349,8 +1350,6 @@ nl_public_WeaveDeviceManager_header_sources = \
 $(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDeviceManager.h \
 $(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDataManagementClient.h \
 $(nl_public_WeaveDeviceManager_source_dirstem)/TraitSchemaDirectory.h \
-$(nl_public_WeaveDeviceManager_source_dirstem)/schema/weave/trait/locale/LocaleSettingsTrait.h \
-$(nl_public_WeaveDeviceManager_source_dirstem)/schema/nest/test/trait/TestCTrait.h \
 $(NULL)
 
 nl_public_WeaveDeviceManager_header_paths = $(subst $(nl_public_WeaveDeviceManager_source_dirstem)/,,$(nl_public_WeaveDeviceManager_header_sources))

@@ -399,6 +399,9 @@
 /* Path to WARM platform config header file */
 #undef WARM_PROJECT_CONFIG_INCLUDE
 
+/* Define custom schema directory */
+#undef WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE
+
 /* Define to 1 to use the legacy WDM profile. */
 #undef WEAVE_CONFIG_LEGACY_WDM
 

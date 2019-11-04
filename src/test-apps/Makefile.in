@@ -1303,6 +1303,7 @@ am__TestWdmNext_SOURCES_DIST = TestWdmNext.cpp MockSinkTraits.cpp \
 	TestWdmSubscriptionlessNotificationReceiver.cpp \
 	schema/nest/test/trait/TestATrait.cpp \
 	schema/nest/test/trait/TestBTrait.cpp \
+	schema/nest/test/trait/TestCTrait.cpp \
 	schema/nest/test/trait/TestETrait.cpp \
 	schema/nest/test/trait/TestCommon.cpp \
 	schema/weave/trait/locale/LocaleSettingsTrait.cpp \
@@ -1323,6 +1324,7 @@ am__TestWdmNext_SOURCES_DIST = TestWdmNext.cpp MockSinkTraits.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestATrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestBTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestCTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestETrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestCommon.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/TestWdmNext-LocaleSettingsTrait.$(OBJEXT) \
@@ -1348,6 +1350,7 @@ am__TestWdmOneWayCommandReceiver_SOURCES_DIST =  \
 	MockLoggingManager.cpp MockEvents.cpp \
 	schema/nest/test/trait/TestATrait.cpp \
 	schema/nest/test/trait/TestBTrait.cpp \
+	schema/nest/test/trait/TestCTrait.cpp \
 	schema/nest/test/trait/TestETrait.cpp \
 	schema/nest/test/trait/TestCommon.cpp \
 	schema/weave/trait/locale/LocaleSettingsTrait.cpp \
@@ -1360,6 +1363,7 @@ am__TestWdmOneWayCommandReceiver_SOURCES_DIST =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandReceiver-MockEvents.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.$(OBJEXT) \
@@ -1527,6 +1531,7 @@ am__mock_device_SOURCES_DIST = mock-device.cpp MockDCLPServer.cpp \
 	MockTokenPairingServer.cpp MockSinkTraits.cpp \
 	MockSourceTraits.cpp schema/nest/test/trait/TestATrait.cpp \
 	schema/nest/test/trait/TestBTrait.cpp \
+	schema/nest/test/trait/TestCTrait.cpp \
 	schema/nest/test/trait/TestETrait.cpp \
 	schema/nest/test/trait/TestCommon.cpp \
 	schema/weave/trait/locale/LocaleSettingsTrait.cpp \
@@ -1559,6 +1564,7 @@ am__mock_device_SOURCES_DIST = mock-device.cpp MockDCLPServer.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockSourceTraits.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-TestATrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-TestBTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-TestCTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-TestETrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-TestCommon.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/mock_device-LocaleSettingsTrait.$(OBJEXT) \
@@ -2742,6 +2748,7 @@ VISIBILITY_CFLAGS = @VISIBILITY_CFLAGS@
 VISIBILITY_CXXFLAGS = @VISIBILITY_CXXFLAGS@
 VISIBILITY_OBJCFLAGS = @VISIBILITY_OBJCFLAGS@
 VISIBILITY_OBJCXXCFLAGS = @VISIBILITY_OBJCXXCFLAGS@
+WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE = @WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE@
 WEAVE_DEVICE_LAYER_TARGET = @WEAVE_DEVICE_LAYER_TARGET@
 WEAVE_DEVICE_LAYER_TARGET_ESP32 = @WEAVE_DEVICE_LAYER_TARGET_ESP32@
 WEAVE_DEVICE_LAYER_TARGET_NRF5 = @WEAVE_DEVICE_LAYER_TARGET_NRF5@
@@ -3364,6 +3371,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@                                           TestWdmSubscriptionlessNotificationReceiver.cpp		\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestATrait.cpp			\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestBTrait.cpp			\
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCTrait.cpp            \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestETrait.cpp			\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCommon.cpp \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
@@ -3391,6 +3399,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@                                           MockEvents.cpp						\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestATrait.cpp			\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestBTrait.cpp			\
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCTrait.cpp			\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestETrait.cpp			\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCommon.cpp                        \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
@@ -3417,6 +3426,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	MockSourceTraits.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestATrait.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestBTrait.cpp \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestCTrait.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestETrait.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestCommon.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/LocaleSettingsTrait.cpp \
@@ -3939,6 +3949,9 @@ schema/nest/test/trait/TestWdmNext-TestATrait.$(OBJEXT):  \
 schema/nest/test/trait/TestWdmNext-TestBTrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/nest/test/trait/TestWdmNext-TestCTrait.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 schema/nest/test/trait/TestWdmNext-TestETrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
@@ -3977,6 +3990,9 @@ schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.$(OBJEXT):  \
@@ -4081,6 +4097,9 @@ schema/nest/test/trait/mock_device-TestATrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 schema/nest/test/trait/mock_device-TestBTrait.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/nest/test/trait/mock_device-TestCTrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 schema/nest/test/trait/mock_device-TestETrait.$(OBJEXT):  \
@@ -4354,10 +4373,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-TestMismatchedCTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestATrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestBTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestETrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestATrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestBTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestETrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestATrait.Po@am__quote@
@@ -4366,6 +4387,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestETrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestATrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestBTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestCTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestETrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmNext-LocaleCapabilitiesTrait.Po@am__quote@
@@ -4900,6 +4922,20 @@ schema/nest/test/trait/TestWdmNext-TestBTrait.obj: schema/nest/test/trait/TestBT
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-TestBTrait.obj `if test -f 'schema/nest/test/trait/TestBTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestBTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestBTrait.cpp'; fi`
 
+schema/nest/test/trait/TestWdmNext-TestCTrait.o: schema/nest/test/trait/TestCTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-TestCTrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCTrait.Tpo -c -o schema/nest/test/trait/TestWdmNext-TestCTrait.o `test -f 'schema/nest/test/trait/TestCTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCTrait.cpp' object='schema/nest/test/trait/TestWdmNext-TestCTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-TestCTrait.o `test -f 'schema/nest/test/trait/TestCTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCTrait.cpp
+
+schema/nest/test/trait/TestWdmNext-TestCTrait.obj: schema/nest/test/trait/TestCTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-TestCTrait.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCTrait.Tpo -c -o schema/nest/test/trait/TestWdmNext-TestCTrait.obj `if test -f 'schema/nest/test/trait/TestCTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCTrait.cpp' object='schema/nest/test/trait/TestWdmNext-TestCTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-TestCTrait.obj `if test -f 'schema/nest/test/trait/TestCTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCTrait.cpp'; fi`
+
 schema/nest/test/trait/TestWdmNext-TestETrait.o: schema/nest/test/trait/TestETrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-TestETrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestETrait.Tpo -c -o schema/nest/test/trait/TestWdmNext-TestETrait.o `test -f 'schema/nest/test/trait/TestETrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestETrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestETrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestETrait.Po
@@ -5165,6 +5201,20 @@ schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.obj: schema/nest/
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestBTrait.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.obj `if test -f 'schema/nest/test/trait/TestBTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestBTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestBTrait.cpp'; fi`
+
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.o: schema/nest/test/trait/TestCTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCTrait.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.o `test -f 'schema/nest/test/trait/TestCTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCTrait.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.o `test -f 'schema/nest/test/trait/TestCTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCTrait.cpp
+
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.obj: schema/nest/test/trait/TestCTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCTrait.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.obj `if test -f 'schema/nest/test/trait/TestCTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCTrait.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCTrait.obj `if test -f 'schema/nest/test/trait/TestCTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCTrait.cpp'; fi`
 
 schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.o: schema/nest/test/trait/TestETrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestETrait.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.o `test -f 'schema/nest/test/trait/TestETrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestETrait.cpp
@@ -5711,6 +5761,20 @@ schema/nest/test/trait/mock_device-TestBTrait.obj: schema/nest/test/trait/TestBT
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestBTrait.cpp' object='schema/nest/test/trait/mock_device-TestBTrait.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-TestBTrait.obj `if test -f 'schema/nest/test/trait/TestBTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestBTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestBTrait.cpp'; fi`
+
+schema/nest/test/trait/mock_device-TestCTrait.o: schema/nest/test/trait/TestCTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-TestCTrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-TestCTrait.Tpo -c -o schema/nest/test/trait/mock_device-TestCTrait.o `test -f 'schema/nest/test/trait/TestCTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/mock_device-TestCTrait.Tpo schema/nest/test/trait/$(DEPDIR)/mock_device-TestCTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCTrait.cpp' object='schema/nest/test/trait/mock_device-TestCTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-TestCTrait.o `test -f 'schema/nest/test/trait/TestCTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCTrait.cpp
+
+schema/nest/test/trait/mock_device-TestCTrait.obj: schema/nest/test/trait/TestCTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-TestCTrait.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-TestCTrait.Tpo -c -o schema/nest/test/trait/mock_device-TestCTrait.obj `if test -f 'schema/nest/test/trait/TestCTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/mock_device-TestCTrait.Tpo schema/nest/test/trait/$(DEPDIR)/mock_device-TestCTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCTrait.cpp' object='schema/nest/test/trait/mock_device-TestCTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-TestCTrait.obj `if test -f 'schema/nest/test/trait/TestCTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCTrait.cpp'; fi`
 
 schema/nest/test/trait/mock_device-TestETrait.o: schema/nest/test/trait/TestETrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-TestETrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-TestETrait.Tpo -c -o schema/nest/test/trait/mock_device-TestETrait.o `test -f 'schema/nest/test/trait/TestETrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestETrait.cpp
@@ -8644,11 +8708,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 clean: clean-recursive
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \
