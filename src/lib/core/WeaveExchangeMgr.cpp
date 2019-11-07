@@ -829,7 +829,19 @@ void WeaveExchangeManager::DispatchMessage(WeaveMessageInfo *msgInfo, PacketBuff
         {
             ec->PeerAddr = msgInfo->InPacketInfo->SrcAddress;
             ec->PeerPort = msgInfo->InPacketInfo->SrcPort;
-            ec->PeerIntf = msgInfo->InPacketInfo->Interface;
+
+            // If the message was received over UDP, and the peer's address is an
+            // IPv6 link-local, capture the interface to be used when sending packets
+            // back to the peer.
+            //
+            // Specifying an outbound interface when sending UDP packets has a subtle
+            // effect on routing and source address selection. Thus it is only done when
+            // required by the type of destination address.
+            //
+            if (ec->Con == NULL && ec->PeerAddr.IsIPv6LinkLocal())
+            {
+                ec->PeerIntf = msgInfo->InPacketInfo->Interface;
+            }
         }
         ec->EncryptionType = msgInfo->EncryptionType;
         ec->KeyId = msgInfo->KeyId;
