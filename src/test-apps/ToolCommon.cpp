@@ -1198,6 +1198,9 @@ void InitWeaveStack(bool listen, bool initExchangeMgr)
     initContext.fabricState = &FabricState;
     initContext.listenTCP = listen;
     initContext.listenUDP = true;
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    initContext.enableEphemeralUDPPort = gWeaveNodeOptions.UseEphemeralUDPPort;
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
     initContext.ble = &sBle;
