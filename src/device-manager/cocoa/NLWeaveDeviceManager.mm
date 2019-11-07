@@ -31,6 +31,7 @@
 #include <Weave/Support/CodeUtils.h>
 
 #include <WeaveDeviceManager.h>
+#include <WeaveDataManagementClient.h>
 
 #include <net/if.h>
 
@@ -1943,3 +1944,32 @@ static void onPairTokenComplete(nl::Weave::DeviceManager::WeaveDeviceManager * d
 }
 
 @end
+
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
+
+SubscriptionEngine * SubscriptionEngine::GetInstance()
+{
+    static nl::Weave::Profiles::DataManagement::SubscriptionEngine sWdmSubscriptionEngine;
+    return &sWdmSubscriptionEngine;
+}
+
+namespace Platform {
+void CriticalSectionEnter()
+{
+    return;
+}
+
+void CriticalSectionExit()
+{
+    return;
+}
+
+} // Platform
+
+} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // Profiles
+} // Weave
+} // nl

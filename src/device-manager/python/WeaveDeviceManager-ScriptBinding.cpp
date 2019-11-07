@@ -1416,3 +1416,32 @@ WEAVE_ERROR Write(const char *aKey, uint32_t aValue)
 } // Platform
 } // Weave
 } // nl
+
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
+
+SubscriptionEngine * SubscriptionEngine::GetInstance()
+{
+    static nl::Weave::Profiles::DataManagement::SubscriptionEngine sWdmSubscriptionEngine;
+    return &sWdmSubscriptionEngine;
+}
+
+namespace Platform {
+void CriticalSectionEnter()
+{
+    return;
+}
+
+void CriticalSectionExit()
+{
+    return;
+}
+
+} // Platform
+
+} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // Profiles
+} // Weave
+} // nl
