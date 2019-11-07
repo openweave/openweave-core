@@ -668,6 +668,17 @@ exit:
     return err;
 }
 
+/**
+ * Returns an IPAddress containing a Weave ULA for a specified node.
+ *
+ * This variant allows for a subnet to be specified.
+ *
+ * @param[in] nodeId            The Node ID number of the node in question.
+ *
+ * @param[in] subnet            The desired subnet of the ULA.
+ *
+ * @retval IPAddress            An IPAddress object.
+ */
 IPAddress WeaveFabricState::SelectNodeAddress(uint64_t nodeId, uint16_t subnetId) const
 {
     // Translate 'any' node id to the IPv6 link-local all-nodes multicast address.
@@ -681,15 +692,37 @@ IPAddress WeaveFabricState::SelectNodeAddress(uint64_t nodeId, uint16_t subnetId
     }
 }
 
+/**
+ * Returns an IPAddress containing a Weave ULA for a specified node.
+ *
+ * This variant uses the local node's default subnet.
+ *
+ * @param[in] nodeId            The Node ID number of the node in question.
+ *
+ * @retval IPAddress            An IPAddress object.
+ */
 IPAddress WeaveFabricState::SelectNodeAddress(uint64_t nodeId) const
 {
     return WeaveFabricState::SelectNodeAddress(nodeId, DefaultSubnet);
 }
 
-// Determine if an IP address represents an address of a node within the local fabric.
+/**
+ * Determines if an IP address represents an address of a node within the local Weave fabric.
+ */
 bool WeaveFabricState::IsFabricAddress(const IPAddress &addr) const
 {
-    return addr.IsIPv6ULA() && FabricId != 0 && addr.GlobalId() == WeaveFabricIdToIPv6GlobalId(FabricId);
+    return (FabricId != kFabricIdNotSpecified &&
+            addr.IsIPv6ULA() &&
+            addr.GlobalId() == WeaveFabricIdToIPv6GlobalId(FabricId));
+}
+
+/**
+ * Determines if an IP address represents a Weave fabric address for the local node.
+ */
+bool WeaveFabricState::IsLocalFabricAddress(const IPAddress &addr) const
+{
+    return (IsFabricAddress(addr) &&
+            IPv6InterfaceIdToWeaveNodeId(addr.InterfaceId()) == LocalNodeId);
 }
 
 #if WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC

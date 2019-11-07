@@ -247,7 +247,7 @@ WEAVE_ERROR WeaveTunnelControl::SendShortcutTunnelAdvertiseMessage (TunnelCtrlMs
     msgBuf->SetDataLength(8);
     mShortcutTunExchangeCtxt->PeerIntf = sendIntfId;
     err = mShortcutTunExchangeCtxt->SendMessage(kWeaveProfile_Tunneling, shortcutTunAdvMsgType, msgBuf,
-                                                nl::Weave::ExchangeContext::kSendFlag_MulticastFromLinkLocal);
+                                                nl::Weave::ExchangeContext::kSendFlag_DefaultMulticastSourceAddress);
     msgBuf = NULL;
     SuccessOrExit(err);
 

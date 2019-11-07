@@ -65,6 +65,7 @@ enum {
     kFlagMsgRcvdFromPeer        = 0x0080, /// When set, signifies that at least one message has been received from peer on this exchange context.
     kFlagAutoReleaseKey         = 0x0100, /// Automatically release the message encryption key when the exchange context is freed.
     kFlagAutoReleaseConnection  = 0x0200, /// Automatically release the associated WeaveConnection when the exchange context is freed.
+    kFlagUseEphemeralUDPPort    = 0x0400, /// When set, use the local ephemeral UDP port as the source port for outbound messages.
 };
 
 /**
@@ -314,6 +315,35 @@ void ExchangeContext::SetShouldAutoReleaseConnection(bool autoReleaseCon)
 }
 
 /**
+ * @fn  bool ExchangeContext::UseEphemeralUDPPort(void) const
+ *
+ * Return whether outbound messages sent via the exchange should be sent from
+ * the local ephemeral UDP port.
+ */
+
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+bool ExchangeContext::UseEphemeralUDPPort(void) const
+{
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagUseEphemeralUDPPort));
+}
+
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+/**
+ * Set whether outbound messages sent via the exchange should be sent from
+ * the local ephemeral UDP port.
+ */
+void ExchangeContext::SetUseEphemeralUDPPort(bool val)
+{
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagUseEphemeralUDPPort), val);
+}
+
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+/**
  *  Send a Weave message on this exchange.
  *
  *  @param[in]    profileId     The profile identifier of the Weave message to be sent.
@@ -524,10 +554,16 @@ WEAVE_ERROR ExchangeContext::SendMessage(uint32_t profileId, uint8_t msgType, Pa
         msgInfo->Flags |= kWeaveMessageFlag_ReuseMessageId;
     if (sendFlags & kSendFlag_ReuseSourceId)
         msgInfo->Flags |= kWeaveMessageFlag_ReuseSourceId;
-    if (sendFlags & kSendFlag_MulticastFromLinkLocal)
-        msgInfo->Flags |= kWeaveMessageFlag_MulticastFromLinkLocal;
+    if (sendFlags & kSendFlag_DefaultMulticastSourceAddress)
+        msgInfo->Flags |= kWeaveMessageFlag_DefaultMulticastSourceAddress;
 
-    // Send the message via UDP or TCP based on the presence of a connection.
+    SetFlag(msgInfo->Flags, kWeaveMessageFlag_FromInitiator, IsInitiator());
+
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    SetFlag(msgInfo->Flags, kWeaveMessageFlag_ViaEphemeralUDPPort, UseEphemeralUDPPort());
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+    // Send the message via UDP or TCP/BLE based on the presence of a connection.
     if (Con != NULL)
     {
         // Hook the message received callback on the connection so that the WeaveExchangeManager gets
