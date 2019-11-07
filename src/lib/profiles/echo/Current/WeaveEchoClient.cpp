@@ -153,7 +153,7 @@ WEAVE_ERROR WeaveEchoClient::SendEchoRequest(uint64_t nodeId, IPAddress nodeAddr
         nodeAddr = FabricState->SelectNodeAddress(nodeId);
 
     // Create a new exchange context.
-    ExchangeCtx = ExchangeMgr->NewContext(nodeId, nodeAddr, WEAVE_PORT, sendIntfId, this);
+    ExchangeCtx = ExchangeMgr->NewContext(nodeId, nodeAddr, port, sendIntfId, this);
     if (ExchangeCtx == NULL)
     {
         PacketBuffer::Free(payload);
