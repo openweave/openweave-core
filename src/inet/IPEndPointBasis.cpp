@@ -931,7 +931,7 @@ INET_ERROR IPEndPointBasis::GetSocket(IPAddressType aAddressType, int aType, int
         res = setsockopt(mSocket, SOL_SOCKET, SO_REUSEPORT,  (void*)&one, sizeof (one));
         if (res != 0)
         {
-            WeaveLogError(Inet, "SO_REUSEPORT: %d", errno);
+            WeaveLogError(Inet, "SO_REUSEPORT failed: %d", errno);
         }
 #endif // defined(SO_REUSEPORT)
 
@@ -940,33 +940,37 @@ INET_ERROR IPEndPointBasis::GetSocket(IPAddressType aAddressType, int aType, int
         // the same port, one for IPv4 and one for IPv6.
 
 #ifdef IPV6_V6ONLY
-#if INET_CONFIG_ENABLE_IPV4
         if (aAddressType == kIPAddressType_IPv6)
-#endif // INET_CONFIG_ENABLE_IPV4
         {
             res = setsockopt(mSocket, IPPROTO_IPV6, IPV6_V6ONLY, (void *) &one, sizeof (one));
             if (res != 0)
             {
-                WeaveLogError(Inet, "IPV6_V6ONLY: %d", errno);
+                WeaveLogError(Inet, "IPV6_V6ONLY failed: %d", errno);
             }
         }
 #endif // defined(IPV6_V6ONLY)
 
 #if INET_CONFIG_ENABLE_IPV4
 #ifdef IP_PKTINFO
-        res = setsockopt(mSocket, IPPROTO_IP, IP_PKTINFO, (void *) &one, sizeof (one));
-        if (res != 0)
+        if (aAddressType == kIPAddressType_IPv4)
         {
-            WeaveLogError(Inet, "IP_PKTINFO: %d", errno);
+            res = setsockopt(mSocket, IPPROTO_IP, IP_PKTINFO, (void *) &one, sizeof (one));
+            if (res != 0)
+            {
+                WeaveLogError(Inet, "IP_PKTINFO failed: %d", errno);
+            }
         }
 #endif // defined(IP_PKTINFO)
 #endif // INET_CONFIG_ENABLE_IPV4
 
 #ifdef IPV6_RECVPKTINFO
-        res = setsockopt(mSocket, IPPROTO_IPV6, IPV6_RECVPKTINFO, (void *) &one, sizeof (one));
-        if (res != 0)
+        if (aAddressType == kIPAddressType_IPv6)
         {
-            WeaveLogError(Inet, "IPV6_PKTINFO: %d", errno);
+            res = setsockopt(mSocket, IPPROTO_IPV6, IPV6_RECVPKTINFO, (void *) &one, sizeof (one));
+            if (res != 0)
+            {
+                WeaveLogError(Inet, "IPV6_PKTINFO failed: %d", errno);
+            }
         }
 #endif // defined(IPV6_RECVPKTINFO)
 
@@ -979,7 +983,7 @@ INET_ERROR IPEndPointBasis::GetSocket(IPAddressType aAddressType, int aType, int
             res = setsockopt(mSocket, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof (one));
             if (res != 0)
             {
-                WeaveLogError(Inet, "SO_NOSIGPIPE: %d", errno);
+                WeaveLogError(Inet, "SO_NOSIGPIPE failed: %d", errno);
             }
         }
 #endif // defined(SO_NOSIGPIPE)
