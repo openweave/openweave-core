@@ -179,17 +179,18 @@ extern "C" {
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_shutdown(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_close(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_beginRefreshData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jlong value, jboolean isConditional, jboolean isSigned);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setBigInteger(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jstring value, jboolean isConditional, jboolean isSigned);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jlong value, jboolean isConditional, jboolean isSigned);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setDouble(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jdouble value, jboolean isConditional);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setBoolean(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean value, jboolean isConditional);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setString(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jstring value, jboolean isConditional);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setLeafBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jbyteArray value, jboolean isConditional);
-    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setNULL(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean isConditional);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jbyteArray value, jboolean isConditional);
+    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
     NL_DLL_EXPORT jdouble Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getDouble(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
     NL_DLL_EXPORT jboolean Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getBoolean(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
     NL_DLL_EXPORT jstring Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getString(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
-    NL_DLL_EXPORT jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getLeafBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
+    NL_DLL_EXPORT jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
+    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getVersion(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
 };
 
 static void HandleIdentifyDeviceComplete(WeaveDeviceManager *deviceMgr, void *reqState, const WeaveDeviceDescriptor *deviceDesc);
@@ -202,8 +203,8 @@ static void HandleGetFabricConfigComplete(WeaveDeviceManager *deviceMgr, void *r
 static void HandleDeviceEnumerationResponse(WeaveDeviceManager *deviceMgr, void *reqState, const DeviceDescription::WeaveDeviceDescriptor *devdesc, IPAddress deviceAddr, InterfaceId deviceIntf);
 static void HandleGenericOperationComplete(jobject obj, void *reqState);
 static void HandleSimpleOperationComplete(WeaveDeviceManager *deviceMgr, void *reqState);
-static void HandleWDMClientComplete(void *appState, void *reqState);
-static void HandleGenericTraitUpdatableDataSinkComplete(void *appState, void *reqState);
+static void HandleWDMClientComplete(void *context, void *reqState);
+static void HandleGenericTraitUpdatableDataSinkComplete(void *context, void *reqState);
 static void HandleNotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT connObj);
 static bool HandleSendCharacteristic(BLE_CONNECTION_OBJECT connObj, const uint8_t *svcId, const uint8_t *charId, const uint8_t *characteristicData, uint32_t characteristicDataLen);
 static bool HandleSubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const uint8_t *svcId, const uint8_t *charId);
@@ -215,7 +216,7 @@ static uint16_t HandleGetMTU(BLE_CONNECTION_OBJECT connObj);
 static void HandleGenericError(jobject obj, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus);
 static void HandleError(WeaveDeviceManager *deviceMgr, void *reqState, WEAVE_ERROR err, DeviceStatus *devStatus);
 static void HandleWDMClientError(void *appState, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus);
-static void HandleGenericTraitUpdatableDataSinkError(void *appState, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus);
+static void HandleGenericTraitUpdatableDataSinkError(void *context, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus);
 static void ThrowError(JNIEnv *env, WEAVE_ERROR errToThrow);
 static void ReportError(JNIEnv *env, WEAVE_ERROR cbErr, const char *cbName);
 static void *IOThreadMain(void *arg);
@@ -2293,16 +2294,16 @@ void HandleSimpleOperationComplete(WeaveDeviceManager *deviceMgr, void *reqState
     HandleGenericOperationComplete(self, reqState);
 }
 
-void HandleWDMClientComplete(void *appState, void *reqState)
+void HandleWDMClientComplete(void *context, void *reqState)
 {
-    WDMClient * wdmClient = reinterpret_cast<WDMClient *>(appState);
+    WDMClient * wdmClient = reinterpret_cast<WDMClient *>(context);
     jobject self = (jobject)wdmClient->mpAppState;
     HandleGenericOperationComplete(self, reqState);
 }
 
-void HandleGenericTraitUpdatableDataSinkComplete(void *appState, void *reqState)
+void HandleGenericTraitUpdatableDataSinkComplete(void *context, void *reqState)
 {
-    GenericTraitUpdatableDataSink * sink = reinterpret_cast<GenericTraitUpdatableDataSink *>(appState);
+    GenericTraitUpdatableDataSink * sink = reinterpret_cast<GenericTraitUpdatableDataSink *>(context);
     jobject self = (jobject)sink->mpAppState;
     HandleGenericOperationComplete(self, reqState);
 }
@@ -2700,16 +2701,16 @@ void HandleError(WeaveDeviceManager *deviceMgr, void *reqState, WEAVE_ERROR devi
     HandleGenericError(self, reqState, deviceErr, devStatus);
 }
 
-void HandleWDMClientError(void *appState, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus)
+void HandleWDMClientError(void *context, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus)
 {
-    WDMClient * wdmClient = reinterpret_cast<WDMClient *>(appState);
+    WDMClient * wdmClient = reinterpret_cast<WDMClient *>(context);
     jobject self = (jobject)wdmClient->mpAppState;
     HandleGenericError(self, reqState, deviceErr, devStatus);
 }
 
-void HandleGenericTraitUpdatableDataSinkError(void *appState, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus)
+void HandleGenericTraitUpdatableDataSinkError(void *context, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus)
 {
-    GenericTraitUpdatableDataSink * sink = reinterpret_cast<GenericTraitUpdatableDataSink *>(appState);
+    GenericTraitUpdatableDataSink * sink = reinterpret_cast<GenericTraitUpdatableDataSink *>(context);
     jobject self = (jobject)sink->mpAppState;
     HandleGenericError(self, reqState, deviceErr, devStatus);
 }
@@ -3602,7 +3603,7 @@ void Java_nl_Weave_DataManagement_WDMClient_beginFlushUpdate(JNIEnv *env, jobjec
     WeaveLogProgress(DeviceManager, "beginFlushUpdate() called");
 
     pthread_mutex_lock(&sStackLock);
-    err = wdmClient->FlushUpdate((void *)"FlushUpdate", NULL, HandleWDMClientComplete, HandleWDMClientError);
+    err = wdmClient->FlushUpdate((void *)"FlushUpdate", HandleWDMClientComplete, HandleWDMClientError);
     pthread_mutex_unlock(&sStackLock);
 
     if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
@@ -3619,7 +3620,7 @@ void Java_nl_Weave_DataManagement_WDMClient_beginRefreshData(JNIEnv *env, jobjec
     WeaveLogProgress(DeviceManager, "beginRefreshData() called");
 
     pthread_mutex_lock(&sStackLock);
-    err = wdmClient->RefreshData((void *)"RefreshData", NULL, HandleWDMClientComplete, HandleWDMClientError, NULL);
+    err = wdmClient->RefreshData((void *)"RefreshData", HandleWDMClientComplete, HandleWDMClientError, NULL);
     pthread_mutex_unlock(&sStackLock);
 
     if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
@@ -3684,14 +3685,14 @@ void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_beginRefreshData
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jlong value, jboolean isConditional, jboolean isSigned)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jlong value, jboolean isConditional, jboolean isSigned)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char *pPathStr = NULL;
 
     GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
 
-    WeaveLogProgress(DeviceManager, "setData() called");
+    WeaveLogProgress(DeviceManager, "setInt() called");
 
     pPathStr = env->GetStringUTFChars(path, 0);
     VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
@@ -3711,51 +3712,6 @@ exit:
     if (pPathStr != NULL)
     {
         env->ReleaseStringUTFChars(path, pPathStr);
-    }
-
-    if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
-    {
-        ThrowError(env, err);
-    }
-}
-
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setBigInteger(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jstring value, jboolean isConditional, jboolean isSigned)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    const char *pPathStr = NULL;
-    const char *pValueStr = NULL;
-    char *ptr;
-
-    GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
-
-    WeaveLogProgress(DeviceManager, "setBigInteger() called");
-
-    pPathStr = env->GetStringUTFChars(path, 0);
-    VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-    pValueStr = env->GetStringUTFChars(value, 0);
-    VerifyOrExit(pValueStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-    if (isSigned == JNI_TRUE)
-    {
-        int64_t signedValue = strtoul(pValueStr, &ptr, 10);
-        err = pDataSink->SetData(pPathStr, signedValue, isConditional == JNI_TRUE);
-    }
-    else
-    {
-        uint64_t unsignedValue = strtoul(pValueStr, &ptr, 10);
-        err = pDataSink->SetData(pPathStr, unsignedValue, isConditional == JNI_TRUE);
-    }
-
-exit:
-    if (pPathStr != NULL)
-    {
-        env->ReleaseStringUTFChars(path, pPathStr);
-    }
-
-    if (pValueStr != NULL)
-    {
-        env->ReleaseStringUTFChars(value, pValueStr);
     }
 
     if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
@@ -3848,7 +3804,32 @@ exit:
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setLeafBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jbyteArray value, jboolean isConditional)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setNULL(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean isConditional)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    const char *pPathStr = NULL;
+    GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
+
+    WeaveLogProgress(DeviceManager, "setNULL() called");
+
+    pPathStr = env->GetStringUTFChars(path, 0);
+    VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    err = pDataSink->SetNull(pPathStr, isConditional == JNI_TRUE);
+
+exit:
+    if (pPathStr != NULL)
+    {
+        env->ReleaseStringUTFChars(path, pPathStr);
+    }
+
+    if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
+    {
+        ThrowError(env, err);
+    }
+}
+
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jbyteArray value, jboolean isConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char *pPathStr = NULL;
@@ -3856,7 +3837,7 @@ void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setLeafBytes(JNI
     uint32_t dataLen;
     GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
 
-    WeaveLogProgress(DeviceManager, "setLeafBytes() called");
+    WeaveLogProgress(DeviceManager, "setBytes() called");
 
     pPathStr = env->GetStringUTFChars(path, 0);
     VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
@@ -3864,7 +3845,7 @@ void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setLeafBytes(JNI
     dataLen = env->GetArrayLength(value);
     pDataBuf = (const uint8_t *)env->GetByteArrayElements(value, NULL);
 
-    err = pDataSink->SetLeafBytes(pPathStr, pDataBuf, dataLen, isConditional == JNI_TRUE);
+    err = pDataSink->SetBytes(pPathStr, pDataBuf, dataLen, isConditional == JNI_TRUE);
 
 exit:
     if (pPathStr != NULL)
@@ -3883,14 +3864,14 @@ exit:
     }
 }
 
-jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
+jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint64_t value = 0;
     const char *pPathStr = NULL;
     GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
 
-    WeaveLogProgress(DeviceManager, "getData() called");
+    WeaveLogProgress(DeviceManager, "getInt() called");
 
     pPathStr = env->GetStringUTFChars(path, 0);
     VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
@@ -4009,7 +3990,7 @@ exit:
     return valueStr;
 }
 
-jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getLeafBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
+jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     jbyteArray value = NULL;
@@ -4018,12 +3999,12 @@ jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getLeafByt
 
     GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
 
-    WeaveLogProgress(DeviceManager, "getLeafByte() called");
+    WeaveLogProgress(DeviceManager, "getByte() called");
 
     pPathStr = env->GetStringUTFChars(path, 0);
     VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    err = pDataSink->GetLeafBytes(pPathStr, &dataBytes);
+    err = pDataSink->GetBytes(pPathStr, &dataBytes);
     SuccessOrExit(err);
 
     err = N2J_ByteArray(env, dataBytes.mpDataBuf, dataBytes.mDataLen, value);
@@ -4041,6 +4022,18 @@ exit:
     }
 
     return value;
+}
+
+NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getVersion(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
+{
+    GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
+    uint64_t version = 0;
+
+    WeaveLogProgress(DeviceManager, "getVersion() called");
+
+    version = pDataSink->GetVersion();
+
+    return (jlong)version;
 }
 
 namespace nl {

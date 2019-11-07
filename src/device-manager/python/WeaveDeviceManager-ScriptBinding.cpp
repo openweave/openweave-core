@@ -262,9 +262,10 @@ extern "C" {
 
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_Close(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_RefreshData(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, DMCompleteFunct onComplete, DMErrorFunct onError);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_SetBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetLeafBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, ConstructBytesArrayFunct aCallback);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_SetTLVBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, ConstructBytesArrayFunct aCallback);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetTLVBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, ConstructBytesArrayFunct aCallback);
+    NL_DLL_EXPORT uint64_t nl_Weave_GenericTraitUpdatableDataSink_GetVersion(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink);
 }
 
 static void DeviceEnumerationResponseFunctTrampoline(WeaveDeviceManager *deviceMgr, void *appReqState, const DeviceDescription::WeaveDeviceDescriptor *devdesc,
@@ -1329,14 +1330,14 @@ WEAVE_ERROR nl_Weave_WDMClient_NewDataSink(WDMClient *wdmClient, uint16_t aResou
 WEAVE_ERROR nl_Weave_WDMClient_FlushUpdate(WDMClient *wdmClient, DMCompleteFunct onComplete, DMErrorFunct onError)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    err = wdmClient->FlushUpdate(NULL, NULL, onComplete, onError);
+    err = wdmClient->FlushUpdate(NULL, onComplete, onError);
     return err;
 }
 
 WEAVE_ERROR nl_Weave_WDMClient_RefreshData(WDMClient *wdmClient, DMCompleteFunct onComplete, DMErrorFunct onError)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    err = wdmClient->RefreshData(NULL, NULL, onComplete, onError, NULL);
+    err = wdmClient->RefreshData(NULL, onComplete, onError, NULL);
     return err;
 }
 
@@ -1359,22 +1360,10 @@ WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_RefreshData(GenericTraitUpdat
     return err;
 }
 
-WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_SetBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional)
+WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_SetTLVBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    err = apGenericTraitUpdatableDataSink->SetBytes(apPath, dataBuf, dataLen, aIsConditional);
-    return err;
-}
-
-WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetLeafBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, ConstructBytesArrayFunct aCallback)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    BytesData bytesData;
-    err = apGenericTraitUpdatableDataSink->GetLeafBytes(apPath, &bytesData);
-    SuccessOrExit(err);
-    aCallback(bytesData.mpDataBuf, bytesData.mDataLen);
-
-exit:
+    err = apGenericTraitUpdatableDataSink->SetTLVBytes(apPath, dataBuf, dataLen, aIsConditional);
     return err;
 }
 
@@ -1388,7 +1377,25 @@ WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetBytes(GenericTraitUpdatabl
 
 exit:
     return err;
+}
 
+WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetTLVBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, ConstructBytesArrayFunct aCallback)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    BytesData bytesData;
+    err = apGenericTraitUpdatableDataSink->GetTLVBytes(apPath, &bytesData);
+    SuccessOrExit(err);
+    aCallback(bytesData.mpDataBuf, bytesData.mDataLen);
+
+exit:
+    return err;
+
+}
+
+uint64_t nl_Weave_GenericTraitUpdatableDataSink_GetVersion(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink)
+{
+    uint64_t version = apGenericTraitUpdatableDataSink->GetVersion();
+    return version;
 }
 
 namespace nl {

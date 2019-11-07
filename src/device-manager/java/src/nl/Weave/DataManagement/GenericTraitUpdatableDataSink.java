@@ -31,30 +31,28 @@ import java.util.Iterator;
 
 public class GenericTraitUpdatableDataSink
 {
-    protected GenericTraitUpdatableDataSink(long traitInstancePtr, long wDMClientPtr)
+    protected GenericTraitUpdatableDataSink(long traitInstancePtr, WDMClient wdmClient)
     {
-        mWDMClientPtr = wDMClientPtr;
+        mWDMClient = wdmClient;
         mTraitInstancePtr = traitInstancePtr;
         mCompHandler = null;
         init(mTraitInstancePtr);
     }
 
-    protected void shutdown()
+    protected void close()
     {
-        if (mTraitInstancePtr != 0)
+        if (mWDMClient != null)
         {
-            shutdown(mTraitInstancePtr);
-            mTraitInstancePtr = 0;
+            mWDMClient.removeDataSinkRef(mTraitInstancePtr);
+            mWDMClient = null;
         }
-        mCompHandler = null;
-    }
 
-    public void close()
-    {
         if (mTraitInstancePtr != 0)
         {
             close(mTraitInstancePtr);
+            mTraitInstancePtr = 0;
         }
+        mCompHandler = null;
     }
 
     public CompletionHandler getCompletionHandler()
@@ -70,60 +68,121 @@ public class GenericTraitUpdatableDataSink
     public void setInt(String path, int value, boolean isConditional)
     {
         boolean isSigned = true;
-        setData(mTraitInstancePtr, path, value, isConditional, isSigned);
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
+        setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
     }
 
     public void setInt(String path, long value, boolean isConditional)
     {
         boolean isSigned = true;
-        setData(mTraitInstancePtr, path, value, isConditional, isSigned);
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
+        setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
     }
 
     public void setInt(String path, BigInteger value, boolean isConditional)
     {
         boolean isSigned = true;
-        String valStr = value.toString();
-        setBigInteger(mTraitInstancePtr, path, valStr, isConditional, isSigned);
+        long convertedVal = value.longValue();
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
+        setInt(mTraitInstancePtr, path, convertedVal, isConditional, isSigned);
     }
 
     public void setUnsigned(String path, int value, boolean isConditional)
     {
         boolean isSigned = false;
-        setData(mTraitInstancePtr, path, value, isConditional, isSigned);
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
+        setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
     }
 
     public void setUnsigned(String path, long value, boolean isConditional)
     {
         boolean isSigned = false;
-        setData(mTraitInstancePtr, path, value, isConditional, isSigned);
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
+        setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
     }
 
     public void setUnsigned(String path, BigInteger value, boolean isConditional)
     {
         boolean isSigned = false;
-        String valStr = value.toString();
-        setBigInteger(mTraitInstancePtr, path, valStr, isConditional, isSigned);
+        long convertedVal = value.longValue();
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
+        setInt(mTraitInstancePtr, path, convertedVal, isConditional, isSigned);
     }
 
     public void setDouble(String path, double value, boolean isConditional)
     {
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
         setDouble(mTraitInstancePtr, path, value, isConditional);
     }
 
     public void setBoolean(String path, boolean value, boolean isConditional)
     {
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
         setBoolean(mTraitInstancePtr, path, value, isConditional);
-    }
-
-    public void setLeafBytes(String path, byte[] value, boolean isConditional)
-    {
-        setLeafBytes(mTraitInstancePtr, path, value, isConditional);
     }
 
     public void setString(String path, String value, boolean isConditional)
     {
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
         setString(mTraitInstancePtr, path, value, isConditional);
     }
+
+    public void setNULL(String path, boolean isConditional)
+    {
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
+        setNULL(mTraitInstancePtr, path, isConditional);
+    }
+
+    public void setBytes(String path, byte[] value, boolean isConditional)
+    {
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
+        setBytes(mTraitInstancePtr, path, value, isConditional);
+    }
+
 
     public void setInt(String path, int value)
     {
@@ -157,39 +216,59 @@ public class GenericTraitUpdatableDataSink
 
     public void setDouble(String path, double value)
     {
-        setDouble(mTraitInstancePtr, path, value, false);
+        setDouble(path, value, false);
     }
 
     public void setBoolean(String path, boolean value)
     {
-        setBoolean(mTraitInstancePtr, path, value, false);
-    }
-
-    public void setLeafBytes(String path, byte[] value)
-    {
-        setLeafBytes(mTraitInstancePtr, path, value, false);
+        setBoolean(path, value, false);
     }
 
     public void setString(String path, String value)
     {
-        setString(mTraitInstancePtr, path, value, false);
+        setString(path, value, false);
+    }
+
+    public void setNULL(String path)
+    {
+        setNULL(path, false);
+    }
+
+    public void setBytes(String path, byte[] value)
+    {
+        setBytes(path, value, false);
     }
 
     public int getInt(String path)
     {
-        return (int)getData(mTraitInstancePtr, path);
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return 0;
+        }
+        return (int)getInt(mTraitInstancePtr, path);
     }
 
     public long getLong(String path)
     {
-        return (long)getData(mTraitInstancePtr, path);
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return 0;
+        }
+        return (long)getInt(mTraitInstancePtr, path);
     }
 
     public BigInteger getBigInteger(String path, int bitLen)
     {
-        long value = (long)getData(mTraitInstancePtr, path);
+        long value = (long)getInt(mTraitInstancePtr, path);
         String valStr = Long.toString(value);
         BigInteger bigInt = new BigInteger(valStr);
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return bigInt;
+        }
         if (bitLen != 8 && bitLen != 16 && bitLen != 32 && bitLen != 64)
         {
             Log.e(TAG, "Not support bit len, return original value" + bitLen);
@@ -217,36 +296,81 @@ public class GenericTraitUpdatableDataSink
 
     public double getDouble(String path)
     {
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return 0;
+        }
         return getDouble(mTraitInstancePtr, path);
     }
 
     public boolean getBoolean(String path)
     {
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return false;
+        }
         return getBoolean(mTraitInstancePtr, path);
     }
 
     public String getString(String path)
     {
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return null;
+        }
         return getString(mTraitInstancePtr, path);
     }
 
-    public byte[] getLeafBytes(String path)
+    public byte[] getBytes(String path)
     {
-        return getLeafBytes(mTraitInstancePtr, path);
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return null;
+        }
+        return getBytes(mTraitInstancePtr, path);
+    }
+
+    public long getVersion()
+    {
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return 0;
+        }
+        return getVersion(mTraitInstancePtr);
     }
 
     public void beginRefreshData()
     {
+        if (mTraitInstancePtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
+            return;
+        }
         beginRefreshData(mTraitInstancePtr);
     }
 
-    public void onError(Throwable err)
+    private void onError(Throwable err)
     {
+        if (mCompHandler == null)
+        {
+            Log.e(TAG, "unexpected err, mCompHandler is null");
+            return;
+        }
         mCompHandler.onError(err);
     }
 
-    public void onRefreshDataComplete()
+    private void onRefreshDataComplete()
     {
+        if (mCompHandler == null)
+        {
+            Log.e(TAG, "unexpected err, mCompHandler is null");
+            return;
+        }
         mCompHandler.onRefreshDataComplete();
     }
 
@@ -269,7 +393,7 @@ public class GenericTraitUpdatableDataSink
     // ----- Private Members -----
 
     private long mTraitInstancePtr;
-    private long mWDMClientPtr;
+    private WDMClient mWDMClient;
     private final static String TAG = GenericTraitUpdatableDataSink.class.getSimpleName();
 
     static {
@@ -277,18 +401,18 @@ public class GenericTraitUpdatableDataSink
     }
 
     private native void init(long genericTraitUpdatableDataSinkPtr);
-    private native void shutdown(long genericTraitUpdatableDataSinkPtr);
     private native void close(long genericTraitUpdatableDataSinkPtr);
     private native void beginRefreshData(long genericTraitUpdatableDataSinkPtr);
-    private native void setData(long genericTraitUpdatableDataSinkPtr, String path, long value, boolean isConditional, boolean isSigned);
-    private native void setBigInteger(long genericTraitUpdatableDataSinkPtr, String path, String value, boolean isConditional, boolean isSigned);
+    private native void setInt(long genericTraitUpdatableDataSinkPtr, String path, long value, boolean isConditional, boolean isSigned);
     private native void setDouble(long genericTraitUpdatableDataSinkPtr, String path, double value, boolean isConditional);
     private native void setBoolean(long genericTraitUpdatableDataSinkPtr, String path, boolean value, boolean isConditional);
     private native void setString(long genericTraitUpdatableDataSinkPtr, String path, String value, boolean isConditional);
-    private native void setLeafBytes(long genericTraitUpdatableDataSinkPtr, String path, byte[] value, boolean isConditional);
-    private native long getData(long genericTraitUpdatableDataSinkPtr, String path);
+    private native void setNULL(long genericTraitUpdatableDataSinkPtr, String path, boolean isConditional);
+    private native void setBytes(long genericTraitUpdatableDataSinkPtr, String path, byte[] value, boolean isConditional);
+    private native long getInt(long genericTraitUpdatableDataSinkPtr, String path);
     private native double getDouble(long genericTraitUpdatableDataSinkPtr, String path);
     private native boolean getBoolean(long genericTraitUpdatableDataSinkPtr, String path);
     private native String getString(long genericTraitUpdatableDataSinkPtr, String path);
-    private native byte[] getLeafBytes(long genericTraitUpdatableDataSinkPtr, String path);
+    private native byte[] getBytes(long genericTraitUpdatableDataSinkPtr, String path);
+    private native long getVersion(long genericTraitUpdatableDataSinkPtr);
 };

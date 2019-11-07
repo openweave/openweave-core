@@ -31,7 +31,7 @@ _ErrorFunct                                 = CFUNCTYPE(None, c_void_p, c_void_p
 
 class WDMClient():
     def __init__(self):
-        self._wdmClient = None
+        self._wdmClientPtr = None
         self._weaveStack = WeaveStack()
         self._datamanagmentLib = None
         self._traitTable = {}
@@ -42,7 +42,12 @@ class WDMClient():
         if (res != 0):
             raise self._weaveStack.ErrorToException(res)
 
-        self._wdmClient = wdmClient
+        self._wdmClientPtr = wdmClient
+
+    def __del__(self):
+        self.close()
+        self._weaveStack = None
+        self._datamanagmentLib = None
 
     def close(self):
         if (self._traitTable != None):
@@ -53,46 +58,51 @@ class WDMClient():
             self._traitTable.clear()
             self._traitTable = None
 
-        if (self._wdmClient != None):
+        if (self._wdmClientPtr != None):
             self._weaveStack.Call(
-                lambda: self._datamanagmentLib.nl_Weave_WDMClient_DeleteWDMClient(self._wdmClient)
+                lambda: self._datamanagmentLib.nl_Weave_WDMClient_DeleteWDMClient(self._wdmClientPtr)
             )
-            self._wdmClient = None
+            self._wdmClientPtr = None
 
     def newDataSink(self, resourceType, resourceId, resourceIdLen, profileId, instanceId, path):
         traitInstance = c_void_p(None)
-        if (self._wdmClient == None):
+        if (self._wdmClientPtr == None):
             print "wdmClient is not ready"
             return
 
         res = self._weaveStack.Call(
-            lambda: self._datamanagmentLib.nl_Weave_WDMClient_NewDataSink(self._wdmClient, resourceType, resourceId, resourceIdLen, profileId, instanceId, path, pointer(traitInstance))
+            lambda: self._datamanagmentLib.nl_Weave_WDMClient_NewDataSink(self._wdmClientPtr, resourceType, resourceId, resourceIdLen, profileId, instanceId, path, pointer(traitInstance))
         )
         if (res != 0):
             raise self._weaveStack.ErrorToException(res)
 
         addr = id(traitInstance)
         if addr not in self._traitTable.keys():
-            self._traitTable[addr] = GenericTraitUpdatableDataSink(traitInstance, self._wdmClient)
+            self._traitTable[addr] = GenericTraitUpdatableDataSink(traitInstance, self)
 
         return self._traitTable[addr]
 
+    def removeDataSinkRef(self, traitInstance):
+        addr = id(traitInstance)
+        if addr in self._traitTable.keys():
+            self._traitTable[addr] = None
+
     def flushUpdate(self):
-        if (self._wdmClient == None):
+        if (self._wdmClientPtr == None):
             print "wdmClient is not ready"
             return
 
         self._weaveStack.CallAsync(
-            lambda: self._datamanagmentLib.nl_Weave_WDMClient_FlushUpdate(self._wdmClient, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
+            lambda: self._datamanagmentLib.nl_Weave_WDMClient_FlushUpdate(self._wdmClientPtr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def refreshData(self):
-        if (self._wdmClient == None):
+        if (self._wdmClientPtr == None):
             print "wdmClient is not ready"
             return
 
         self._weaveStack.CallAsync(
-            lambda: self._datamanagmentLib.nl_Weave_WDMClient_RefreshData(self._wdmClient, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
+            lambda: self._datamanagmentLib.nl_Weave_WDMClient_RefreshData(self._wdmClientPtr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     # ----- Private Members -----

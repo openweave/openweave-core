@@ -242,6 +242,21 @@ class MockWeaveDataManagementClientImp():
 
         print "get data in trait complete"
 
+    def getVersion(self, traitInstance):
+        if self.wdmClient == None or traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        try:
+            val = traitInstance.getVersion()
+            print val
+            return val
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "get version in trait complete"
+
 def testWDMClientCreateClose(testObject):
     testObject.createWDMClient()
     testObject.closeWdmClient()
@@ -276,34 +291,42 @@ def testWDMClientDataSinkSetFlushData(testObject):
     testObject.closeWdmClient()
     print "testWDMClientDataSinkSetFlushData completes"
 
-def testWDMClientDataSinkRefreshIndividualGetData(testObject):
+def testWDMClientDataSinkRefreshIndividualGetDataRefresh(testObject):
     testObject.createWDMClient()
     LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
     TestCTrait = testObject.newDataSink(593165827, 0, "/")
     testObject.refreshIndividualData(LocaleSettingTrait)
     testObject.getData(LocaleSettingTrait, "/1")
     testObject.refreshIndividualData(TestCTrait)
+    TestCTraitVersion = testObject.getVersion(TestCTrait)
     testObject.getData(TestCTrait, "/1")
     testObject.getData(TestCTrait, "/2")
     testObject.getData(TestCTrait, "/3/1")
     testObject.getData(TestCTrait, "/3/2")
     testObject.getData(TestCTrait, "/4")
+    testObject.refreshIndividualData(TestCTrait)
+    TestCTraitVersion = testObject.getVersion(TestCTrait)
     testObject.closeWdmClient()
-    print "testWDMClientDataSinkRefreshIndividualGetData completes"
+    print "testWDMClientDataSinkRefreshIndividualGetDataRefresh completes"
 
-def testWDMClientDataSinkRefreshGetData(testObject):
+def testWDMClientDataSinkRefreshGetDataRefresh(testObject):
     testObject.createWDMClient()
     LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
     TestCTrait = testObject.newDataSink(593165827, 0, "/")
     testObject.refreshData()
+    LocaleSettingTraitVersion = testObject.getVersion(LocaleSettingTrait)
+    TestCTraitVersion = testObject.getVersion(TestCTrait)
     testObject.getData(LocaleSettingTrait, "/1")
     testObject.getData(TestCTrait, "/1")
     testObject.getData(TestCTrait, "/2")
     testObject.getData(TestCTrait, "/3/1")
     testObject.getData(TestCTrait, "/3/2")
     testObject.getData(TestCTrait, "/4")
+    testObject.refreshData()
+    LocaleSettingTraitVersion = testObject.getVersion(LocaleSettingTrait)
+    TestCTraitVersion = testObject.getVersion(TestCTrait)
     testObject.closeWdmClient()
-    print "testWDMClientDataSinkRefreshGetData completes"
+    print "testWDMClientDataSinkRefreshGetDataRefresh completes"
 
 def testWDMClientDataSinkCloseIndividualData(testObject):
     testObject.createWDMClient()
@@ -358,30 +381,6 @@ def testWDMClientDataSinkSetRefreshFlushGetData(testObject):
     testObject.closeWdmClient()
     print "testWDMClientDataSinkSetRefreshFlushGetData completes"
 
-def testWDMClientDataSinkSetRefreshCloseFlushRefreshGetData(testObject):
-    testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
-    TestCTrait = testObject.newDataSink(593165827, 0, "/")
-    testObject.setData(LocaleSettingTrait, "/1", "en-US")
-    testObject.setData(TestCTrait, "/1", False)
-    testObject.setData(TestCTrait, "/2", 15)
-    testObject.setData(TestCTrait, "/3/1", 16)
-    testObject.setData(TestCTrait, "/3/2", False)
-    testObject.setData(TestCTrait, "/4", 17)
-    testObject.refreshData()
-    testObject.closeIndividualTrait(LocaleSettingTrait)
-    testObject.closeIndividualTrait(TestCTrait)
-    testObject.flushUpdate()
-    testObject.refreshData()
-    testObject.getData(LocaleSettingTrait, "/1")
-    testObject.getData(TestCTrait, "/1")
-    testObject.getData(TestCTrait, "/2")
-    testObject.getData(TestCTrait, "/3/1")
-    testObject.getData(TestCTrait, "/3/2")
-    testObject.getData(TestCTrait, "/4")
-    testObject.closeWdmClient()
-    print "testWDMClientDataSinkSetRefreshCloseFlushRefreshGetData completes"
-
 def RunWDMClientTest():
     print "Run Weave Data Management Test"
     testObject = MockWeaveDataManagementClientImp()
@@ -389,11 +388,10 @@ def RunWDMClientTest():
     testWDMClientDataSinkEmptyFlushData(testObject)
     testWDMClientDataSinkCreateClose(testObject)
     testWDMClientDataSinkSetFlushData(testObject)
-    testWDMClientDataSinkRefreshGetData(testObject)
-    testWDMClientDataSinkRefreshIndividualGetData(testObject)
+    testWDMClientDataSinkRefreshGetDataRefresh(testObject)
+    testWDMClientDataSinkRefreshIndividualGetDataRefresh(testObject)
     testWDMClientDataSinkCloseIndividualData(testObject)
     testWDMClientDataSinkSetRefreshFlushGetData(testObject)
-    testWDMClientDataSinkSetRefreshCloseFlushRefreshGetData(testObject)
     print "Run Weave Data Management Complete"
 
 class ExtendedOption (Option):

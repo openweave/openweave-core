@@ -112,14 +112,15 @@ void GenericTraitUpdatableDataSink::UpdateTLVDataMap(PropertyPathHandle aPropert
     mPathTlvDataMap[aPropertyPathHandle] = apMsgBuf;
 }
 
-WEAVE_ERROR GenericTraitUpdatableDataSink::LocateTraitHandle(void* appReqState, const TraitCatalogBase<TraitDataSink> * const apCatalog, TraitDataHandle & aHandle)
+WEAVE_ERROR GenericTraitUpdatableDataSink::LocateTraitHandle(void* apContext, const TraitCatalogBase<TraitDataSink> * const apCatalog, TraitDataHandle & aHandle)
 {
-    GenericTraitUpdatableDataSink * pGenericTraitUpdatableDataSink = static_cast<GenericTraitUpdatableDataSink *>(appReqState);
+    GenericTraitUpdatableDataSink * pGenericTraitUpdatableDataSink = static_cast<GenericTraitUpdatableDataSink *>(apContext);
     return apCatalog->Locate(pGenericTraitUpdatableDataSink, aHandle);
 }
 
 WEAVE_ERROR GenericTraitUpdatableDataSink::RefreshData(void* appReqState, DMCompleteFunct onComplete, DMErrorFunct onError)
 {
+    ClearVersion();
     mpWDMClient->RefreshData(appReqState, this, onComplete, onError, LocateTraitHandle);
     return WEAVE_NO_ERROR;
 }
@@ -279,7 +280,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR GenericTraitUpdatableDataSink::SetLeafBytes(const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional)
+WEAVE_ERROR GenericTraitUpdatableDataSink::SetBytes(const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVWriter writer;
@@ -328,7 +329,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR GenericTraitUpdatableDataSink::SetBytes(const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional)
+WEAVE_ERROR GenericTraitUpdatableDataSink::SetTLVBytes(const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVReader reader;
@@ -490,7 +491,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR GenericTraitUpdatableDataSink::GetLeafBytes(const char * apPath, BytesData * apBytesData)
+WEAVE_ERROR GenericTraitUpdatableDataSink::GetBytes(const char * apPath, BytesData * apBytesData)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     PacketBuffer *pMsgBuf = NULL;
@@ -520,7 +521,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR GenericTraitUpdatableDataSink::GetBytes(const char * apPath, BytesData * apBytesData)
+WEAVE_ERROR GenericTraitUpdatableDataSink::GetTLVBytes(const char * apPath, BytesData * apBytesData)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitSchemaEngine::IGetDataDelegate *getDataDelegate = NULL;
@@ -794,6 +795,16 @@ void WDMClient::ClearDataSink(void * aTraitInstance, TraitDataHandle aHandle, vo
     }
 }
 
+void WDMClient::ClearDataSinkVersion(void * aTraitInstance, TraitDataHandle aHandle, void * aContext)
+{
+    GenericTraitUpdatableDataSink * pGenericTraitUpdatableDataSink = NULL;
+    if (aTraitInstance != NULL)
+    {
+        pGenericTraitUpdatableDataSink = static_cast<GenericTraitUpdatableDataSink *>(aTraitInstance);
+        pGenericTraitUpdatableDataSink->ClearVersion();
+    }
+}
+
 void WDMClient::ClientEventCallback (void * const aAppState, SubscriptionClient::EventID aEvent,
                                      const SubscriptionClient::InEventParam & aInParam, SubscriptionClient::OutEventParam & aOutParam)
 {
@@ -958,6 +969,8 @@ WEAVE_ERROR WDMClient::NewDataSink(const ResourceIdentifier & aResourceId, uint3
     const TraitSchemaEngine * pEngine = TraitSchemaDirectory::GetTraitSchemaEngine(aProfileId);
     VerifyOrExit(pEngine != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
+    VerifyOrExit(mpSubscriptionClient != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+
     VerifyOrExit(WEAVE_NO_ERROR != GetDataSink(aResourceId, aProfileId, aInstanceId, apGenericTraitUpdatableDataSink), WeaveLogDetail(DataManagement, "Trait exist"));
 
     apGenericTraitUpdatableDataSink = new GenericTraitUpdatableDataSink(pEngine, this);
@@ -989,11 +1002,11 @@ WEAVE_ERROR WDMClient::GetDataSink(const ResourceIdentifier & aResourceId, uint3
     SuccessOrExit(err);
     apGenericTraitUpdatableDataSink = static_cast<GenericTraitUpdatableDataSink *>(dataSink);
 
-exit:
+    exit:
     return err;
 }
 
-WEAVE_ERROR WDMClient::FlushUpdate(void* apAppReqState, void* apContext, DMCompleteFunct onComplete, DMErrorFunct onError)
+WEAVE_ERROR WDMClient::FlushUpdate(void* apAppReqState, DMCompleteFunct onComplete, DMErrorFunct onError)
 {
     VerifyOrExit(mOpState == kOpState_Idle, WeaveLogError(DataManagement, "FlushUpdate with OpState %d", mOpState));
 
@@ -1001,20 +1014,22 @@ WEAVE_ERROR WDMClient::FlushUpdate(void* apAppReqState, void* apContext, DMCompl
     mOnComplete.General = onComplete;
     mOnError = onError;
     mOpState = kOpState_FlushUpdate;
-
-    if (apContext == NULL)
-    {
-        mpContext = this;
-    }
-    else
-    {
-        mpContext = apContext;
-    }
-
+    mpContext = this;
     mpSubscriptionClient->FlushUpdate(true);
 
 exit:
+    return WEAVE_NO_ERROR;
+}
 
+WEAVE_ERROR WDMClient::RefreshData(void* apAppReqState, DMCompleteFunct onComplete, DMErrorFunct onError, GetDataHandleFunct getDataHandleCb)
+{
+    VerifyOrExit(mpSubscriptionClient != NULL, WeaveLogError(DataManagement, "mpSubscriptionClient is NULL"));
+
+    mSinkCatalog.Iterate(ClearDataSinkVersion, this);
+
+    RefreshData(apAppReqState, this, onComplete, onError, getDataHandleCb);
+
+exit:
     return WEAVE_NO_ERROR;
 }
 
@@ -1027,15 +1042,7 @@ WEAVE_ERROR WDMClient::RefreshData(void* apAppReqState, void* apContext, DMCompl
     mOnError = onError;
     mOpState = kOpState_RefreshData;
     mGetDataHandle = getDataHandleCb;
-
-    if (apContext == NULL)
-    {
-        mpContext = this;
-    }
-    else
-    {
-        mpContext = apContext;
-    }
+    mpContext = apContext;
 
     mpSubscriptionClient->InitiateSubscription();
 

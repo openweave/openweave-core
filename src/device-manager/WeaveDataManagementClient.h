@@ -62,7 +62,7 @@ extern "C"
 {
 typedef void (*DMCompleteFunct)(void *appState, void *appReqState);
 typedef void (*DMErrorFunct)(void *appState, void *appReqState, WEAVE_ERROR err, DeviceStatus *devStatus);
-typedef WEAVE_ERROR (*GetDataHandleFunct)(void* appReqState, const TraitCatalogBase<TraitDataSink> * const apCatalog, TraitDataHandle & aHandle);
+typedef WEAVE_ERROR (*GetDataHandleFunct)(void* apContext, const TraitCatalogBase<TraitDataSink> * const apCatalog, TraitDataHandle & aHandle);
 };
 
 class NL_DLL_EXPORT GenericTraitUpdatableDataSink : public nl::Weave::Profiles::DataManagement::TraitUpdatableDataSink
@@ -85,8 +85,8 @@ public:
     WEAVE_ERROR SetBoolean(const char * apPath, bool aValue, bool aIsConditional=false);
     WEAVE_ERROR SetString(const char * apPath, const char * aValue, bool aIsConditional=false);
     WEAVE_ERROR SetNull(const char * apPath, bool aIsConditional=false);
-    WEAVE_ERROR SetLeafBytes(const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional=false);
     WEAVE_ERROR SetBytes(const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional=false);
+    WEAVE_ERROR SetTLVBytes(const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional=false);
 
     WEAVE_ERROR GetData(const char * apPath, int64_t& aValue);
     WEAVE_ERROR GetData(const char * apPath, uint64_t& aValue);
@@ -94,8 +94,8 @@ public:
 
     WEAVE_ERROR GetBoolean(const char * apPath, bool& aValue);
     WEAVE_ERROR GetString(const char * apPath, char * aValue);
-    WEAVE_ERROR GetLeafBytes(const char * apPath, BytesData * apBytesData);
     WEAVE_ERROR GetBytes(const char * apPath, BytesData * apBytesData);
+    WEAVE_ERROR GetTLVBytes(const char * apPath, BytesData * apBytesData);
     WEAVE_ERROR IsNull(const char * apPath, bool & aIsNull);
 
     void *mpAppState;
@@ -114,7 +114,7 @@ private:
     WEAVE_ERROR GetNextDictionaryItemKey(nl::Weave::Profiles::DataManagement::PropertyPathHandle aDictionaryHandle, uintptr_t &aContext, nl::Weave::Profiles::DataManagement::PropertyDictionaryKey &aKey) __OVERRIDE;
 
     void UpdateTLVDataMap(PropertyPathHandle aPropertyPathHandle, PacketBuffer *apMsgBuf);
-    static WEAVE_ERROR LocateTraitHandle(void* appReqState, const TraitCatalogBase<TraitDataSink> * const apCatalog, TraitDataHandle & aHandle);
+    static WEAVE_ERROR LocateTraitHandle(void* apContext, const TraitCatalogBase<TraitDataSink> * const apCatalog, TraitDataHandle & aHandle);
 
 #if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
     static void TLVPrettyPrinter(const char *aFormat, ...);
@@ -127,6 +127,7 @@ private:
 
 class NL_DLL_EXPORT WDMClient
 {
+friend class GenericTraitUpdatableDataSink;
 public:
     enum
     {
@@ -142,9 +143,9 @@ public:
 
     WEAVE_ERROR NewDataSink(const ResourceIdentifier & aResourceId, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitUpdatableDataSink *& apGenericTraitUpdatableDataSink);
 
-    WEAVE_ERROR FlushUpdate(void* apAppReqState, void* apContext, DMCompleteFunct onComplete, DMErrorFunct onError);
+    WEAVE_ERROR FlushUpdate(void* apAppReqState, DMCompleteFunct onComplete, DMErrorFunct onError);
 
-    WEAVE_ERROR RefreshData(void* apAppReqState, void* apContext, DMCompleteFunct onComplete, DMErrorFunct onError, GetDataHandleFunct getDataHandleCb);
+    WEAVE_ERROR RefreshData(void* apAppReqState, DMCompleteFunct onComplete, DMErrorFunct onError, GetDataHandleFunct getDataHandleCb);
 
     void *mpAppState;
 
@@ -166,9 +167,11 @@ private:
     GetDataHandleFunct mGetDataHandle;
 
     static void ClearDataSink(void * aTraitInstance, TraitDataHandle aHandle, void * aContext);
+    static void ClearDataSinkVersion(void * aTraitInstance, TraitDataHandle aHandle, void * aContext);
     static void ClientEventCallback (void * const aAppState, SubscriptionClient::EventID aEvent,
     const SubscriptionClient::InEventParam & aInParam, SubscriptionClient::OutEventParam & aOutParam);
 
+    WEAVE_ERROR RefreshData(void* apAppReqState, void* apContext, DMCompleteFunct onComplete, DMErrorFunct onError, GetDataHandleFunct getDataHandleCb);
     WEAVE_ERROR GetDataSink(const ResourceIdentifier & aResourceId, uint32_t aProfileId, uint64_t aInstanceId, GenericTraitUpdatableDataSink *& apGenericTraitUpdatableDataSink);
     WEAVE_ERROR SubscribePublisherTrait(const ResourceIdentifier & aResourceId, const uint64_t & aInstanceId,
     PropertyPathHandle aBasePathHandle, TraitDataSink * apDataSink);

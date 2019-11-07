@@ -37,19 +37,19 @@ public class WDMClient
 
     public void close()
     {
-        if (mHmap != null)
+        if (mTraitMap != null)
         {
-            Iterator iter = mHmap.entrySet().iterator();
+            Iterator iter = mTraitMap.entrySet().iterator();
             while (iter.hasNext())
             {
                 Map.Entry entry = (Map.Entry) iter.next();
                 GenericTraitUpdatableDataSink traitInstance = (GenericTraitUpdatableDataSink)entry.getValue();
                 if (traitInstance != null)
                 {
-                    traitInstance.shutdown();
+                    traitInstance.close();
                 }
             }
-            mHmap.clear();
+            mTraitMap.clear();
         }
 
         if (mWDMClientPtr != 0)
@@ -57,6 +57,7 @@ public class WDMClient
             deleteWDMClient(mWDMClientPtr);
             mWDMClientPtr = 0;
         }
+
         mCompHandler = null;
     }
 
@@ -66,9 +67,9 @@ public class WDMClient
         boolean isExist = false;
         GenericTraitUpdatableDataSink traitInstance = null;
 
-        if (mHmap == null)
+        if (mTraitMap == null)
         {
-            mHmap = new HashMap<Long, GenericTraitUpdatableDataSink>();
+            mTraitMap = new HashMap<Long, GenericTraitUpdatableDataSink>();
         }
         int testsize = 0;
         if (mWDMClientPtr == 0)
@@ -86,29 +87,49 @@ public class WDMClient
             return null;
         }
 
-        isExist = mHmap.containsKey(traitInstancePtr);
+        isExist = mTraitMap.containsKey(traitInstancePtr);
         if (isExist == false)
         {
-            traitInstance = new GenericTraitUpdatableDataSink(traitInstancePtr, mWDMClientPtr);
-            mHmap.put(traitInstancePtr, traitInstance);
+            traitInstance = new GenericTraitUpdatableDataSink(traitInstancePtr, this);
+            mTraitMap.put(traitInstancePtr, traitInstance);
         }
         else
         {
             Log.d(TAG, "trait exists" + profileId);
         }
 
-        Log.d(TAG, "there exists %d traits" + mHmap.size());
+        Log.d(TAG, "there exists %d traits" + mTraitMap.size());
 
-        return mHmap.get(traitInstancePtr);
+        return mTraitMap.get(traitInstancePtr);
+    }
+
+    protected void removeDataSinkRef(long traitInstancePtr)
+    {
+        boolean isExist = false;
+        isExist = mTraitMap.containsKey(traitInstancePtr);
+        if (isExist == true)
+        {
+            mTraitMap.put(traitInstancePtr, null);
+        }
     }
 
     public void beginFlushUpdate()
     {
+        if (mWDMClientPtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mWDMClientPtr is 0");
+            return;
+        }
         beginFlushUpdate(mWDMClientPtr);
     }
 
     public void beginRefreshData()
     {
+        if (mWDMClientPtr == 0)
+        {
+            Log.e(TAG, "unexpected err, mWDMClientPtr is 0");
+            return;
+        }
         beginRefreshData(mWDMClientPtr);
     }
 
@@ -122,18 +143,33 @@ public class WDMClient
         mCompHandler = compHandler;
     }
 
-    public void onError(Throwable err)
+    private void onError(Throwable err)
     {
+        if (mCompHandler == null)
+        {
+            Log.e(TAG, "unexpected err, mCompHandler is null");
+            return;
+        }
         mCompHandler.onError(err);
     }
 
-    public void onFlushUpdateComplete()
+    private void onFlushUpdateComplete()
     {
+        if (mCompHandler == null)
+        {
+            Log.e(TAG, "unexpected err, mCompHandler is null");
+            return;
+        }
         mCompHandler.onFlushUpdateComplete();
     }
 
-    public void onRefreshDataComplete()
+    private void onRefreshDataComplete()
     {
+        if (mCompHandler == null)
+        {
+            Log.e(TAG, "unexpected err, mCompHandler is null");
+            return;
+        }
         mCompHandler.onRefreshDataComplete();
     }
 
@@ -157,7 +193,7 @@ public class WDMClient
     // ----- Private Members -----
 
     private long mWDMClientPtr;
-    private HashMap<Long, GenericTraitUpdatableDataSink> mHmap;
+    private HashMap<Long, GenericTraitUpdatableDataSink> mTraitMap;
     private final static String TAG = WDMClient.class.getSimpleName();
 
     static {
