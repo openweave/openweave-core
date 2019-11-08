@@ -56,22 +56,23 @@ protected:
     // ===== Members for use by the implementation subclass.
 
     WEAVE_ERROR DoInit(void);
-    WEAVE_ERROR AbortDownload(void);
     WEAVE_ERROR StartImageDownload(char *aURI, uint64_t aStartOffset);
     WEAVE_ERROR GetUpdateSchemeList(::nl::Weave::Profiles::SoftwareUpdate::UpdateSchemeList * aUpdateSchemeList);
+    void AbortDownload(void);
 
 private:
     // ===== Private members reserved for use by this class only.
 
     WEAVE_ERROR PrepareBinding(void);
     WEAVE_ERROR StartDownload(void);
+    void ResetState(void);
 
     static void BlockReceiveHandler(BDXTransfer * aXfer, uint64_t alength, uint8_t * aDataBlock,
                                     bool aIsLastBlock);
     static void ErrorHandler(BDXTransfer * aXfer, WEAVE_ERROR anErrorCode);
     static WEAVE_ERROR ReceiveAcceptHandler(BDXTransfer * aXfer, ReceiveAccept * aEeceiveAcceptMsg);
     static void ReceiveRejectHandler(BDXTransfer * aXfer, nl::Weave::StatusReport * aReport);
-    static void XferErroHandler(BDXTransfer * aXfer, ::nl::Weave::StatusReport * aXferError);
+    static void XferErrorHandler(BDXTransfer * aXfer, ::nl::Weave::StatusReport * aXferError);
     static void XferDoneHandler(BDXTransfer * aXfer);
 
     static void HandleBindingEvent(void * apAppState, ::nl::Weave::Binding::EventType aEvent,

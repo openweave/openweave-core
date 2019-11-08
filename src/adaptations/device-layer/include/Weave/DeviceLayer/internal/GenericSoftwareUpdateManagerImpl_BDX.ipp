@@ -50,11 +50,13 @@ template<class ImplClass>
 WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::DoInit(void)
 {
     WEAVE_ERROR err;
-    err = mBDXClient.Init(&ExchangeMgr);
 
+    mBinding = NULL;
+    mURI = NULL;
     mBDXTransfer = NULL;
     mStartOffset = 0;
-    mURI = NULL;
+
+    err = mBDXClient.Init(&ExchangeMgr);
 
     return err;
 }
@@ -97,16 +99,17 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::StartDownload(void)
         ReceiveRejectHandler,
         NULL,                     // GetBlockHandler
         BlockReceiveHandler,
-        XferErroHandler,
+        XferErrorHandler,
         XferDoneHandler,
         ErrorHandler,
     };
 
-    mBDXTransfer = NULL;
+    VerifyOrExit(mBDXTransfer == NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
     err = mBDXClient.NewTransfer(mBinding, handlers, uri, this, mBDXTransfer);
     SuccessOrExit(err);
 
+    // Release our reference to the binding, as it's no longer needed.
     mBinding->Release();
     mBinding = NULL;
 
@@ -125,6 +128,10 @@ WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::StartDownload(void)
     SuccessOrExit(err);
 
 exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        ResetState();
+    }
     return err;
 }
 
@@ -139,13 +146,15 @@ void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::ReceiveRejectHandler(BDXTr
 {
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
 
-    /**
-     * If the BDX transfer was rejected by the server with a status report containing status code
-     * kStatus_LengthMismatch, it specifically means that the start offset requested by the application
-     * in the BDX request is greater than or equal to the length of the file being downloaded. In the context
-     * of this implementation, it means that file download is complete since the end of file has already been
-     * reached.
-     */
+    // Release all resources.
+    self->ResetState();
+
+    // If the BDX transfer was rejected by the server with a status report containing status code
+    // kStatus_LengthMismatch, it specifically means that the start offset requested by the application
+    // in the BDX request is greater than or equal to the length of the file being downloaded. In the context
+    // of this implementation, it means that file download is complete since the end of file has already been
+    // reached.
+    //
     if (aReport->mProfileId == kWeaveProfile_BDX && aReport->mStatusCode == kStatus_LengthMismatch)
     {
         self->Impl()->DownloadComplete();
@@ -169,17 +178,17 @@ void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::BlockReceiveHandler(BDXTra
     }
     else if (err != WEAVE_NO_ERROR)
     {
-        self->AbortDownload();
+        self->ResetState();
         self->Impl()->SoftwareUpdateFailed(err, NULL);
     }
 }
 
 template<class ImplClass>
-void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::XferErroHandler(BDXTransfer * aXfer, StatusReport * aReport)
+void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::XferErrorHandler(BDXTransfer * aXfer, StatusReport * aReport)
 {
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
 
-    self->AbortDownload();
+    self->ResetState();
     self->Impl()->SoftwareUpdateFailed(WEAVE_ERROR_STATUS_REPORT_RECEIVED, aReport);
 }
 
@@ -187,6 +196,8 @@ template<class ImplClass>
 void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::XferDoneHandler(BDXTransfer * aXfer)
 {
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
+
+    self->ResetState();
     self->Impl()->DownloadComplete();
 }
 
@@ -195,7 +206,7 @@ void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::ErrorHandler(BDXTransfer *
 {
     GenericSoftwareUpdateManagerImpl_BDX<ImplClass> * self = &SoftwareUpdateMgrImpl();
 
-    self->AbortDownload();
+    self->ResetState();
     self->Impl()->SoftwareUpdateFailed(aErrorCode, NULL);
 }
 
@@ -231,26 +242,32 @@ void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::HandleBindingEvent(void * 
 
     if (err != WEAVE_NO_ERROR)
     {
+        self->ResetState();
         self->Impl()->SoftwareUpdateFailed(err, statusReport);
     }
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::AbortDownload(void)
+void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::AbortDownload(void)
 {
+    ResetState();
+}
+
+template<class ImplClass>
+void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::ResetState(void)
+{
+    if (mBinding != NULL)
+    {
+        mBinding->Release();
+        mBinding = NULL;
+    }
+    mURI = NULL;
     if (mBDXTransfer)
     {
-        // Shutdown the exchange if its active
-        if (mBDXTransfer->mExchangeContext)
-        {
-            mBDXTransfer->mExchangeContext->Abort();
-            mBDXTransfer->mExchangeContext = NULL;
-        }
-
+        mBDXTransfer->Shutdown();
         mBDXTransfer = NULL;
     }
-
-    return WEAVE_NO_ERROR;
+    mStartOffset = 0;
 }
 
 template<class ImplClass>
