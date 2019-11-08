@@ -62,6 +62,7 @@ protected:
 
     WEAVE_ERROR _Abort(void);
     WEAVE_ERROR _CheckNow(void);
+    WEAVE_ERROR _PrepareImageStorageComplete(WEAVE_ERROR aError);
     WEAVE_ERROR _ImageInstallComplete(WEAVE_ERROR aError);
     WEAVE_ERROR _SetQueryIntervalWindow(uint32_t aMinWaitTimeMs, uint32_t aMaxWaitTimeMs);
     WEAVE_ERROR _SetEventCallback(void * const aAppState, const SoftwareUpdateManager::EventCallback aEventCallback);
@@ -89,15 +90,15 @@ private:
     void HandleStatusReport(PacketBuffer * aPayload);
     void SendQuery(void);
     void StartImageInstall(void);
-    void StartingDownload(void);
+    void PrepareImageStorage(void);
 
     WEAVE_ERROR PrepareQuery(void);
-    WEAVE_ERROR PrepareBinding(void);
 
     uint32_t GetNextWaitTimeInterval(void);
     uint32_t ComputeNextScheduledWaitTimeInterval(void);
 
-    static void DoPrepare(intptr_t arg);
+    static void PrepareBinding(intptr_t arg);
+    static void StartDownload(intptr_t arg);
     static void HandleHoldOffTimerExpired(::nl::Weave::System::Layer * aLayer,
                                           void * aAppState,
                                           ::nl::Weave::System::Error aError);
@@ -133,6 +134,7 @@ private:
     bool mHaveServiceConnectivity;
     bool mScheduledCheckEnabled;
     bool mShouldRetry;
+    bool mIgnorePartialImage;
 
     uint64_t mNumBytesToDownload;
     uint64_t mStartOffset;

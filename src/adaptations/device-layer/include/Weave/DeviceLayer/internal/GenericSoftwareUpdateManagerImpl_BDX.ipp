@@ -221,13 +221,18 @@ void GenericSoftwareUpdateManagerImpl_BDX<ImplClass>::HandleBindingEvent(void * 
     switch (aEvent)
     {
         case nl::Weave::Binding::kEvent_PrepareFailed:
-            WeaveLogProgress(DeviceLayer, "Failed to prepare Software Update BDX binding: %s", ErrorStr(aInParam.PrepareFailed.Reason));
+            WeaveLogProgress(DeviceLayer, "Failed to prepare Software Update BDX binding: %s",
+                    (aInParam.PrepareFailed.Reason == WEAVE_ERROR_STATUS_REPORT_RECEIVED)
+                    ? nl::StatusReportStr(aInParam.PrepareFailed.StatusReport->mProfileId,
+                                          aInParam.PrepareFailed.StatusReport->mStatusCode)
+                    : nl::ErrorStr(aInParam.PrepareFailed.Reason));
             statusReport = aInParam.PrepareFailed.StatusReport;
             err = aInParam.PrepareFailed.Reason;
             break;
 
         case nl::Weave::Binding::kEvent_BindingFailed:
-            WeaveLogProgress(DeviceLayer, "Software Update BDX binding failed: %s", ErrorStr(aInParam.BindingFailed.Reason));
+            WeaveLogProgress(DeviceLayer, "Software Update BDX binding failed: %s",
+                    nl::ErrorStr(aInParam.BindingFailed.Reason));
             err = aInParam.PrepareFailed.Reason;
             break;
 
