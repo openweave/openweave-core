@@ -336,6 +336,16 @@
 #endif
 
 /**
+ * WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED
+ *
+ * Automatically disable WoBLE advertising when the device transitions to a fully
+ * provisioned state.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED
+#define WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED 0
+#endif
+
+/**
  * WEAVE_DEVICE_CONFIG_BLE_DEVICE_NAME_PREFIX
  *
  * A prefix string used in forming the BLE device name.  The remainder of the name

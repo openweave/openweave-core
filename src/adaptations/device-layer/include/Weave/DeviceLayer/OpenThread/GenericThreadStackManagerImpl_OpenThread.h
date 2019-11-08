@@ -83,6 +83,8 @@ protected:
     WEAVE_ERROR _GetAndLogThreadTopologyMinimal(void);
     WEAVE_ERROR _GetAndLogThreadTopologyFull(void);
     WEAVE_ERROR _GetPrimary802154MACAddress(uint8_t *buf);
+    void _OnWoBLEAdvertisingStart(void);
+    void _OnWoBLEAdvertisingStop(void);
 
     // ===== Members available to the implementation subclass.
 
@@ -110,6 +112,18 @@ template<class ImplClass>
 inline otInstance * GenericThreadStackManagerImpl_OpenThread<ImplClass>::OTInstance() const
 {
     return mOTInst;
+}
+
+template<class ImplClass>
+inline void GenericThreadStackManagerImpl_OpenThread<ImplClass>::_OnWoBLEAdvertisingStart(void)
+{
+    // Do nothing by default.
+}
+
+template<class ImplClass>
+inline void GenericThreadStackManagerImpl_OpenThread<ImplClass>::_OnWoBLEAdvertisingStop(void)
+{
+    // Do nothing by default.
 }
 
 } // namespace Internal

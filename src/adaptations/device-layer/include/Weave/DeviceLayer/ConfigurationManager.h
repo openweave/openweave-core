@@ -110,6 +110,7 @@ public:
     bool IsServiceProvisioned();
     bool IsPairedToAccount();
     bool IsMemberOfFabric();
+    bool IsFullyProvisioned();
 
     void InitiateFactoryReset();
 
@@ -396,6 +397,11 @@ inline bool ConfigurationManager::IsPairedToAccount()
 inline bool ConfigurationManager::IsMemberOfFabric()
 {
     return static_cast<ImplClass*>(this)->_IsMemberOfFabric();
+}
+
+inline bool ConfigurationManager::IsFullyProvisioned()
+{
+    return static_cast<ImplClass*>(this)->_IsFullyProvisioned();
 }
 
 inline void ConfigurationManager::InitiateFactoryReset()

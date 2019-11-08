@@ -93,6 +93,7 @@ public:
     bool _IsServiceProvisioned();
     bool _IsMemberOfFabric();
     bool _IsPairedToAccount();
+    bool _IsFullyProvisioned();
     WEAVE_ERROR _ComputeProvisioningHash(uint8_t * hashBuf, size_t hashBufSize);
 
 protected:
