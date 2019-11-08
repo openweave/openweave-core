@@ -90,9 +90,6 @@
 #define CAPABILITIES_MSG_CHECK_BYTE_1 'n'
 #define CAPABILITIES_MSG_CHECK_BYTE_2 'l'
 
-#define BLE_ENDPOINT_ALIGNMENT_TYPE uint64_t
-#define BLE_ENDPOINT_ALIGNMENT sizeof(BLE_ENDPOINT_ALIGNMENT_TYPE)
-
 // clang-format on
 
 namespace nl {
@@ -105,26 +102,15 @@ public:
 
     BLEEndPoint * Get(int i) const
     {
-        typedef union
-        {
-            uint8_t Data[((sizeof(BLEEndPoint) + BLE_ENDPOINT_ALIGNMENT - 1) / BLE_ENDPOINT_ALIGNMENT) * BLE_ENDPOINT_ALIGNMENT];
-            BLE_ENDPOINT_ALIGNMENT_TYPE ForceAlignment;
-        } PoolElement;
-
         static union
         {
-            uint8_t Pool[sizeof(PoolElement) * BLE_LAYER_NUM_BLE_ENDPOINTS];
-            BLE_ENDPOINT_ALIGNMENT_TYPE ForceAlignment;
+            uint8_t Pool[sizeof(BLEEndPoint) * BLE_LAYER_NUM_BLE_ENDPOINTS];
+            BLEEndPoint::AlignT ForceAlignment;
         } sEndPointPool;
-
-        // Assert sEndPointPool is aligned
-        nlASSERT(((uintptr_t) &sEndPointPool % BLE_ENDPOINT_ALIGNMENT) == 0);
-        // Assert sEndPointPool elements are aligned
-        nlASSERT(((uintptr_t) (sEndPointPool.Pool + sizeof(PoolElement)) % BLE_ENDPOINT_ALIGNMENT) == 0);
 
         if (i < BLE_LAYER_NUM_BLE_ENDPOINTS)
         {
-            return (BLEEndPoint *) (sEndPointPool.Pool + (sizeof(PoolElement) * i));
+            return (BLEEndPoint *) (sEndPointPool.Pool + (sizeof(BLEEndPoint) * i));
         }
         else
         {
