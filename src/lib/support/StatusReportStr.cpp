@@ -242,6 +242,8 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         case NetworkProvisioning::kStatusCode_TestNetworkFailed                         : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Test network failed"; break;
         case NetworkProvisioning::kStatusCode_NetworkConnectFailed                      : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Network connect failed"; break;
         case NetworkProvisioning::kStatusCode_NoRouterAvailable                         : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] No router available"; break;
+        case NetworkProvisioning::kStatusCode_UnsupportedRegulatoryDomain               : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Unsupported wireless regulatory domain"; break;
+        case NetworkProvisioning::kStatusCode_UnsupportedOperatingLocation              : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Unsupported wireless operating location"; break;
         default                                                                         : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
         break;

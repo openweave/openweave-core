@@ -704,6 +704,7 @@ $(NULL)
 nl_public_WeaveProfiles_network_provisioning_header_sources = \
 $(nl_public_WeaveProfiles_source_dirstem)/network-provisioning/NetworkInfo.h         \
 $(nl_public_WeaveProfiles_source_dirstem)/network-provisioning/NetworkProvisioning.h \
+$(nl_public_WeaveProfiles_source_dirstem)/network-provisioning/WirelessRegConfig.h \
 $(NULL)
 
 nl_public_WeaveProfiles_security_header_sources = \

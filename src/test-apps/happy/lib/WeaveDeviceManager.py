@@ -1059,13 +1059,36 @@ if __name__ == '__main__':
     deviceDesc.Print("  ")
 
     print ''
-    print '#################################get-last-network-grovisioning-result#################################'
+    print '#################################get-last-network-provisioning-result#################################'
 
     try:
         devMgr.GetLastNetworkProvisioningResult()
     except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
+
+    print ''
+    print  '#################################get-wireless-reg-config#################################'
+
+    try:
+        getResult = devMgr.GetWirelessRegulatoryConfig()
+    except WeaveDeviceMgr.DeviceManagerException, ex:
+        print str(ex)
+        exit()
+
+    print "GetWirelessRegulatoryConfig complete"
+    getResult.Print("  ")
+
+    print ''
+    print  '#################################set-wireless-reg-config#################################'
+
+    try:
+        devMgr.SetWirelessRegulatoryConfig(WeaveDeviceMgr.WirelessRegConfig(regDomain="US"))
+    except WeaveDeviceMgr.DeviceManagerException, ex:
+        print str(ex)
+        exit()
+
+    print "SetWirelessRegulatoryConfig complete"
 
     print ''
     print '#################################ping#################################'

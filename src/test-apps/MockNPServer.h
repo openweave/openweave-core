@@ -31,10 +31,12 @@
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/network-provisioning/NetworkInfo.h>
+#include <Weave/Profiles/network-provisioning/WirelessRegConfig.h>
 
 using nl::Weave::System::PacketBuffer;
 using nl::Weave::WeaveExchangeManager;
 using nl::Weave::Profiles::NetworkProvisioning::NetworkInfo;
+using nl::Weave::Profiles::NetworkProvisioning::WirelessRegConfig;
 using nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningServer;
 using nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate;
 
@@ -52,6 +54,7 @@ public:
     NetworkInfo ScanResults[kMaxScanResults];
     NetworkInfo ProvisionedNetworks[kMaxProvisionedNetworks];
     uint32_t NextNetworkId;
+    WirelessRegConfig RegConfig;
 
     WEAVE_ERROR Init(WeaveExchangeManager *exchangeMgr);
     WEAVE_ERROR Shutdown();
@@ -68,6 +71,7 @@ protected:
         uint32_t networkId;
         uint8_t flags;
         uint16_t rendezvousMode;
+        PacketBuffer *regConfigTLV;
     } mOpArgs;
 
     virtual WEAVE_ERROR HandleScanNetworks(uint8_t networkType);
@@ -79,6 +83,8 @@ protected:
     virtual WEAVE_ERROR HandleDisableNetwork(uint32_t networkId);
     virtual WEAVE_ERROR HandleTestConnectivity(uint32_t networkId);
     virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode);
+    virtual WEAVE_ERROR HandleGetWirelessRegulatoryConfig(void);
+    virtual WEAVE_ERROR HandleSetWirelessRegulatoryConfig(PacketBuffer* regConfigTLV);
     virtual void EnforceAccessControl(nl::Weave::ExchangeContext *ec, uint32_t msgProfileId, uint8_t msgType,
                 const nl::Weave::WeaveMessageInfo *msgInfo, AccessControlResult& result);
     virtual bool IsPairedToAccount() const;
@@ -95,11 +101,14 @@ protected:
     WEAVE_ERROR CompleteDisableNetwork(uint32_t networkId);
     WEAVE_ERROR CompleteTestConnectivity(uint32_t networkId);
     WEAVE_ERROR CompleteSetRendezvousMode(uint16_t rendezvousMode);
+    WEAVE_ERROR CompleteGetWirelessRegulatoryConfig(void);
+    WEAVE_ERROR CompleteSetWirelessRegulatoryConfig(PacketBuffer* regConfigTLV);
 
     virtual WEAVE_ERROR SendStatusReport(uint32_t statusProfileId, uint16_t statusCode, WEAVE_ERROR sysError = WEAVE_NO_ERROR);
 
     WEAVE_ERROR ValidateNetworkConfig(NetworkInfo& netConfig);
     static void PrintNetworkInfo(NetworkInfo& netInfo, const char *prefix);
+    static void PrintWirelessRegConfig(WirelessRegConfig& regConfig, const char *prefix);
     static void HandleOpDelayComplete(nl::Weave::System::Layer* lSystemLayer, void* aAppState, nl::Weave::System::Error aError);
 };
 

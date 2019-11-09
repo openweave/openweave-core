@@ -101,6 +101,7 @@ static jclass sNetworkInfoCls = NULL;
 static jclass sWeaveDeviceExceptionCls = NULL;
 static jclass sWeaveDeviceManagerExceptionCls = NULL;
 static jclass sWeaveDeviceDescriptorCls = NULL;
+static jclass sWirelessRegulatoryConfigCls = NULL;
 static jclass sWeaveDeviceManagerCls = NULL;
 static jclass sWeaveStackCls = NULL;
 
@@ -156,6 +157,8 @@ extern "C" {
     NL_DLL_EXPORT void Java_nl_Weave_DeviceManager_WeaveDeviceManager_beginDisableConnectionMonitor(JNIEnv *env, jobject self, jlong deviceMgrPtr);
     NL_DLL_EXPORT void Java_nl_Weave_DeviceManager_WeaveDeviceManager_beginPairToken(JNIEnv *env, jobject self, jlong deviceMgrPtr, jbyteArray pairingToken);
     NL_DLL_EXPORT void Java_nl_Weave_DeviceManager_WeaveDeviceManager_beginUnpairToken(JNIEnv *env, jobject self, jlong deviceMgrPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DeviceManager_WeaveDeviceManager_beginGetWirelessRegulatoryConfig(JNIEnv *env, jobject self, jlong deviceMgrPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DeviceManager_WeaveDeviceManager_beginSetWirelessRegulatoryConfig(JNIEnv *env, jobject self, jlong deviceMgrPtr, jobject regConfigObj);
     NL_DLL_EXPORT void Java_nl_Weave_DeviceManager_WeaveDeviceManager_close(JNIEnv *env, jobject self, jlong deviceMgrPtr);
     NL_DLL_EXPORT jboolean Java_nl_Weave_DeviceManager_WeaveDeviceManager_isConnected(JNIEnv *env, jobject self, jlong deviceMgrPtr);
     NL_DLL_EXPORT jlong Java_nl_Weave_DeviceManager_WeaveDeviceManager_deviceId(JNIEnv *env, jobject self, jlong deviceMgrPtr);
@@ -219,6 +222,7 @@ static bool HandleSubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const u
 static bool HandleUnsubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const uint8_t *svcId, const uint8_t *charId);
 static void HandlePairTokenComplete(WeaveDeviceManager *deviceMgr, void *reqState, const uint8_t *pairingTokenBundle, uint32_t pairingTokenBundleLen);
 static void HandleUnpairTokenComplete(WeaveDeviceManager *deviceMgr, void *reqState);
+static void HandleGetWirelessRegulatoryConfigComplete(WeaveDeviceManager *deviceMgr, void *reqState, const WirelessRegConfig * regConfig);
 static bool HandleCloseConnection(BLE_CONNECTION_OBJECT connObj);
 static uint16_t HandleGetMTU(BLE_CONNECTION_OBJECT connObj);
 static void HandleGenericError(jobject obj, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus);
@@ -234,6 +238,7 @@ static WEAVE_ERROR J2N_ByteArray(JNIEnv *env, jbyteArray inArray, uint8_t *& out
 static WEAVE_ERROR J2N_ByteArrayInPlace(JNIEnv *env, jbyteArray inArray, uint8_t * outArray, uint32_t maxArrayLen);
 static WEAVE_ERROR N2J_ByteArray(JNIEnv *env, const uint8_t *inArray, uint32_t inArrayLen, jbyteArray& outArray);
 static WEAVE_ERROR N2J_NewStringUTF(JNIEnv *env, const char *inStr, jstring& outString);
+static WEAVE_ERROR N2J_NewStringUTF(JNIEnv *env, const char *inStr, size_t inStrLen, jstring& outString);
 static WEAVE_ERROR J2N_EnumFieldVal(JNIEnv *env, jobject obj, const char *fieldName, const char *fieldType, int& outVal);
 static WEAVE_ERROR J2N_ShortFieldVal(JNIEnv *env, jobject obj, const char *fieldName, jshort& outVal);
 static WEAVE_ERROR J2N_IntFieldVal(JNIEnv *env, jobject obj, const char *fieldName, jint& outVal);
@@ -245,6 +250,8 @@ static WEAVE_ERROR J2N_NetworkInfo(JNIEnv *env, jobject inNetworkInfo, NetworkIn
 static WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo, jobject& outNetworkInfo);
 static WEAVE_ERROR N2J_NetworkInfoArray(JNIEnv *env, const NetworkInfo *inArray, uint32_t inArrayLen, jobjectArray& outArray);
 static WEAVE_ERROR N2J_DeviceDescriptor(JNIEnv *env, const WeaveDeviceDescriptor& inDeviceDesc, jobject& outDeviceDesc);
+static WEAVE_ERROR J2N_WirelessRegulatoryConfig(JNIEnv *env, jobject inRegConfig, WirelessRegConfig & outRegConfig);
+static WEAVE_ERROR N2J_WirelessRegulatoryConfig(JNIEnv *env, const WirelessRegConfig& inRegConfig, jobject& outRegConfig);
 static WEAVE_ERROR N2J_Error(JNIEnv *env, WEAVE_ERROR inErr, jthrowable& outEx);
 static WEAVE_ERROR N2J_DeviceStatus(JNIEnv *env, DeviceStatus& devStatus, jthrowable& outEx);
 static WEAVE_ERROR J2N_ResourceIdentifier(JNIEnv *env, jobject inResourceIdentifier, ResourceIdentifier& outResourceIdentifier);
@@ -256,6 +263,9 @@ static void EngineEventCallback(void * const aAppState,
                                 const SubscriptionEngine::InEventParam & aInParam, SubscriptionEngine::OutEventParam & aOutParam);
 static void BindingEventCallback (void * const apAppState, const nl::Weave::Binding::EventType aEvent,
                                   const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam);
+template<typename GetElementFunct>
+WEAVE_ERROR N2J_GenericArray(JNIEnv *env, uint32_t arrayLen, jclass arrayElemCls, jobjectArray& outArray, GetElementFunct getElem);
+
 #if CURRENTLY_UNUSED
 static WEAVE_ERROR J2N_EnumVal(JNIEnv *env, jobject enumObj, int& outVal);
 static WEAVE_ERROR J2N_IntFieldVal(JNIEnv *env, jobject obj, const char *fieldName, jint& outVal);
@@ -287,6 +297,8 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
     err = GetClassRef(env, "nl/Weave/DeviceManager/WeaveDeviceManagerException", sWeaveDeviceManagerExceptionCls);
     SuccessOrExit(err);
     err = GetClassRef(env, "nl/Weave/DeviceManager/WeaveDeviceDescriptor", sWeaveDeviceDescriptorCls);
+    SuccessOrExit(err);
+    err = GetClassRef(env, "nl/Weave/DeviceManager/WirelessRegulatoryConfig", sWirelessRegulatoryConfigCls);
     SuccessOrExit(err);
     err = GetClassRef(env, "nl/Weave/DeviceManager/WeaveDeviceManager", sWeaveDeviceManagerCls);
     SuccessOrExit(err);
@@ -886,6 +898,7 @@ void Java_nl_Weave_DeviceManager_WeaveDeviceManager_beginAddNetwork(JNIEnv *env,
     WeaveLogProgress(DeviceManager, "beginAddNetwork() called");
 
     err = J2N_NetworkInfo(env, networkInfoObj, networkInfo);
+    WeaveLogProgress(DeviceManager, "beginAddNetwork() J2N_NetworkInfo returned %s", nl::ErrorStr(err));
     SuccessOrExit(err);
 
     pthread_mutex_lock(&sStackLock);
@@ -1500,6 +1513,47 @@ void Java_nl_Weave_DeviceManager_WeaveDeviceManager_beginUnpairToken(JNIEnv *env
 
     pthread_mutex_unlock(&sStackLock);
 
+    if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
+        ThrowError(env, err);
+}
+
+void Java_nl_Weave_DeviceManager_WeaveDeviceManager_beginGetWirelessRegulatoryConfig(JNIEnv *env, jobject self, jlong deviceMgrPtr)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveDeviceManager *deviceMgr = (WeaveDeviceManager *)deviceMgrPtr;
+
+    WeaveLogProgress(DeviceManager, "beginGetWirelessRegulatoryConfig() called");
+
+    pthread_mutex_lock(&sStackLock);
+
+    err = deviceMgr->GetWirelessRegulatoryConfig((void *)"GetWirelessRegulatoryConfig", HandleGetWirelessRegulatoryConfigComplete, HandleError);
+
+    pthread_mutex_unlock(&sStackLock);
+
+    if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
+        ThrowError(env, err);
+}
+
+void Java_nl_Weave_DeviceManager_WeaveDeviceManager_beginSetWirelessRegulatoryConfig(JNIEnv *env, jobject self, jlong deviceMgrPtr, jobject regConfigObj)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveDeviceManager *deviceMgr = (WeaveDeviceManager *)deviceMgrPtr;
+    WirelessRegConfig regConfig;
+
+    WeaveLogProgress(DeviceManager, "beginSetWirelessRegulatoryConfig() called");
+
+    regConfig.Init();
+
+    err = J2N_WirelessRegulatoryConfig(env, regConfigObj, regConfig);
+    SuccessOrExit(err);
+
+    pthread_mutex_lock(&sStackLock);
+
+    err = deviceMgr->SetWirelessRegulatoryConfig(&regConfig, (void *)"SetWirelessRegulatoryConfig", HandleSimpleOperationComplete, HandleError);
+
+    pthread_mutex_unlock(&sStackLock);
+
+exit:
     if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
         ThrowError(env, err);
 }
@@ -2576,6 +2630,47 @@ exit:
         env->PopLocalFrame(NULL);
 }
 
+void HandleGetWirelessRegulatoryConfigComplete(WeaveDeviceManager *deviceMgr, void *reqState, const WirelessRegConfig * regConfig)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    JNIEnv *env;
+    jobject self = (jobject)deviceMgr->AppState;
+    jclass deviceMgrCls;
+    jobject regConfigObj = NULL;
+    jmethodID method;
+    bool localFramePushed = false;
+
+    WeaveLogProgress(DeviceManager, "Received response to GetWirelessRegulatoryConfig request");
+
+    sJVM->GetEnv((void **)&env, JNI_VERSION_1_2);
+
+    if (env->PushLocalFrame(WDM_JNI_CALLBACK_LOCAL_REF_COUNT) == 0)
+        localFramePushed = true;
+    VerifyOrExit(localFramePushed, err = WEAVE_ERROR_NO_MEMORY);
+
+    err = N2J_WirelessRegulatoryConfig(env, *regConfig, regConfigObj);
+    SuccessOrExit(err);
+
+    deviceMgrCls = env->GetObjectClass(self);
+    VerifyOrExit(deviceMgrCls != NULL, err = WDM_JNI_ERROR_TYPE_NOT_FOUND);
+
+    method = env->GetMethodID(deviceMgrCls, "onGetWirelessRegulatoryConfigComplete", "(Lnl/Weave/DeviceManager/WirelessRegulatoryConfig;)V");
+    VerifyOrExit(method != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
+
+    WeaveLogProgress(DeviceManager, "Calling Java onGetWirelessRegulatoryConfigComplete method");
+
+    env->ExceptionClear();
+    env->CallVoidMethod(self, method, regConfigObj);
+    VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+        ReportError(env, err, __FUNCTION__);
+    env->ExceptionClear();
+    if (localFramePushed)
+        env->PopLocalFrame(NULL);
+}
+
 bool HandleCloseConnection(BLE_CONNECTION_OBJECT connObj)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -2756,6 +2851,33 @@ void ReportError(JNIEnv *env, WEAVE_ERROR cbErr, const char *functName)
     }
 }
 
+template<typename GetElementFunct>
+WEAVE_ERROR N2J_GenericArray(JNIEnv *env, uint32_t arrayLen, jclass arrayElemCls, jobjectArray& outArray, GetElementFunct getElem)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    jobject elem = NULL;
+
+    outArray = env->NewObjectArray(arrayLen, arrayElemCls, NULL);
+    VerifyOrExit(outArray != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    for (uint32_t i = 0; i < arrayLen; i++)
+    {
+        err = getElem(env, i, elem);
+        SuccessOrExit(err);
+
+        env->ExceptionClear();
+        env->SetObjectArrayElement(outArray, i, elem);
+        VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
+
+        env->DeleteLocalRef(elem);
+        elem = NULL;
+    }
+
+exit:
+    env->DeleteLocalRef(elem);
+    return err;
+}
+
 WEAVE_ERROR J2N_ByteArray(JNIEnv *env, jbyteArray inArray, uint8_t *& outArray, uint32_t& outArrayLen)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -2866,13 +2988,18 @@ exit:
 
 WEAVE_ERROR N2J_NewStringUTF(JNIEnv *env, const char *inStr, jstring& outString)
 {
+    return N2J_NewStringUTF(env, inStr, strlen(inStr), outString);
+}
+
+WEAVE_ERROR N2J_NewStringUTF(JNIEnv *env, const char *inStr, size_t inStrLen, jstring& outString)
+{
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     jbyteArray charArray = NULL;
     jstring utf8Encoding = NULL;
     jclass java_lang_String = NULL;
     jmethodID ctor = NULL;
 
-    err = N2J_ByteArray(env, reinterpret_cast<const uint8_t *>(inStr), strlen(inStr), charArray);
+    err = N2J_ByteArray(env, reinterpret_cast<const uint8_t *>(inStr), inStrLen, charArray);
     SuccessOrExit(err);
 
     utf8Encoding = env->NewStringUTF("UTF-8");
@@ -3294,28 +3421,11 @@ exit:
 
 WEAVE_ERROR N2J_NetworkInfoArray(JNIEnv *env, const NetworkInfo *inArray, uint32_t inArrayLen, jobjectArray& outArray)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    jobject elem = NULL;
-
-    outArray = env->NewObjectArray(inArrayLen, sNetworkInfoCls, NULL);
-    VerifyOrExit(outArray != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-    for (uint32_t i = 0; i < inArrayLen; i++)
-    {
-        err = N2J_NetworkInfo(env, inArray[i], elem);
-        SuccessOrExit(err);
-
-        env->ExceptionClear();
-        env->SetObjectArrayElement(outArray, i, elem);
-        VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
-
-        env->DeleteLocalRef(elem);
-        elem = NULL;
-    }
-
-exit:
-    env->DeleteLocalRef(elem);
-    return err;
+    return N2J_GenericArray(env, inArrayLen, sNetworkInfoCls, outArray,
+            [&](JNIEnv * _env, uint32_t index, jobject& _outElem) -> WEAVE_ERROR
+            {
+                return N2J_NetworkInfo(_env, inArray[index], _outElem);
+            });
 }
 
 WEAVE_ERROR N2J_DeviceDescriptor(JNIEnv *env, const WeaveDeviceDescriptor& inDeviceDesc, jobject& outDeviceDesc)
@@ -3387,6 +3497,80 @@ exit:
     env->DeleteLocalRef(serialNumber);
     env->DeleteLocalRef(primaryWiFiMACAddress);
     env->DeleteLocalRef(primary802154MACAddress);
+    return err;
+}
+
+WEAVE_ERROR J2N_WirelessRegulatoryConfig(JNIEnv *env, jobject inRegConfig, WirelessRegConfig & outRegConfig)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    int enumVal;
+    char * strVal = NULL;
+
+    outRegConfig.Init();
+
+    err = J2N_StringFieldVal(env, inRegConfig, "RegDomain", strVal);
+    SuccessOrExit(err);
+
+    // If present, RegDomain must be exactly 2 characters long.
+    if (strVal != NULL)
+    {
+        VerifyOrExit(strlen(strVal) == sizeof(outRegConfig.RegDomain.Code), err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+        memcpy(outRegConfig.RegDomain.Code, strVal, sizeof(outRegConfig.RegDomain.Code));
+    }
+
+    err = J2N_EnumFieldVal(env, inRegConfig, "OpLocation", "Lnl/Weave/DeviceManager/OperatingLocation;", enumVal);
+    SuccessOrExit(err);
+    outRegConfig.OpLocation = (uint8_t)enumVal;
+
+    // NOTE: The SupportRegulatoryDomains field is never sent *to* a device.  Thus we ignore the field value here.
+
+exit:
+    if (strVal != NULL)
+    {
+        free(strVal);
+    }
+    return err;
+}
+
+WEAVE_ERROR N2J_WirelessRegulatoryConfig(JNIEnv *env, const WirelessRegConfig& inRegConfig, jobject& outRegConfig)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    jmethodID makeMethod;
+    jstring regDomain = NULL;
+    jobjectArray supportedRegDomains = NULL;
+    jclass java_lang_String = NULL;
+
+    if (inRegConfig.IsRegDomainPresent())
+    {
+        err = N2J_NewStringUTF(env, inRegConfig.RegDomain.Code, sizeof(inRegConfig.RegDomain.Code), regDomain);
+        SuccessOrExit(err);
+    }
+
+    java_lang_String = env->FindClass("java/lang/String");
+    VerifyOrExit(java_lang_String != NULL, err = WDM_JNI_ERROR_TYPE_NOT_FOUND);
+
+    err = N2J_GenericArray(env, inRegConfig.NumSupportedRegDomains, java_lang_String, supportedRegDomains,
+        [&inRegConfig](JNIEnv *_env, uint32_t index, jobject& outElem) -> WEAVE_ERROR
+        {
+            jstring strElem = NULL;
+            WEAVE_ERROR _err = N2J_NewStringUTF(_env, inRegConfig.SupportedRegDomains[index].Code, sizeof(WirelessRegDomain::Code), strElem);
+            outElem = strElem;
+            return _err;
+        });
+    SuccessOrExit(err);
+
+    makeMethod = env->GetStaticMethodID(sWirelessRegulatoryConfigCls, "Make", "(Ljava/lang/String;I[Ljava/lang/String;)Lnl/Weave/DeviceManager/WirelessRegulatoryConfig;");
+    VerifyOrExit(makeMethod != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
+
+    env->ExceptionClear();
+    outRegConfig = env->CallStaticObjectMethod(sWirelessRegulatoryConfigCls, makeMethod,
+            regDomain, (jint)inRegConfig.OpLocation, supportedRegDomains);
+    VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
+
+exit:
+    env->DeleteLocalRef(regDomain);
+    env->DeleteLocalRef(supportedRegDomains);
     return err;
 }
 

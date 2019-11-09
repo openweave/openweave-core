@@ -247,6 +247,20 @@ class DeviceDescriptor:
     def IsRendezvousWiFiESSIDSuffix(self):
         return (self.Flags & DeviceDescriptorFlag_IsRendezvousWiFiESSIDSuffix) != 0
 
+class WirelessRegConfig:
+    def __init__(self, regDomain=None, opLocation=None, supportedRegDomains=None):
+        self.RegDomain = regDomain
+        self.OpLocation = opLocation
+        self.SupportedRegDomains = supportedRegDomains
+
+    def Print(self, prefix=""):
+        if self.RegDomain != None:
+            print("%sRegulatory Domain: %s%s" % (prefix, self.RegDomain, ' (world wide)' if self.RegDomain == '00' else ''))
+        if self.OpLocation != None:
+            print("%sOperating Location: %s" % (prefix, OperatingLocationToString(self.OpLocation)))
+        if self.SupportedRegDomains != None:
+            print("%sSupported Regulatory Domains: %s" % (prefix, ','.join(self.SupportedRegDomains)))
+
 class _IdentifyDeviceCriteriaStruct(Structure):
     _fields_ = [
         ("TargetFabricId",  c_uint64),
@@ -357,6 +371,49 @@ class _DeviceDescriptorStruct(Structure):
             deviceFeatures = self.DeviceFeatures,
             flags = self.Flags)
 
+class _WirelessRegDomain(Structure):
+    _fields_ = [
+        ('Code', c_char * 2),                        # Wireless regulatory domain code (exactly 2 characters, non-null terminated)
+    ]
+    
+    def __str__(self, *args, **kwargs):
+        return ''.join(WeaveUtility.CStringToString(self.Code))
+    
+    @classmethod
+    def fromStr(cls, val):
+        regDomainStruct = cls()
+        if val != None:
+            if len(val) != 2:
+                raise ValueError('Invalid wireless regulatory domain code: ' + val)
+            regDomainStruct.Code = WeaveUtility.StringToCString(val)
+        else:
+            regDomainStruct.Code = b'\0\0'
+        return regDomainStruct
+
+class _WirelessRegConfigStruct(Structure):
+    _fields_ = [
+        ('SupportedRegDomains', POINTER(_WirelessRegDomain)),   # Array of _WirelessRegDomain structures
+        ('NumSupportedRegDomains', c_uint16),                   # Length of SupportedRegDomains array
+        ('RegDomain', _WirelessRegDomain),                      # Selected wireless regulatory domain
+        ('OpLocation', c_ubyte),                                # Selected operating location
+    ]
+
+    def toWirelessRegConfig(self):
+        return WirelessRegConfig(
+            regDomain = str(self.RegDomain) if self.RegDomain.Code[0] != 0 else None,
+            opLocation = self.OpLocation if self.OpLocation != 0xFF else None,
+            supportedRegDomains = [ str(self.SupportedRegDomains[i]) for i in range(0, self.NumSupportedRegDomains) ]
+        )
+
+    @classmethod
+    def fromWirelessRegConfig(cls, regConfig):
+        regConfigStruct = cls()
+        regConfigStruct.SupportedRegDomains = POINTER(_WirelessRegDomain)()
+        regConfigStruct.NumSupportedRegDomains = 0
+        regConfigStruct.RegDomain = _WirelessRegDomain.fromStr(regConfig.RegDomain)
+        regConfigStruct.OpLocation = regConfig.OpLocation if regConfig.OpLocation != None else 0
+        return regConfigStruct
+
 _CompleteFunct                              = CFUNCTYPE(None, c_void_p, c_void_p)
 _IdentifyDeviceCompleteFunct                = CFUNCTYPE(None, c_void_p, c_void_p, POINTER(_DeviceDescriptorStruct))
 _PairTokenCompleteFunct                     = CFUNCTYPE(None, c_void_p, c_void_p, c_void_p, c_uint32)
@@ -373,6 +430,7 @@ _WriteBleCharacteristicFunct                = CFUNCTYPE(c_bool, c_void_p, c_void
 _SubscribeBleCharacteristicFunct            = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_bool)
 _CloseBleFunct                              = CFUNCTYPE(c_bool, c_void_p)
 _DeviceEnumerationResponseFunct             = CFUNCTYPE(None, c_void_p, POINTER(_DeviceDescriptorStruct), c_char_p)
+_GetWirelessRegulatoryConfigCompleteFunct   = CFUNCTYPE(None, c_void_p, c_void_p, POINTER(_WirelessRegConfigStruct))
 
 # This is a fix for WEAV-429. Jay Logue recommends revisiting this at a later
 # date to allow for truely multiple instances so this is temporary.
@@ -866,6 +924,23 @@ class WeaveDeviceManager(object):
             lambda: self._dmLib.nl_Weave_DeviceManager_SetRendezvousMode(self.devMgr, modeFlags, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
+    def GetWirelessRegulatoryConfig(self):
+        def HandleComplete(devMgr, reqState, regConfigPtr):
+            self._weaveStack.callbackRes = regConfigPtr[0].toWirelessRegConfig()
+            self._weaveStack.completeEvent.set()
+
+        cbHandleComplete = _GetWirelessRegulatoryConfigCompleteFunct(HandleComplete)
+
+        return self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_GetWirelessRegulatoryConfig(self.devMgr, cbHandleComplete, self._weaveStack.cbHandleError)
+        )
+
+    def SetWirelessRegulatoryConfig(self, regConfig):
+        regConfigStruct = _WirelessRegConfigStruct.fromWirelessRegConfig(regConfig)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_SetWirelessRegulatoryConfig(self.devMgr, regConfigStruct, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
+        )
+
     def GetLastNetworkProvisioningResult(self):
         self._weaveStack.CallAsync(
             lambda: self._dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult(self.devMgr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
@@ -1149,8 +1224,14 @@ class WeaveDeviceManager(object):
             self._dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
             self._dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult.restype = c_uint32
 
-            self._dmLib.nl_Weave_DeviceManager_CreateFabric.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
-            self._dmLib.nl_Weave_DeviceManager_CreateFabric.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_GetWirelessRegulatoryConfig.argtypes = [ c_void_p, _GetWirelessRegulatoryConfigCompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_AddNetwork.restype = c_uint32
+
+            self._dmLib.nl_Weave_DeviceManager_SetWirelessRegulatoryConfig.argtypes = [ c_void_p, POINTER(_WirelessRegConfigStruct), _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_AddNetwork.restype = c_uint32
+
+            self._dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult.restype = c_uint32
 
             self._dmLib.nl_Weave_DeviceManager_LeaveFabric.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
             self._dmLib.nl_Weave_DeviceManager_LeaveFabric.restype = c_uint32
@@ -1316,3 +1397,23 @@ def DeviceFeatureToString(val):
     if (val == DeviceFeature_LinePowered):
         return "LinePowered"
     return "0x%08X" % (val)
+
+def OperatingLocationToString(val):
+    if val == 1:
+        return 'unknown'
+    if val == 2:
+        return 'indoors'
+    if val == 3:
+        return 'outdoors'
+    raise Exception("Invalid operating location: " + str(val))
+
+def ParseOperatingLocation(val):
+    val = val.lower()
+    if val == 'unknown':
+        return 1
+    if val == 'indoors':
+        return 2
+    if val == 'outdoors':
+        return 3
+    raise Exception("Invalid operating location: " + str(val))
+

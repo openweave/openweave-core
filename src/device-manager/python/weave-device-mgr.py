@@ -249,6 +249,8 @@ class DeviceMgrCmd(Cmd):
         'disable-network',
         'test-network',
         'set-rendezvous-mode',
+        'get-wireless-reg-config',
+        'set-wireless-reg-config',
         'ping',
         'identify',
         'create-fabric',
@@ -1678,6 +1680,78 @@ class DeviceMgrCmd(Cmd):
             return
 
         print("Set rendezvous mode complete")
+
+    def do_getwirelessregconfig(self, line):
+        """
+          get-wireless-reg-config
+
+          Get the wireless regulatory configuration for the device.
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) > 0):
+            print("Unexpected argument: " + args[0])
+            return
+
+        try:
+            getResult = self.devMgr.GetWirelessRegulatoryConfig()
+        except WeaveStack.WeaveStackException as ex:
+            print(str(ex))
+            return
+
+        print("Get wireless regulatory configuration complete:")
+        getResult.Print(prefix='  ')
+
+    def do_setwirelessregconfig(self, line):
+        """
+          set-wireless-reg-config <reg-domain> [ <op-mode> ]
+
+          Set the wireless regulatory configuration for the device.
+          
+            <reg-domain> : 2-character wireless regulatory domain code
+            
+            <op-mode> : Device operating location
+            
+              unknown -- The operating location of the device is unknown or varies.
+              indoors -- The device will be operated indoors.
+              outdoors -- The device will be operated outdoors.
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) < 1):
+            print("Please specify the wireless regulatory domain code")
+            return
+        
+        if (len(args) > 2):
+            print("Unexpected argument: " + args[0])
+            return
+        
+        regDomain = args[0].upper()
+        opLocation = args[1] if (len(args) > 1) else None
+
+        if len(regDomain) != 2:
+            print('Invalid wireless regulatory domain code: %s' % regDomain)
+            print('Regulatory domain codes must be exactly 2 characters')
+            return
+        
+        if opLocation != None:
+            try:
+                opLocation = WeaveDeviceMgr.ParseOperatingLocation(opLocation)
+            except Exception as ex:
+                print(str(ex))
+                return
+            
+        regConfig = WeaveDeviceMgr.WirelessRegConfig(regDomain=regDomain, opLocation=opLocation)
+        
+        try:
+            self.devMgr.SetWirelessRegulatoryConfig(regConfig)
+        except WeaveStack.WeaveStackException as ex:
+            print(str(ex))
+            return
+
+        print("Set wireless regulatory configuration complete")
 
     def do_getlastnetworkprovisioningresult(self, line):
         """
