@@ -102,17 +102,15 @@ public:
 
     BLEEndPoint * Get(int i) const
     {
-        typedef union
+        static union
         {
-            uint8_t Data[sizeof(BLEEndPoint)];
-            uint64_t ForceAlignment;
-        } PoolElement;
-
-        static uint8_t sEndPointPool[sizeof(PoolElement) * BLE_LAYER_NUM_BLE_ENDPOINTS];
+            uint8_t Pool[sizeof(BLEEndPoint) * BLE_LAYER_NUM_BLE_ENDPOINTS];
+            BLEEndPoint::AlignT ForceAlignment;
+        } sEndPointPool;
 
         if (i < BLE_LAYER_NUM_BLE_ENDPOINTS)
         {
-            return (BLEEndPoint *) (sEndPointPool + (sizeof(PoolElement) * i));
+            return (BLEEndPoint *) (sEndPointPool.Pool + (sizeof(BLEEndPoint) * i));
         }
         else
         {

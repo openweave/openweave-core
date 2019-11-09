@@ -63,6 +63,8 @@ class NL_DLL_EXPORT BLEEndPoint : public BleLayerObject
 #endif
 
 public:
+    typedef uint64_t AlignT;
+
     // Public data members:
     enum
     {
