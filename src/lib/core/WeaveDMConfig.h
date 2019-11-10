@@ -699,6 +699,19 @@
 #define WDM_RESUBSCRIBE_WAIT_TIME_MULTIPLIER_MS 10000
 #endif
 
+/**
+ *  @def WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMP
+ *
+ *  @brief
+ *    Enable (1) or disable (0) GenericTraitCatalogImp
+ *    in Weave Data Management Next profile. This feature is
+ *    optional and could be disabled.
+ *
+ */
+#ifndef WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMP
+#define WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMP 0
+#endif
+
 // clang-format on
 
 #endif // _WEAVE_DATA_MANAGEMENT_CONFIG_H

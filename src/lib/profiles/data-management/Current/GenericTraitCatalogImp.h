@@ -27,6 +27,7 @@
 #ifndef _WEAVE_DATA_MANAGEMENT_GENERIC_TRAIT_CATALOG_IMP_H
 #define _WEAVE_DATA_MANAGEMENT_GENERIC_TRAIT_CATALOG_IMP_H
 
+#if    WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMP
 #include <map>
 #include <limits>
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
@@ -562,4 +563,5 @@ exit:
 }; // namespace Weave
 }; // namespace nl
 
+#endif // WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMP
 #endif // _WEAVE_DATA_MANAGEMENT_GENERIC_TRAIT_CATALOG_IMP_H
