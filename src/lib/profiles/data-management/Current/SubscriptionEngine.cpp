@@ -1996,7 +1996,7 @@ void SubscriptionEngine::OnUpdateRequest(nl::Weave::ExchangeContext * aEC, const
             // Todo: Add Partial update request handling support
             ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
         }
-        pEngine->GetNotificationEngine()->Run();
+        pEngine->GetNotificationEngine()->ScheduleRun();
     }
 
 exit:

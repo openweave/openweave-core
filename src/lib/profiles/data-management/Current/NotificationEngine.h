@@ -115,6 +115,11 @@ public:
     void Run(void);
 
     /**
+     * Main work-horse function that executes the run-loop asynchronously on the Weave thread
+     */
+    void ScheduleRun(void);
+
+    /**
      * Marks a handle associated with a data source as being dirty.
      *
      * @retval #WEAVE_NO_ERROR On success.
@@ -393,6 +398,8 @@ private:
     WEAVE_ERROR SendNotify(PacketBuffer * aBuf, SubscriptionHandler * aSubHandler);
 
     WEAVE_ERROR SendNotifyRequest();
+
+    static void OnNotifyScheduleWorkCallback(System::Layer * aSystemLayer, void * aAppState, System::Error);
 
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     WEAVE_ERROR BuildSubscriptionlessNotification(PacketBuffer *msgBuf, uint32_t maxPayloadSize, TraitPath *aPathList,

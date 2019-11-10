@@ -1701,6 +1701,18 @@ exit:
 
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
+void NotificationEngine::OnNotifyScheduleWorkCallback(System::Layer * aSystemLayer, void * aAppState, System::Error)
+{
+    NotificationEngine * const pEngine = reinterpret_cast<NotificationEngine *>(aAppState);
+    WeaveLogDetail(DataManagement, "%s", __func__);
+    pEngine->Run();
+}
+
+void NotificationEngine::ScheduleRun()
+{
+    SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->ScheduleWork(OnNotifyScheduleWorkCallback, this);
+}
+
 void NotificationEngine::Run()
 {
     WEAVE_ERROR err                  = WEAVE_NO_ERROR;
