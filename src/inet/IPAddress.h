@@ -140,6 +140,18 @@ public:
     uint32_t Addr[4];
 
     /**
+     * @brief   Test whether address is IPv6 compatible.
+     *
+     * @details
+     *  Use this method to check if the address belongs to the IPv6 address
+     *  family. Note well: the unspecified address is not an IPv6 address.
+     *
+     * @retval true   The address is IPv6 and not the unspecified address.
+     * @retval false  The address is IPv4 or the unspecified address.
+     */
+    bool IsIPv6(void) const;
+
+    /**
      * @brief   Test whether address is IPv6 global unicast address.
      *
      * @details
@@ -631,6 +643,13 @@ public:
      * @return  The constructed IP address.
      */
     static IPAddress MakeIPv6PrefixMulticast(uint8_t aScope, uint8_t aPrefixLength, const uint64_t &aPrefix, uint32_t aGroupId);
+
+    /**
+     * @brief   Construct an IPv4 broadcast address.
+     *
+     * @return  The constructed IP address.
+     */
+    static IPAddress MakeIPv4Broadcast(void);
 
     /**
      * @brief   The distinguished unspecified IP address object.

@@ -1272,29 +1272,6 @@
 #endif // WEAVE_CONFIG_MAX_BINDINGS
 
 /**
- *  @def WEAVE_CONFIG_MAX_INTERFACES
- *
- *  @brief
- *    Maximum number of network interfaces.
- *
- */
-#ifndef WEAVE_CONFIG_MAX_INTERFACES
-#define WEAVE_CONFIG_MAX_INTERFACES                         20
-#endif // WEAVE_CONFIG_MAX_INTERFACES
-
-/**
- *  @def WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS
- *
- *  @brief
- *    Maximum number of UDP endpoints used for sending / receiving
- *    messages from specific local IPv6 addresses.
- *
- */
-#ifndef WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS
-#define WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS           32
-#endif // WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS
-
-/**
  *  @def WEAVE_CONFIG_CONNECT_IP_ADDRS
  *
  *  @brief
@@ -1387,6 +1364,16 @@
 #ifndef WEAVE_UNSECURED_PORT
 #define WEAVE_UNSECURED_PORT                                11096
 #endif // WEAVE_UNSECURED_PORT
+
+/**
+ *  @def WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+ *
+ *  @brief
+ *    Enable use of an ephemeral UDP source port for locally initiated Weave exchanges.
+ */
+#ifndef WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+#define WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT              0
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
 
 /**
  *  @def WEAVE_CONFIG_SECURITY_TEST_MODE

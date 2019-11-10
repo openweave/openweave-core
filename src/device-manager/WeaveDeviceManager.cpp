@@ -422,25 +422,23 @@ WEAVE_ERROR WeaveDeviceManager::InitiateDeviceEnumeration()
 
     WeaveLogProgress(DeviceManager, "Sending IdentifyRequest to enumerate devices");
 
-    // Send the Identify message.
+    // Send an Identify message over UDP to the specified rendezvous address.  Typically the rendezvous address
+    // will be an multicast/broadcast address, however this can be changed by the application.
     //
-    // If the 'enumerate-devices link-local' option is enabled, AND the message layer is not bound to
-    // a specific local IPv6 address, THEN ...
+    // If the rendezvous address is an IPv6 multicast address and the local node is a member of a Weave fabric,
+    // then the source address of the Identify message will be one of the node's Weave addresses.
     //
-    // Send the multicast identify request from the host's link-local addresses, rather than
-    // from its site-local or global addresses. This results in the device responding using its
-    // link-local address, which in turn causes the device manager to connect to the device using the
-    // link-local address. This is all to work around a bug in OS X/iOS that prevents those systems
-    // from communicating on any site-local IPv6 subnets when in the presence of a router that is
-    // advertising a default route to the Internet at large. (See DOLO-2479).
+    // However, if the application has enabled the 'rendezvous link-local' option, force the use of default
+    // source address selection by passing the DefaultMulticastSourceAddress flag to SendMessage().  For typical
+    // multicast rendezvous addresses (e.g. FF02::1 all-nodes, link-local), this will result in the source address
+    // of the Identify message being the local node's link-local address.
     //
-    // We disable the 'enumerate-devices link-local' feature when the message layer is bound to a specific
-    // address because binding to a specific address is generally used when testing the device manager
-    // and a mock-device running on a single host with a single interface.  In this case multicasting
-    // using the interface's single link-local address doesn't work.
+    // Note that the Weave Message Layer will *always* perform default source address selection if the local
+    // node is not a member of a Weave fabric (which is true for most uses of the WeaveDeviceManager class).
+    // Thus the state of the 'rendezvous link-local' option is moot in those contexts.
     //
-    sendFlags = (mRendezvousLinkLocal && !mMessageLayer->IsBoundToLocalIPv6Address())
-            ? ExchangeContext::kSendFlag_MulticastFromLinkLocal
+    sendFlags = (mRendezvousLinkLocal)
+            ? ExchangeContext::kSendFlag_DefaultMulticastSourceAddress
             : 0;
     err = mCurReq->SendMessage(kWeaveProfile_DeviceDescription, kMessageType_IdentifyRequest, msgBuf, sendFlags);
     msgBuf = NULL;
@@ -2751,25 +2749,23 @@ WEAVE_ERROR WeaveDeviceManager::InitiateConnection()
 
     mConState = kConnectionState_IdentifyDevice;
 
-    // Send the Identify message.
+    // Send an Identify message over UDP to the specified rendezvous address.  Typically the rendezvous address
+    // will be a multicast/broadcast address, however this can be changed by the application.
     //
-    // If performing a multicast identify, AND the 'rendezvous link-local' option is enabled,
-    // AND the message layer is not bound to a specific local IPv6 address, THEN ...
+    // If the rendezvous address is an IPv6 multicast address and the local node is a member of a Weave fabric,
+    // then the source address of the Identify message will be one of the node's Weave addresses.
     //
-    // Send the multicast identify request from the host's link-local addresses, rather than
-    // from its site-local or global addresses. This results in the device responding using its
-    // link-local address, which in turn causes the device manager to connect to the device using the
-    // link-local address. This is all to work around a bug in OS X/iOS that prevents those systems
-    // from communicating on any site-local IPv6 subnets when in the presence of a router that is
-    // advertising a default route to the Internet at large. (See DOLO-2479).
+    // However, if the application has enabled the 'rendezvous link-local' option, force the use of default
+    // source address selection by passing the DefaultMulticastSourceAddress flag to SendMessage().  For typical
+    // multicast rendezvous addresses (e.g. FF02::1 all-nodes, link-local), this will result in the source address
+    // of the Identify message being the local node's link-local address.
     //
-    // We disable the 'rendezvous link-local' feature when the message layer is bound to a specific
-    // address because binding to a specific address is generally used when testing the device manager
-    // and a mock-device running on a single host with a single interface.  In this case multicasting
-    // using the interface's single link-local address doesn't work.
+    // Note that the Weave Message Layer will *always* perform default source address selection if the local
+    // node is not a member of a Weave fabric (which is true for most uses of the WeaveDeviceManager class).
+    // Thus the state of the 'rendezvous link-local' option is moot in those contexts.
     //
-    sendFlags = (mDeviceAddr.IsMulticast() && mRendezvousLinkLocal && !mMessageLayer->IsBoundToLocalIPv6Address())
-            ? ExchangeContext::kSendFlag_MulticastFromLinkLocal
+    sendFlags = (mRendezvousLinkLocal)
+            ? ExchangeContext::kSendFlag_DefaultMulticastSourceAddress
             : 0;
     err = mCurReq->SendMessage(kWeaveProfile_DeviceDescription, kMessageType_IdentifyRequest, msgBuf, sendFlags);
     msgBuf = NULL;

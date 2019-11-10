@@ -210,11 +210,14 @@ WeaveNodeOptions::WeaveNodeOptions()
 {
     static OptionDef optionDefs[] =
     {
-        { "fabric-id",            kArgumentRequired, 'f'                               },
-        { "node-id",              kArgumentRequired, 'n'                               },
-        { "subnet",               kArgumentRequired, 'N'                               },
-        { "pairing-code",         kArgumentRequired, kToolCommonOpt_PairingCode        },
-        { "persistent-cntr-file", kArgumentRequired, kToolCommonOpt_PersistentCntrFile },
+        { "fabric-id",              kArgumentRequired, 'f'                                },
+        { "node-id",                kArgumentRequired, 'n'                                },
+        { "subnet",                 kArgumentRequired, 'N'                                },
+        { "pairing-code",           kArgumentRequired, kToolCommonOpt_PairingCode         },
+        { "persistent-cntr-file",   kArgumentRequired, kToolCommonOpt_PersistentCntrFile  },
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+        { "use-ephemeral-udp-port", kNoArgument,       kToolCommonOpt_UseEphemeralUDPPort },
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
         { NULL }
     };
     OptionDefs = optionDefs;
@@ -245,6 +248,11 @@ WeaveNodeOptions::WeaveNodeOptions()
         "       developers should stick to this format - any other format will result in error.\n"
         "       If persistent-cntr-file option is not specified then by default counters are not persisted.\n"
         "\n"
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+        "  --use-ephemeral-udp-port\n"
+        "       Use an ephemeral UDP source port when initiating Weave exchanges with another node.\n"
+        "\n"
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
         ;
 
     // Defaults.
@@ -255,6 +263,7 @@ WeaveNodeOptions::WeaveNodeOptions()
     LocalNodeIdSet = false;
     SubnetIdSet = false;
     PairingCode = "TEST";
+    UseEphemeralUDPPort = false;
 }
 
 WeaveNodeOptions::~WeaveNodeOptions()
@@ -312,6 +321,9 @@ bool WeaveNodeOptions::HandleOption(const char *progName, OptionSet *optSet, int
             printf("Unable to open %s\n%s\n", arg, strerror(errno));
             return false;
         }
+        break;
+    case kToolCommonOpt_UseEphemeralUDPPort:
+        UseEphemeralUDPPort = true;
         break;
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);

@@ -117,13 +117,12 @@ WeaveMessageLayer::WeaveMessageLayer()
  */
 WEAVE_ERROR WeaveMessageLayer::Init(InitContext *context)
 {
-    WEAVE_ERROR res = WEAVE_NO_ERROR;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    if (context == NULL)
-        return WEAVE_ERROR_INVALID_ARGUMENT;
+    VerifyOrExit(State == kState_NotInitialized, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(context != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    if (State != kState_NotInitialized)
-        return WEAVE_ERROR_INCORRECT_STATE;
+    State = kState_Initializing;
 
     SystemLayer = context->systemLayer;
     Inet = context->inet;
@@ -158,61 +157,62 @@ WEAVE_ERROR WeaveMessageLayer::Init(InitContext *context)
     //Internal and for Debug Only; When set, Message Layer drops message and returns.
     mDropMessage = false;
     mFlags = 0;
-    if (context->listenTCP)
-        mFlags |= kFlag_ListenTCP;
-    if (context->listenUDP)
-        mFlags |= kFlag_ListenUDP;
-#if CONFIG_NETWORK_LAYER_BLE
-    if (context->listenBLE)
-        mFlags |= kFlag_ListenBLE;
+    SetTCPListenEnabled(context->listenTCP);
+    SetUDPListenEnabled(context->listenUDP);
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    SetEphemeralUDPPortEnabled(context->enableEphemeralUDPPort);
 #endif
-
-#if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
-#if INET_CONFIG_ENABLE_IPV4
-    if (FabricState->ListenIPv6Addr != IPAddress::Any)
-        mFlags |= kFlag_ListenIPv6;
-    if (FabricState->ListenIPv4Addr != IPAddress::Any)
-        mFlags |= kFlag_ListenIPv4;
-    if ((mFlags & (kFlag_ListenIPv4 | kFlag_ListenIPv6)) == 0)
-        mFlags |= kFlag_ListenIPv4 | kFlag_ListenIPv6;
-#else // !INET_CONFIG_ENABLE_IPV4
-    mFlags |= kFlag_ListenIPv6;
-#endif // !INET_CONFIG_ENABLE_IPV4
-#else // !WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
-    mFlags |= kFlag_ListenIPv6;
-#if INET_CONFIG_ENABLE_IPV4
-    mFlags |= kFlag_ListenIPv4;
-#endif // !INET_CONFIG_ENABLE_IPV4
-#endif // !WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
 
     mIPv6TCPListen = NULL;
     mIPv6UDP = NULL;
-#if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
-    mIPv6UDPMulticastRcv = NULL;
-#endif
 
 #if INET_CONFIG_ENABLE_IPV4
     mIPv4TCPListen = NULL;
     mIPv4UDP = NULL;
 #endif // INET_CONFIG_ENABLE_IPV4
 
+#if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+    mIPv6UDPMulticastRcv = NULL;
+#if INET_CONFIG_ENABLE_IPV4
+    mIPv4UDPBroadcastRcv = NULL;
+#endif // INET_CONFIG_ENABLE_IPV4
+#endif //WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    mIPv6EphemeralUDP = NULL;
+#if INET_CONFIG_ENABLE_IPV4
+    mIPv4EphemeralUDP = NULL;
+#endif // INET_CONFIG_ENABLE_IPV4
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
 #if WEAVE_CONFIG_ENABLE_UNSECURED_TCP_LISTEN
     mUnsecuredIPv6TCPListen = NULL;
 #endif
-    memset(mIPv6UDPLocalAddr, 0, sizeof(mIPv6UDPLocalAddr));
-    memset(mInterfaces, 0, sizeof(mInterfaces));
 
-    res = RefreshEndpoints();
-    if (res != WEAVE_NO_ERROR)
-        goto done;
+    err = RefreshEndpoints();
+    SuccessOrExit(err);
 
-done:
-    if (res != WEAVE_NO_ERROR)
-        Shutdown();
+#if CONFIG_NETWORK_LAYER_BLE
+    if (context->listenBLE && mBle != NULL)
+    {
+        mBle->mAppState = this;
+        mBle->OnWeaveBleConnectReceived = HandleIncomingBleConnection;
+        WeaveLogProgress(MessageLayer, "Accepting WoBLE connections");
+    }
     else
-        State = kState_Initialized;
+    {
+        WeaveLogProgress(MessageLayer, "WoBLE disabled%s", (mBle != NULL) ? " by application" : " (BLE layer not initialized)");
+    }
+#endif // CONFIG_NETWORK_LAYER_BLE
 
-    return res;
+    State = kState_Initialized;
+
+exit:
+    if (err != WEAVE_NO_ERROR && State == kState_Initializing)
+    {
+        Shutdown();
+    }
+    return err;
 }
 
 /**
@@ -227,6 +227,14 @@ done:
 WEAVE_ERROR WeaveMessageLayer::Shutdown()
 {
     CloseEndpoints();
+
+#if CONFIG_NETWORK_LAYER_BLE
+    if (mBle != NULL && mBle->mAppState == this)
+    {
+        mBle->mAppState = NULL;
+        mBle->OnWeaveBleConnectReceived = NULL;
+    }
+#endif // CONFIG_NETWORK_LAYER_BLE
 
     State = kState_NotInitialized;
     IsListening = false;
@@ -452,11 +460,6 @@ exit:
 bool WeaveMessageLayer::IsIgnoredMulticastSendError(WEAVE_ERROR err)
 {
     return err == WEAVE_NO_ERROR ||
-
-            // Ignore routing errors. In general, these indicate that the underly interface
-            // doesn't support multicast (e.g. the loopback interface on linux) or that the
-            // inteface isn't fully configured (e.g. we're bound to an address on the interface
-            // but the address hasn't finished DAD).
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
            err == System::MapErrorLwIP(ERR_RTE)
 #else
@@ -464,6 +467,32 @@ bool WeaveMessageLayer::IsIgnoredMulticastSendError(WEAVE_ERROR err)
 #endif
            ;
 }
+
+WEAVE_ERROR WeaveMessageLayer::FilterUDPSendError(WEAVE_ERROR err, bool isMulticast)
+{
+    // Don't report certain types of routing errors when they occur while sending multicast packets.
+    // These may indicate that the underlying interface doesn't support multicast (e.g. the loopback
+    // interface on linux) or that the selected interface doesn't have an appropriate source address.
+    if (isMulticast)
+    {
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+        if (err == System::MapErrorLwIP(ERR_RTE))
+        {
+            err = WEAVE_NO_ERROR;
+        }
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+        if (err == System::MapErrorPOSIX(ENETUNREACH) || err == System::MapErrorPOSIX(EADDRNOTAVAIL))
+        {
+            err = WEAVE_NO_ERROR;
+        }
+#endif
+    }
+
+    return err;
+}
+
 
 /**
  *  Checks if error, while sending, is critical enough to report to the application.
@@ -473,11 +502,32 @@ bool WeaveMessageLayer::IsIgnoredMulticastSendError(WEAVE_ERROR err)
  *  @return    true if the error is NOT critical; false otherwise.
  *
  */
-bool WeaveMessageLayer::IsSendErrorNonCritical (WEAVE_ERROR err)
+bool WeaveMessageLayer::IsSendErrorNonCritical(WEAVE_ERROR err)
 {
     return (err == INET_ERROR_NOT_IMPLEMENTED || err == INET_ERROR_OUTBOUND_MESSAGE_TRUNCATED ||
             err == INET_ERROR_MESSAGE_TOO_LONG || err == INET_ERROR_NO_MEMORY ||
             WEAVE_CONFIG_IsPlatformErrorNonCritical(err));
+}
+
+/**
+ * Set the 'ForceRefreshUDPEndpoints' flag if needed.
+ *
+ * Based on the error returned when sending a UDP message, set a flag in the WeaveMessageLayer
+ * that will force a complete refresh of all UDPEndPoints the next time \c RefreshEndPoints is
+ * called.
+ */
+void WeaveMessageLayer::CheckForceRefreshUDPEndPointsNeeded(WEAVE_ERROR err)
+{
+    // On some sockets-based systems, the OS will invalidate bound UDP endpoints when certain
+    // network transitions occur.  This is known to occur on Android, although the precise
+    // conditions are unclear.  When that happens, set the ForceRefreshUDPEndPoints flag to
+    // force all UDPEndPoints to be closed and re-opened on the next call to RefreshEndPoints().
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    if (err == System::MapErrorPOSIX(EPIPE))
+    {
+        SetFlag(mFlags, kFlag_ForceRefreshUDPEndPoints);
+    }
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
 /**
@@ -497,16 +547,27 @@ bool WeaveMessageLayer::IsSendErrorNonCritical (WEAVE_ERROR err)
  *  @retval  errors generated from the lower Inet layer UDP endpoint during sending.
  *
  */
-WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress &destAddr, uint16_t destPort, InterfaceId sendIntfId,
-                                           PacketBuffer *payload, uint16_t msgSendFlags)
+WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress & destAddr, uint16_t destPort, InterfaceId sendIntfId,
+                                           PacketBuffer * payload, uint32_t msgFlags)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    WEAVE_ERROR mcastSendErr = WEAVE_NO_ERROR;
-    uint16_t udpSendFlags = (msgSendFlags & kWeaveMessageFlag_RetainBuffer) ? UDPEndPoint::kSendFlag_RetainBuffer : 0;
-    UDPEndPoint* lUDP;
-    bool lIsNotIPv6Multicast;
+    UDPEndPoint * ep;
+    enum
+    {
+        kUnicast,
+        kMulticast_OneInterface,
+        kMulticast_AllInterfaces,
+        kMulticast_AllFabricAddrs,
+    } sendAction;
+    uint16_t udpSendFlags;
 
-    //Check if drop flag is set; If so, do not send message; return WEAVE_NO_ERROR;
+    IPPacketInfo pktInfo;
+    pktInfo.Clear();
+    pktInfo.DestAddress = destAddr;
+    pktInfo.DestPort = destPort;
+    pktInfo.Interface = sendIntfId;
+
+    // Check if drop flag is set; If so, do not send message; return WEAVE_NO_ERROR;
     VerifyOrExit(!mDropMessage, err = WEAVE_NO_ERROR);
 
     // Drop the message and return. Free the buffer if it does not need to be
@@ -515,118 +576,180 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress &destAddr, uint16_t d
             ExitNow(err = WEAVE_NO_ERROR);
             );
 
-#if INET_CONFIG_ENABLE_IPV4
-    if (destAddr.IsIPv4())
+    // Select a UDP endpoint object for sending a message based on the destination address type
+    // and the message send flags.
+    err = SelectOutboundUDPEndPoint(destAddr, msgFlags, ep);
+    SuccessOrExit(err);
+
+    // Select an appropriate send action for the message.
+    //
+    // For unicast messages, send the message once to the given address.  If a target interface
+    // is given, the message will be sent over that interface.
+    //
+    // For multicast/broadcast messages...
+    //
+    //     If the local node is bound to a specific address (IPv4 or IPv6) send the multicast
+    //     message once over the bound interface.
+    //
+    //     Otherwise, if the destination is an IPv6 multicast address, and the local node is
+    //     a member of a Weave fabric, AND MulticastFromLinkLocal has NOT been specified, send
+    //     the message once for each Weave Fabric ULA assigned to a local interface that supports
+    //     multicast. If a target interface is given, only consider ULAs on that interface.
+    //
+    //     Otherwise, if a target interface is given, send the multicast message over that
+    //     interface only.
+    //
+    //     Otherwise, send the message over each local interface that supports multicast.
+    //
+    if (!destAddr.IsMulticast() && !destAddr.IsIPv4Broadcast())
     {
-        lUDP = mIPv4UDP;
-        lIsNotIPv6Multicast = true;
+        sendAction = kUnicast;
+    }
+#if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+    else if (destAddr.IsIPv4() ? IsBoundToLocalIPv4Address() : IsBoundToLocalIPv6Address())
+    {
+        sendAction = kMulticast_OneInterface;
+    }
+#endif // WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+    else if (destAddr.IsIPv6() && FabricState->FabricId != kFabricIdNotSpecified &&
+             !GetFlag(msgFlags, kWeaveMessageFlag_DefaultMulticastSourceAddress))
+    {
+        sendAction = kMulticast_AllFabricAddrs;
+    }
+    else if (sendIntfId != INET_NULL_INTERFACEID)
+    {
+        sendAction = kMulticast_OneInterface;
     }
     else
     {
-        lUDP = mIPv6UDP;
-        lIsNotIPv6Multicast = !destAddr.IsMulticast();
-    }
-#else // !INET_CONFIG_ENABLE_IPV4
-    lUDP = mIPv6UDP;
-    lIsNotIPv6Multicast = !destAddr.IsMulticast();
-#endif // !INET_CONFIG_ENABLE_IPV4
-
-    VerifyOrExit(lUDP != NULL, err = WEAVE_ERROR_NO_ENDPOINT);
-
-    // If sending to a unicast IPv6 destination or an IPv4 destination
-    if (lIsNotIPv6Multicast)
-    {
-        // Send use the general-purpose IPv6 endpoint
-        err = lUDP->SendTo(destAddr, WEAVE_PORT, sendIntfId, payload, udpSendFlags);
-        payload = NULL;
+        sendAction = kMulticast_AllInterfaces;
     }
 
-    // Otherwise we're sending to a multicast IPv6 destination...
-    else
+    // Send the message...
+    switch (sendAction)
     {
-        // Since we will be sending over multiple endpoints, ensure that the Inet layer code makes
-        // a copy of the message when sending.  We'll take care of freeing the original when we're
-        // done.
-        udpSendFlags |= UDPEndPoint::kSendFlag_RetainBuffer;
+    case kUnicast:
+    case kMulticast_OneInterface:
 
-        // If requested, send the multicast message over all interfaces using the appropriate IPv6
-        // source link-local addresses for each interface...
-        //
-        // NOTE: In the case where we are configured to use a specific listening address (i.e.
-        // FabricState->ListenIPv6Addr != IPAddress::Any) this code will actually end up sending
-        // the message using the listening address as the source address. Since specifying a
-        // listening address is primarily used for simulating multiple Weave nodes on a single
-        // host, and there's no reasonable way for multiple nodes to share a single link-local
-        // address, this limitation is deemed acceptable.
-        //
-        if ((IsBoundToLocalIPv6Address()) || (msgSendFlags & kWeaveMessageFlag_MulticastFromLinkLocal) != 0)
+        // Send the message once. If requested by the caller, instruct the end point code to not free the
+        // message buffer. If a send interface was specified, the message is sent over that interface.
+        udpSendFlags = GetFlag(msgFlags, kWeaveMessageFlag_RetainBuffer) ? UDPEndPoint::kSendFlag_RetainBuffer : 0;
+        err = ep->SendMsg(&pktInfo, payload, udpSendFlags);
+        payload = NULL; // Prevent call to Free() in exit code
+        CheckForceRefreshUDPEndPointsNeeded(err);
+        err = FilterUDPSendError(err, sendAction == kMulticast_OneInterface);
+        break;
+
+    case kMulticast_AllInterfaces:
+
+        // Send the message over each local interface that supports multicast.
+        for (InterfaceIterator intfIter; intfIter.HasCurrent(); intfIter.Next())
         {
-            // Send the message over each local interface or the interface passed as argument
-            // using the link-local address of the interface as the src address.
-            if (sendIntfId == INET_NULL_INTERFACEID)
+            if (intfIter.SupportsMulticast())
             {
-                for (uint16_t i = 0; i < WEAVE_CONFIG_MAX_INTERFACES; i++)
+                pktInfo.Interface = intfIter.GetInterface();
+                WEAVE_ERROR sendErr = ep->SendMsg(&pktInfo, payload, UDPEndPoint::kSendFlag_RetainBuffer);
+                CheckForceRefreshUDPEndPointsNeeded(sendErr);
+                if (err == WEAVE_NO_ERROR)
                 {
-                    if (mInterfaces[i] != INET_NULL_INTERFACEID)
-                    {
-                        mcastSendErr = lUDP->SendTo(destAddr, WEAVE_PORT, mInterfaces[i], payload, udpSendFlags);
-                        if (!IsIgnoredMulticastSendError(mcastSendErr))
-                        {
-                            err = mcastSendErr;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                mcastSendErr = lUDP->SendTo(destAddr, WEAVE_PORT, sendIntfId, payload, udpSendFlags);
-                if (!IsIgnoredMulticastSendError(mcastSendErr))
-                    err = mcastSendErr;
-
-            }
-        }
-
-        // Otherwise, send the multicast message over all interfaces, generating a distinct message for each
-        // bound address assigned to the interface...
-        else
-        {
-            // Send the message over each interface or the interface passed as argument
-            // using a ULA address as the src address.
-            for (uint16_t i = 0; i < WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS; i++)
-            {
-                if (mIPv6UDPLocalAddr[i] != NULL)
-                {
-                    if (sendIntfId == INET_NULL_INTERFACEID)
-                    {
-                        mcastSendErr = mIPv6UDPLocalAddr[i]->SendTo(destAddr, WEAVE_PORT, sendIntfId, payload, udpSendFlags);
-                        if (!IsIgnoredMulticastSendError(mcastSendErr))
-                        {
-                            err = mcastSendErr;
-                        }
-
-                    }
-                    else
-                    {
-                        if (sendIntfId == mIPv6UDPLocalAddr[i]->GetBoundInterface())
-                        {
-                            mcastSendErr = mIPv6UDPLocalAddr[i]->SendTo(destAddr, WEAVE_PORT, sendIntfId, payload, udpSendFlags);
-                            if (!IsIgnoredMulticastSendError(mcastSendErr))
-                            {
-                                err = mcastSendErr;
-                            }
-                            break;
-                        }
-                    }
+                    err = FilterUDPSendError(sendErr, true);
                 }
             }
         }
+
+        break;
+
+    case kMulticast_AllFabricAddrs:
+
+        // Send the message once for each Weave Fabric ULA assigned to a local interface that supports
+        // multicast/broadcast. If the caller has specified a particular interface, only send over the
+        // specified interface.  For each message sent, arrange for the source address to be the Fabric ULA.
+        for (InterfaceAddressIterator addrIter; addrIter.HasCurrent(); addrIter.Next())
+        {
+            pktInfo.SrcAddress = addrIter.GetAddress();
+            pktInfo.Interface = addrIter.GetInterface();
+            if (addrIter.SupportsMulticast() &&
+                FabricState->IsLocalFabricAddress(pktInfo.SrcAddress) &&
+                (sendIntfId == INET_NULL_INTERFACEID || pktInfo.Interface == sendIntfId))
+            {
+                WEAVE_ERROR sendErr = ep->SendMsg(&pktInfo, payload, UDPEndPoint::kSendFlag_RetainBuffer);
+                CheckForceRefreshUDPEndPointsNeeded(sendErr);
+                if (err == WEAVE_NO_ERROR)
+                {
+                    err = FilterUDPSendError(sendErr, true);
+                }
+            }
+        }
+
+        break;
     }
 
 exit:
-    if (payload != NULL && (msgSendFlags & kWeaveMessageFlag_RetainBuffer) == 0)
+    if (payload != NULL && !GetFlag(msgFlags, kWeaveMessageFlag_RetainBuffer))
         PacketBuffer::Free(payload);
     return err;
 }
+
+/**
+ *  Select an appropriate UDP endpoint for sending a Weave message.
+ */
+WEAVE_ERROR WeaveMessageLayer::SelectOutboundUDPEndPoint(const IPAddress & destAddr, uint32_t msgFlags, UDPEndPoint *& ep)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // Select a UDP endpoint object for sending a message based on the destination address type
+    // and the message send flags.
+    //
+    // If the WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT option is set, select the ephemeral UDP
+    // endpoint if the caller has specified the 'ViaEphemeralUDPPort' flag.  This will result in
+    // the source port field of the UDP message being set to the currently active ephemeral
+    // port. Otherwise, select the Weave UDP endpoint. This will result in the source port
+    // field being set to the well-known Weave port.
+    //
+    switch (destAddr.Type())
+    {
+#if INET_CONFIG_ENABLE_IPV4
+    case kIPAddressType_IPv4:
+        if (GetFlag(msgFlags, kWeaveMessageFlag_ViaEphemeralUDPPort))
+        {
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+            ep = mIPv4EphemeralUDP;
+#else
+            ep = NULL;
+#endif
+        }
+        else
+        {
+            ep = mIPv4UDP;
+        }
+        break;
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    case kIPAddressType_IPv6:
+        if (GetFlag(msgFlags, kWeaveMessageFlag_ViaEphemeralUDPPort))
+        {
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+            ep = mIPv6EphemeralUDP;
+#else
+            ep = NULL;
+#endif
+        }
+        else
+        {
+            ep = mIPv6UDP;
+        }
+        break;
+
+    default:
+        ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+    }
+
+    VerifyOrExit(ep != NULL, err = WEAVE_ERROR_NO_ENDPOINT);
+
+exit:
+    return err;
+}
+
 
 /**
  *  Resend an encoded Weave message using the underlying Inetlayer UDP endpoint.
@@ -888,7 +1011,7 @@ WEAVE_ERROR WeaveMessageLayer::SetUnsecuredConnectionListener(ConnectionReceiveF
     WeaveLogProgress(ExchangeManager, "Entered SetUnsecuredConnectionReceived, cb = %p, %p",
             newOnUnsecuredConnectionReceived, newOnUnsecuredConnectionCallbacksRemoved);
 
-    if (IsUnsecuredListenEnabled() == false)
+    if (UnsecuredListenEnabled() == false)
     {
         err = EnableUnsecuredListen();
         SuccessOrExit(err);
@@ -940,7 +1063,7 @@ WEAVE_ERROR WeaveMessageLayer::ClearUnsecuredConnectionListener(ConnectionReceiv
         ExitNow();
     }
 
-    if (IsUnsecuredListenEnabled() == true)
+    if (UnsecuredListenEnabled() == true)
     {
         err = DisableUnsecuredListen();
         SuccessOrExit(err);
@@ -1516,7 +1639,7 @@ void WeaveMessageLayer::HandleUDPMessage(UDPEndPoint *endPoint, PacketBuffer *ms
 
     if (err == WEAVE_NO_ERROR)
     {
-        // If the soruce address is a ULA, derive a node identifier from it.  Depending on what's in the
+        // If the source address is a ULA, derive a node identifier from it.  Depending on what's in the
         // message header, this may in fact be the node identifier of the sending node.
         sourceNodeId = (pktInfo->SrcAddress.IsIPv6ULA()) ? IPv6InterfaceIdToWeaveNodeId(pktInfo->SrcAddress.InterfaceId()) : kNodeIdNotSpecified;
 
@@ -1540,6 +1663,16 @@ void WeaveMessageLayer::HandleUDPMessage(UDPEndPoint *endPoint, PacketBuffer *ms
 
     // If an error occurred, discard the message and call the on receive error handler.
     SuccessOrExit(err);
+
+    // Record whether the message was sent to the local node's ephemeral port.
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+    SetFlag(msgInfo.Flags, kWeaveMessageFlag_ViaEphemeralUDPPort,
+            (endPoint == msgLayer->mIPv6EphemeralUDP
+#if INET_CONFIG_ENABLE_IPV4
+             || endPoint == msgLayer->mIPv4EphemeralUDP
+#endif // INET_CONFIG_ENABLE_IPV4
+            ));
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
 
     //Check if message carries tunneled data and needs to be sent to Tunnel Agent
     if (msgInfo.MessageVersion == kWeaveMessageVersion_V2)
@@ -1770,399 +1903,302 @@ void WeaveMessageLayer::HandleAcceptError(TCPEndPoint *ep, INET_ERROR err)
  */
 WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
 {
-    WEAVE_ERROR res = WEAVE_NO_ERROR;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    const bool listenIPv6 = IPv6ListenEnabled();
 #if INET_CONFIG_ENABLE_IPV4
-    bool listenIPv4 = (mFlags & kFlag_ListenIPv4) != 0;
+    const bool listenIPv4 = IPv4ListenEnabled();
 #endif // INET_CONFIG_ENABLE_IPV4
-    bool listenIPv6 = (mFlags & kFlag_ListenIPv6) != 0;
-    bool listenTCP = (mFlags & kFlag_ListenTCP) != 0;
-    bool listenUDP = (mFlags & kFlag_ListenUDP) != 0;
-#if CONFIG_NETWORK_LAYER_BLE
-    bool listenBLE = (mFlags & kFlag_ListenBLE) != 0;
-#endif
-
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-    char ipAddrStr[64];
-    char intfStr[64];
-#endif
-
-#if INET_CONFIG_ENABLE_IPV4
-    // Close and free the general-purpose IPv4 and IPv6 UDP endpoints.
-    if (mIPv4UDP != NULL)
-    {
-        mIPv4UDP->Free();
-        mIPv4UDP = NULL;
-    }
-#endif // INET_CONFIG_ENABLE_IPV4
-    if (mIPv6UDP != NULL)
-    {
-        mIPv6UDP->Free();
-        mIPv6UDP = NULL;
-    }
-
-    // Close and free all the currently open IPv6 interface endpoints. We will re-create them
-    // below based on the current network interface config.
-    for (int i = 0; i < WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS; i++)
-        if (mIPv6UDPLocalAddr[i] != NULL)
-        {
-            if (mIPv6UDPLocalAddr[i] != mIPv6UDP)
-                mIPv6UDPLocalAddr[i]->Free();
-            mIPv6UDPLocalAddr[i] = NULL;
-        }
-
-    // Clear the list of interfaces.
-    memset(mInterfaces, 0, sizeof(mInterfaces));
 
 #if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
 
+    IPAddress & listenIPv6Addr = FabricState->ListenIPv6Addr;
+    InterfaceId listenIPv6Intf = INET_NULL_INTERFACEID;
 #if INET_CONFIG_ENABLE_IPV4
-#define WEAVE_IPV4_LISTEN_ADDR (FabricState->ListenIPv4Addr)
+    IPAddress & listenIPv4Addr = FabricState->ListenIPv4Addr;
 #endif // INET_CONFIG_ENABLE_IPV4
-
-#define WEAVE_IPV6_LISTEN_ADDR (FabricState->ListenIPv6Addr)
-#define WEAVE_IPV6_LISTEN_INTF (mInterfaces[0])
 
     // If configured to use a specific IPv6 address, determine the interface associated
     // with that address.  Store it as the only interface in the interface list.
     if (IsBoundToLocalIPv6Address())
     {
-        res = Inet->GetInterfaceFromAddr(WEAVE_IPV6_LISTEN_ADDR, mInterfaces[0]);
-        if (res != WEAVE_NO_ERROR)
-            goto exit;
+        err = Inet->GetInterfaceFromAddr(listenIPv6Addr, listenIPv6Intf);
+        SuccessOrExit(err);
     }
 
-#else // !WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+#else // WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
 
+    IPAddress & listenIPv6Addr = IPAddress::Any;
+    InterfaceId listenIPv6Intf = INET_NULL_INTERFACEID;
 #if INET_CONFIG_ENABLE_IPV4
-#define WEAVE_IPV4_LISTEN_ADDR (IPAddress::Any)
+    IPAddress & listenIPv4Addr = IPAddress::Any;
 #endif // INET_CONFIG_ENABLE_IPV4
-
-#define WEAVE_IPV6_LISTEN_ADDR (IPAddress::Any)
-#define WEAVE_IPV6_LISTEN_INTF (INET_NULL_INTERFACEID)
-
-#endif // !WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
-
-#if INET_CONFIG_ENABLE_IPV4
-    // If needed, create a IPv4 TCP listening endpoint...
-    if (listenTCP && listenIPv4)
-    {
-        if (mIPv4TCPListen == NULL)
-        {
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-            WEAVE_IPV4_LISTEN_ADDR.ToString(ipAddrStr, sizeof(ipAddrStr));
-            WeaveBindLog("Binding IPv4 TCP listen endpoint to [%s]:%d", ipAddrStr, WEAVE_PORT);
-#endif
-
-            res = Inet->NewTCPEndPoint(&mIPv4TCPListen);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-
-            // Bind the endpoint to the IPv4 listening address (if specified) and the Weave port.
-            res = mIPv4TCPListen->Bind(kIPAddressType_IPv4, WEAVE_IPV4_LISTEN_ADDR, WEAVE_PORT, true);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-
-            WeaveBindLog("Listening on IPv4 TCP endpoint");
-
-            // Listen for incoming TCP connections.
-            mIPv4TCPListen->AppState = this;
-            mIPv4TCPListen->OnConnectionReceived = HandleIncomingTcpConnection;
-            mIPv4TCPListen->OnAcceptError = HandleAcceptError;
-            res = mIPv4TCPListen->Listen(1);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-        }
-    }
-#endif // INET_CONFIG_ENABLE_IPV4
-
-    // If needed, create a IPv6 TCP listening endpoint...
-    if (listenTCP && listenIPv6)
-    {
-        if (mIPv6TCPListen == NULL)
-        {
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-            WEAVE_IPV6_LISTEN_ADDR.ToString(ipAddrStr, sizeof(ipAddrStr));
-            WeaveBindLog("Binding IPv6 TCP listen endpoint to [%s]:%d", ipAddrStr, WEAVE_PORT);
-#endif
-
-            res = Inet->NewTCPEndPoint(&mIPv6TCPListen);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-
-            // Bind the endpoint to the IPv6 listening address (if specified) and the Weave port.
-            res = mIPv6TCPListen->Bind(kIPAddressType_IPv6, WEAVE_IPV6_LISTEN_ADDR, WEAVE_PORT, true);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-            WeaveBindLog("Listening on IPv6 TCP endpoint");
-#endif
-
-            // Listen for incoming TCP connections.
-            mIPv6TCPListen->AppState = this;
-            mIPv6TCPListen->OnConnectionReceived = HandleIncomingTcpConnection;
-            mIPv6TCPListen->OnAcceptError = HandleAcceptError;
-            res = mIPv6TCPListen->Listen(1);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-        }
-
-    }
-
-#if WEAVE_CONFIG_ENABLE_UNSECURED_TCP_LISTEN
-    if (listenIPv6 && (mFlags & kFlag_ListenUnsecured) != 0)
-    {
-        if (mUnsecuredIPv6TCPListen == NULL)
-        {
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-            WEAVE_IPV6_LISTEN_ADDR.ToString(ipAddrStr, sizeof(ipAddrStr));
-            WeaveBindLog("Binding unsecured IPv6 TCP listen endpoint to [%s]:%d", ipAddrStr, WEAVE_UNSECURED_PORT);
-#endif
-
-            res = Inet->NewTCPEndPoint(&mUnsecuredIPv6TCPListen);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-
-            // Bind the endpoint to the IPv6 listening address (if specified) and the unsecured Weave port.
-            res = mUnsecuredIPv6TCPListen->Bind(kIPAddressType_IPv6, WEAVE_IPV6_LISTEN_ADDR, WEAVE_UNSECURED_PORT, true);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-            WeaveBindLog("Listening on unsecured IPv6 TCP endpoint");
-#endif
-
-            // Listen for incoming TCP connections.
-            mUnsecuredIPv6TCPListen->AppState = this;
-            mUnsecuredIPv6TCPListen->OnConnectionReceived = HandleIncomingTcpConnection;
-            mUnsecuredIPv6TCPListen->OnAcceptError = HandleAcceptError;
-            res = mUnsecuredIPv6TCPListen->Listen(1);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-        }
-    }
-
-    else if (mUnsecuredIPv6TCPListen != NULL)
-    {
-        mUnsecuredIPv6TCPListen->Free();
-        mUnsecuredIPv6TCPListen = NULL;
-    }
-#endif // WEAVE_CONFIG_ENABLE_UNSECURED_TCP_LISTEN
-
-#if INET_CONFIG_ENABLE_IPV4
-    // Create a general-purpose IPv4 UDP endpoint...
-    if (mIPv4UDP == NULL)
-    {
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-        WEAVE_IPV4_LISTEN_ADDR.ToString(ipAddrStr, sizeof(ipAddrStr));
-        WeaveBindLog("Binding general purpose IPv4 UDP endpoint to [%s]:%d", ipAddrStr, WEAVE_PORT);
-#endif // WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-
-        res = Inet->NewUDPEndPoint(&mIPv4UDP);
-        if (res != WEAVE_NO_ERROR)
-            goto exit;
-
-        // Bind the endpoint.  If a listening IPv4 address was specified bind to that,
-        // otherwise bind to all addresses.
-        res = mIPv4UDP->Bind(kIPAddressType_IPv4, WEAVE_IPV4_LISTEN_ADDR, WEAVE_PORT);
-        if (res != WEAVE_NO_ERROR)
-            goto exit;
-
-        // Listen for incoming IPv4 UDP messages if so configured.
-        if (listenUDP && listenIPv4)
-        {
-            WeaveBindLog("Listening on general purpose IPv4 UDP endpoint");
-
-            mIPv4UDP->AppState = this;
-            mIPv4UDP->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessage);
-            mIPv4UDP->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
-            res = mIPv4UDP->Listen();
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-        }
-    }
-#endif // INET_CONFIG_ENABLE_IPV4
-
-    // Create a general-purpose IPv6 UDP endpoint...
-    if (mIPv6UDP == NULL)
-    {
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-        GetInterfaceName(WEAVE_IPV6_LISTEN_INTF, intfStr, sizeof(intfStr));
-        WEAVE_IPV6_LISTEN_ADDR.ToString(ipAddrStr, sizeof(ipAddrStr));
-        WeaveBindLog("Binding general purpose IPv6 UDP endpoint to [%s]:%d (%s)", ipAddrStr, WEAVE_PORT, intfStr);
-#endif // WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-
-        res = Inet->NewUDPEndPoint(&mIPv6UDP);
-        if (res != WEAVE_NO_ERROR)
-            goto exit;
-
-        // Bind the endpoint.  If a particular IPv6 address was specified, bind to that address and its
-        // associated interface. Otherwise bind to all IPv6 addresses.
-        res = mIPv6UDP->Bind(kIPAddressType_IPv6, WEAVE_IPV6_LISTEN_ADDR, WEAVE_PORT, WEAVE_IPV6_LISTEN_INTF);
-        if (res != WEAVE_NO_ERROR)
-            goto exit;
-
-        // Listen for incoming IPv6 UDP messages if so configured.
-        if (listenUDP && listenIPv6)
-        {
-            WeaveBindLog("Listening on general purpose IPv6 UDP endpoint");
-
-            mIPv6UDP->AppState = this;
-            mIPv6UDP->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessage);
-            mIPv6UDP->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
-            res = mIPv6UDP->Listen();
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-        }
-    }
-
-#if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
-
-    // If configured to use a specific IPv6 address...
-    if (IsBoundToLocalIPv6Address())
-    {
-        // If IPv6 listening has been enabled, create a IPv6 UDP endpoint for receiving multicast messages.
-        // Bind this interface to the link-local, all-nodes multicast address (ff02::1) and the interface
-        // associated with the listening IPv6 address.
-        if (listenIPv6 && mIPv6UDPMulticastRcv == NULL)
-        {
-            IPAddress ipv6LinkLocalAllNodes = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
-
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-            ipv6LinkLocalAllNodes.ToString(ipAddrStr, sizeof(ipAddrStr));
-            GetInterfaceName(WEAVE_IPV6_LISTEN_INTF, intfStr, sizeof(intfStr));
-            WeaveBindLog("Binding IPv6 multicast receive endpoint to [%s]:%d (%s)", ipAddrStr, WEAVE_PORT, intfStr);
-#endif
-
-            res = Inet->NewUDPEndPoint(&mIPv6UDPMulticastRcv);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-
-            // Bind the endpoint to the weave port on the IPv6 link-local all nodes multicast address.
-            res = mIPv6UDPMulticastRcv->Bind(kIPAddressType_IPv6, ipv6LinkLocalAllNodes, WEAVE_PORT, WEAVE_IPV6_LISTEN_INTF);
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-
-            WeaveBindLog("Listening on IPv6 multicast receive endpoint");
-
-            // Enable reception of incoming messages.
-            mIPv6UDPMulticastRcv->AppState = this;
-            mIPv6UDPMulticastRcv->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessage);
-            mIPv6UDPMulticastRcv->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
-            res = mIPv6UDPMulticastRcv->Listen();
-            if (res != WEAVE_NO_ERROR)
-                goto exit;
-        }
-    }
-
-    // Otherwise, the messaging layer is configured to use all available interfaces/addresses, so ...
-    else
 
 #endif // WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
 
+    // ================================================================================
+    // Enable / disable TCP listening endpoints...
+    // ================================================================================
+
     {
-        uint16_t epCount = 0;
-        uint16_t i;
+        const bool listenTCP = TCPListenEnabled();
+        const bool listenIPv6TCP = (listenTCP && listenIPv6);
 
-        // Scan the list of addresses assigned to the system's network interfaces.  For each address...
-        for (InterfaceAddressIterator addrIter; addrIter.HasCurrent(); addrIter.Next())
-        {
-            InterfaceId curIntfId = addrIter.GetInterface();
+#if INET_CONFIG_ENABLE_IPV4
 
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-            GetInterfaceName(curIntfId, intfStr, sizeof(intfStr));
-#endif
+        const bool listenIPv4TCP = (listenTCP && listenIPv4);
 
-            // Skip any interface that doesn't support multicast.
-            if (!addrIter.SupportsMulticast())
-                continue;
+        // Enable / disable the Weave IPv4 TCP listening endpoint
+        //
+        // The Weave IPv4 TCP listening endpoint is use to listen for incoming IPv4 TCP connections
+        // to the local node's Weave port.
+        //
+        err = RefreshEndpoint(mIPv4TCPListen, listenIPv4TCP,
+                "Weave IPv4 TCP listen", kIPAddressType_IPv4, listenIPv4Addr, WEAVE_PORT);
+        SuccessOrExit(err);
 
-            // Add the interface to the interface list if it doesn't already exist.
-            for (i = 0; i < WEAVE_CONFIG_MAX_INTERFACES; i++)
-            {
-                if (mInterfaces[i] == curIntfId)
-                    break;
-                if (mInterfaces[i] == INET_NULL_INTERFACEID)
-                {
-                    WeaveBindLog("Adding %s to interface table", intfStr);
-                    mInterfaces[i] = curIntfId;
-                    break;
-                }
-            }
-            if (i == WEAVE_CONFIG_MAX_INTERFACES)
-                WeaveLogError(MessageLayer, "Interface table full");
+#endif // INET_CONFIG_ENABLE_IPV4
 
-            // If we haven't exceeded the max ULA endpoints...
-            if (epCount < WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS)
-            {
-                WEAVE_ERROR epErr;
-                UDPEndPoint *& ep = mIPv6UDPLocalAddr[epCount];
+        // Enable / disable the Weave IPv6 TCP listening endpoint
+        //
+        // The Weave IPv6 TCP listening endpoint is use to listen for incoming IPv6 TCP connections
+        // to the local node's Weave port.
+        //
+        err = RefreshEndpoint(mIPv6TCPListen, listenIPv6TCP,
+                "Weave IPv6 TCP listen", kIPAddressType_IPv6, listenIPv6Addr, WEAVE_PORT);
+        SuccessOrExit(err);
 
-                // Skip the address if it is not a ULA.
-                IPAddress curAddr = addrIter.GetAddress();
-                if (!curAddr.IsIPv6ULA())
-                    continue;
+#if WEAVE_CONFIG_ENABLE_UNSECURED_TCP_LISTEN
 
-                // Skip the address if we're a member of a fabric and the ULA is not a fabric address
-                // (in particular, the global identifier in the ULA does not match the bottom 40 bits of the
-                // fabric id).
-                if (FabricState->FabricId != 0 && !FabricState->IsFabricAddress(curAddr))
-                    continue;
+        // Enable / disable the Unsecured IPv6 TCP listening endpoint
+        //
+        // The Unsecured IPv6 TCP listening endpoint is use to listen for incoming IPv6 TCP connections
+        // to the local node's unsecured Weave port.  This endpoint is only enabled if the unsecured TCP
+        // listen feature has been enabled.
+        //
+        const bool listenUnsecuredIPv6TCP = (listenIPv6TCP && UnsecuredListenEnabled());
+        err = RefreshEndpoint(mUnsecuredIPv6TCPListen, listenUnsecuredIPv6TCP,
+                "unsecured IPv6 TCP listen", kIPAddressType_IPv6, listenIPv6Addr, WEAVE_UNSECURED_PORT);
+        SuccessOrExit(err);
 
-#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
-                curAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
-                WeaveBindLog("Binding IPv6 UDP interface endpoint to [%s]:%d (%s)", ipAddrStr, WEAVE_PORT, intfStr);
-#endif
+#endif // WEAVE_CONFIG_ENABLE_UNSECURED_TCP_LISTEN
 
-                // Create an IPv6 UDP endpoint to be used for sending/receiving messages over the associated interface.
-                res = Inet->NewUDPEndPoint(&ep);
-                if (res != WEAVE_NO_ERROR)
-                    goto exit;
-
-                // Bind the endpoint to the identified address.  This ensures that messages sent over the endpoint
-                // have the correct source address and port.
-                epErr = ep->Bind(kIPAddressType_IPv6, curAddr, WEAVE_PORT, curIntfId);
-
-                // Enable reception of incoming messages.
-                WeaveBindLog("Listening on IPv6 UDP interface endpoint");
-                if (epErr == WEAVE_NO_ERROR)
-                {
-                    ep->AppState = this;
-                    ep->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessage);
-                    ep->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
-                    epErr = ep->Listen();
-                }
-
-                // If we successfully bound the endpoint, add it to the list. Otherwise, discard it and move on to
-                // the next address.
-                if (epErr == WEAVE_NO_ERROR)
-                    epCount++;
-                else
-                {
-                    ep->Free();
-                    ep = NULL;
-                }
-            }
-        }
     }
 
-#if CONFIG_NETWORK_LAYER_BLE
-    if (listenBLE)
+    // ================================================================================
+    // Enable / disable UDP endpoints...
+    // ================================================================================
+
     {
-        if (mBle != NULL)
-        {
-            mBle->mAppState = this;
-            mBle->OnWeaveBleConnectReceived = HandleIncomingBleConnection;
-        }
-        else
-            WeaveLogError(ExchangeManager, "Cannot listen for BLE connections, null BleLayer");
+        const bool listenUDP = UDPListenEnabled();
+
+#if INET_CONFIG_ENABLE_IPV4
+
+        // Enabled / disable the Weave IPv4 UDP endpoint as necessary.
+        //
+        // The Weave IPv4 UDP endpoint is used to listen for unsolicited IPv4 UDP Weave messages sent
+        // to the local node's Weave port.  Is is also used by the local node to send IPv4 UDP Weave
+        // messages to other nodes, and to receive their replies, unless the outbound ephemeral UDP port
+        // feature has been enabled.
+        //
+        const bool listenIPv4UDP = (listenIPv4 && listenUDP);
+        err = RefreshEndpoint(mIPv4UDP, listenIPv4UDP,
+                "Weave IPv4 UDP", kIPAddressType_IPv4, listenIPv4Addr, WEAVE_PORT, INET_NULL_INTERFACEID);
+        SuccessOrExit(err);
+
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+        // Enabled / disable the ephemeral IPv4 UDP endpoint as necessary.
+        //
+        // The ephemeral IPv4 UDP endpoint is used to send IPv4 UDP Weave messages to other nodes and to
+        // receive their replies.  It is only enabled when the outbound ephemeral UDP port feature has been
+        // enabled.
+        //
+        const bool listenIPv4EphemeralUDP = (listenIPv4UDP && EphemeralUDPPortEnabled());
+        err = RefreshEndpoint(mIPv4EphemeralUDP, listenIPv4EphemeralUDP,
+                "ephemeral IPv4 UDP", kIPAddressType_IPv4, listenIPv4Addr, 0, INET_NULL_INTERFACEID);
+        SuccessOrExit(err);
+
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+#endif // INET_CONFIG_ENABLE_IPV4
+
+        // Enabled / disable the Weave IPv6 UDP endpoint as necessary.
+        //
+        // The Weave IPv6 UDP endpoint is used to listen for unsolicited IPv6 UDP Weave messages sent
+        // to the local node's Weave port.  Is is also used by the local node to send IPv6 UDP Weave
+        // messages to other nodes, and to receive their replies, unless the outbound ephemeral UDP port
+        // feature has been enabled.
+        //
+        const bool listenIPv6UDP = (listenIPv6 && listenUDP);
+        err = RefreshEndpoint(mIPv6UDP, listenIPv6UDP,
+                "Weave IPv6 UDP", kIPAddressType_IPv6, listenIPv6Addr, WEAVE_PORT, listenIPv6Intf);
+        SuccessOrExit(err);
+
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+        // Enabled / disable the ephemeral IPv6 UDP endpoint as necessary.
+        //
+        // The ephemeral IPv6 UDP endpoint is used to send IPv6 UDP Weave messages to other nodes and to
+        // receive their replies.  It is only enabled when the outbound ephemeral UDP port feature has been
+        // enabled.
+        //
+        const bool listenIPv6EphemeralUDP = (listenIPv6UDP && EphemeralUDPPortEnabled());
+        err = RefreshEndpoint(mIPv6EphemeralUDP, listenIPv6EphemeralUDP,
+                "ephemeral IPv6 UDP", kIPAddressType_IPv6, listenIPv6Addr, 0, listenIPv6Intf);
+        SuccessOrExit(err);
+
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+#if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+
+        // Enable / disable the Weave IPv6 UDP multicast endpoint.
+        //
+        // The Weave IPv6 UDP multicast endpoint is used to listen for unsolicited IPv6 UDP Weave messages sent
+        // to the all-nodes, link-local multicast address. It is only enabled when the message layer has been bound
+        // to a specific IPv6 address.  This is required because the Weave IPv6 UDP endpoint will not receive multicast
+        // messages in this configuration.
+        //
+        IPAddress ipv6LinkLocalAllNodes = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+        const bool listenWeaveIPv6UDPMulticastEP = (listenIPv6UDP && IsBoundToLocalIPv6Address());
+        err = RefreshEndpoint(mIPv6UDPMulticastRcv, listenWeaveIPv6UDPMulticastEP,
+                "Weave IPv6 UDP multicast", kIPAddressType_IPv6, ipv6LinkLocalAllNodes, WEAVE_PORT, listenIPv6Intf);
+        SuccessOrExit(err);
+
+#if INET_CONFIG_ENABLE_IPV4
+
+        // Enable / disable the Weave IPv4 UDP broadcast endpoint.
+        //
+        // Similar to the IPv6 UDP multicast endpoint, this endpoint is used to receive IPv4 broadcast messages
+        // when the message layer has been bound to a specific IPv4 address.
+        //
+        IPAddress ipv4Broadcast = IPAddress::MakeIPv4Broadcast();
+        const bool listenWeaveIPv4UDPBroadcastEP = (listenIPv4UDP && IsBoundToLocalIPv4Address());
+        err = RefreshEndpoint(mIPv4UDPBroadcastRcv, listenWeaveIPv4UDPBroadcastEP,
+                "Weave IPv4 UDP broadcast", kIPAddressType_IPv4, ipv4Broadcast, WEAVE_PORT, INET_NULL_INTERFACEID);
+        SuccessOrExit(err);
+
+#endif // INET_CONFIG_ENABLE_IPV4
+
+#endif // WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+
     }
-#endif
 
 exit:
-    if (res != WEAVE_NO_ERROR)
-        WeaveBindLog("RefreshEndpoints failed: %ld", (long)res);
-    return res;
+    if (err != WEAVE_NO_ERROR)
+        WeaveBindLog("RefreshEndpoints failed: %s", ErrorStr(err));
+    return err;
+}
+
+WEAVE_ERROR WeaveMessageLayer::RefreshEndpoint(TCPEndPoint *& endPoint, bool enable, const char * name, IPAddressType addrType, IPAddress addr, uint16_t port)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // Release any existing endpoint as needed.
+    if (endPoint != NULL && !enable)
+    {
+        endPoint->Free();
+        endPoint = NULL;
+    }
+
+    // If needed, create and bind a new endpoint...
+    if (endPoint == NULL && enable)
+    {
+        // Create a new TCP endpoint object.
+        err = Inet->NewTCPEndPoint(&endPoint);
+        SuccessOrExit(err);
+
+        // Bind the endpoint to the given address, port and interface.
+        err = endPoint->Bind(addrType, addr, port, true);
+        SuccessOrExit(err);
+
+        // Accept incoming TCP connections.
+        endPoint->AppState = this;
+        endPoint->OnConnectionReceived = HandleIncomingTcpConnection;
+        endPoint->OnAcceptError = HandleAcceptError;
+        err = endPoint->Listen(1);
+        SuccessOrExit(err);
+
+#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
+        {
+            char ipAddrStr[64];
+            addr.ToString(ipAddrStr, sizeof(ipAddrStr));
+            WeaveBindLog("Listening on %s endpoint ([%s]:%" PRIu16 ")", name, ipAddrStr, port);
+        }
+#endif // WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
+    }
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        if (endPoint != NULL)
+        {
+            endPoint->Free();
+            endPoint = NULL;
+        }
+        WeaveLogError(MessageLayer, "Error initializing %s endpoint: %s", name, ErrorStr(err));
+    }
+    return err;
+}
+
+WEAVE_ERROR WeaveMessageLayer::RefreshEndpoint(UDPEndPoint *& endPoint, bool enable, const char * name, IPAddressType addrType, IPAddress addr, uint16_t port, InterfaceId intfId)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // Release any existing endpoint as needed.
+    if (endPoint != NULL && (!enable || GetFlag(mFlags, kFlag_ForceRefreshUDPEndPoints)))
+    {
+        endPoint->Free();
+        endPoint = NULL;
+    }
+
+    // If needed, create and bind a new endpoint...
+    if (endPoint == NULL && enable)
+    {
+        // Create a new UDP endpoint object.
+        err = Inet->NewUDPEndPoint(&endPoint);
+        SuccessOrExit(err);
+
+        // Bind the endpoint to the given address, port and interface.
+        err = endPoint->Bind(addrType, addr, port, intfId);
+        SuccessOrExit(err);
+
+        // Accept incoming packets on the endpoint.
+        endPoint->AppState = this;
+        endPoint->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessage);
+        endPoint->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
+        err = endPoint->Listen();
+        SuccessOrExit(err);
+
+#if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
+        {
+            char ipAddrStr[64];
+            char intfStr[64];
+            addr.ToString(ipAddrStr, sizeof(ipAddrStr));
+            if (intfId != INET_NULL_INTERFACEID)
+            {
+                intfStr[0] = '%';
+                GetInterfaceName(intfId, intfStr + 1, sizeof(intfStr) - 1);
+            }
+            else
+            {
+                intfStr[0] = '\0';
+            }
+            WeaveBindLog("Listening on %s endpoint ([%s]:%" PRIu16 "%s)", name, ipAddrStr, endPoint->GetBoundPort(), intfStr);
+        }
+#endif // WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
+    }
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        if (endPoint != NULL)
+        {
+            endPoint->Free();
+            endPoint = NULL;
+        }
+        WeaveLogError(MessageLayer, "Error initializing %s endpoint: %s", name, ErrorStr(err));
+    }
+    return err;
 }
 
 void WeaveMessageLayer::Encrypt_AES128CTRSHA1(const WeaveMessageInfo *msgInfo, const uint8_t *key,
@@ -2227,65 +2263,8 @@ void WeaveMessageLayer::ComputeIntegrityCheck_AES128CTRSHA1(const WeaveMessageIn
  */
 WEAVE_ERROR WeaveMessageLayer::CloseEndpoints()
 {
-    WeaveBindLog("Closing endpoints");
-
-    if (mIPv6TCPListen != NULL)
-    {
-        mIPv6TCPListen->Free();
-        mIPv6TCPListen = NULL;
-    }
-
-    if (mIPv6UDP != NULL)
-    {
-        mIPv6UDP->Free();
-        mIPv6UDP = NULL;
-    }
-
-#if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
-
-    if (mIPv6UDPMulticastRcv != NULL)
-    {
-        mIPv6UDPMulticastRcv->Free();
-        mIPv6UDPMulticastRcv = NULL;
-    }
-
-#endif
-
-#if WEAVE_CONFIG_ENABLE_UNSECURED_TCP_LISTEN
-
-    if (mUnsecuredIPv6TCPListen != NULL)
-    {
-        mUnsecuredIPv6TCPListen->Free();
-        mUnsecuredIPv6TCPListen = NULL;
-    }
-
-#endif
-
-    for (int i = 0; i < WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS; i++)
-    {
-        if (mIPv6UDPLocalAddr[i] != NULL)
-        {
-            if (mIPv6UDPLocalAddr[i] != mIPv6UDP)
-                mIPv6UDPLocalAddr[i]->Free();
-            mIPv6UDPLocalAddr[i] = NULL;
-        }
-    }
-
-#if INET_CONFIG_ENABLE_IPV4
-    if (mIPv4TCPListen != NULL)
-    {
-        mIPv4TCPListen->Free();
-        mIPv4TCPListen = NULL;
-    }
-
-    if (mIPv4UDP != NULL)
-    {
-        mIPv4UDP->Free();
-        mIPv4UDP = NULL;
-    }
-#endif // INET_CONFIG_ENABLE_IPV4
-
-    memset(mInterfaces, 0, sizeof(mInterfaces));
+    // Close all endpoints used for listening.
+    CloseListeningEndpoints();
 
     // Abort any open connections.
     WeaveConnection *con = static_cast<WeaveConnection *>(mConPool);
@@ -2308,23 +2287,101 @@ WEAVE_ERROR WeaveMessageLayer::CloseEndpoints()
     return WEAVE_NO_ERROR;
 }
 
+void WeaveMessageLayer::CloseListeningEndpoints(void)
+{
+    WeaveBindLog("Closing endpoints");
+
+    if (mIPv6TCPListen != NULL)
+    {
+        mIPv6TCPListen->Free();
+        mIPv6TCPListen = NULL;
+    }
+
+    if (mIPv6UDP != NULL)
+    {
+        mIPv6UDP->Free();
+        mIPv6UDP = NULL;
+    }
+
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+    if (mIPv6EphemeralUDP != NULL)
+    {
+        mIPv6EphemeralUDP->Free();
+        mIPv6EphemeralUDP = NULL;
+    }
+
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+#if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+
+    if (mIPv6UDPMulticastRcv != NULL)
+    {
+        mIPv6UDPMulticastRcv->Free();
+        mIPv6UDPMulticastRcv = NULL;
+    }
+
+#endif // WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+
+#if WEAVE_CONFIG_ENABLE_UNSECURED_TCP_LISTEN
+
+    if (mUnsecuredIPv6TCPListen != NULL)
+    {
+        mUnsecuredIPv6TCPListen->Free();
+        mUnsecuredIPv6TCPListen = NULL;
+    }
+
+#endif // WEAVE_CONFIG_ENABLE_UNSECURED_TCP_LISTEN
+
+#if INET_CONFIG_ENABLE_IPV4
+
+    if (mIPv4TCPListen != NULL)
+    {
+        mIPv4TCPListen->Free();
+        mIPv4TCPListen = NULL;
+    }
+
+    if (mIPv4UDP != NULL)
+    {
+        mIPv4UDP->Free();
+        mIPv4UDP = NULL;
+    }
+
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+    if (mIPv4EphemeralUDP != NULL)
+    {
+        mIPv4EphemeralUDP->Free();
+        mIPv4EphemeralUDP = NULL;
+    }
+
+#endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+#if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+
+    if (mIPv4UDPBroadcastRcv != NULL)
+    {
+        mIPv4UDPBroadcastRcv->Free();
+        mIPv4UDPBroadcastRcv = NULL;
+    }
+
+#endif // WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+
+#endif // INET_CONFIG_ENABLE_IPV4
+}
+
 WEAVE_ERROR WeaveMessageLayer::EnableUnsecuredListen()
 {
     // Enable reception of connections on the unsecured Weave port. This allows devices to establish
     // a connection while provisionally connected (i.e. without security) at the network layer.
-    mFlags |= kFlag_ListenUnsecured;
+    SetFlag(mFlags, kFlag_ListenUnsecured);
     return RefreshEndpoints();
 }
 
 WEAVE_ERROR WeaveMessageLayer::DisableUnsecuredListen()
 {
-    mFlags &= ~kFlag_ListenUnsecured;
+    ClearFlag(mFlags, kFlag_ListenUnsecured);
     return RefreshEndpoints();
-}
-
-bool WeaveMessageLayer::IsUnsecuredListenEnabled() const
-{
-    return mFlags & kFlag_ListenUnsecured;
 }
 
 /**

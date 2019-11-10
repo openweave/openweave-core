@@ -56,6 +56,7 @@ public:
     INET_ERROR Bind(IPAddressType addrType, IPAddress addr, uint16_t port, InterfaceId intfId = INET_NULL_INTERFACEID);
     INET_ERROR BindInterface(IPAddressType addrType, InterfaceId intf);
     InterfaceId GetBoundInterface(void);
+    uint16_t GetBoundPort(void);
     INET_ERROR Listen(void);
     INET_ERROR SendTo(IPAddress addr, uint16_t port, Weave::System::PacketBuffer *msg, uint16_t sendFlags = 0);
     INET_ERROR SendTo(IPAddress addr, uint16_t port, InterfaceId intfId, Weave::System::PacketBuffer *msg, uint16_t sendFlags = 0);
