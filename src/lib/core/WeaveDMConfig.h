@@ -712,6 +712,19 @@
 #define WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMP 0
 #endif
 
+/**
+ *  @def WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
+ *
+ *  @brief
+ *    Enable (1) or disable (0) WEAVE DATA MANAGEMENT Client
+ *    Immplementation for mobile. This feature is
+ *    optional and could be disabled.
+ *
+ */
+#ifndef WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
+#define WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT 0
+#endif
+
 // clang-format on
 
 #endif // _WEAVE_DATA_MANAGEMENT_CONFIG_H

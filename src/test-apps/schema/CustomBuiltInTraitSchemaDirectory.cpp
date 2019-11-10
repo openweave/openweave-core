@@ -25,6 +25,8 @@
 // This is a .cpp file in openweave-core that includes the "custom built-in schema"
 // source file, if defined...
 
+#if    WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
+
 #include <Weave/DeviceManager/TraitSchemaDirectory.h>
 #include <weave/trait/locale/LocaleSettingsTrait.h>
 #include <nest/test/trait/TestCTrait.h>
@@ -57,3 +59,4 @@ const TraitSchemaEngine * TraitSchemaDirectory::GetTraitSchemaEngine(uint32_t aP
 #include <weave/trait/locale/LocaleSettingsTrait.cpp>
 #include <nest/test/trait/TestCTrait.cpp>
 
+#endif // WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
