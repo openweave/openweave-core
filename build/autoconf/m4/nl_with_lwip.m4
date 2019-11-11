@@ -113,13 +113,13 @@ AC_DEFUN([NL_WITH_LWIP],
     
         AC_ARG_WITH(lwip-target,
             AS_HELP_STRING([--with-lwip-target=target],
-                [Specify the target environment for which LwIP will be built.  Choose one of: standalone, nrf5, none @<:@default=standalone@:>@.]),
+                [Specify the target environment for which LwIP will be built.  Choose one of: standalone, nrf5, efr32, none @<:@default=standalone@:>@.]),
             [
                 if test "${nl_with_lwip}" != "internal"; then
                     AC_MSG_ERROR([--with-lwip-target can only be used when --with-lwip=internal is selected])
                 else
                     case "${withval}" in
-                    standalone|nrf5|none)
+                    standalone|nrf5|efr32|none)
                         nl_with_lwip_target=${withval}
                         ;;
                     *)
@@ -178,6 +178,9 @@ AC_DEFUN([NL_WITH_LWIP],
                 ;;
             nrf5)
                 LWIP_CPPFLAGS="${LWIP_CPPFLAGS} -I${ac_abs_confdir}/src/lwip/nrf5 -I${ac_abs_confdir}/src/lwip/freertos"
+                ;;
+            efr32)
+                LWIP_CPPFLAGS="${LWIP_CPPFLAGS} -I${ac_abs_confdir}/src/lwip/efr32 -I${ac_abs_confdir}/src/lwip/freertos"
                 ;;
             *)
                 ;;
@@ -322,5 +325,6 @@ AC_DEFUN([NL_WITH_LWIP],
     AM_CONDITIONAL([WEAVE_WITH_LWIP_INTERNAL], [test "${nl_with_lwip}" = "internal"])
     AM_CONDITIONAL([WEAVE_LWIP_TARGET_STANDALONE], [test "${nl_with_lwip}" = "internal" -a "${nl_with_lwip_target}" = "standalone" ])
     AM_CONDITIONAL([WEAVE_LWIP_TARGET_NRF5], [test "${nl_with_lwip}" = "internal" -a "${nl_with_lwip_target}" = "nrf5" ])
+    AM_CONDITIONAL([WEAVE_LWIP_TARGET_EFR32], [test "${nl_with_lwip}" = "internal" -a "${nl_with_lwip_target}" = "efr32" ])
     
 ])

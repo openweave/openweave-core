@@ -290,11 +290,19 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetThreadProvi
             memcpy(netInfo.ThreadNetworkKey, activeDataset.mMasterKey.m8, sizeof(netInfo.ThreadNetworkKey));
             netInfo.FieldPresent.ThreadNetworkKey = true;
         }
+#ifdef EFR32_OPENTHREAD_API
+        if (activeDataset.mComponents.mIsPskcPresent)
+        {
+            memcpy(netInfo.ThreadPSKc, activeDataset.mPskc.m8, sizeof(netInfo.ThreadPSKc));
+            netInfo.FieldPresent.ThreadPSKc = true;
+        }
+#else // !EFR32_OPENTHREAD_API
         if (activeDataset.mComponents.mIsPSKcPresent)
         {
             memcpy(netInfo.ThreadPSKc, activeDataset.mPSKc.m8, sizeof(netInfo.ThreadPSKc));
             netInfo.FieldPresent.ThreadPSKc = true;
         }
+#endif // !EFR32_OPENTHREAD_API
     }
     if (activeDataset.mComponents.mIsPanIdPresent)
     {
@@ -342,8 +350,13 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadProvi
     }
     if (netInfo.FieldPresent.ThreadPSKc)
     {
+#ifdef EFR32_OPENTHREAD_API
+        memcpy(newDataset.mPskc.m8, netInfo.ThreadPSKc, sizeof(newDataset.mPskc.m8));
+        newDataset.mComponents.mIsPskcPresent = true;
+#else // !EFR32_OPENTHREAD_API
         memcpy(newDataset.mPSKc.m8, netInfo.ThreadPSKc, sizeof(newDataset.mPSKc.m8));
         newDataset.mComponents.mIsPSKcPresent = true;
+#endif // !EFR32_OPENTHREAD_API
     }
     if (netInfo.ThreadPANId != kThreadPANId_NotSpecified)
     {
@@ -388,7 +401,11 @@ ConnectivityManager::ThreadDeviceType GenericThreadStackManagerImpl_OpenThread<I
 
     if (linkMode.mDeviceType)
     {
+#ifdef EFR32_OPENTHREAD_API
+        if (otThreadIsRouterEligible(mOTInst))
+#else // !EFR32_OPENTHREAD_API
         if (otThreadIsRouterRoleEnabled(mOTInst))
+#endif // !EFR32_OPENTHREAD_API
         {
             deviceType = ConnectivityManager::kThreadDeviceType_Router;
         }
@@ -463,7 +480,11 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadDevic
     case ConnectivityManager::kThreadDeviceType_FullEndDevice:
         linkMode.mDeviceType = true;
         linkMode.mRxOnWhenIdle = true;
+#ifdef EFR32_OPENTHREAD_API
+        otThreadSetRouterEligible(mOTInst, deviceType == ConnectivityManager::kThreadDeviceType_Router);
+#else // !EFR32_OPENTHREAD_API
         otThreadSetRouterRoleEnabled(mOTInst, deviceType == ConnectivityManager::kThreadDeviceType_Router);
+#endif // !EFR32_OPENTHREAD_API
         break;
     case ConnectivityManager::kThreadDeviceType_MinimalEndDevice:
         linkMode.mDeviceType = false;

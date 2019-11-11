@@ -113,6 +113,21 @@ EXTRA_DIST                                                                     =
 
 endif # WEAVE_LWIP_TARGET_NRF5
 
+if WEAVE_LWIP_TARGET_EFR32
+
+liblwip_TARGET_SOURCES                                                         = \
+    freertos/sys_arch.c                                                          \
+    $(NULL)
+
+EXTRA_DIST                                                                     = \
+    freertos/arch                                                                \
+    efr32/arch                                                                    \
+    efr32/lwipopts.h                                                              \
+    efr32/lwippools.h                                                             \
+    $(NULL)
+
+endif # WEAVE_LWIP_TARGET_EFR32
+
 liblwip_a_SOURCES                                                              = \
     $(liblwip_API_SOURCES)                                                       \
     $(liblwip_CORE_SOURCES)                                                      \
