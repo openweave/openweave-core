@@ -716,19 +716,24 @@ void NRF5Config::HandleFDSEvent(const fds_evt_t * fdsEvent)
 
     // Signal the Weave thread that the operation has completed.
 #if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
-    if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+
+    // When using the Nodic SoftDevice, HandleFDSEvent() is called in a SoftDevice interrupt
+    // context.  Therefore, we must use xSemaphoreGiveFromISR() to signal completion.
+    BaseType_t yieldRequired = xSemaphoreGiveFromISR(sAsyncOpCompletionSem, &yieldRequired);
+
+    // Yield to the next runnable task, but only if the FreeRTOS scheduler has been started.
+    if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED && yieldRequired == pdTRUE)
     {
-        BaseType_t yieldRequired = xSemaphoreGiveFromISR(sAsyncOpCompletionSem, &yieldRequired);
-        if (yieldRequired == pdTRUE)
-        {
-            portYIELD_FROM_ISR(yieldRequired);
-        }
+        portYIELD_FROM_ISR(yieldRequired);
     }
-    else
-#endif // defined(SOFTDEVICE_PRESENT) || !SOFTDEVICE_PRESENT
-    {
-        xSemaphoreGive(sAsyncOpCompletionSem);
-    }
+
+#else // defined(SOFTDEVICE_PRESENT) || !SOFTDEVICE_PRESENT
+
+    // When NOT using the Nodic SoftDevice, HandleFDSEvent() is called in a non-interrupt
+    // context. Therefore, use xSemaphoreGive() to signal completion.
+    xSemaphoreGive(sAsyncOpCompletionSem);
+
+#endif // !(defined(SOFTDEVICE_PRESENT) || !SOFTDEVICE_PRESENT)
 }
 
 void NRF5Config::RunConfigUnitTest()
