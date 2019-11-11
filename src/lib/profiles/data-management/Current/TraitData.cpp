@@ -32,6 +32,10 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
+#ifndef ULLONG_MAX
+#define ULLONG_MAX (unsigned long long)(-1)
+#endif
+
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Support/WeaveFaultInjection.h>
