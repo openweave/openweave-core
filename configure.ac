@@ -74,7 +74,7 @@ AC_CONFIG_SRCDIR([src/lib/core/WeaveConfig.h])
 # Tell autoconf where to find auxilliary build tools (e.g. config.guess,
 # install-sh, missing, etc.)
 #
-AC_CONFIG_AUX_DIR([third_party/nlbuild-autotools/repo/third_party/autoconf])
+AC_CONFIG_AUX_DIR([build/autoconf])
 
 #
 # Tell autoconf where to find auxilliary M4 macros
