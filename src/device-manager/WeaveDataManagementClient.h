@@ -25,7 +25,6 @@
 #ifndef WEAVE_DATA_MANAGEMENT_CLIENT_H_
 #define WEAVE_DATA_MANAGEMENT_CLIENT_H_
 
-#if    WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 
 #include <Weave/Support/NLDLLUtil.h>
@@ -192,5 +191,4 @@ private:
 } // namespace Weave
 } // namespace nl
 
-#endif // WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
 #endif // WEAVE_DATA_MANAGEMENT_CLIENT_H_

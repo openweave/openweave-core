@@ -24,7 +24,6 @@
 #ifndef TRAIT_SCHEMA_DIRECTORY_H_
 #define TRAIT_SCHEMA_DIRECTORY_H_
 
-#if    WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
 
@@ -42,5 +41,4 @@ public:
 } // namespace Weave
 } // namespace nl
 
-#endif // WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
 #endif // TRAIT_SCHEMA_DIRECTORY_H_

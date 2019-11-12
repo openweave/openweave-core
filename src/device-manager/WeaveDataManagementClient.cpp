@@ -29,7 +29,6 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
-#if    WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
 #include <stdint.h>
 #include <inttypes.h>
 
@@ -1071,5 +1070,3 @@ WEAVE_ERROR WDMClient::UnsubscribePublisherTrait(TraitDataSink * apDataSink)
 } // namespace DeviceManager
 } // namespace Weave
 } // namespace nl
-
-#endif // WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT

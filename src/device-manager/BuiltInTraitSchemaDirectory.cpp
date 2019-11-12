@@ -25,8 +25,6 @@
 // This is a .cpp file in openweave-core that includes the "custom built-in schema"
 // source file, if defined...
 
-#if    WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
-
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/DeviceManager/TraitSchemaDirectory.h>
 
@@ -68,4 +66,3 @@ const TraitSchemaEngine * TraitSchemaDirectory::GetTraitSchemaEngine(uint32_t aP
 
 #endif // !defined(WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE)
 
-#endif // WEAVE_CONFIG_ENABLE_WEAVE_DATA_MANAGEMENT_CLIENT
