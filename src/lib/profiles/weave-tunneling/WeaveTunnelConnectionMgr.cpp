@@ -741,7 +741,7 @@ void WeaveTunnelConnectionMgr::HandleServiceConnectionComplete(WeaveConnection *
 
     // Create tunnel route for Service and send Tunnel control message.
 
-    memset(&tunRoute, 0, sizeof(tunRoute));
+    tunRoute = WeaveTunnelRoute();
     globalId = WeaveFabricIdToIPv6GlobalId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->FabricId);
     if (tConnMgr->mTunAgent->mRole == kClientRole_BorderGateway)
     {

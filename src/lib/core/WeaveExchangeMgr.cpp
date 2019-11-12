@@ -557,7 +557,7 @@ ExchangeContext *WeaveExchangeManager::AllocContext()
     for (int i = 0; i < WEAVE_CONFIG_MAX_EXCHANGE_CONTEXTS; i++, ec++)
         if (ec->ExchangeMgr == NULL)
         {
-            memset(ec, 0, sizeof(ExchangeContext));
+            *ec = ExchangeContext();
             ec->ExchangeMgr = this;
             ec->mRefCount = 1;
             mContextsInUse++;
