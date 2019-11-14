@@ -61,6 +61,7 @@ public:
     WEAVE_ERROR _SetBLEAdvertisingEnabled(bool val);
     bool _IsBLEFastAdvertisingEnabled(void);
     WEAVE_ERROR _SetBLEFastAdvertisingEnabled(bool val);
+    bool _IsBLEAdvertising(void);
     WEAVE_ERROR _GetBLEDeviceName(char * buf, size_t bufSize);
     WEAVE_ERROR _SetBLEDeviceName(const char * deviceName);
     uint16_t _NumBLEConnections(void);
@@ -108,6 +109,12 @@ template<class ImplClass>
 inline WEAVE_ERROR GenericConnectivityManagerImpl_BLE<ImplClass>::_SetBLEFastAdvertisingEnabled(bool val)
 {
     return BLEMgr().SetFastAdvertisingEnabled(val);
+}
+
+template<class ImplClass>
+inline bool GenericConnectivityManagerImpl_BLE<ImplClass>::_IsBLEAdvertising(void)
+{
+    return BLEMgr().IsAdvertising();
 }
 
 template<class ImplClass>

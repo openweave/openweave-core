@@ -58,6 +58,7 @@ class BLEManagerImpl final
     WEAVE_ERROR _SetAdvertisingEnabled(bool val);
     bool _IsFastAdvertisingEnabled(void);
     WEAVE_ERROR _SetFastAdvertisingEnabled(bool val);
+    bool _IsAdvertising(void);
     WEAVE_ERROR _GetDeviceName(char * buf, size_t bufSize);
     WEAVE_ERROR _SetDeviceName(const char * deviceName);
     uint16_t _NumConnections(void);
@@ -90,18 +91,18 @@ class BLEManagerImpl final
 
     enum
     {
-        kFlag_AsyncInitCompleted        = 0x0001,
-        kFlag_ESPBLELayerInitialized    = 0x0002,
-        kFlag_AppRegistered             = 0x0004,
-        kFlag_AttrsRegistered           = 0x0008,
-        kFlag_GATTServiceStarted        = 0x0010,
-        kFlag_AdvertisingConfigured     = 0x0020,
-        kFlag_Advertising               = 0x0040,
-        kFlag_ControlOpInProgress       = 0x0080,
-
-        kFlag_AdvertisingEnabled        = 0x0100,
-        kFlag_FastAdvertisingEnabled    = 0x0200,
-        kFlag_UseCustomDeviceName       = 0x0400,
+        kFlag_AsyncInitCompleted        = 0x0001, /**< One-time asynchronous initialization actions have been performed. */
+        kFlag_ESPBLELayerInitialized    = 0x0002, /**< The ESP BLE layer has been initialized. */
+        kFlag_AppRegistered             = 0x0004, /**< The WoBLE application has been registered with the ESP BLE layer. */
+        kFlag_AttrsRegistered           = 0x0008, /**< The WoBLE GATT attributes have been registered with the ESP BLE layer. */
+        kFlag_GATTServiceStarted        = 0x0010, /**< The WoBLE GATT service has been started. */
+        kFlag_AdvertisingConfigured     = 0x0020, /**< WoBLE advertising has been configured in the ESP BLE layer. */
+        kFlag_Advertising               = 0x0040, /**< The system is currently WoBLE advertising. */
+        kFlag_ControlOpInProgress       = 0x0080, /**< An async control operation has been issued to the ESP BLE layer. */
+        kFlag_AdvertisingEnabled        = 0x0100, /**< The application has enabled WoBLE advertising. */
+        kFlag_FastAdvertisingEnabled    = 0x0200, /**< The application has enabled fast advertising. */
+        kFlag_UseCustomDeviceName       = 0x0400, /**< The application has configured a custom BLE device name. */
+        kFlag_AdvertisingRefreshNeeded  = 0x0800, /**< The advertising state in ESP BLE layer needs to be updated. */
     };
 
     enum
@@ -190,6 +191,11 @@ inline bool BLEManagerImpl::_IsAdvertisingEnabled(void)
 inline bool BLEManagerImpl::_IsFastAdvertisingEnabled(void)
 {
     return GetFlag(mFlags, kFlag_FastAdvertisingEnabled);
+}
+
+inline bool BLEManagerImpl::_IsAdvertising(void)
+{
+    return GetFlag(mFlags, kFlag_Advertising);
 }
 
 } // namespace Internal
