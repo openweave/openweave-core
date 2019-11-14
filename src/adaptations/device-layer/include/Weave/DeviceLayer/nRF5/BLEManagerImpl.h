@@ -89,11 +89,11 @@ class BLEManagerImpl final
 
     enum
     {
-        kFlag_AsyncInitCompleted                = 0x0001,
-        kFlag_AdvertisingEnabled                = 0x0002,
-        kFlag_FastAdvertisingEnabled            = 0x0004,
-        kFlag_Advertising                       = 0x0008,
-        kFlag_AdvertisingConfigChangePending    = 0x0010,
+        kFlag_AsyncInitCompleted                = 0x0001, /**< One-time asynchronous initialization actions have been performed. */
+        kFlag_AdvertisingEnabled                = 0x0002, /**< The application has enabled WoBLE advertising. */
+        kFlag_FastAdvertisingEnabled            = 0x0004, /**< The application has enabled fast advertising. */
+        kFlag_Advertising                       = 0x0008, /**< The system is currently WoBLE advertising. */
+        kFlag_AdvertisingRefreshNeeded          = 0x0010, /**< The advertising state/configuration has changed, but the SoftDevice has yet to be updated. */
     };
 
     enum

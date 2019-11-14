@@ -189,6 +189,13 @@ enum PublicEventTypes
      * Signals that the state of the Thread network interface has changed.
      */
     kThreadInterfaceStateChange,
+
+    /**
+     * Weave-over-BLE (WoBLE) Advertising Change
+     *
+     * Signals that the state of WoBLE advertising has changed.
+     */
+    kWoBLEAdvertisingChange,
 };
 
 /**
@@ -224,6 +231,18 @@ enum ConnectivityChange
     kConnectivity_NoChange      = 0,
     kConnectivity_Established   = 1,
     kConnectivity_Lost          = -1
+};
+
+/**
+ * Activity Change
+ *
+ * Describes a change in some activity associated with a Weave device.
+ */
+enum ActivityChange
+{
+    kActivity_NoChange          = 0,
+    kActivity_Started           = 1,
+    kActivity_Stopped           = -1,
 };
 
 inline ConnectivityChange GetConnectivityChange(bool prevState, bool newState)
@@ -374,6 +393,10 @@ struct WeaveDeviceEvent final
                 uint32_t Flags;
             } OpenThread;
         } ThreadStateChange;
+        struct
+        {
+            ActivityChange Result;
+        } WoBLEAdvertisingChange;
     };
 
     void Clear() { memset(this, 0, sizeof(*this)); }
