@@ -1586,7 +1586,7 @@ WEAVE_ERROR LoggingManagement::FetchEventParameters(const TLVReader & aReader, s
     if ((reader.GetTag() == nl::Weave::TLV::ContextTag(kTag_ExternalEventStructure)) && (envelope->mExternalEvents != NULL))
     {
         err = reader.GetBytes(static_cast<uint8_t *>(static_cast<void *>(envelope->mExternalEvents)), sizeof(ExternalEvents));
-        VerifyOrExit(err == WEAVE_NO_ERROR, memset(envelope->mExternalEvents, 0, sizeof(ExternalEvents)));
+        VerifyOrExit(err == WEAVE_NO_ERROR, *(envelope->mExternalEvents) = ExternalEvents());
         envelope->mNumFieldsToRead--;
     }
 

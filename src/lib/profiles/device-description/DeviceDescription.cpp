@@ -1077,7 +1077,7 @@ WEAVE_ERROR IdentifyRequestMessage::Decode(PacketBuffer *msgBuf, uint64_t msgDes
 
     VerifyOrExit(msgBuf->DataLength() == 16, err = WEAVE_ERROR_INVALID_MESSAGE_LENGTH);
 
-    memset(&msg, 0, sizeof(msg));
+    msg = IdentifyRequestMessage();
     p = msgBuf->Start();
     msg.TargetFabricId = LittleEndian::Read64(p);
     msg.TargetModes = LittleEndian::Read32(p);

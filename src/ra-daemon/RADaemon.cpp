@@ -629,7 +629,7 @@ void RADaemon::DelPrefixInfo(InterfaceId link, IPPrefix ipPrefix)
                 currIPPrefixInfo = &currLinkInfo->IPPrefixInfo[k];
                 if (currIPPrefixInfo->IPPrefx == ipPrefix)
                 {
-                    memset(&currIPPrefixInfo->IPPrefx, 0, sizeof(IPPrefix));
+                    currIPPrefixInfo->IPPrefx = IPPrefix();
                     prefix_removed = 1;
                     num_free_prefixes++;
                 }
@@ -672,7 +672,7 @@ void RADaemon::DelLinkInfo(InterfaceId link)
             currLinkInfo->RawEP = NULL;
             SystemLayer->CancelTimer(MulticastPeriodicRA, currLinkInfo);
             SystemLayer->CancelTimer(TrackRSes, currLinkInfo);
-            memset(currLinkInfo, 0, sizeof(RADaemon::LinkInformation));
+            *currLinkInfo = RADaemon::LinkInformation();
             currLinkInfo->Self = this;
             break;
         }
