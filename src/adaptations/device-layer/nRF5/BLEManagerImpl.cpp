@@ -216,6 +216,7 @@ WEAVE_ERROR BLEManagerImpl::_SetFastAdvertisingEnabled(bool val)
 exit:
     return err;
 }
+
 WEAVE_ERROR BLEManagerImpl::_GetDeviceName(char * buf, size_t bufSize)
 {
     WEAVE_ERROR err;
@@ -278,20 +279,27 @@ void BLEManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
         WeaveLogError(DeviceLayer, "BLEManagerImpl: Out of buffers during WoBLE RX");
         break;
 
-    // If WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED is enabled, and there is a change to the
-    // device's provisioning state, then automatically disable WoBLE advertising if the device
-    // is now fully provisioned.
-#if WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED
     case DeviceEventType::kFabricMembershipChange:
     case DeviceEventType::kServiceProvisioningChange:
     case DeviceEventType::kAccountPairingChange:
+
+        // If WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED is enabled, and there is a change to the
+        // device's provisioning state, then automatically disable WoBLE advertising if the device
+        // is now fully provisioned.
+#if WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED
         if (ConfigurationMgr().IsFullyProvisioned())
         {
-            SetAdvertisingEnabled(false);
+            ClearFlag(mFlags, kFlag_AdvertisingEnabled);
             WeaveLogProgress(DeviceLayer, "WoBLE advertising disabled because device is fully provisioned");
         }
-        break;
 #endif // WEAVE_DEVICE_CONFIG_WOBLE_DISABLE_ADVERTISING_WHEN_PROVISIONED
+
+        // Force the advertising state to be refreshed to reflect new provisioning state.
+        SetFlag(mFlags, kFlag_AdvertisingRefreshNeeded);
+
+        DriveBLEState();
+
+        break;
 
     default:
         break;
@@ -413,9 +421,9 @@ void BLEManagerImpl::DriveBLEState(void)
 #endif
         )
     {
-        // Start/re-start advertising if not already started, or if there is a pending change
-        // to the advertising configuration.
-        if (!GetFlag(mFlags, kFlag_Advertising) || GetFlag(mFlags, kFlag_AdvertisingConfigChangePending))
+        // Start/re-start SoftDevice advertising if not already advertising, or if the
+        // advertising state of the SoftDevice needs to be refreshed.
+        if (!GetFlag(mFlags, kFlag_Advertising) || GetFlag(mFlags, kFlag_AdvertisingRefreshNeeded))
         {
             err = StartAdvertising();
             SuccessOrExit(err);
@@ -445,24 +453,33 @@ WEAVE_ERROR BLEManagerImpl::StartAdvertising(void)
     uint16_t numWoBLECons;
     bool connectable;
 
-    // Inform the ThreadStackManager that WoBLE advertising is about to start.
+    // If necessary, inform the ThreadStackManager that WoBLE advertising is about to start.
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
-    ThreadStackMgr().OnWoBLEAdvertisingStart();
+    if (!GetFlag(mFlags, kFlag_Advertising))
+    {
+        ThreadStackMgr().OnWoBLEAdvertisingStart();
+    }
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 
-    // Clear any "pending change" flag.
-    ClearFlag(mFlags, kFlag_AdvertisingConfigChangePending);
+    // Since we're about to update the SoftDevice, clear the refresh needed flag.
+    ClearFlag(mFlags, kFlag_AdvertisingRefreshNeeded);
 
-    // Force the soft device to relinquish its references to the buffers containing the advertising
-    // data.  This ensures the soft device is not accessing these buffers while we are encoding
-    // new advertising data into them.
-    if (GetFlag(mFlags, kFlag_Advertising))
+    if (mAdvHandle != BLE_GAP_ADV_SET_HANDLE_NOT_SET)
     {
-        ClearFlag(mFlags, kFlag_Advertising);
-
+        // Instruct the SoftDevice to stop advertising.
+        // Ignore any error indicating that advertising is already stopped.  This case is arises
+        // when a connection is established, which causes the SoftDevice to immediately cease
+        // advertising.
         err = sd_ble_gap_adv_stop(mAdvHandle);
+        if (err == NRF_ERROR_INVALID_STATE)
+        {
+            err = WEAVE_NO_ERROR;
+        }
         SuccessOrExit(err);
 
+        // Force the SoftDevice to relinquish its references to the buffers containing the advertising
+        // data.  This ensures the SoftDevice is not accessing these buffers while we are encoding
+        // new advertising data into them.
         err = sd_ble_gap_adv_set_configure(&mAdvHandle, NULL, NULL);
         SuccessOrExit(err);
     }
@@ -486,10 +503,10 @@ WEAVE_ERROR BLEManagerImpl::StartAdvertising(void)
             ? BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED
             : BLE_GAP_ADV_TYPE_NONCONNECTABLE_SCANNABLE_UNDIRECTED;
 
-    // Advertise in fast mode if not paired to an account and there are no WoBLE connections, or
-    // if the application has requested fast advertising.
+    // Advertise in fast mode if not fully provisioned and there are no WoBLE connections, or
+    // if the application has expressly requested fast advertising.
     gapAdvParams.interval =
-        ((numWoBLECons == 0 && !ConfigurationMgr().IsPairedToAccount()) || GetFlag(mFlags, kFlag_AdvertisingEnabled))
+        ((numWoBLECons == 0 && !ConfigurationMgr().IsFullyProvisioned()) || GetFlag(mFlags, kFlag_FastAdvertisingEnabled))
         ? WEAVE_DEVICE_CONFIG_BLE_FAST_ADVERTISING_INTERVAL
         : WEAVE_DEVICE_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL;
 
@@ -523,8 +540,21 @@ WEAVE_ERROR BLEManagerImpl::StartAdvertising(void)
     }
     SuccessOrExit(err);
 
-    // Record that advertising has been enabled.
-    SetFlag(mFlags, kFlag_Advertising);
+    // Transition to the Advertising state...
+    if (!GetFlag(mFlags, kFlag_Advertising))
+    {
+        WeaveLogProgress(DeviceLayer, "WoBLE advertising started");
+
+        SetFlag(mFlags, kFlag_Advertising);
+
+        // Post a WoBLEAdvertisingChange(Started) event.
+        {
+            WeaveDeviceEvent advChange;
+            advChange.Type = DeviceEventType::kWoBLEAdvertisingChange;
+            advChange.WoBLEAdvertisingChange.Result = kActivity_Started;
+            PlatformMgr().PostEvent(&advChange);
+        }
+    }
 
 exit:
     return err;
@@ -534,19 +564,39 @@ WEAVE_ERROR BLEManagerImpl::StopAdvertising(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    // Since we're about to update the SoftDevice, clear the refresh needed flag.
+    ClearFlag(mFlags, kFlag_AdvertisingRefreshNeeded);
+
+    // Instruct the SoftDevice to stop advertising.
+    // Ignore any error indicating that advertising is already stopped.  This case is arises
+    // when a connection is established, which causes the SoftDevice to immediately cease
+    // advertising.
+    err = sd_ble_gap_adv_stop(mAdvHandle);
+    if (err == NRF_ERROR_INVALID_STATE)
+    {
+        err = WEAVE_NO_ERROR;
+    }
+    SuccessOrExit(err);
+
+    // Transition to the not Advertising state...
     if (GetFlag(mFlags, kFlag_Advertising))
     {
         ClearFlag(mFlags, kFlag_Advertising);
 
-        err = sd_ble_gap_adv_stop(mAdvHandle);
-        SuccessOrExit(err);
-
         WeaveLogProgress(DeviceLayer, "WoBLE advertising stopped");
 
-        // Inform the ThreadStackManager that WoBLE advertising has stopped.
+        // Directly inform the ThreadStackManager that WoBLE advertising has stopped.
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
         ThreadStackMgr().OnWoBLEAdvertisingStop();
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+        // Post a WoBLEAdvertisingChange(Stopped) event.
+        {
+            WeaveDeviceEvent advChange;
+            advChange.Type = DeviceEventType::kWoBLEAdvertisingChange;
+            advChange.WoBLEAdvertisingChange.Result = kActivity_Stopped;
+            PlatformMgr().PostEvent(&advChange);
+        }
     }
 
 exit:
@@ -773,10 +823,12 @@ WEAVE_ERROR BLEManagerImpl::HandleGAPConnect(const WeaveDeviceEvent * event)
     // Track the number of active GAP connections.
     mNumGAPCons++;
 
-    // The SoftDevice automatically disables advertising whenever a connection is established.  So adjust the
-    // current state accordingly.  If additional connections are allowed, DriveBLEState will take care of re-enabling
-    // advertising.
-    ClearFlag(mFlags, kFlag_Advertising);
+    // The SoftDevice automatically disables advertising whenever a connection is established.
+    // So record that the SoftDevice state needs to be refreshed. If advertising needs to be
+    // re-enabled, this will be handled in DriveBLEState() the next time it runs.
+    SetFlag(mFlags, kFlag_AdvertisingRefreshNeeded);
+
+    // Schedule DriveBLEState() to run.
     PlatformMgr().ScheduleWork(DriveBLEState, 0);
 
     return WEAVE_NO_ERROR;
@@ -816,7 +868,7 @@ WEAVE_ERROR BLEManagerImpl::HandleGAPDisconnect(const WeaveDeviceEvent * event)
 
     // Force a reconfiguration of advertising in case we switched to non-connectable mode when
     // the BLE connection was established.
-    SetFlag(mFlags, kFlag_AdvertisingConfigChangePending);
+    SetFlag(mFlags, kFlag_AdvertisingRefreshNeeded);
     PlatformMgr().ScheduleWork(DriveBLEState, 0);
 
     return WEAVE_NO_ERROR;

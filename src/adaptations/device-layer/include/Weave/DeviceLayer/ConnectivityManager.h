@@ -157,6 +157,7 @@ public:
     WEAVE_ERROR SetBLEAdvertisingEnabled(bool val);
     bool IsBLEFastAdvertisingEnabled(void);
     WEAVE_ERROR SetBLEFastAdvertisingEnabled(bool val);
+    bool IsBLEAdvertising(void);
     WEAVE_ERROR GetBLEDeviceName(char * buf, size_t bufSize);
     WEAVE_ERROR SetBLEDeviceName(const char * deviceName);
     uint16_t NumBLEConnections(void);
@@ -477,6 +478,11 @@ inline bool ConnectivityManager::IsBLEFastAdvertisingEnabled(void)
 inline WEAVE_ERROR ConnectivityManager::SetBLEFastAdvertisingEnabled(bool val)
 {
     return static_cast<ImplClass*>(this)->_SetBLEFastAdvertisingEnabled(val);
+}
+
+inline bool ConnectivityManager::IsBLEAdvertising(void)
+{
+    return static_cast<ImplClass*>(this)->_IsBLEAdvertising();
 }
 
 inline WEAVE_ERROR ConnectivityManager::GetBLEDeviceName(char * buf, size_t bufSize)

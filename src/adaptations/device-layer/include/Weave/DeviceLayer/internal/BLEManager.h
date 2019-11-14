@@ -59,6 +59,7 @@ public:
     WEAVE_ERROR SetAdvertisingEnabled(bool val);
     bool IsFastAdvertisingEnabled(void);
     WEAVE_ERROR SetFastAdvertisingEnabled(bool val);
+    bool IsAdvertising(void);
     WEAVE_ERROR GetDeviceName(char * buf, size_t bufSize);
     WEAVE_ERROR SetDeviceName(const char * deviceName);
     uint16_t NumConnections(void);
@@ -146,6 +147,11 @@ inline bool BLEManager::IsFastAdvertisingEnabled(void)
 inline WEAVE_ERROR BLEManager::SetFastAdvertisingEnabled(bool val)
 {
     return static_cast<ImplClass*>(this)->_SetFastAdvertisingEnabled(val);
+}
+
+inline bool BLEManager::IsAdvertising(void)
+{
+    return static_cast<ImplClass*>(this)->_IsAdvertising();
 }
 
 inline WEAVE_ERROR BLEManager::GetDeviceName(char * buf, size_t bufSize)

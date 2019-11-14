@@ -57,6 +57,7 @@ class BLEManagerImpl final
     WEAVE_ERROR _SetAdvertisingEnabled(bool val);
     bool _IsFastAdvertisingEnabled(void);
     WEAVE_ERROR _SetFastAdvertisingEnabled(bool val);
+    bool _IsAdvertising(void);
     WEAVE_ERROR _GetDeviceName(char * buf, size_t bufSize);
     WEAVE_ERROR _SetDeviceName(const char * deviceName);
     uint16_t _NumConnections(void);
@@ -89,11 +90,11 @@ class BLEManagerImpl final
 
     enum
     {
-        kFlag_AsyncInitCompleted                = 0x0001,
-        kFlag_AdvertisingEnabled                = 0x0002,
-        kFlag_FastAdvertisingEnabled            = 0x0004,
-        kFlag_Advertising                       = 0x0008,
-        kFlag_AdvertisingConfigChangePending    = 0x0010,
+        kFlag_AsyncInitCompleted                = 0x0001, /**< One-time asynchronous initialization actions have been performed. */
+        kFlag_AdvertisingEnabled                = 0x0002, /**< The application has enabled WoBLE advertising. */
+        kFlag_FastAdvertisingEnabled            = 0x0004, /**< The application has enabled fast advertising. */
+        kFlag_Advertising                       = 0x0008, /**< The system is currently WoBLE advertising. */
+        kFlag_AdvertisingRefreshNeeded          = 0x0010, /**< The advertising state/configuration has changed, but the SoftDevice has yet to be updated. */
     };
 
     enum
@@ -172,6 +173,11 @@ inline bool BLEManagerImpl::_IsAdvertisingEnabled(void)
 inline bool BLEManagerImpl::_IsFastAdvertisingEnabled(void)
 {
     return GetFlag(mFlags, kFlag_FastAdvertisingEnabled);
+}
+
+inline bool BLEManagerImpl::_IsAdvertising(void)
+{
+    return GetFlag(mFlags, kFlag_Advertising);
 }
 
 } // namespace Internal
