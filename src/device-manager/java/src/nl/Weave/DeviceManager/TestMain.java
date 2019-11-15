@@ -24,7 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.EnumSet;
 import java.math.BigInteger;
 
-public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient.CompletionHandler, GenericTraitUpdatableDataSink.CompletionHandler
+public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClientInterface.CompletionHandler, GenericTraitUpdatableDataSink.CompletionHandler
 {
     public class TestFailedException extends RuntimeException
     {
@@ -86,18 +86,18 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
     byte[] FabricConfig = null;
     int ExpectedNetworkCount;
 
-    void testWDMClientCreateClose(long deviceMgrPtr)
+    void testWDMClientCreateClose(WeaveDeviceManager deviceMgr)
     {
-        WDMClient mockWDMClient;
-        mockWDMClient = new WDMClient(deviceMgrPtr);
+        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
+        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
         mockWDMClient.close();
     }
 
-    void testWDMClientDataSinkCreateClose(long deviceMgrPtr)
+    void testWDMClientDataSinkCreateClose(WeaveDeviceManager deviceMgr)
     {
-        WDMClient mockWDMClient;
-        mockWDMClient = new WDMClient(deviceMgrPtr);
+        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
+        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
         GenericTraitUpdatableDataSink localSettingTrait;
@@ -115,10 +115,10 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.println("testWDMClientDataSinkCreateClose Test Succeeded");
     }
 
-    void testWDMClientDataSinkEmptyFlushData(long deviceMgrPtr)
+    void testWDMClientDataSinkEmptyFlushData(WeaveDeviceManager deviceMgr)
     {
-        WDMClient mockWDMClient;
-        mockWDMClient = new WDMClient(deviceMgrPtr);
+        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
+        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
         GenericTraitUpdatableDataSink localSettingTrait;
@@ -140,10 +140,10 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.println("testWDMClientDataSinkEmptyFlushData Test Succeeded");
     }
 
-    void testWDMClientDataSinkSetFlushData(long deviceMgrPtr)
+    void testWDMClientDataSinkSetFlushData(WeaveDeviceManager deviceMgr)
     {
-        WDMClient mockWDMClient;
-        mockWDMClient = new WDMClient(deviceMgrPtr);
+        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
+        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
         GenericTraitUpdatableDataSink localSettingTrait;
@@ -172,10 +172,10 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.println("testWDMClientDataSinkSetFlushData Test Succeeded");
     }
 
-    void testWDMClientDataSinkRefreshGetDataRefresh(long deviceMgrPtr)
+    void testWDMClientDataSinkRefreshGetDataRefresh(WeaveDeviceManager deviceMgr)
     {
-        WDMClient mockWDMClient;
-        mockWDMClient = new WDMClient(deviceMgrPtr);
+        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
+        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
         GenericTraitUpdatableDataSink localSettingTrait;
@@ -231,10 +231,10 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.println("testWDMClientDataSinkRefreshGetDataRefresh Test Succeeded");
     }
 
-    void testWDMClientDataSinkRefreshIndividualGetDataRefresh(long deviceMgrPtr)
+    void testWDMClientDataSinkRefreshIndividualGetDataRefresh(WeaveDeviceManager deviceMgr)
     {
-        WDMClient mockWDMClient;
-        mockWDMClient = new WDMClient(deviceMgrPtr);
+        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
+        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
         GenericTraitUpdatableDataSink localSettingTrait;
@@ -281,10 +281,10 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.println("testWDMClientDataSinkRefreshIndividualGetDataRefresh Succeeded");
     }
 
-    void testWDMClientDataSinkSetFlushRefreshGetData(long deviceMgrPtr)
+    void testWDMClientDataSinkSetFlushRefreshGetData(WeaveDeviceManager deviceMgr)
     {
-        WDMClient mockWDMClient;
-        mockWDMClient = new WDMClient(deviceMgrPtr);
+        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
+        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
         GenericTraitUpdatableDataSink localSettingTrait;
@@ -337,10 +337,10 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.println("testWDMClientDataSinkSetFlushRefreshGetData Succeeded");
     }
 
-    void testWDMClientDataSinkSetFlushRefreshGetBigInteger(long deviceMgrPtr)
+    void testWDMClientDataSinkSetFlushRefreshGetBigInteger(WeaveDeviceManager deviceMgr)
     {
-        WDMClient mockWDMClient;
-        mockWDMClient = new WDMClient(deviceMgrPtr);
+        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
+        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
         GenericTraitUpdatableDataSink localSettingTrait;
@@ -393,10 +393,10 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.println("testWDMClientDataSinkSetFlushRefreshGetBigInteger Succeeded");
     }
 
-    void testWDMClientDataSinkSetBigIntegerFlushRefreshGetBigInteger(long deviceMgrPtr)
+    void testWDMClientDataSinkSetBigIntegerFlushRefreshGetBigInteger(WeaveDeviceManager deviceMgr)
     {
-        WDMClient mockWDMClient;
-        mockWDMClient = new WDMClient(deviceMgrPtr);
+        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
+        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
         GenericTraitUpdatableDataSink localSettingTrait;
@@ -452,10 +452,10 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.println("testWDMClientDataSinkSetBigIntegerFlushRefreshGetBigInteger Succeeded");
     }
 
-    void testWDMClientDataSinkSetRefreshFlushGetData(long deviceMgrPtr)
+    void testWDMClientDataSinkSetRefreshFlushGetData(WeaveDeviceManager deviceMgr)
     {
-        WDMClient mockWDMClient;
-        mockWDMClient = new WDMClient(deviceMgrPtr);
+        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
+        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
         GenericTraitUpdatableDataSink localSettingTrait;
@@ -509,18 +509,18 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.println("testWDMClientDataSinkSetRefreshFlushGetData Succeeded");
     }
 
-    void RunMockWDMClientTest(long deviceMgrPtr)
+    void RunMockWDMClientTest(WeaveDeviceManager deviceMgr)
     {
         System.out.println("Run Weave Data Management Start");
-        testWDMClientCreateClose(deviceMgrPtr);
-        testWDMClientDataSinkCreateClose(deviceMgrPtr);
-        testWDMClientDataSinkSetFlushData(deviceMgrPtr);
-        testWDMClientDataSinkRefreshGetDataRefresh(deviceMgrPtr);
-        testWDMClientDataSinkRefreshIndividualGetDataRefresh(deviceMgrPtr);
-        testWDMClientDataSinkSetFlushRefreshGetData(deviceMgrPtr);
-        testWDMClientDataSinkSetFlushRefreshGetBigInteger(deviceMgrPtr);
-        testWDMClientDataSinkSetBigIntegerFlushRefreshGetBigInteger(deviceMgrPtr);
-        testWDMClientDataSinkSetRefreshFlushGetData(deviceMgrPtr);
+        testWDMClientCreateClose(deviceMgr);
+        testWDMClientDataSinkCreateClose(deviceMgr);
+        testWDMClientDataSinkSetFlushData(deviceMgr);
+        testWDMClientDataSinkRefreshGetDataRefresh(deviceMgr);
+        testWDMClientDataSinkRefreshIndividualGetDataRefresh(deviceMgr);
+        testWDMClientDataSinkSetFlushRefreshGetData(deviceMgr);
+        testWDMClientDataSinkSetFlushRefreshGetBigInteger(deviceMgr);
+        testWDMClientDataSinkSetBigIntegerFlushRefreshGetBigInteger(deviceMgr);
+        testWDMClientDataSinkSetRefreshFlushGetData(deviceMgr);
         System.out.println("Run Weave Data Management Complete");
     }
 
@@ -567,8 +567,7 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.format("  Device Address: %s%n", DeviceMgr.deviceAddress());
         System.out.println("deviceAddress Test Complete");
 
-        long deviceMgrPtr = DeviceMgr.getDeviceMgrPtr();
-        RunMockWDMClientTest(deviceMgrPtr);
+        RunMockWDMClientTest(DeviceMgr);
 
         TestResult = null;
         System.out.println("Ping Test");

@@ -582,8 +582,12 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_JAVA_TRUE@    nl/Weave/DeviceManager/WeaveDeviceException.java        \
 @WEAVE_WITH_JAVA_TRUE@    nl/Weave/DeviceManager/DeviceFeatures.java              \
 @WEAVE_WITH_JAVA_TRUE@    nl/Weave/DeviceManager/NevisPairingCodeDecoding.java    \
+@WEAVE_WITH_JAVA_TRUE@	nl/Weave/DeviceManager/WeaveDeviceManager.java 				    \
+@WEAVE_WITH_JAVA_TRUE@	nl/Weave/DataManagement/WDMClientInterface.java 				    \
 @WEAVE_WITH_JAVA_TRUE@	nl/Weave/DataManagement/WDMClient.java 				    \
+@WEAVE_WITH_JAVA_TRUE@	nl/Weave/DataManagement/GenericTraitUpdatableDataSinkInterface.java 				    \
 @WEAVE_WITH_JAVA_TRUE@	nl/Weave/DataManagement/GenericTraitUpdatableDataSink.java \
+@WEAVE_WITH_JAVA_TRUE@	nl/Weave/DataManagement/WDMClientFactoryInterface.java 				    \
 @WEAVE_WITH_JAVA_TRUE@    $(NULL)
 
 @WEAVE_WITH_JAVA_TRUE@WeaveDeviceManager_jar_JFLAGS = -source 6 -target 6
@@ -853,8 +857,8 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 @WEAVE_WITH_JAVA_FALSE@uninstall-local:
-@WEAVE_WITH_JAVA_FALSE@install-data-local:
 @WEAVE_WITH_JAVA_FALSE@mostlyclean-local:
+@WEAVE_WITH_JAVA_FALSE@install-data-local:
 clean: clean-am
 
 clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \

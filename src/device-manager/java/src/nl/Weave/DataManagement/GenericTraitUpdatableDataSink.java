@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 
-public class GenericTraitUpdatableDataSink
+public class GenericTraitUpdatableDataSink implements GenericTraitUpdatableDataSinkInterface
 {
     protected GenericTraitUpdatableDataSink(long traitInstancePtr, WDMClient wdmClient)
     {
@@ -55,16 +55,7 @@ public class GenericTraitUpdatableDataSink
         mCompHandler = null;
     }
 
-    public CompletionHandler getCompletionHandler()
-    {
-        return mCompHandler;
-    }
-
-    public void setCompletionHandler(CompletionHandler compHandler)
-    {
-        mCompHandler = compHandler;
-    }
-
+    @Override
     public void setInt(String path, int value, boolean isConditional)
     {
         boolean isSigned = true;
@@ -76,6 +67,7 @@ public class GenericTraitUpdatableDataSink
         setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
     }
 
+    @Override
     public void setInt(String path, long value, boolean isConditional)
     {
         boolean isSigned = true;
@@ -87,6 +79,7 @@ public class GenericTraitUpdatableDataSink
         setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
     }
 
+    @Override
     public void setInt(String path, BigInteger value, boolean isConditional)
     {
         boolean isSigned = true;
@@ -99,6 +92,7 @@ public class GenericTraitUpdatableDataSink
         setInt(mTraitInstancePtr, path, convertedVal, isConditional, isSigned);
     }
 
+    @Override
     public void setUnsigned(String path, int value, boolean isConditional)
     {
         boolean isSigned = false;
@@ -110,6 +104,7 @@ public class GenericTraitUpdatableDataSink
         setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
     }
 
+    @Override
     public void setUnsigned(String path, long value, boolean isConditional)
     {
         boolean isSigned = false;
@@ -121,6 +116,7 @@ public class GenericTraitUpdatableDataSink
         setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
     }
 
+    @Override
     public void setUnsigned(String path, BigInteger value, boolean isConditional)
     {
         boolean isSigned = false;
@@ -133,6 +129,7 @@ public class GenericTraitUpdatableDataSink
         setInt(mTraitInstancePtr, path, convertedVal, isConditional, isSigned);
     }
 
+    @Override
     public void setDouble(String path, double value, boolean isConditional)
     {
         if (mTraitInstancePtr == 0)
@@ -143,6 +140,7 @@ public class GenericTraitUpdatableDataSink
         setDouble(mTraitInstancePtr, path, value, isConditional);
     }
 
+    @Override
     public void setBoolean(String path, boolean value, boolean isConditional)
     {
         if (mTraitInstancePtr == 0)
@@ -153,6 +151,7 @@ public class GenericTraitUpdatableDataSink
         setBoolean(mTraitInstancePtr, path, value, isConditional);
     }
 
+    @Override
     public void setString(String path, String value, boolean isConditional)
     {
         if (mTraitInstancePtr == 0)
@@ -163,6 +162,7 @@ public class GenericTraitUpdatableDataSink
         setString(mTraitInstancePtr, path, value, isConditional);
     }
 
+    @Override
     public void setNULL(String path, boolean isConditional)
     {
         if (mTraitInstancePtr == 0)
@@ -173,6 +173,7 @@ public class GenericTraitUpdatableDataSink
         setNULL(mTraitInstancePtr, path, isConditional);
     }
 
+    @Override
     public void setBytes(String path, byte[] value, boolean isConditional)
     {
         if (mTraitInstancePtr == 0)
@@ -183,62 +184,73 @@ public class GenericTraitUpdatableDataSink
         setBytes(mTraitInstancePtr, path, value, isConditional);
     }
 
-
+    @Override
     public void setInt(String path, int value)
     {
         setInt(path, value, false);
     }
 
+    @Override
     public void setInt(String path, long value)
     {
         setInt(path, value, false);
     }
 
+    @Override
     public void setInt(String path, BigInteger value)
     {
         setInt(path, value, false);
     }
 
+    @Override
     public void setUnsigned(String path, int value)
     {
         setUnsigned(path, value, false);
     }
 
+    @Override
     public void setUnsigned(String path, long value)
     {
         setUnsigned(path, value, false);
     }
 
+    @Override
     public void setUnsigned(String path, BigInteger value)
     {
         setUnsigned(path, value, false);
     }
 
+    @Override
     public void setDouble(String path, double value)
     {
         setDouble(path, value, false);
     }
 
+    @Override
     public void setBoolean(String path, boolean value)
     {
         setBoolean(path, value, false);
     }
 
+    @Override
     public void setString(String path, String value)
     {
         setString(path, value, false);
     }
 
+    @Override
     public void setNULL(String path)
     {
         setNULL(path, false);
     }
 
+    @Override
     public void setBytes(String path, byte[] value)
     {
         setBytes(path, value, false);
     }
 
+    @Override
     public int getInt(String path)
     {
         if (mTraitInstancePtr == 0)
@@ -249,6 +261,7 @@ public class GenericTraitUpdatableDataSink
         return (int)getInt(mTraitInstancePtr, path);
     }
 
+    @Override
     public long getLong(String path)
     {
         if (mTraitInstancePtr == 0)
@@ -259,6 +272,7 @@ public class GenericTraitUpdatableDataSink
         return (long)getInt(mTraitInstancePtr, path);
     }
 
+    @Override
     public BigInteger getBigInteger(String path, int bitLen)
     {
         long value = (long)getInt(mTraitInstancePtr, path);
@@ -294,6 +308,7 @@ public class GenericTraitUpdatableDataSink
         }
     }
 
+    @Override
     public double getDouble(String path)
     {
         if (mTraitInstancePtr == 0)
@@ -304,6 +319,7 @@ public class GenericTraitUpdatableDataSink
         return getDouble(mTraitInstancePtr, path);
     }
 
+    @Override
     public boolean getBoolean(String path)
     {
         if (mTraitInstancePtr == 0)
@@ -314,6 +330,7 @@ public class GenericTraitUpdatableDataSink
         return getBoolean(mTraitInstancePtr, path);
     }
 
+    @Override
     public String getString(String path)
     {
         if (mTraitInstancePtr == 0)
@@ -324,6 +341,7 @@ public class GenericTraitUpdatableDataSink
         return getString(mTraitInstancePtr, path);
     }
 
+    @Override
     public byte[] getBytes(String path)
     {
         if (mTraitInstancePtr == 0)
@@ -334,6 +352,7 @@ public class GenericTraitUpdatableDataSink
         return getBytes(mTraitInstancePtr, path);
     }
 
+    @Override
     public long getVersion()
     {
         if (mTraitInstancePtr == 0)
@@ -344,6 +363,7 @@ public class GenericTraitUpdatableDataSink
         return getVersion(mTraitInstancePtr);
     }
 
+    @Override
     public void beginRefreshData()
     {
         if (mTraitInstancePtr == 0)
@@ -352,6 +372,18 @@ public class GenericTraitUpdatableDataSink
             return;
         }
         beginRefreshData(mTraitInstancePtr);
+    }
+
+    @Override
+    public CompletionHandler getCompletionHandler()
+    {
+        return mCompHandler;
+    }
+
+    @Override
+    public void setCompletionHandler(CompletionHandler compHandler)
+    {
+        mCompHandler = compHandler;
     }
 
     private void onError(Throwable err)
@@ -372,12 +404,6 @@ public class GenericTraitUpdatableDataSink
             return;
         }
         mCompHandler.onRefreshDataComplete();
-    }
-
-    public interface CompletionHandler
-    {
-        void onRefreshDataComplete();
-        void onError(Throwable err);
     }
 
     // ----- Protected Members -----

@@ -174,11 +174,6 @@ public class WeaveDeviceManager
         return deviceAddress(mDeviceMgrPtr);
     }
 
-    public long getDeviceMgrPtr()
-    {
-        return mDeviceMgrPtr;
-    }
-
     public CompletionHandler getCompletionHandler()
     {
         return mCompHandler;
@@ -693,6 +688,11 @@ public class WeaveDeviceManager
 
 
     // ----- Protected Members -----
+
+    protected long getDeviceMgrPtr()
+    {
+        return mDeviceMgrPtr;
+    }
 
     protected CompletionHandler mCompHandler;
 

@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 
-public class WDMClient
+public class WDMClient implements WDMClientInterface
 {
     public WDMClient(long deviceMgrPtr)
     {
@@ -35,6 +35,7 @@ public class WDMClient
         mCompHandler = null;
     }
 
+    @Override
     public void close()
     {
         if (mTraitMap != null)
@@ -61,6 +62,7 @@ public class WDMClient
         mCompHandler = null;
     }
 
+    @Override
     public GenericTraitUpdatableDataSink newDataSink(int resourceType, byte[] resourceId, long profileId, long instanceId, String path)
     {
         long traitInstancePtr = 0;
@@ -113,6 +115,7 @@ public class WDMClient
         }
     }
 
+    @Override
     public void beginFlushUpdate()
     {
         if (mWDMClientPtr == 0)
@@ -123,6 +126,7 @@ public class WDMClient
         beginFlushUpdate(mWDMClientPtr);
     }
 
+    @Override
     public void beginRefreshData()
     {
         if (mWDMClientPtr == 0)
@@ -133,11 +137,13 @@ public class WDMClient
         beginRefreshData(mWDMClientPtr);
     }
 
+    @Override
     public CompletionHandler getCompletionHandler()
     {
         return mCompHandler;
     }
 
+    @Override
     public void setCompletionHandler(CompletionHandler compHandler)
     {
         mCompHandler = compHandler;
@@ -171,13 +177,6 @@ public class WDMClient
             return;
         }
         mCompHandler.onRefreshDataComplete();
-    }
-
-    public interface CompletionHandler
-    {
-        void onFlushUpdateComplete();
-        void onRefreshDataComplete();
-        void onError(Throwable err);
     }
 
     // ----- Protected Members -----
