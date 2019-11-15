@@ -623,7 +623,7 @@ private:
     WEAVE_ERROR DeriveMsgEncAppKey(uint32_t keyId, uint8_t encType, WeaveMsgEncryptionKey & appKey, uint32_t& appGroupGlobalId);
 };
 
-
+#if WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
 /**
  * This method returns true if at least one peer's message counter
  * synchronization request is in progress.
@@ -635,7 +635,7 @@ inline bool WeaveFabricState::IsMsgCounterSyncReqInProgress(void)
 {
     return (MsgCounterSyncStatus & kFlag_ReqInProgress) != 0;
 }
-
+#endif
 
 
 
