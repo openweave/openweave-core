@@ -557,14 +557,11 @@ WEAVE_ERROR TimeSyncNode::Abort(void)
 
         DestroyCommContext();
 
-        if ((kClientState_BeginNormal > state) || (kClientState_EndNormal < state))
-        {
-            // don't touch the state
-        }
-        else
+        if (IsOperationalState(state))
         {
             SetClientState(kClientState_Idle);
         }
+        // dont touch the state if its either initializing or shutting down
     }
 
 exit:
@@ -1940,8 +1937,7 @@ void TimeSyncNode::HandleTimeChangeNotification(ExchangeContext *ec, const IPPac
 
         // check internal state
         // only try to decode if we're in any of these normal states
-        if ((kClientState_BeginNormal >= ClientStateAtEntry)
-            && (kClientState_EndNormal <= ClientStateAtEntry))
+        if (!IsOperationalState(ClientStateAtEntry))
         {
             ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
         }
