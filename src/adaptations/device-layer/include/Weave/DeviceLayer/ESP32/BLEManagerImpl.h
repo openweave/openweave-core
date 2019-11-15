@@ -102,7 +102,7 @@ class BLEManagerImpl final
         kFlag_AdvertisingEnabled        = 0x0100, /**< The application has enabled WoBLE advertising. */
         kFlag_FastAdvertisingEnabled    = 0x0200, /**< The application has enabled fast advertising. */
         kFlag_UseCustomDeviceName       = 0x0400, /**< The application has configured a custom BLE device name. */
-        kFlag_AdvertisingRefreshNeeded  = 0x0800, /**< The advertising state in ESP BLE layer needs to be updated. */
+        kFlag_AdvertisingRefreshNeeded  = 0x0800, /**< The advertising configuration/state in ESP BLE layer needs to be updated. */
     };
 
     enum

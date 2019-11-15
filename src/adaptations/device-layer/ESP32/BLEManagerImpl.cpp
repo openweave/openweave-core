@@ -295,9 +295,9 @@ bool BLEManagerImpl::CloseConnection(BLE_CONNECTION_OBJECT conId)
     // Release the associated connection state record.
     ReleaseConnectionState(conId);
 
-    // Arrange to re-enable connectable advertising in case it was disabled due to the
-    // maximum connection limit being reached.
-    ClearFlag(mFlags, kFlag_Advertising);
+    // Force a refresh of the advertising state.
+    SetFlag(mFlags, kFlag_AdvertisingRefreshNeeded);
+    ClearFlag(mFlags, kFlag_AdvertisingConfigured);
     PlatformMgr().ScheduleWork(DriveBLEState, 0);
 
     return (err == WEAVE_NO_ERROR);
@@ -439,7 +439,7 @@ void BLEManagerImpl::DriveBLEState(void)
         ExitNow();
     }
 
-    // Start advertising if needed...
+    // If the application has enabled WoBLE and BLE advertising...
     if (mServiceMode == ConnectivityManager::kWoBLEServiceMode_Enabled && GetFlag(mFlags, kFlag_AdvertisingEnabled)
 #if WEAVE_DEVICE_CONFIG_WOBLE_SINGLE_CONNECTION
         // and no connections are active...
@@ -447,16 +447,20 @@ void BLEManagerImpl::DriveBLEState(void)
 #endif
         )
     {
-        // Configure advertising data if needed.
-        if (!GetFlag(mFlags, kFlag_AdvertisingConfigured))
-        {
-            err = ConfigureAdvertisingData();
-            ExitNow();
-        }
-
-        // Start advertising if needed.
+        // Start/re-start advertising if not already advertising, or if the advertising state of the
+        // ESP BLE layer needs to be refreshed.
         if (!GetFlag(mFlags, kFlag_Advertising) || GetFlag(mFlags, kFlag_AdvertisingRefreshNeeded))
         {
+            // Configure advertising data if it hasn't been done yet.  This is an asynchronous step which
+            // must complete before advertising can be started.  When that happens, this method will
+            // be called again, and execution will proceed to the code below.
+            if (!GetFlag(mFlags, kFlag_AdvertisingConfigured))
+            {
+                err = ConfigureAdvertisingData();
+                ExitNow();
+            }
+
+            // Start advertising.  This is also an asynchronous step.
             err = StartAdvertising();
             ExitNow();
         }
@@ -845,12 +849,10 @@ void BLEManagerImpl::HandleGATTCommEvent(esp_gatts_cb_event_t event, esp_gatt_if
         // Allocate a connection state record for the new connection.
         GetConnectionState(param->mtu.conn_id, true);
 
-        // Receiving a connection stops the advertising processes.  So record that the advertising state
-        // in the ESP BLE layer needs to be refreshed.  If advertising should to be re-enabled, this will
-        // be handled in DriveBLEState() the next time it runs.
+        // Receiving a connection stops the advertising processes.  So force a refresh of the advertising
+        // state.
         SetFlag(mFlags, kFlag_AdvertisingRefreshNeeded);
-
-        // Re-evaluate the advertising state in light of the new connection.
+        ClearFlag(mFlags, kFlag_AdvertisingConfigured);
         PlatformMgr().ScheduleWork(DriveBLEState, 0);
 
         break;
@@ -1100,9 +1102,9 @@ void BLEManagerImpl::HandleDisconnect(esp_ble_gatts_cb_param_t * param)
         }
         PlatformMgr().PostEvent(&event);
 
-        // Arrange to re-enable connectable advertising in case it was disabled due to the
-        // maximum connection limit being reached.
-        ClearFlag(mFlags, kFlag_Advertising);
+        // Force a refresh of the advertising state.
+        SetFlag(mFlags, kFlag_AdvertisingRefreshNeeded);
+        ClearFlag(mFlags, kFlag_AdvertisingConfigured);
         PlatformMgr().ScheduleWork(DriveBLEState, 0);
     }
 }
@@ -1220,6 +1222,7 @@ void BLEManagerImpl::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb
         }
 
         ClearFlag(sInstance.mFlags, kFlag_ControlOpInProgress);
+        ClearFlag(sInstance.mFlags, kFlag_AdvertisingRefreshNeeded);
 
         // Transition to the Advertising state...
         if (!GetFlag(sInstance.mFlags, kFlag_Advertising))
@@ -1248,6 +1251,7 @@ void BLEManagerImpl::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb
         }
 
         ClearFlag(sInstance.mFlags, kFlag_ControlOpInProgress);
+        ClearFlag(sInstance.mFlags, kFlag_AdvertisingRefreshNeeded);
 
         // Transition to the not Advertising state...
         if (GetFlag(sInstance.mFlags, kFlag_Advertising))
