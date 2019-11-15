@@ -1108,6 +1108,21 @@ protected:
 
     static void HandleAutoSyncTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
 
+    /**
+     * @brief
+     *   Determine whether given state is operational
+     *
+     * Convenience method to determine whether the ClientState denotes
+     * operational state, i.e. the client has completed initialization and is
+     * not in the process of shutting down.
+     *
+     * @param[in] aState   state to be evaluated
+     *
+     * @return true if the state falls after the initialization has completed
+     *         and before the shutdown has started, false otherwise.
+     */
+    static inline bool IsOperationalState(ClientState aState) { return ((kClientState_BeginNormal < aState) && (aState < kClientState_EndNormal)); }
+
 #endif // WEAVE_CONFIG_TIME_ENABLE_CLIENT
 };
 
