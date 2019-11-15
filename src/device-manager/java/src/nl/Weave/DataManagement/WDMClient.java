@@ -73,7 +73,7 @@ public class WDMClient implements WDMClientInterface
         {
             mTraitMap = new HashMap<Long, GenericTraitUpdatableDataSink>();
         }
-        int testsize = 0;
+
         if (mWDMClientPtr == 0)
         {
             mCompHandler.onError(new Exception("wdmClientPtr is not ready."));

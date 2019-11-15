@@ -53,6 +53,7 @@ const TraitSchemaEngine * TraitSchemaDirectory::GetTraitSchemaEngine(uint32_t aP
     }
     else
     {
+        WeaveLogError(DataManagement, "Schema does not exit with profile id %" PRIu32 " ", aProfileId);
         return NULL;
     }
 }
