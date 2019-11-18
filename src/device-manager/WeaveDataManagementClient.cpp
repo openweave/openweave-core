@@ -458,7 +458,12 @@ exit:
     return err;
 }
 
-WEAVE_ERROR GenericTraitUpdatableDataSink::GetString(const char * apPath, char * aValue)
+WEAVE_ERROR GenericTraitUpdatableDataSink::GetString(const char * apPath, BytesData * apBytesData)
+{
+    return GetBytes(apPath, apBytesData);
+}
+
+WEAVE_ERROR GenericTraitUpdatableDataSink::GetBytes(const char * apPath, BytesData * apBytesData)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVReader reader;
@@ -483,38 +488,9 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::GetString(const char * apPath, char *
     err = reader.Next();
     SuccessOrExit(err);
 
-    err = reader.GetString(aValue, sizeof(aValue));
+    apBytesData->mDataLen = reader.GetLength();
+    err = reader.GetDataPtr(apBytesData->mpDataBuf);
     SuccessOrExit(err);
-
-exit:
-    WeaveLogFunctError(err);
-    return err;
-}
-
-WEAVE_ERROR GenericTraitUpdatableDataSink::GetBytes(const char * apPath, BytesData * apBytesData)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    PacketBuffer *pMsgBuf = NULL;
-    PropertyPathHandle propertyPathHandle = kNullPropertyPathHandle;
-    std::map<PropertyPathHandle, PacketBuffer *>::iterator it;
-
-    VerifyOrExit(NULL != apBytesData, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    err = GetSchemaEngine()->MapPathToHandle(apPath, propertyPathHandle);
-    SuccessOrExit(err);
-
-    it = mPathTlvDataMap.find(propertyPathHandle);
-    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INCORRECT_STATE);
-
-    pMsgBuf = mPathTlvDataMap[propertyPathHandle];
-
-#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
-    err = DebugPrettyPrint(pMsgBuf);
-    SuccessOrExit(err);
-#endif //WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
-
-    apBytesData->mpDataBuf = pMsgBuf->Start();
-    apBytesData->mDataLen = pMsgBuf->DataLength();
 
 exit:
     WeaveLogFunctError(err);

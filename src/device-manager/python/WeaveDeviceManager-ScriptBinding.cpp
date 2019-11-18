@@ -263,7 +263,6 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_Close(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_RefreshData(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, DMCompleteFunct onComplete, DMErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_SetTLVBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, ConstructBytesArrayFunct aCallback);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetTLVBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, ConstructBytesArrayFunct aCallback);
     NL_DLL_EXPORT uint64_t nl_Weave_GenericTraitUpdatableDataSink_GetVersion(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink);
 }
@@ -1364,18 +1363,6 @@ WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_SetTLVBytes(GenericTraitUpdat
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     err = apGenericTraitUpdatableDataSink->SetTLVBytes(apPath, dataBuf, dataLen, aIsConditional);
-    return err;
-}
-
-WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, ConstructBytesArrayFunct aCallback)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    BytesData bytesData;
-    err = apGenericTraitUpdatableDataSink->GetBytes(apPath, &bytesData);
-    SuccessOrExit(err);
-    aCallback(bytesData.mpDataBuf, bytesData.mDataLen);
-
-exit:
     return err;
 }
 

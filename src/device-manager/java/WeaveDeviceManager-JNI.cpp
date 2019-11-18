@@ -2847,6 +2847,43 @@ exit:
 
     return err;
 }
+
+WEAVE_ERROR N2J_NewStringUTFViaByteArray(JNIEnv *env, const uint8_t *inArray, uint32_t inArrayLen, jstring& outString)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    jbyteArray charArray = NULL;
+    jstring utf8Encoding = NULL;
+    jclass java_lang_String = NULL;
+    jmethodID ctor = NULL;
+
+    err = N2J_ByteArray(env, inArray, inArrayLen, charArray);
+    SuccessOrExit(err);
+
+    utf8Encoding = env->NewStringUTF("UTF-8");
+    VerifyOrExit(utf8Encoding != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    java_lang_String = env->FindClass("java/lang/String");
+    VerifyOrExit(java_lang_String != NULL, err = WDM_JNI_ERROR_TYPE_NOT_FOUND);
+
+    ctor = env->GetMethodID(java_lang_String, "<init>", "([BLjava/lang/String;)V");
+    VerifyOrExit(ctor != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
+
+    outString = (jstring) env->NewObject(java_lang_String, ctor, charArray, utf8Encoding);
+    VerifyOrExit(outString != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    exit:
+    // error code propagated from here, so clear any possible
+    // exceptions that arose here
+    env->ExceptionClear();
+
+    if (utf8Encoding != NULL)
+    env->DeleteLocalRef(utf8Encoding);
+    if (charArray != NULL)
+    env->DeleteLocalRef(charArray);
+
+    return err;
+}
+
 #if CURRENTLY_UNUSED
 
 WEAVE_ERROR J2N_EnumVal(JNIEnv *env, jobject enumObj, int& outVal)
@@ -3962,8 +3999,9 @@ jstring Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getString(JNI
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     jstring valueStr = NULL;
-    char buf[1024];
     const char *pPathStr = NULL;
+    BytesData bytesData;
+
     GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
 
     WeaveLogProgress(DeviceManager, "getString() called");
@@ -3971,10 +4009,11 @@ jstring Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getString(JNI
     pPathStr = env->GetStringUTFChars(path, 0);
     VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    err = pDataSink->GetString(pPathStr, buf);
+    err = pDataSink->GetString(pPathStr, &bytesData);
     SuccessOrExit(err);
 
-    valueStr = env->NewStringUTF(buf);
+    err = N2J_NewStringUTFViaByteArray(env, bytesData.mpDataBuf, bytesData.mDataLen, valueStr);
+    SuccessOrExit(err);
 
 exit:
     if (pPathStr != NULL)
@@ -3995,7 +4034,7 @@ jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getBytes(J
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     jbyteArray value = NULL;
     const char *pPathStr = NULL;
-    BytesData dataBytes;
+    BytesData bytesData;
 
     GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
 
@@ -4004,10 +4043,10 @@ jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getBytes(J
     pPathStr = env->GetStringUTFChars(path, 0);
     VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    err = pDataSink->GetBytes(pPathStr, &dataBytes);
+    err = pDataSink->GetBytes(pPathStr, &bytesData);
     SuccessOrExit(err);
 
-    err = N2J_ByteArray(env, dataBytes.mpDataBuf, dataBytes.mDataLen, value);
+    err = N2J_ByteArray(env, bytesData.mpDataBuf, bytesData.mDataLen, value);
     SuccessOrExit(err);
 
 exit:

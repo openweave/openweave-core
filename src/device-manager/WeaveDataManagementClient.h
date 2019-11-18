@@ -50,7 +50,7 @@ using namespace ::nl::Weave::Profiles::DataManagement_Current;
 class NL_DLL_EXPORT BytesData
 {
 public:
-    uint8_t * mpDataBuf;
+    const uint8_t * mpDataBuf;
     uint32_t mDataLen;
 };
 
@@ -93,7 +93,7 @@ public:
     WEAVE_ERROR GetData(const char * apPath, double& aValue);
 
     WEAVE_ERROR GetBoolean(const char * apPath, bool& aValue);
-    WEAVE_ERROR GetString(const char * apPath, char * aValue);
+    WEAVE_ERROR GetString(const char * apPath, BytesData * apBytesData);
     WEAVE_ERROR GetBytes(const char * apPath, BytesData * apBytesData);
     WEAVE_ERROR GetTLVBytes(const char * apPath, BytesData * apBytesData);
     WEAVE_ERROR IsNull(const char * apPath, bool & aIsNull);

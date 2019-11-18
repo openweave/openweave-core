@@ -133,7 +133,7 @@ class GenericTraitUpdatableDataSink:
             print "traitInstance is not ready"
             return
 
-        data = self._getBytes(path)
+        data = self._getTLVBytes(path)
         try :
             return self._getDataHelper(data)
         except:
@@ -242,17 +242,7 @@ class GenericTraitUpdatableDataSink:
 
         return item["value"]
 
-    def _getBytes(self, path):
-        def HandleConstructBytesArray(dataBuf, dataLen):
-            self._weaveStack.callbackRes = WeaveStack.VoidPtrToByteArray(dataBuf, dataLen)
-
-        cbHandleConstructBytesArray = _ConstructBytesArrayFunct(HandleConstructBytesArray)
-        if self._traitInstance != None:
-            return self._weaveStack.Call(
-                lambda: self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetBytes(self._traitInstance, path, cbHandleConstructBytesArray)
-            )
-
-    def getTLVBytes(self, path):
+    def _getTLVBytes(self, path):
         def HandleConstructBytesArray(dataBuf, dataLen):
             self._weaveStack.callbackRes = WeaveStack.VoidPtrToByteArray(dataBuf, dataLen)
 
@@ -278,8 +268,6 @@ class GenericTraitUpdatableDataSink:
             self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_RefreshData.restype = c_uint32
             self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_SetTLVBytes.argtypes = [ c_void_p, c_char_p, c_void_p, c_uint32, c_bool ]
             self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_SetTLVBytes.restype = c_uint32
-            self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetBytes.argtypes = [ c_void_p, c_char_p, _ConstructBytesArrayFunct ]
-            self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetBytes.restype = c_uint32
             self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetTLVBytes.argtypes = [ c_void_p, c_char_p, _ConstructBytesArrayFunct ]
             self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetTLVBytes.restype = c_uint32
             self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetVersion.argtypes = [ c_void_p ]
