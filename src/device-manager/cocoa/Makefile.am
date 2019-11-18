@@ -63,6 +63,8 @@ libNLWeaveDeviceManager_a_HEADERS        = \
     NLWeavePasscodeEncryptionSupport.h     \
     NLWeaveKeyExportClient.h               \
     NLWeaveKeyExportSupport.h              \
+    NLWDMClient.h                          \
+    NLGenericTraitUpdatableDataSink.h      \
     $(NULL)
 
 noinst_HEADERS                           = \
@@ -71,6 +73,8 @@ noinst_HEADERS                           = \
     NLWeaveDeviceDescriptor_Protected.h    \
     NLWeaveError_Protected.h               \
     NLWeaveDeviceManager_Protected.h       \
+    NLWDMClient_Protected.h                \
+    NLGenericTraitUpdatableDataSink_Protected.h       \
     $(NULL)
 
 libNLWeaveDeviceManager_a_SOURCES        = \
@@ -93,6 +97,8 @@ libNLWeaveDeviceManager_a_SOURCES        = \
     NLWeavePasscodeEncryptionSupport.mm    \
     NLWeaveKeyExportClient.mm              \
     NLWeaveKeyExportSupport.mm             \
+    NLWDMClient.mm.                        \
+    NLGenericTraitUpdatableDataSink.mm     \
     $(NULL)
 
 endif # WEAVE_WITH_COCOA

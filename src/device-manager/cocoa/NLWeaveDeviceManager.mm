@@ -385,6 +385,15 @@ exit:
     return err;
 }
 
+- (WEAVE_ERROR)GetDeviceMgrPtr:(long long*)deviceMgrPtr
+{
+    __block WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WDM_LOG_METHOD_SIG();
+    *deviceMgrPtr = (long long)_mWeaveCppDM;
+
+    return err;
+}
+
 - (WEAVE_ERROR)GetDeviceAddress:(NSMutableString *)strAddr;
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1944,32 +1953,3 @@ static void onPairTokenComplete(nl::Weave::DeviceManager::WeaveDeviceManager * d
 }
 
 @end
-
-namespace nl {
-namespace Weave {
-namespace Profiles {
-namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
-
-SubscriptionEngine * SubscriptionEngine::GetInstance()
-{
-    static nl::Weave::Profiles::DataManagement::SubscriptionEngine sWdmSubscriptionEngine;
-    return &sWdmSubscriptionEngine;
-}
-
-namespace Platform {
-void CriticalSectionEnter()
-{
-    return;
-}
-
-void CriticalSectionExit()
-{
-    return;
-}
-
-} // Platform
-
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl

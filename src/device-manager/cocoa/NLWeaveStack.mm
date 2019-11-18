@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2015-2017 Nest Labs, Inc.
+ *    Copyright (c) 2015-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google, LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +34,7 @@
 #import "NLWeaveBleDelegate_Protected.h"
 #import "NLWeaveDeviceManager.h"
 #import "NLWeaveDeviceManager_Protected.h"
+#import "NLWDMClient_Protected.h"
 
 @interface NLWeaveStack () {
     dispatch_queue_t _mWorkQueue;
@@ -43,6 +45,8 @@
     nl::Weave::WeaveMessageLayer _mMessageLayer;
     nl::Weave::WeaveExchangeManager _mExchangeMgr;
     nl::Weave::WeaveSecurityManager _mSecurityMgr;
+    NLWeaveDeviceManager * _mDeviceMgr;
+    NLWDMClient * _mWDMClient;
 
     // for shutdown
     bool _mIsWaitingOnSelect;
@@ -465,15 +469,30 @@ exit:
 {
     WDM_LOG_METHOD_SIG();
 
-    NLWeaveDeviceManager * wdm = [[NLWeaveDeviceManager alloc] init:name
+    NLWeaveDeviceManager * _mDeviceMgr = [[NLWeaveDeviceManager alloc] init:name
                                                      weaveWorkQueue:_mWorkQueue
                                                    appCallbackQueue:appCallbackQueue
                                                         exchangeMgr:&_mExchangeMgr
                                                         securityMgr:&_mSecurityMgr];
-    if (nil == wdm) {
+    if (nil == _mDeviceMgr) {
         WDM_LOG_ERROR(@"Cannot create new NLWeaveDeviceManager\n");
     }
-    return wdm;
+    return _mDeviceMgr;
 }
 
+- (NLWDMClient *)createWDMClient:(NSString *)name appCallbackQueue:(dispatch_queue_t)appCallbackQueue
+{
+    WDM_LOG_METHOD_SIG();
+
+    NLWDMClient * _mWDMClient = [[NLWDMClient alloc] init:name
+                                         weaveWorkQueue:_mWorkQueue
+                                         appCallbackQueue:appCallbackQueue
+                                         exchangeMgr:&_mExchangeMgr
+                                         messageLayer:&_mMessageLayer
+                                         nlWeaveDeviceManager:_mDeviceMgr];
+    if (nil == _mWDMClient) {
+        WDM_LOG_ERROR(@"Cannot create new NLWDMClient\n");
+    }
+    return _mWDMClient;
+}
 @end
