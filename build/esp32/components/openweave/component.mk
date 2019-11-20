@@ -152,7 +152,11 @@ check-config-args-updated : | $(OUTPUT_DIR)
 $(OUTPUT_DIR)/config.args : check-config-args-updated
 	@: # Null action required to work around make's crazy timestamp caching behavior.
 
-$(OUTPUT_DIR)/config.status : $(OUTPUT_DIR)/config.args
+$(OPENWEAVE_ROOT)/configure : $(OPENWEAVE_ROOT)/configure.ac
+	echo "BOOTSTRAP OPENWEAVE..."
+	(cd $(OPENWEAVE_ROOT) && ./bootstrap)
+
+$(OUTPUT_DIR)/config.status : $(OPENWEAVE_ROOT)/configure $(OUTPUT_DIR)/config.args
 	echo "CONFIGURE OPENWEAVE..."
 	(cd $(OUTPUT_DIR) && $(OPENWEAVE_ROOT)/configure $(CONFIGURE_OPTIONS))
 
