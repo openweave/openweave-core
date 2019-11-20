@@ -23,6 +23,7 @@
 from ctypes import *
 from WeaveStack import *
 from GenericTraitUpdatableDataSink import *
+from ResourceIdentifier import *
 
 __all__ = [ 'WDMClient' ]
 
@@ -64,14 +65,16 @@ class WDMClient():
             )
             self._wdmClientPtr = None
 
-    def newDataSink(self, resourceType, resourceId, resourceIdLen, profileId, instanceId, path):
+    def newDataSink(self, resourceIdentifier, profileId, instanceId, path):
         traitInstance = c_void_p(None)
         if (self._wdmClientPtr == None):
             print "wdmClient is not ready"
             return
 
+        _resourceIdentifier = ResourceIdentifierStruct.fromResourceIdentifier(resourceIdentifier)
+
         res = self._weaveStack.Call(
-            lambda: self._datamanagmentLib.nl_Weave_WDMClient_NewDataSink(self._wdmClientPtr, resourceType, resourceId, resourceIdLen, profileId, instanceId, path, pointer(traitInstance))
+            lambda: self._datamanagmentLib.nl_Weave_WDMClient_NewDataSink(self._wdmClientPtr, _resourceIdentifier, profileId, instanceId, path, pointer(traitInstance))
         )
         if (res != 0):
             raise self._weaveStack.ErrorToException(res)
@@ -122,7 +125,7 @@ class WDMClient():
             self._datamanagmentLib.nl_Weave_WDMClient_DeleteWDMClient.argtypes = [ c_void_p ]
             self._datamanagmentLib.nl_Weave_WDMClient_DeleteWDMClient.restype = c_uint32
 
-            self._datamanagmentLib.nl_Weave_WDMClient_NewDataSink.argtypes = [ c_void_p, c_uint16, c_void_p, c_uint32, c_uint32, c_uint64, c_char_p, c_void_p ]
+            self._datamanagmentLib.nl_Weave_WDMClient_NewDataSink.argtypes = [ c_void_p, POINTER(ResourceIdentifierStruct), c_uint32, c_uint64, c_char_p, c_void_p ]
             self._datamanagmentLib.nl_Weave_WDMClient_NewDataSink.restype = c_uint32
 
             self._datamanagmentLib.nl_Weave_WDMClient_FlushUpdate.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]

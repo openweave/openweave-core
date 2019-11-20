@@ -142,9 +142,10 @@ class GenericTraitUpdatableDataSink:
     def _getDataHelper(self, data):
         """
         Unpack weave tlv data from bytestring
-        Todo: create new class tlvreader to process bytestring
+        Todo: create new class tlvreader to process tlv bytes
         """
-        buffer = data
+        # skip 1 byte anonymous structure
+        buffer = data[1:]
         item = {}
 
         ### Grab control byte and parse it

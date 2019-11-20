@@ -534,6 +534,8 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::GetTLVBytes(const char * apPath, Byte
 
     apBytesData->mpDataBuf = pMsgBuf->Start();
     apBytesData->mDataLen = pMsgBuf->DataLength();
+    apBytesData->mpMsgBuf = pMsgBuf;
+    pMsgBuf = NULL;
 
 exit:
     WeaveLogFunctError(err);
@@ -543,7 +545,6 @@ exit:
         PacketBuffer::Free(pMsgBuf);
         pMsgBuf = NULL;
     }
-
     return err;
 }
 

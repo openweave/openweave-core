@@ -256,7 +256,7 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WDMClient_Shutdown();
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WDMClient_NewWDMClient(WDMClient **outWDMClient, WeaveDeviceManager *devMgr);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WDMClient_DeleteWDMClient(WDMClient *wdmClient);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WDMClient_NewDataSink(WDMClient *wdmClient, uint16_t aResourceType, const uint8_t * aResourceId, size_t aResourceIdLen, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitUpdatableDataSink ** outGenericTraitUpdatableDataSink);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WDMClient_NewDataSink(WDMClient *wdmClient, const ResourceIdentifier *resourceIdentifier, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitUpdatableDataSink ** outGenericTraitUpdatableDataSink);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WDMClient_FlushUpdate(WDMClient *wdmClient, DMCompleteFunct onComplete, DMErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WDMClient_RefreshData(WDMClient *wdmClient, DMCompleteFunct onComplete, DMErrorFunct onError);
 
@@ -1309,20 +1309,10 @@ WEAVE_ERROR nl_Weave_WDMClient_DeleteWDMClient(WDMClient *wdmClient)
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR nl_Weave_WDMClient_NewDataSink(WDMClient *wdmClient, uint16_t aResourceType, const uint8_t * aResourceId, size_t aResourceIdLen, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitUpdatableDataSink ** outGenericTraitUpdatableDataSink)
+WEAVE_ERROR nl_Weave_WDMClient_NewDataSink(WDMClient *wdmClient, const ResourceIdentifier *resourceIdentifier, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitUpdatableDataSink ** outGenericTraitUpdatableDataSink)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    ResourceIdentifier resourceId;
-    if (NULL == aResourceId)
-    {
-        resourceId = ResourceIdentifier(ResourceIdentifier::RESOURCE_TYPE_RESERVED, ResourceIdentifier::SELF_NODE_ID);
-    }
-    else
-    {
-        resourceId = ResourceIdentifier(aResourceType, aResourceId, aResourceIdLen);
-    }
-
-    err = wdmClient->NewDataSink(resourceId, aProfileId, aInstanceId, apPath, *outGenericTraitUpdatableDataSink);
+    err = wdmClient->NewDataSink(*resourceIdentifier, aProfileId, aInstanceId, apPath, *outGenericTraitUpdatableDataSink);
     return err;
 }
 
@@ -1373,6 +1363,7 @@ WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetTLVBytes(GenericTraitUpdat
     err = apGenericTraitUpdatableDataSink->GetTLVBytes(apPath, &bytesData);
     SuccessOrExit(err);
     aCallback(bytesData.mpDataBuf, bytesData.mDataLen);
+    bytesData.Clear();
 
 exit:
     return err;

@@ -63,7 +63,7 @@ public class WDMClient implements WDMClientInterface
     }
 
     @Override
-    public GenericTraitUpdatableDataSink newDataSink(int resourceType, byte[] resourceId, long profileId, long instanceId, String path)
+    public GenericTraitUpdatableDataSink newDataSink(ResourceIdentifier resourceIdentifier, long profileId, long instanceId, String path)
     {
         long traitInstancePtr = 0;
         boolean isExist = false;
@@ -80,7 +80,7 @@ public class WDMClient implements WDMClientInterface
             return null;
         }
 
-        traitInstancePtr = newDataSink(mWDMClientPtr, resourceType, resourceId, profileId, instanceId, path);
+        traitInstancePtr = newDataSink(mWDMClientPtr, resourceIdentifier, profileId, instanceId, path);
 
         if (traitInstancePtr == 0)
         {
@@ -202,7 +202,7 @@ public class WDMClient implements WDMClientInterface
     private native void init();
     private native long newWDMClient(long deviceMgrPtr);
     private native void deleteWDMClient(long wdmClientPtr);
-    private native long newDataSink(long wdmClientPtr, int resourceType, byte[] resourceId, long profileId, long instanceId, String path);
+    private native long newDataSink(long wdmClientPtr, ResourceIdentifier resourceIdentifier, long profileId, long instanceId, String path);
     private native void beginFlushUpdate(long wdmClientPtr);
     private native void beginRefreshData(long wdmClientPtr);
 };

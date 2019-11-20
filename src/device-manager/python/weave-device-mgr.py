@@ -70,6 +70,7 @@ from openweave import WeaveStack
 from openweave import WeaveDeviceMgr
 from openweave import WDMClient
 from openweave import GenericTraitUpdatableDataSink
+from openweave import ResourceIdentifier
 
 if platform.system() == 'Darwin':
     from openweave.WeaveCoreBluetoothMgr import CoreBluetoothManager as BleManager
@@ -2474,21 +2475,32 @@ class DeviceMgrCmd(Cmd):
 
     def do_newdatasink(self, line):
         """
-          new-data-sink <profileid, instanceid, path>
+          new-data-sink <profileid> <instanceid> <path> [ <field>=<value>... ]
+          <field>:
+              ResourceType
+              ResourceIdUint64 or ResourceIdBytes
         """
         if self.wdmClient == None:
             print "wdmclient not initialized"
             return
 
         args = shlex.split(line)
+        print args
 
-        if (len(args) == 3):
-            path = args[2]
-        else:
-            path = None
+        resourceIdentifier = ResourceIdentifier.ResourceIdentifier()
+        for resourceIdentifierVal in args[3:]:
+            nameVal = resourceIdentifierVal.split('=', 1)
+            if (len(nameVal) < 2):
+                print "Invalid argument: resourceIdentifierVal"
+                return
+            try:
+                resourceIdentifier.SetField(nameVal[0], nameVal[1])
+            except Exception, ex:
+                print str(ex)
+                return
 
         try:
-            self.traitInstance = self.wdmClient.newDataSink(0, None, 0, int(args[0]), int(args[1]), path)
+            self.traitInstance = self.wdmClient.newDataSink(resourceIdentifier, int(args[0]), int(args[1]), int(args[2]))
         except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return

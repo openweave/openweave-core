@@ -100,6 +100,7 @@ static jclass sWeaveDeviceManagerCls = NULL;
 static jclass sWeaveStackCls = NULL;
 static jclass sWDMClientCls = NULL;
 static jclass sGenericTraitUpdatableDataSinkCls = NULL;
+static jclass sResourceIdentifierCls = NULL;
 
 extern "C" {
     NL_DLL_EXPORT jint JNI_OnLoad(JavaVM *jvm, void *reserved);
@@ -172,7 +173,7 @@ extern "C" {
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClient_init(JNIEnv *env, jobject self);
     NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_WDMClient_newWDMClient(JNIEnv *env, jobject self, jlong deviceMgrPtr);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClient_deleteWDMClient(JNIEnv *env, jobject self, jlong wdmClientPtr);
-    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_WDMClient_newDataSink(JNIEnv *env, jobject self, jlong wdmClientPtr, jint resourceType, jbyteArray resourceId, jlong profileId, jlong instanceId, jstring path);
+    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_WDMClient_newDataSink(JNIEnv *env, jobject self, jlong wdmClientPtr, jobject resourceIdentifierObj, jlong profileId, jlong instanceId, jstring path);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClient_beginFlushUpdate(JNIEnv *env, jobject self, jlong wdmClientPtr);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClient_beginRefreshData(JNIEnv *env, jobject self, jlong wdmClientPtr);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_init(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
@@ -237,6 +238,7 @@ static WEAVE_ERROR N2J_NetworkInfoArray(JNIEnv *env, const NetworkInfo *inArray,
 static WEAVE_ERROR N2J_DeviceDescriptor(JNIEnv *env, const WeaveDeviceDescriptor& inDeviceDesc, jobject& outDeviceDesc);
 static WEAVE_ERROR N2J_Error(JNIEnv *env, WEAVE_ERROR inErr, jthrowable& outEx);
 static WEAVE_ERROR N2J_DeviceStatus(JNIEnv *env, DeviceStatus& devStatus, jthrowable& outEx);
+static WEAVE_ERROR J2N_ResourceIdentifier(JNIEnv *env, jobject inResourceIdentifier, ResourceIdentifier& outResourceIdentifier);
 static WEAVE_ERROR GetClassRef(JNIEnv *env, const char *clsType, jclass& outCls);
 
 static void EngineEventCallback(void * const aAppState,
@@ -283,6 +285,8 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
     err = GetClassRef(env, "nl/Weave/DataManagement/WDMClient", sWDMClientCls);
     SuccessOrExit(err);
     err = GetClassRef(env, "nl/Weave/DataManagement/GenericTraitUpdatableDataSink", sGenericTraitUpdatableDataSinkCls);
+    SuccessOrExit(err);
+    err = GetClassRef(env, "nl/Weave/DataManagement/ResourceIdentifier", sResourceIdentifierCls);
     SuccessOrExit(err);
     WeaveLogProgress(DeviceManager, "Java class references loaded.");
 
@@ -3424,6 +3428,35 @@ exit:
     return err;
 }
 
+WEAVE_ERROR J2N_ResourceIdentifier(JNIEnv *env, jobject inResourceIdentifier, ResourceIdentifier & outResourceIdentifier)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    jlong longVal = 0;
+    uint32_t len;
+    int enumVal;
+    uint8_t * ResourceIdBytes = NULL;
+
+    err = J2N_EnumFieldVal(env, inResourceIdentifier, "ResourceTypeEnum", "Lnl/Weave/DataManagement/ResourceType;", enumVal);
+    SuccessOrExit(err);
+
+    err = J2N_LongFieldVal(env, inResourceIdentifier, "ResourceIdInt64", longVal);
+    SuccessOrExit(err);
+
+    err = J2N_ByteArrayFieldVal(env, inResourceIdentifier, "ResourceIdBytes", ResourceIdBytes, len);
+    SuccessOrExit(err);
+
+    if ( ResourceIdBytes != NULL)
+    {
+        outResourceIdentifier = ResourceIdentifier(enumVal, ResourceIdBytes, len);
+    }
+    else
+    {
+        outResourceIdentifier = ResourceIdentifier(enumVal, (uint64_t) longVal);
+    }
+exit:
+    return err;
+}
+
 WEAVE_ERROR GetClassRef(JNIEnv *env, const char *clsType, jclass& outCls)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -3584,39 +3617,29 @@ void Java_nl_Weave_DataManagement_WDMClient_deleteWDMClient(JNIEnv *env, jobject
     }
 }
 
-jlong Java_nl_Weave_DataManagement_WDMClient_newDataSink(JNIEnv *env, jobject self, jlong wdmClientPtr, jint resourceType, jbyteArray resourceId, jlong profileId, jlong instanceId, jstring path)
+jlong Java_nl_Weave_DataManagement_WDMClient_newDataSink(JNIEnv *env, jobject self, jlong wdmClientPtr, jobject resourceIdentifierObj, jlong profileId, jlong instanceId, jstring path)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     long res = 0;
     const char *pPathStr = NULL;
-    const uint8_t *resourceIdBuf;
-    ResourceIdentifier resId;
-    GenericTraitUpdatableDataSink * pDataSink = NULL;
-    uint32_t resourceIdLen = 0;
+    ResourceIdentifier resourceIdentifier;
+    GenericTraitUpdatableDataSink * dataSink = NULL;
     WDMClient  *wdmClient = (WDMClient *)wdmClientPtr;
 
     WeaveLogProgress(DeviceManager, "newDataSink() called");
 
-    if (NULL == resourceId)
-    {
-        resId = ResourceIdentifier(ResourceIdentifier::RESOURCE_TYPE_RESERVED, ResourceIdentifier::SELF_NODE_ID);
-    }
-    else
-    {
-        resourceIdLen = env->GetArrayLength(resourceId);
-        resourceIdBuf = (const uint8_t *)env->GetByteArrayElements(resourceId, NULL);
-        resId = ResourceIdentifier((uint16_t)resourceType, resourceIdBuf, resourceIdLen);
-    }
+    err = J2N_ResourceIdentifier(env, resourceIdentifierObj, resourceIdentifier);
+    SuccessOrExit(err);
 
     pPathStr = env->GetStringUTFChars(path, 0);
     VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    err = wdmClient->NewDataSink(resId, (uint32_t)profileId, (uint64_t)instanceId, pPathStr, pDataSink);
+    err = wdmClient->NewDataSink(resourceIdentifier, (uint32_t)profileId, (uint64_t)instanceId, pPathStr, dataSink);
 
 exit:
-    if (err == WEAVE_NO_ERROR && pDataSink != NULL)
+    if (err == WEAVE_NO_ERROR && dataSink != NULL)
     {
-        res = (long) pDataSink;
+        res = (long) dataSink;
     }
 
     if (pPathStr != NULL)

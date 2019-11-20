@@ -50,8 +50,20 @@ using namespace ::nl::Weave::Profiles::DataManagement_Current;
 class NL_DLL_EXPORT BytesData
 {
 public:
+    BytesData() : mpDataBuf(NULL), mDataLen(0), mpMsgBuf(NULL)
+    {
+    }
+    void Clear()
+    {
+        if(mpMsgBuf != NULL)
+            PacketBuffer::Free(mpMsgBuf);
+        mpDataBuf = NULL;
+        mDataLen = 0;
+    }
+
     const uint8_t * mpDataBuf;
     uint32_t mDataLen;
+    PacketBuffer *mpMsgBuf;
 };
 
 class GenericTraitUpdatableDataSink;

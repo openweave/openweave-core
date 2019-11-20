@@ -109,6 +109,8 @@ WeaveDeviceManager_jar_JAVA_SRCS                   =        \
 	nl/Weave/DataManagement/GenericTraitUpdatableDataSinkInterface.java 				    \
 	nl/Weave/DataManagement/GenericTraitUpdatableDataSink.java \
 	nl/Weave/DataManagement/WDMClientFactoryInterface.java 				    \
+	nl/Weave/DataManagement/ResourceIdentifier.java 				    \
+	nl/Weave/DataManagement/ResourceType.java 				    \
     $(NULL)
 
 WeaveDeviceManager_jar_JFLAGS                      = -source 6 -target 6

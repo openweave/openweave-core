@@ -33,6 +33,7 @@ openweave_PYTHON                                  = \
     openweave/WeaveDeviceMgr.py                     \
     openweave/WDMClient.py         				    \
     openweave/GenericTraitUpdatableDataSink.py      \
+	openweave/ResourceIdentifier.py                 \
     openweave/WeaveStack.py		                    \
     openweave/WeaveTLV.py		                    \
     openweave/WeaveBleBase.py                       \

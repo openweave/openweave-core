@@ -20,7 +20,7 @@ package nl.Weave.DataManagement;
 public interface WDMClientInterface
 {
     public void close();
-    public GenericTraitUpdatableDataSink newDataSink(int resourceType, byte[] resourceId, long profileId, long instanceId, String path);
+    public GenericTraitUpdatableDataSink newDataSink(ResourceIdentifier resourceIdentifier, long profileId, long instanceId, String path);
     public void beginFlushUpdate();
     public void beginRefreshData();
 
