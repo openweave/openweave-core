@@ -194,7 +194,11 @@ define OpenWeaveBuildRules
 $(OPENWEAVE_OUTPUT_DIR)/config.args : .check-config-weave
 	@: # Null action required to work around make's crazy timestamp caching behavior.
 
-$(OPENWEAVE_OUTPUT_DIR)/config.status : $(OPENWEAVE_OUTPUT_DIR)/config.args
+$(OPENWEAVE_ROOT)/configure : $(OPENWEAVE_ROOT)/configure.ac
+	@echo "$(HDR_PREFIX)BOOTSTRAP OPENWEAVE..."
+	$(NO_ECHO)(cd $(OPENWEAVE_ROOT) && ./bootstrap)
+
+$(OPENWEAVE_OUTPUT_DIR)/config.status : $(OPENWEAVE_ROOT)/configure $(OPENWEAVE_OUTPUT_DIR)/config.args
 	@echo "$(HDR_PREFIX)CONFIGURE OPENWEAVE..."
 	$(NO_ECHO)(cd $(OPENWEAVE_OUTPUT_DIR) && $(OPENWEAVE_ROOT)/configure $(OPENWEAVE_CONFIGURE_OPTIONS))
 
