@@ -481,11 +481,10 @@ static void onWDMClientError(void * wdmClient, void * appReqState, WEAVE_ERROR c
     }
 }
 
-- (NLGenericTraitUpdatableDataSink *)newDataSinkResourceType: (uint16_t)resourceType
-                                                ResourceId: (NSString *)resourceId
-                                                 ProfileId: (uint32_t)profileId
-                                                InstanceId: (uint64_t)instanceId
-                                                      Path: (NSString *)path;
+- (NLGenericTraitUpdatableDataSink *)newDataSinkResourceIdentifier:(NLResourceIdentifier *)nlResourceIdentifier
+                                                         ProfileId: (uint32_t)profileId
+                                                        InstanceId: (uint64_t)instanceId
+                                                              Path: (NSString *)path;
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block uint64_t result = 0;
@@ -496,21 +495,8 @@ static void onWDMClientError(void * wdmClient, void * appReqState, WEAVE_ERROR c
     //VerifyOrExit(NULL != _mWeaveCppWDMClient, err = WEAVE_ERROR_INCORRECT_STATE);
 
     dispatch_sync(_mWeaveWorkQueue, ^() {
-        Base64Encoding * base64coder = [Base64Encoding createBase64StringEncoding];
-        NSData * resourceIdData = [base64coder decode:resourceId];
-
-        if (nil == resourceId)
-        {
-            ResourceIdentifier resId = ResourceIdentifier(ResourceIdentifier::RESOURCE_TYPE_RESERVED, ResourceIdentifier::SELF_NODE_ID);
-            err = _mWeaveCppWDMClient->NewDataSink(resId, profileId, instanceId, [path UTF8String], pDataSink);
-        }
-        else
-        {
-            uint32_t resourceIdLen = (uint32_t)[resourceIdData length];
-            uint8_t * pResourceId = (uint8_t *) [resourceIdData bytes];
-            ResourceIdentifier resId = ResourceIdentifier((uint16_t)resourceType, pResourceId, resourceIdLen);
-            err = _mWeaveCppWDMClient->NewDataSink(resId, profileId, instanceId, [path UTF8String], pDataSink);
-        }
+        ResourceIdentifier resId = [nlResourceIdentifier toResourceIdentifier];
+        err = _mWeaveCppWDMClient->NewDataSink(resId, profileId, instanceId, [path UTF8String], pDataSink);
     });
  
      if (err != WEAVE_NO_ERROR || pDataSink == NULL)

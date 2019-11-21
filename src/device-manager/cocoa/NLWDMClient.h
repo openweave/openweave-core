@@ -57,11 +57,10 @@ typedef void (^WDMClientFailureBlock)(id owner, NSError * error);
 - (NSString *)toErrorString:(WEAVE_ERROR)err;
 //-(NSError *)toError:(WEAVE_ERROR)err;
 
-- (NLGenericTraitUpdatableDataSink *)newDataSinkResourceType: (uint16_t)resourceType
-                                                  ResourceId: (NSString *)resourceId
-                                                   ProfileId: (uint32_t)profileId
-                                                  InstanceId: (uint64_t)instanceId
-                                                        Path: (NSString *)path;
+- (NLGenericTraitUpdatableDataSink *)newDataSinkResourceIdentifier:(NLResourceIdentifier *)nlResourceIdentifier
+                                                         ProfileId: (uint32_t)profileId
+                                                        InstanceId: (uint64_t)instanceId
+                                                              Path: (NSString *)path;
 
 - (void)flushUpdateCompletion:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler
                            failure:(WDMClientFailureBlock)failureHandler;
