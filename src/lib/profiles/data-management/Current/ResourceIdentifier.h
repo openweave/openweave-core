@@ -258,7 +258,7 @@ public:
 
     friend bool operator ==(const ResourceIdentifier & lhs, const ResourceIdentifier & rhs);
 
-public:
+private:
     void NormalizeResource(void);
     void NormalizeResource(const uint64_t & aSelfNodeId);
     uint16_t ResourceType;

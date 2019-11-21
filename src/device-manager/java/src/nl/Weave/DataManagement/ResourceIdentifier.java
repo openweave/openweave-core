@@ -32,7 +32,7 @@ public class ResourceIdentifier
         ResourceIdBytes = null;
     }
 
-    public ResourceType ResourceTypeEnum;
+    private ResourceType ResourceTypeEnum;
 
     private long ResourceIdInt64;
 
