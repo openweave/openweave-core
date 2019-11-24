@@ -29,416 +29,46 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 
-public class GenericTraitUpdatableDataSink implements GenericTraitUpdatableDataSinkInterface
+public interface GenericTraitUpdatableDataSink
 {
-    protected GenericTraitUpdatableDataSink(long traitInstancePtr, WDMClient wdmClient)
+    public void setSigned(String path, int value, boolean isConditional);
+    public void setSigned(String path, long value, boolean isConditional);
+    public void setSigned(String path, BigInteger value, boolean isConditional);
+    public void setUnsigned(String path, int value, boolean isConditional);
+    public void setUnsigned(String path, long value, boolean isConditional);
+    public void setUnsigned(String path, BigInteger value, boolean isConditional);
+    public void set(String path, double value, boolean isConditional);
+    public void set(String path, boolean value, boolean isConditional);
+    public void set(String path, String value, boolean isConditional);
+    public void set(String path, byte[] value, boolean isConditional);
+    public void setNULL(String path, boolean isConditional);
+    public void setSigned(String path, int value);
+    public void setSigned(String path, long value);
+    public void setSigned(String path, BigInteger value);
+    public void setUnsigned(String path, int value);
+    public void setUnsigned(String path, long value);
+    public void setUnsigned(String path, BigInteger value);
+    public void set(String path, double value);
+    public void set(String path, boolean value);
+    public void set(String path, String value);
+    public void set(String path, byte[] value);
+    public void setNULL(String path);
+    public int getInt(String path);
+    public long getLong(String path);
+    public BigInteger getBigInteger(String path, int bitLen);
+    public double getDouble(String path);
+    public boolean getBoolean(String path);
+    public String getString(String path);
+    public byte[] getBytes(String path);
+    public long getVersion();
+    public void beginRefreshData();
+
+    public CompletionHandler getCompletionHandler();
+    public void setCompletionHandler(CompletionHandler compHandler);
+
+    public interface CompletionHandler
     {
-        mWDMClient = wdmClient;
-        mTraitInstancePtr = traitInstancePtr;
-        mCompHandler = null;
-        init(mTraitInstancePtr);
+        void onRefreshDataComplete();
+        void onError(Throwable err);
     }
-
-    protected void close()
-    {
-        if (mWDMClient != null)
-        {
-            mWDMClient.removeDataSinkRef(mTraitInstancePtr);
-            mWDMClient = null;
-        }
-
-        if (mTraitInstancePtr != 0)
-        {
-            close(mTraitInstancePtr);
-            mTraitInstancePtr = 0;
-        }
-        mCompHandler = null;
-    }
-
-    @Override
-    public void setInt(String path, int value, boolean isConditional)
-    {
-        boolean isSigned = true;
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
-    }
-
-    @Override
-    public void setInt(String path, long value, boolean isConditional)
-    {
-        boolean isSigned = true;
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
-    }
-
-    @Override
-    public void setInt(String path, BigInteger value, boolean isConditional)
-    {
-        boolean isSigned = true;
-        long convertedVal = value.longValue();
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setInt(mTraitInstancePtr, path, convertedVal, isConditional, isSigned);
-    }
-
-    @Override
-    public void setUnsigned(String path, int value, boolean isConditional)
-    {
-        boolean isSigned = false;
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
-    }
-
-    @Override
-    public void setUnsigned(String path, long value, boolean isConditional)
-    {
-        boolean isSigned = false;
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setInt(mTraitInstancePtr, path, value, isConditional, isSigned);
-    }
-
-    @Override
-    public void setUnsigned(String path, BigInteger value, boolean isConditional)
-    {
-        boolean isSigned = false;
-        long convertedVal = value.longValue();
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setInt(mTraitInstancePtr, path, convertedVal, isConditional, isSigned);
-    }
-
-    @Override
-    public void setDouble(String path, double value, boolean isConditional)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setDouble(mTraitInstancePtr, path, value, isConditional);
-    }
-
-    @Override
-    public void setBoolean(String path, boolean value, boolean isConditional)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setBoolean(mTraitInstancePtr, path, value, isConditional);
-    }
-
-    @Override
-    public void setString(String path, String value, boolean isConditional)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setString(mTraitInstancePtr, path, value, isConditional);
-    }
-
-    @Override
-    public void setNULL(String path, boolean isConditional)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setNULL(mTraitInstancePtr, path, isConditional);
-    }
-
-    @Override
-    public void setBytes(String path, byte[] value, boolean isConditional)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        setBytes(mTraitInstancePtr, path, value, isConditional);
-    }
-
-    @Override
-    public void setInt(String path, int value)
-    {
-        setInt(path, value, false);
-    }
-
-    @Override
-    public void setInt(String path, long value)
-    {
-        setInt(path, value, false);
-    }
-
-    @Override
-    public void setInt(String path, BigInteger value)
-    {
-        setInt(path, value, false);
-    }
-
-    @Override
-    public void setUnsigned(String path, int value)
-    {
-        setUnsigned(path, value, false);
-    }
-
-    @Override
-    public void setUnsigned(String path, long value)
-    {
-        setUnsigned(path, value, false);
-    }
-
-    @Override
-    public void setUnsigned(String path, BigInteger value)
-    {
-        setUnsigned(path, value, false);
-    }
-
-    @Override
-    public void setDouble(String path, double value)
-    {
-        setDouble(path, value, false);
-    }
-
-    @Override
-    public void setBoolean(String path, boolean value)
-    {
-        setBoolean(path, value, false);
-    }
-
-    @Override
-    public void setString(String path, String value)
-    {
-        setString(path, value, false);
-    }
-
-    @Override
-    public void setNULL(String path)
-    {
-        setNULL(path, false);
-    }
-
-    @Override
-    public void setBytes(String path, byte[] value)
-    {
-        setBytes(path, value, false);
-    }
-
-    @Override
-    public int getInt(String path)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return 0;
-        }
-        return (int)getInt(mTraitInstancePtr, path);
-    }
-
-    @Override
-    public long getLong(String path)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return 0;
-        }
-        return (long)getInt(mTraitInstancePtr, path);
-    }
-
-    @Override
-    public BigInteger getBigInteger(String path, int bitLen)
-    {
-        long value = (long)getInt(mTraitInstancePtr, path);
-        String valStr = Long.toString(value);
-        BigInteger bigInt = new BigInteger(valStr);
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return bigInt;
-        }
-        if (bitLen != 8 && bitLen != 16 && bitLen != 32 && bitLen != 64)
-        {
-            Log.e(TAG, "Not support bit len, return original value" + bitLen);
-            return bigInt;
-        }
-        BigInteger twoComplement = BigInteger.ONE.shiftLeft(bitLen);
-
-        if (bigInt.compareTo(BigInteger.ZERO) < 0)
-            bigInt = bigInt.add(twoComplement);
-        if (bigInt.compareTo(twoComplement) >= 0)
-        {
-            Log.e(TAG, "overflow range:" + bitLen);
-            return twoComplement;
-        }
-        else if (bigInt.compareTo(BigInteger.ZERO) < 0 )
-        {
-            Log.e(TAG, "incorrect range:" + bitLen);
-            return BigInteger.ZERO;
-        }
-        else
-        {
-            return bigInt;
-        }
-    }
-
-    @Override
-    public double getDouble(String path)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return 0;
-        }
-        return getDouble(mTraitInstancePtr, path);
-    }
-
-    @Override
-    public boolean getBoolean(String path)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return false;
-        }
-        return getBoolean(mTraitInstancePtr, path);
-    }
-
-    @Override
-    public String getString(String path)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return null;
-        }
-        return getString(mTraitInstancePtr, path);
-    }
-
-    @Override
-    public byte[] getBytes(String path)
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return null;
-        }
-        return getBytes(mTraitInstancePtr, path);
-    }
-
-    @Override
-    public long getVersion()
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return 0;
-        }
-        return getVersion(mTraitInstancePtr);
-    }
-
-    @Override
-    public void beginRefreshData()
-    {
-        if (mTraitInstancePtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mTraitInstancePtr is 0");
-            return;
-        }
-        beginRefreshData(mTraitInstancePtr);
-    }
-
-    @Override
-    public CompletionHandler getCompletionHandler()
-    {
-        return mCompHandler;
-    }
-
-    @Override
-    public void setCompletionHandler(CompletionHandler compHandler)
-    {
-        mCompHandler = compHandler;
-    }
-
-    private void onError(Throwable err)
-    {
-        if (mCompHandler == null)
-        {
-            Log.e(TAG, "unexpected err, mCompHandler is null");
-            return;
-        }
-        mCompHandler.onError(err);
-    }
-
-    private void onRefreshDataComplete()
-    {
-        if (mCompHandler == null)
-        {
-            Log.e(TAG, "unexpected err, mCompHandler is null");
-            return;
-        }
-        mCompHandler.onRefreshDataComplete();
-    }
-
-    // ----- Protected Members -----
-
-    protected CompletionHandler mCompHandler;
-
-    protected void finalize() throws Throwable
-    {
-        super.finalize();
-        close();
-    }
-
-    // ----- Private Members -----
-
-    private long mTraitInstancePtr;
-    private WDMClient mWDMClient;
-    private final static String TAG = GenericTraitUpdatableDataSink.class.getSimpleName();
-
-    static {
-        System.loadLibrary("WeaveDeviceManager");
-    }
-
-    private native void init(long genericTraitUpdatableDataSinkPtr);
-    private native void close(long genericTraitUpdatableDataSinkPtr);
-    private native void beginRefreshData(long genericTraitUpdatableDataSinkPtr);
-    private native void setInt(long genericTraitUpdatableDataSinkPtr, String path, long value, boolean isConditional, boolean isSigned);
-    private native void setDouble(long genericTraitUpdatableDataSinkPtr, String path, double value, boolean isConditional);
-    private native void setBoolean(long genericTraitUpdatableDataSinkPtr, String path, boolean value, boolean isConditional);
-    private native void setString(long genericTraitUpdatableDataSinkPtr, String path, String value, boolean isConditional);
-    private native void setNULL(long genericTraitUpdatableDataSinkPtr, String path, boolean isConditional);
-    private native void setBytes(long genericTraitUpdatableDataSinkPtr, String path, byte[] value, boolean isConditional);
-    private native long getInt(long genericTraitUpdatableDataSinkPtr, String path);
-    private native double getDouble(long genericTraitUpdatableDataSinkPtr, String path);
-    private native boolean getBoolean(long genericTraitUpdatableDataSinkPtr, String path);
-    private native String getString(long genericTraitUpdatableDataSinkPtr, String path);
-    private native byte[] getBytes(long genericTraitUpdatableDataSinkPtr, String path);
-    private native long getVersion(long genericTraitUpdatableDataSinkPtr);
 };

@@ -2475,10 +2475,7 @@ class DeviceMgrCmd(Cmd):
 
     def do_newdatasink(self, line):
         """
-          new-data-sink <profileid> <instanceid> <path> [ <field>=<value>... ]
-          <field>:
-              ResourceType
-              ResourceIdUint64 or ResourceIdBytes
+          new-data-sink <profileid> <instanceid> <path>
         """
         if self.wdmClient == None:
             print "wdmclient not initialized"
@@ -2488,16 +2485,6 @@ class DeviceMgrCmd(Cmd):
         print args
 
         resourceIdentifier = ResourceIdentifier.ResourceIdentifier()
-        for resourceIdentifierVal in args[3:]:
-            nameVal = resourceIdentifierVal.split('=', 1)
-            if (len(nameVal) < 2):
-                print "Invalid argument: resourceIdentifierVal"
-                return
-            try:
-                resourceIdentifier.SetField(nameVal[0], nameVal[1])
-            except Exception, ex:
-                print str(ex)
-                return
 
         try:
             self.traitInstance = self.wdmClient.newDataSink(resourceIdentifier, int(args[0]), int(args[1]), int(args[2]))

@@ -104,13 +104,12 @@ WeaveDeviceManager_jar_JAVA_SRCS                   =        \
     nl/Weave/DeviceManager/DeviceFeatures.java              \
     nl/Weave/DeviceManager/NevisPairingCodeDecoding.java    \
 	nl/Weave/DeviceManager/WeaveDeviceManager.java 				    \
-	nl/Weave/DataManagement/WDMClientInterface.java 				    \
 	nl/Weave/DataManagement/WDMClient.java 				    \
-	nl/Weave/DataManagement/GenericTraitUpdatableDataSinkInterface.java 				    \
-	nl/Weave/DataManagement/GenericTraitUpdatableDataSink.java \
-	nl/Weave/DataManagement/WDMClientFactoryInterface.java 				    \
+	nl/Weave/DataManagement/WDMClientImpl.java 				    \
+	nl/Weave/DataManagement/GenericTraitUpdatableDataSink.java 				    \
+	nl/Weave/DataManagement/GenericTraitUpdatableDataSinkImpl.java \
+	nl/Weave/DataManagement/WDMClientFactory.java 				    \
 	nl/Weave/DataManagement/ResourceIdentifier.java 				    \
-	nl/Weave/DataManagement/ResourceType.java 				    \
     $(NULL)
 
 WeaveDeviceManager_jar_JFLAGS                      = -source 6 -target 6

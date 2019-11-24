@@ -98,9 +98,6 @@ static jclass sWeaveDeviceManagerExceptionCls = NULL;
 static jclass sWeaveDeviceDescriptorCls = NULL;
 static jclass sWeaveDeviceManagerCls = NULL;
 static jclass sWeaveStackCls = NULL;
-static jclass sWDMClientCls = NULL;
-static jclass sGenericTraitUpdatableDataSinkCls = NULL;
-static jclass sResourceIdentifierCls = NULL;
 
 extern "C" {
     NL_DLL_EXPORT jint JNI_OnLoad(JavaVM *jvm, void *reserved);
@@ -170,28 +167,28 @@ extern "C" {
     NL_DLL_EXPORT void Java_nl_Weave_DeviceManager_WeaveStack_handleConnectionError(JNIEnv *env, jobject self, jint connObj);
     NL_DLL_EXPORT jobject Java_nl_Weave_DeviceManager_WeaveDeviceDescriptor_decode(JNIEnv *env, jclass cls, jbyteArray encodedDesc);
 
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClient_init(JNIEnv *env, jobject self);
-    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_WDMClient_newWDMClient(JNIEnv *env, jobject self, jlong deviceMgrPtr);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClient_deleteWDMClient(JNIEnv *env, jobject self, jlong wdmClientPtr);
-    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_WDMClient_newDataSink(JNIEnv *env, jobject self, jlong wdmClientPtr, jobject resourceIdentifierObj, jlong profileId, jlong instanceId, jstring path);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClient_beginFlushUpdate(JNIEnv *env, jobject self, jlong wdmClientPtr);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClient_beginRefreshData(JNIEnv *env, jobject self, jlong wdmClientPtr);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_init(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_shutdown(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_close(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_beginRefreshData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jlong value, jboolean isConditional, jboolean isSigned);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setDouble(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jdouble value, jboolean isConditional);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setBoolean(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean value, jboolean isConditional);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setString(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jstring value, jboolean isConditional);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setNULL(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean isConditional);
-    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jbyteArray value, jboolean isConditional);
-    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
-    NL_DLL_EXPORT jdouble Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getDouble(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
-    NL_DLL_EXPORT jboolean Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getBoolean(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
-    NL_DLL_EXPORT jstring Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getString(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
-    NL_DLL_EXPORT jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
-    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getVersion(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClientImpl_init(JNIEnv *env, jobject self);
+    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_WDMClientImpl_newWDMClient(JNIEnv *env, jobject self, jlong deviceMgrPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClientImpl_deleteWDMClient(JNIEnv *env, jobject self, jlong wdmClientPtr);
+    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_WDMClientImpl_newDataSink(JNIEnv *env, jobject self, jlong wdmClientPtr, jobject resourceIdentifierObj, jlong profileId, jlong instanceId, jstring path);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClientImpl_beginFlushUpdate(JNIEnv *env, jobject self, jlong wdmClientPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WDMClientImpl_beginRefreshData(JNIEnv *env, jobject self, jlong wdmClientPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_init(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_shutdown(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_close(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_beginRefreshData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jlong value, jboolean isConditional, jboolean isSigned);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setDouble(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jdouble value, jboolean isConditional);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setBoolean(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean value, jboolean isConditional);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setString(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jstring value, jboolean isConditional);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setNULL(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean isConditional);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jbyteArray value, jboolean isConditional);
+    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
+    NL_DLL_EXPORT jdouble Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getDouble(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
+    NL_DLL_EXPORT jboolean Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getBoolean(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
+    NL_DLL_EXPORT jstring Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getString(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
+    NL_DLL_EXPORT jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
+    NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getVersion(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
 };
 
 static void HandleIdentifyDeviceComplete(WeaveDeviceManager *deviceMgr, void *reqState, const WeaveDeviceDescriptor *deviceDesc);
@@ -281,12 +278,6 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
     err = GetClassRef(env, "nl/Weave/DeviceManager/WeaveDeviceManager", sWeaveDeviceManagerCls);
     SuccessOrExit(err);
     err = GetClassRef(env, "nl/Weave/DeviceManager/WeaveStack", sWeaveStackCls);
-    SuccessOrExit(err);
-    err = GetClassRef(env, "nl/Weave/DataManagement/WDMClient", sWDMClientCls);
-    SuccessOrExit(err);
-    err = GetClassRef(env, "nl/Weave/DataManagement/GenericTraitUpdatableDataSink", sGenericTraitUpdatableDataSinkCls);
-    SuccessOrExit(err);
-    err = GetClassRef(env, "nl/Weave/DataManagement/ResourceIdentifier", sResourceIdentifierCls);
     SuccessOrExit(err);
     WeaveLogProgress(DeviceManager, "Java class references loaded.");
 
@@ -3432,27 +3423,15 @@ WEAVE_ERROR J2N_ResourceIdentifier(JNIEnv *env, jobject inResourceIdentifier, Re
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     jlong longVal = 0;
-    uint32_t len;
-    int enumVal;
-    uint8_t * ResourceIdBytes = NULL;
+    int intVal;
 
-    err = J2N_EnumFieldVal(env, inResourceIdentifier, "ResourceTypeEnum", "Lnl/Weave/DataManagement/ResourceType;", enumVal);
+    err = J2N_IntFieldVal(env, inResourceIdentifier, "ResourceType", intVal);
     SuccessOrExit(err);
 
-    err = J2N_LongFieldVal(env, inResourceIdentifier, "ResourceIdInt64", longVal);
+    err = J2N_LongFieldVal(env, inResourceIdentifier, "ResourceId", longVal);
     SuccessOrExit(err);
 
-    err = J2N_ByteArrayFieldVal(env, inResourceIdentifier, "ResourceIdBytes", ResourceIdBytes, len);
-    SuccessOrExit(err);
-
-    if ( ResourceIdBytes != NULL)
-    {
-        outResourceIdentifier = ResourceIdentifier(enumVal, ResourceIdBytes, len);
-    }
-    else
-    {
-        outResourceIdentifier = ResourceIdentifier(enumVal, (uint64_t) longVal);
-    }
+    outResourceIdentifier = ResourceIdentifier(intVal, (uint64_t) longVal);
 exit:
     return err;
 }
@@ -3485,7 +3464,7 @@ void EngineEventCallback(void * const aAppState,
     }
 }
 
-void Java_nl_Weave_DataManagement_WDMClient_init(JNIEnv *env, jobject self)
+void Java_nl_Weave_DataManagement_WDMClientImpl_init(JNIEnv *env, jobject self)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -3544,7 +3523,7 @@ exit:
     }
 }
 
-jlong Java_nl_Weave_DataManagement_WDMClient_newWDMClient(JNIEnv *env, jobject self, jlong deviceMgrPtr)
+jlong Java_nl_Weave_DataManagement_WDMClientImpl_newWDMClient(JNIEnv *env, jobject self, jlong deviceMgrPtr)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     long res = 0;
@@ -3600,7 +3579,7 @@ exit:
     return res;
 }
 
-void Java_nl_Weave_DataManagement_WDMClient_deleteWDMClient(JNIEnv *env, jobject self, jlong wdmClientPtr)
+void Java_nl_Weave_DataManagement_WDMClientImpl_deleteWDMClient(JNIEnv *env, jobject self, jlong wdmClientPtr)
 {
     WDMClient *wdmClient = (WDMClient *)wdmClientPtr;
 
@@ -3617,7 +3596,7 @@ void Java_nl_Weave_DataManagement_WDMClient_deleteWDMClient(JNIEnv *env, jobject
     }
 }
 
-jlong Java_nl_Weave_DataManagement_WDMClient_newDataSink(JNIEnv *env, jobject self, jlong wdmClientPtr, jobject resourceIdentifierObj, jlong profileId, jlong instanceId, jstring path)
+jlong Java_nl_Weave_DataManagement_WDMClientImpl_newDataSink(JNIEnv *env, jobject self, jlong wdmClientPtr, jobject resourceIdentifierObj, jlong profileId, jlong instanceId, jstring path)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     long res = 0;
@@ -3655,7 +3634,7 @@ exit:
     return res;
 }
 
-void Java_nl_Weave_DataManagement_WDMClient_beginFlushUpdate(JNIEnv *env, jobject self, jlong wdmClientPtr)
+void Java_nl_Weave_DataManagement_WDMClientImpl_beginFlushUpdate(JNIEnv *env, jobject self, jlong wdmClientPtr)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WDMClient  *wdmClient = (WDMClient *)wdmClientPtr;
@@ -3672,7 +3651,7 @@ void Java_nl_Weave_DataManagement_WDMClient_beginFlushUpdate(JNIEnv *env, jobjec
     }
 }
 
-void Java_nl_Weave_DataManagement_WDMClient_beginRefreshData(JNIEnv *env, jobject self, jlong wdmClientPtr)
+void Java_nl_Weave_DataManagement_WDMClientImpl_beginRefreshData(JNIEnv *env, jobject self, jlong wdmClientPtr)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WDMClient  *wdmClient = (WDMClient *)wdmClientPtr;
@@ -3689,7 +3668,7 @@ void Java_nl_Weave_DataManagement_WDMClient_beginRefreshData(JNIEnv *env, jobjec
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_init(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_init(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
 {
     GenericTraitUpdatableDataSink  *pDataSink = NULL;
     pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
@@ -3700,7 +3679,7 @@ void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_init(JNIEnv *env
 
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_shutdown(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_shutdown(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
 {
     GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
 
@@ -3716,7 +3695,7 @@ void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_shutdown(JNIEnv 
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_close(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_close(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
 {
     GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
 
@@ -3728,7 +3707,7 @@ void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_close(JNIEnv *en
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_beginRefreshData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_beginRefreshData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
@@ -3745,7 +3724,7 @@ void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_beginRefreshData
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jlong value, jboolean isConditional, jboolean isSigned)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jlong value, jboolean isConditional, jboolean isSigned)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char *pPathStr = NULL;
@@ -3780,7 +3759,7 @@ exit:
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setDouble(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jdouble value, jboolean isConditional)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setDouble(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jdouble value, jboolean isConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char *pPathStr = NULL;
@@ -3805,7 +3784,7 @@ exit:
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setBoolean(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean value, jboolean isConditional)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setBoolean(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean value, jboolean isConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char *pPathStr = NULL;
@@ -3830,7 +3809,7 @@ exit:
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setString(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jstring value, jboolean isConditional)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setString(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jstring value, jboolean isConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char *pPathStr = NULL;
@@ -3864,7 +3843,7 @@ exit:
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setNULL(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean isConditional)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setNULL(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jboolean isConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char *pPathStr = NULL;
@@ -3889,7 +3868,7 @@ exit:
     }
 }
 
-void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_setBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jbyteArray value, jboolean isConditional)
+void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path, jbyteArray value, jboolean isConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char *pPathStr = NULL;
@@ -3924,7 +3903,7 @@ exit:
     }
 }
 
-jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
+jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getInt(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint64_t value = 0;
@@ -3954,7 +3933,7 @@ exit:
 
 }
 
-jdouble Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getDouble(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
+jdouble Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getDouble(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     double value = 0;
@@ -3983,7 +3962,7 @@ exit:
     return value;
 }
 
-jboolean Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getBoolean(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
+jboolean Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getBoolean(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool value = true;
@@ -4018,7 +3997,7 @@ exit:
     return jValue;
 }
 
-jstring Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getString(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
+jstring Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getString(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     jstring valueStr = NULL;
@@ -4052,7 +4031,7 @@ exit:
     return valueStr;
 }
 
-jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
+jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     jbyteArray value = NULL;
@@ -4086,7 +4065,7 @@ exit:
     return value;
 }
 
-NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSink_getVersion(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
+NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getVersion(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)
 {
     GenericTraitUpdatableDataSink  *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
     uint64_t version = 0;

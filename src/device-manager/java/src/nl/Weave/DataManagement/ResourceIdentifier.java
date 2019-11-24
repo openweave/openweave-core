@@ -23,130 +23,63 @@ import java.math.BigInteger;
 /**
  *  Represents Resource Identifier
  */
+
 public class ResourceIdentifier
 {
     public ResourceIdentifier()
     {
-        ResourceTypeEnum = nl.Weave.DataManagement.ResourceType.RESOURCE_TYPE_RESERVED;
-        ResourceIdInt64 = -2;
-        ResourceIdBytes = null;
+        ResourceType = RESOURCE_TYPE_RESERVED;
+        ResourceId = SELF_NODE_ID;
     }
 
-    private ResourceType ResourceTypeEnum;
+    private int ResourceType;
 
-    private long ResourceIdInt64;
+    private long ResourceId;
 
-    private byte[] ResourceIdBytes;
-
-    public static ResourceIdentifier Make(ResourceType resourceType, int resourceIdInt64)
+    public static ResourceIdentifier Make(int resourceType, BigInteger value)
     {
+        long resourceId = value.longValue();
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
-        resourceIdentifier.ResourceTypeEnum = resourceType;
-        resourceIdentifier.ResourceIdInt64 = resourceIdInt64;
+        resourceIdentifier.ResourceType = resourceType;
+        resourceIdentifier.ResourceId = resourceId;
         return resourceIdentifier;
     }
 
-    public static ResourceIdentifier Make(ResourceType resourceType, String resourceIdInt64Str)
+    public static ResourceIdentifier Make(int resourceType, byte[] ResourceIdBytes)
     {
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
-        resourceIdentifier.ResourceTypeEnum = resourceType;
-        resourceIdentifier.ResourceIdInt64 = Long.parseUnsignedLong(resourceIdInt64Str, 16);
-        return resourceIdentifier;
-    }
+        resourceIdentifier.ResourceType = resourceType;
 
-    /* resourceIdentifierStr's format would be something like DEVICE_18B4300000000001, RESERVED_FFFFFFFFFFFFFFFE */
-    public static ResourceIdentifier Make(String resourceIdentifierStr)
-    {
-        ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
-        String[] splitedIdentifier = resourceIdentifierStr.split("_");
-        boolean isLegalResourceType = false;
-        if (splitedIdentifier.length != 2)
+        if (ResourceIdBytes.length != 8)
         {
-            Log.e(TAG, "unexpected resourceIdentifierStr, expected ResourceType_ResourceId");
+            Log.e(TAG, "unexpected resourceIdentifier, ResourceIdBytes should be 8 bytes");
             return null;
         }
-        if (splitedIdentifier[0] == null)
-        {
-            Log.e(TAG, "unexpected resourceIdentifierStr, ResourceType should not be null");
-            return null;
-        }
+        resourceIdentifier.ResourceId = ByteArrayToLong(ResourceIdBytes);
 
-        for (ResourceType enumVal : ResourceType.values())
-        {
-            if (splitedIdentifier[0].compareTo(ResourceTypeAsString(enumVal)) == 0)
-            {
-                isLegalResourceType = true;
-                resourceIdentifier.ResourceTypeEnum = enumVal;
-                resourceIdentifier.ResourceIdInt64 = Long.parseUnsignedLong(splitedIdentifier[1], 16);
-                return resourceIdentifier;
-            }
-        }
-        if (!isLegalResourceType)
-        {
-            Log.e(TAG, "unexpected resourceIdentifierStr, ResourceType is not applicable");
-        }
-        return null;
-    }
-
-    public static ResourceIdentifier Make(ResourceType resourceType, byte[] ResourceIdBytes)
-    {
-        ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
-        resourceIdentifier.ResourceTypeEnum = resourceType;
-        resourceIdentifier.ResourceIdBytes = ResourceIdBytes;
         return resourceIdentifier;
     }
 
-    private final static String TAG = ResourceIdentifier.class.getSimpleName();
-
-    private static String ResourceTypeAsString(ResourceType val)
+    public static long ByteArrayToLong(byte[] value)
     {
-        String retval;
-        switch (val)
+        long result = 0;
+        for (int i = 0; i < value.length; i++)
         {
-        case RESOURCE_TYPE_RESERVED:
-            retval = "RESERVED";
-            break;
-        case RESOURCE_TYPE_DEVICE:
-            retval = "DEVICE";
-            break;
-        case RESOURCE_TYPE_USER:
-            retval = "USER";
-            break;
-        case RESOURCE_TYPE_ACCOUNT:
-            retval = "ACCOUNT";
-            break;
-        case RESOURCE_TYPE_AREA:
-            retval = "AREA";
-            break;
-        case RESOURCE_TYPE_FIXTURE:
-            retval = "FIXTURE";
-            break;
-        case RESOURCE_TYPE_GROUP:
-            retval = "GROUP";
-            break;
-        case RESOURCE_TYPE_ANNOTATION:
-            retval = "ANNOTATION";
-            break;
-        case RESOURCE_TYPE_STRUCTURE:
-            retval = "STRUCTURE";
-            break;
-        case RESOURCE_TYPE_GUEST:
-            retval = "GUEST";
-            break;
-        case RESOURCE_TYPE_SERVICE:
-            retval = "SERVICE";
-            break;
-        default:
-            retval = null;
+           result += ((long) value[i] & 0xffL) << (8 * i);
         }
-        return retval;
+        return result;
     }
 
-    public static byte[] IntToResByteArray(long value) {
+    public static byte[] LongToByteArray(long value) {
         byte[] bytes = new byte[8];
         for (int i = 0; i < 8; i++) {
             bytes[i] = (byte)(value >>> (i * 8));
         }
         return bytes;
     }
+
+    public static final int RESOURCE_TYPE_RESERVED = 0;
+    public static final long SELF_NODE_ID = -2;
+
+    private final static String TAG = ResourceIdentifier.class.getSimpleName();
 }

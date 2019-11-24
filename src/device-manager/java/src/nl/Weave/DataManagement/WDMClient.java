@@ -17,192 +17,21 @@
  */
 package nl.Weave.DataManagement;
 
-import android.os.Build;
-import android.util.Log;
-
-import java.util.EnumSet;
-import java.util.Random;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Iterator;
-
-public class WDMClient implements WDMClientInterface
+public interface WDMClient
 {
-    public WDMClient(long deviceMgrPtr)
+    public void connect(long deviceMgrPtr);
+    public void close();
+    public GenericTraitUpdatableDataSinkImpl newDataSink(ResourceIdentifier resourceIdentifier, long profileId, long instanceId, String path);
+    public void beginFlushUpdate();
+    public void beginRefreshData();
+
+    public CompletionHandler getCompletionHandler();
+    public void setCompletionHandler(CompletionHandler compHandler);
+
+    public interface CompletionHandler
     {
-        init();
-        mWDMClientPtr = newWDMClient(deviceMgrPtr);
-        mCompHandler = null;
+        void onFlushUpdateComplete();
+        void onRefreshDataComplete();
+        void onError(Throwable err);
     }
-
-    @Override
-    public void close()
-    {
-        if (mTraitMap != null)
-        {
-            Iterator iter = mTraitMap.entrySet().iterator();
-            while (iter.hasNext())
-            {
-                Map.Entry entry = (Map.Entry) iter.next();
-                GenericTraitUpdatableDataSink traitInstance = (GenericTraitUpdatableDataSink)entry.getValue();
-                if (traitInstance != null)
-                {
-                    traitInstance.close();
-                }
-            }
-            mTraitMap.clear();
-        }
-
-        if (mWDMClientPtr != 0)
-        {
-            deleteWDMClient(mWDMClientPtr);
-            mWDMClientPtr = 0;
-        }
-
-        mCompHandler = null;
-    }
-
-    @Override
-    public GenericTraitUpdatableDataSink newDataSink(ResourceIdentifier resourceIdentifier, long profileId, long instanceId, String path)
-    {
-        long traitInstancePtr = 0;
-        boolean isExist = false;
-        GenericTraitUpdatableDataSink traitInstance = null;
-
-        if (mTraitMap == null)
-        {
-            mTraitMap = new HashMap<Long, GenericTraitUpdatableDataSink>();
-        }
-
-        if (mWDMClientPtr == 0)
-        {
-            mCompHandler.onError(new Exception("wdmClientPtr is not ready."));
-            return null;
-        }
-
-        traitInstancePtr = newDataSink(mWDMClientPtr, resourceIdentifier, profileId, instanceId, path);
-
-        if (traitInstancePtr == 0)
-        {
-            mCompHandler.onError(new Exception("Fail to create traitInstancePtr."));
-            Log.e(TAG, "traitInstancePtr is not ready");
-            return null;
-        }
-
-        isExist = mTraitMap.containsKey(traitInstancePtr);
-        if (isExist == false)
-        {
-            traitInstance = new GenericTraitUpdatableDataSink(traitInstancePtr, this);
-            mTraitMap.put(traitInstancePtr, traitInstance);
-        }
-        else
-        {
-            Log.d(TAG, "trait exists" + profileId);
-        }
-
-        Log.d(TAG, "there exists %d traits" + mTraitMap.size());
-
-        return mTraitMap.get(traitInstancePtr);
-    }
-
-    protected void removeDataSinkRef(long traitInstancePtr)
-    {
-        boolean isExist = false;
-        isExist = mTraitMap.containsKey(traitInstancePtr);
-        if (isExist == true)
-        {
-            mTraitMap.put(traitInstancePtr, null);
-        }
-    }
-
-    @Override
-    public void beginFlushUpdate()
-    {
-        if (mWDMClientPtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mWDMClientPtr is 0");
-            return;
-        }
-        beginFlushUpdate(mWDMClientPtr);
-    }
-
-    @Override
-    public void beginRefreshData()
-    {
-        if (mWDMClientPtr == 0)
-        {
-            Log.e(TAG, "unexpected err, mWDMClientPtr is 0");
-            return;
-        }
-        beginRefreshData(mWDMClientPtr);
-    }
-
-    @Override
-    public CompletionHandler getCompletionHandler()
-    {
-        return mCompHandler;
-    }
-
-    @Override
-    public void setCompletionHandler(CompletionHandler compHandler)
-    {
-        mCompHandler = compHandler;
-    }
-
-    private void onError(Throwable err)
-    {
-        if (mCompHandler == null)
-        {
-            Log.e(TAG, "unexpected err, mCompHandler is null");
-            return;
-        }
-        mCompHandler.onError(err);
-    }
-
-    private void onFlushUpdateComplete()
-    {
-        if (mCompHandler == null)
-        {
-            Log.e(TAG, "unexpected err, mCompHandler is null");
-            return;
-        }
-        mCompHandler.onFlushUpdateComplete();
-    }
-
-    private void onRefreshDataComplete()
-    {
-        if (mCompHandler == null)
-        {
-            Log.e(TAG, "unexpected err, mCompHandler is null");
-            return;
-        }
-        mCompHandler.onRefreshDataComplete();
-    }
-
-    // ----- Protected Members -----
-
-    protected CompletionHandler mCompHandler;
-
-    protected void finalize() throws Throwable
-    {
-        super.finalize();
-        close();
-    }
-
-    // ----- Private Members -----
-
-    private long mWDMClientPtr;
-    private HashMap<Long, GenericTraitUpdatableDataSink> mTraitMap;
-    private final static String TAG = WDMClient.class.getSimpleName();
-
-    static {
-        System.loadLibrary("WeaveDeviceManager");
-    }
-
-    private native void init();
-    private native long newWDMClient(long deviceMgrPtr);
-    private native void deleteWDMClient(long wdmClientPtr);
-    private native long newDataSink(long wdmClientPtr, ResourceIdentifier resourceIdentifier, long profileId, long instanceId, String path);
-    private native void beginFlushUpdate(long wdmClientPtr);
-    private native void beginRefreshData(long wdmClientPtr);
 };

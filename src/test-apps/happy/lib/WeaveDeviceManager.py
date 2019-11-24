@@ -155,16 +155,10 @@ class MockWeaveDataManagementClientImp():
 
         if testResOption == "default" :
             resourceIdentifier = ResourceIdentifier.ResourceIdentifier()
-        elif testResOption == "ResString":
-            resourceIdentifier = ResourceIdentifier.ResourceIdentifier.MakeResString("RESERVED_FFFFFFFFFFFFFFFE")
-        elif testResOption == "ResTypeIdString":
-            resourceIdentifier = ResourceIdentifier.ResourceIdentifier.MakeResTypeIdString("RESOURCE_TYPE_RESERVED", "FFFFFFFFFFFFFFFE")
         elif testResOption == "ResTypeIdInt":
-            resourceIdentifier = ResourceIdentifier.ResourceIdentifier.MakeResTypeIdInt("RESOURCE_TYPE_RESERVED", -2)
+            resourceIdentifier = ResourceIdentifier.ResourceIdentifier.MakeResTypeIdInt(0, -2)
         elif testResOption == "ResTypeIdBytes":
-            import struct
-            TEST = struct.unpack("q", struct.pack(">q", -2))[0]
-            resourceIdentifier = ResourceIdentifier.ResourceIdentifier.MakeResTypeIdBytes("RESOURCE_TYPE_RESERVED", '\xff\xff\xff\xff\xff\xff\xff\xfe')
+            resourceIdentifier = ResourceIdentifier.ResourceIdentifier.MakeResTypeIdBytes(0, '\xff\xff\xff\xff\xff\xff\xff\xfe')
 
         try:
             traitInstance = self.wdmClient.newDataSink(resourceIdentifier, profileid, instanceid, path)
@@ -399,48 +393,6 @@ def testWDMClientDataSinkSetRefreshFlushGetData(testObject):
     testObject.closeWdmClient()
     print "testWDMClientDataSinkSetRefreshFlushGetData completes"
 
-def testWDMClientDataSinkResourceIdentifierMakeResString(testObject):
-    testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", "ResString")
-    TestCTrait = testObject.newDataSink(593165827, 0, "/", "ResString")
-    testObject.setData(LocaleSettingTrait, "/1", "en-US")
-    testObject.setData(TestCTrait, "/1", False)
-    testObject.setData(TestCTrait, "/2", 15)
-    testObject.setData(TestCTrait, "/3/1", 16)
-    testObject.setData(TestCTrait, "/3/2", False)
-    testObject.setData(TestCTrait, "/4", 17)
-    testObject.flushUpdate()
-    testObject.refreshData()
-    testObject.getData(LocaleSettingTrait, "/1")
-    testObject.getData(TestCTrait, "/1")
-    testObject.getData(TestCTrait, "/2")
-    testObject.getData(TestCTrait, "/3/1")
-    testObject.getData(TestCTrait, "/3/2")
-    testObject.getData(TestCTrait, "/4")
-    testObject.closeWdmClient()
-    print "testWDMClientDataSinkResourceIdentifierMakeResString completes"
-
-def testWDMClientDataSinkResourceIdentifierMakeResTypeIdString(testObject):
-    testObject.createWDMClient()
-    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", "ResTypeIdString")
-    TestCTrait = testObject.newDataSink(593165827, 0, "/", "ResTypeIdString")
-    testObject.setData(LocaleSettingTrait, "/1", "en-US")
-    testObject.setData(TestCTrait, "/1", False)
-    testObject.setData(TestCTrait, "/2", 15)
-    testObject.setData(TestCTrait, "/3/1", 16)
-    testObject.setData(TestCTrait, "/3/2", False)
-    testObject.setData(TestCTrait, "/4", 17)
-    testObject.flushUpdate()
-    testObject.refreshData()
-    testObject.getData(LocaleSettingTrait, "/1")
-    testObject.getData(TestCTrait, "/1")
-    testObject.getData(TestCTrait, "/2")
-    testObject.getData(TestCTrait, "/3/1")
-    testObject.getData(TestCTrait, "/3/2")
-    testObject.getData(TestCTrait, "/4")
-    testObject.closeWdmClient()
-    print "testWDMClientDataSinkResourceIdentifierMakeResTypeIdString completes"
-
 def testWDMClientDataSinkResourceIdentifierMakeResTypeIdInt(testObject):
     testObject.createWDMClient()
     LocaleSettingTrait = testObject.newDataSink(20, 0, "/", "ResTypeIdInt")
@@ -494,8 +446,6 @@ def RunWDMClientTest():
     testWDMClientDataSinkRefreshIndividualGetDataRefresh(testObject)
     testWDMClientDataSinkCloseIndividualData(testObject)
     testWDMClientDataSinkSetRefreshFlushGetData(testObject)
-    testWDMClientDataSinkResourceIdentifierMakeResString(testObject)
-    testWDMClientDataSinkResourceIdentifierMakeResTypeIdString(testObject)
     testWDMClientDataSinkResourceIdentifierMakeResTypeIdInt(testObject)
     testWDMClientDataSinkResourceIdentifierMakeResTypeIdBytes(testObject)
 

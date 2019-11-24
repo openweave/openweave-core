@@ -24,7 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.EnumSet;
 import java.math.BigInteger;
 
-public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClientInterface.CompletionHandler, GenericTraitUpdatableDataSink.CompletionHandler
+public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient.CompletionHandler, GenericTraitUpdatableDataSinkImpl.CompletionHandler
 {
     public class TestFailedException extends RuntimeException
     {
@@ -88,20 +88,20 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
 
     void testWDMClientCreateClose(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
         mockWDMClient.close();
     }
 
     void testWDMClientDataSinkCreateClose(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
 
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
@@ -118,12 +118,12 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
 
     void testWDMClientDataSinkEmptyFlushData(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
 
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
@@ -144,12 +144,12 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
 
     void testWDMClientDataSinkSetFlushData(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
 
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
@@ -157,11 +157,11 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         localSettingTrait.setCompletionHandler(this);
         testCTrait.setCompletionHandler(this);
 
-        localSettingTrait.setString("/1", "en-US");
-        testCTrait.setBoolean("/1", false);
-        testCTrait.setInt("/2", 15);
+        localSettingTrait.set("/1", "en-US");
+        testCTrait.set("/1", false);
+        testCTrait.setSigned("/2", 15);
         testCTrait.setUnsigned("/3/1", -5);
-        testCTrait.setBoolean("/3/2", false);
+        testCTrait.set("/3/2", false);
         testCTrait.setUnsigned("/4", -5);
 
         TestResult = null;
@@ -177,12 +177,12 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
 
     void testWDMClientDataSinkRefreshGetDataRefresh(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
 
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
@@ -237,12 +237,12 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
 
     void testWDMClientDataSinkRefreshIndividualGetDataRefresh(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
 
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
@@ -288,12 +288,12 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
 
     void testWDMClientDataSinkSetFlushRefreshGetData(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
 
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
@@ -301,11 +301,11 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         localSettingTrait.setCompletionHandler(this);
         testCTrait.setCompletionHandler(this);
 
-        localSettingTrait.setString("/1", "en-US");
-        testCTrait.setBoolean("/1", false);
-        testCTrait.setInt("/2", 15);
+        localSettingTrait.set("/1", "en-US");
+        testCTrait.set("/1", false);
+        testCTrait.setSigned("/2", 15);
         testCTrait.setUnsigned("/3/1", -5);
-        testCTrait.setBoolean("/3/2", false);
+        testCTrait.set("/3/2", false);
         testCTrait.setUnsigned("/4", -5);
 
         TestResult = null;
@@ -345,12 +345,12 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
 
     void testWDMClientDataSinkSetFlushRefreshGetBigInteger(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
 
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
@@ -358,11 +358,11 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         localSettingTrait.setCompletionHandler(this);
         testCTrait.setCompletionHandler(this);
 
-        localSettingTrait.setString("/1", "en-US");
-        testCTrait.setBoolean("/1", false);
-        testCTrait.setInt("/2", 15);
+        localSettingTrait.set("/1", "en-US");
+        testCTrait.set("/1", false);
+        testCTrait.setSigned("/2", 15);
         testCTrait.setUnsigned("/3/1", -5);
-        testCTrait.setBoolean("/3/2", false);
+        testCTrait.set("/3/2", false);
         testCTrait.setUnsigned("/4", 6);
 
         TestResult = null;
@@ -402,12 +402,12 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
 
     void testWDMClientDataSinkSetBigIntegerFlushRefreshGetBigInteger(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
 
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
@@ -415,13 +415,13 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         localSettingTrait.setCompletionHandler(this);
         testCTrait.setCompletionHandler(this);
 
-        localSettingTrait.setString("/1", "en-US");
-        testCTrait.setBoolean("/1", false);
+        localSettingTrait.set("/1", "en-US");
+        testCTrait.set("/1", false);
         BigInteger Element2 = new BigInteger("15");
-        testCTrait.setInt("/2", Element2);
+        testCTrait.setSigned("/2", Element2);
         BigInteger Element31 = new BigInteger("4294967291"); //-5
         testCTrait.setUnsigned("/3/1", Element31);
-        testCTrait.setBoolean("/3/2", false);
+        testCTrait.set("/3/2", false);
         BigInteger Element4 = new BigInteger("6");
         testCTrait.setUnsigned("/4", Element4);
 
@@ -462,12 +462,12 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
 
     void testWDMClientDataSinkSetRefreshFlushGetData(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
 
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier();
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
@@ -475,11 +475,11 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         localSettingTrait.setCompletionHandler(this);
         testCTrait.setCompletionHandler(this);
 
-        localSettingTrait.setString("/1", "en-US");
-        testCTrait.setBoolean("/1", false);
-        testCTrait.setInt("/2", 15);
+        localSettingTrait.set("/1", "en-US");
+        testCTrait.set("/1", false);
+        testCTrait.setSigned("/2", 15);
         testCTrait.setUnsigned("/3/1", -5);
-        testCTrait.setBoolean("/3/2", false);
+        testCTrait.set("/3/2", false);
         testCTrait.setUnsigned("/4", -5);
 
         TestResult = null;
@@ -518,145 +518,27 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         System.out.println("testWDMClientDataSinkSetRefreshFlushGetData Succeeded");
     }
 
-    void testWDMClientDataSinkResourceIdentifierMakeResString(WeaveDeviceManager deviceMgr)
-    {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
-        mockWDMClient.setCompletionHandler(this);
-
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
-
-        ResourceIdentifier resourceIdentifier = ResourceIdentifier.Make("RESERVED_FFFFFFFFFFFFFFFE");
-
-        localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
-        testCTrait = mockWDMClient.newDataSink(resourceIdentifier, 593165827, 0, "/");
-        localSettingTrait.setCompletionHandler(this);
-        testCTrait.setCompletionHandler(this);
-
-        localSettingTrait.setString("/1", "en-US");
-        testCTrait.setBoolean("/1", false);
-        testCTrait.setInt("/2", 15);
-        testCTrait.setUnsigned("/3/1", -5);
-        testCTrait.setBoolean("/3/2", false);
-        testCTrait.setUnsigned("/4", -5);
-
-        TestResult = null;
-        mockWDMClient.beginFlushUpdate();
-        ExpectSuccess("FlushUpdate");
-        System.out.println("FlushUpdate Test Succeeded");
-
-        TestResult = null;
-        mockWDMClient.beginRefreshData();
-        ExpectSuccess("RefreshData");
-        System.out.println("RefreshData Test Succeeded");
-
-        String localeProperty = localSettingTrait.getString("/1");
-        System.out.println("GetString " + localeProperty);
-
-        boolean tca = testCTrait.getBoolean("/1");
-        System.out.println("GetBoolean " + tca);
-
-        int tcb = testCTrait.getInt("/2");
-        System.out.println("getInt " + tcb);
-
-        int tcc_sca = testCTrait.getInt("/3/1");
-        System.out.println("GetUnsigned" + tcc_sca);
-
-        boolean tcc_scb = testCTrait.getBoolean("/3/2");
-        System.out.println("GetBoolean " + tcc_scb);
-
-        int tcd = testCTrait.getInt("/4");
-        System.out.println("GetUnsigned " + tcd);
-
-        mockWDMClient.close();
-        mockWDMClient = null;
-        localSettingTrait = null;
-        testCTrait = null;
-
-        System.out.println("testWDMClientDataSinkResourceIdentifierMakeResString Succeeded");
-    }
-
-    void testWDMClientDataSinkResourceIdentifierMakeResTypeIDString(WeaveDeviceManager deviceMgr)
-    {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
-        mockWDMClient.setCompletionHandler(this);
-
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
-
-        ResourceIdentifier resourceIdentifier = ResourceIdentifier.Make(nl.Weave.DataManagement.ResourceType.RESOURCE_TYPE_RESERVED, "FFFFFFFFFFFFFFFE");
-
-        localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
-        testCTrait = mockWDMClient.newDataSink(resourceIdentifier, 593165827, 0, "/");
-        localSettingTrait.setCompletionHandler(this);
-        testCTrait.setCompletionHandler(this);
-
-        localSettingTrait.setString("/1", "en-US");
-        testCTrait.setBoolean("/1", false);
-        testCTrait.setInt("/2", 15);
-        testCTrait.setUnsigned("/3/1", -5);
-        testCTrait.setBoolean("/3/2", false);
-        testCTrait.setUnsigned("/4", -5);
-
-        TestResult = null;
-        mockWDMClient.beginFlushUpdate();
-        ExpectSuccess("FlushUpdate");
-        System.out.println("FlushUpdate Test Succeeded");
-
-        TestResult = null;
-        mockWDMClient.beginRefreshData();
-        ExpectSuccess("RefreshData");
-        System.out.println("RefreshData Test Succeeded");
-
-        String localeProperty = localSettingTrait.getString("/1");
-        System.out.println("GetString " + localeProperty);
-
-        boolean tca = testCTrait.getBoolean("/1");
-        System.out.println("GetBoolean " + tca);
-
-        int tcb = testCTrait.getInt("/2");
-        System.out.println("getInt " + tcb);
-
-        int tcc_sca = testCTrait.getInt("/3/1");
-        System.out.println("GetUnsigned" + tcc_sca);
-
-        boolean tcc_scb = testCTrait.getBoolean("/3/2");
-        System.out.println("GetBoolean " + tcc_scb);
-
-        int tcd = testCTrait.getInt("/4");
-        System.out.println("GetUnsigned " + tcd);
-
-        mockWDMClient.close();
-        mockWDMClient = null;
-        localSettingTrait = null;
-        testCTrait = null;
-
-        System.out.println("testWDMClientDataSinkResourceIdentifierMakeResTypeIDString Succeeded");
-    }
-
     void testWDMClientDataSinkResourceIdentifierMakeResTypeIDInt(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
-
-        ResourceIdentifier resourceIdentifier = ResourceIdentifier.Make(nl.Weave.DataManagement.ResourceType.RESOURCE_TYPE_RESERVED, -2);
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
+        BigInteger self_node_id = new BigInteger("-2");
+        ResourceIdentifier resourceIdentifier = ResourceIdentifier.Make(ResourceIdentifier.RESOURCE_TYPE_RESERVED, self_node_id);
 
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
         testCTrait = mockWDMClient.newDataSink(resourceIdentifier, 593165827, 0, "/");
         localSettingTrait.setCompletionHandler(this);
         testCTrait.setCompletionHandler(this);
 
-        localSettingTrait.setString("/1", "en-US");
-        testCTrait.setBoolean("/1", false);
-        testCTrait.setInt("/2", 15);
+        localSettingTrait.set("/1", "en-US");
+        testCTrait.set("/1", false);
+        testCTrait.setSigned("/2", 15);
         testCTrait.setUnsigned("/3/1", -5);
-        testCTrait.setBoolean("/3/2", false);
+        testCTrait.set("/3/2", false);
         testCTrait.setUnsigned("/4", -5);
 
         TestResult = null;
@@ -697,25 +579,25 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
 
     void testWDMClientDataSinkResourceIdentifierMakeResTypeIdBytes(WeaveDeviceManager deviceMgr)
     {
-        WeaveDeviceManagerWDMClientFactory wdmClientFactory = new WeaveDeviceManagerWDMClientFactory();
-        WDMClientInterface mockWDMClient = wdmClientFactory.create(deviceMgr);
+        WDMClientFactory wdmClientFactory = new WDMClientFactory();
+        WDMClient mockWDMClient = wdmClientFactory.create(deviceMgr);
         mockWDMClient.setCompletionHandler(this);
 
-        GenericTraitUpdatableDataSink localSettingTrait;
-        GenericTraitUpdatableDataSink testCTrait;
+        GenericTraitUpdatableDataSinkImpl localSettingTrait;
+        GenericTraitUpdatableDataSinkImpl testCTrait;
 
-        ResourceIdentifier resourceIdentifier = ResourceIdentifier.Make(nl.Weave.DataManagement.ResourceType.RESOURCE_TYPE_RESERVED, ResourceIdentifier.IntToResByteArray(-2));
+        ResourceIdentifier resourceIdentifier = ResourceIdentifier.Make(ResourceIdentifier.RESOURCE_TYPE_RESERVED, ResourceIdentifier.LongToByteArray(-2));
 
         localSettingTrait = mockWDMClient.newDataSink(resourceIdentifier, 20, 0, "/");
         testCTrait = mockWDMClient.newDataSink(resourceIdentifier, 593165827, 0, "/");
         localSettingTrait.setCompletionHandler(this);
         testCTrait.setCompletionHandler(this);
 
-        localSettingTrait.setString("/1", "en-US");
-        testCTrait.setBoolean("/1", false);
-        testCTrait.setInt("/2", 15);
+        localSettingTrait.set("/1", "en-US");
+        testCTrait.set("/1", false);
+        testCTrait.setSigned("/2", 15);
         testCTrait.setUnsigned("/3/1", -5);
-        testCTrait.setBoolean("/3/2", false);
+        testCTrait.set("/3/2", false);
         testCTrait.setUnsigned("/4", -5);
 
         TestResult = null;
@@ -766,8 +648,6 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WDMClient
         testWDMClientDataSinkSetFlushRefreshGetBigInteger(deviceMgr);
         testWDMClientDataSinkSetBigIntegerFlushRefreshGetBigInteger(deviceMgr);
         testWDMClientDataSinkSetRefreshFlushGetData(deviceMgr);
-        testWDMClientDataSinkResourceIdentifierMakeResString(deviceMgr);
-        testWDMClientDataSinkResourceIdentifierMakeResTypeIDString(deviceMgr);
         testWDMClientDataSinkResourceIdentifierMakeResTypeIDInt(deviceMgr);
         testWDMClientDataSinkResourceIdentifierMakeResTypeIdBytes(deviceMgr);
         System.out.println("Run Weave Data Management Complete");

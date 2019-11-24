@@ -638,6 +638,11 @@ public class WeaveDeviceManager
         mCompHandler.onDeviceEnumerationResponse(deviceDesc, deviceAddr);
     }
 
+    public long getDeviceMgrPtr()
+    {
+        return mDeviceMgrPtr;
+    }
+
     public interface CompletionHandler
     {
         void onConnectDeviceComplete();
@@ -688,11 +693,6 @@ public class WeaveDeviceManager
 
 
     // ----- Protected Members -----
-
-    protected long getDeviceMgrPtr()
-    {
-        return mDeviceMgrPtr;
-    }
 
     protected CompletionHandler mCompHandler;
 

@@ -18,6 +18,12 @@
 package nl.Weave.DataManagement;
 import nl.Weave.DeviceManager.WeaveDeviceManager;
 
-public interface WDMClientFactoryInterface {
-  public WDMClientInterface create(WeaveDeviceManager weaveDeviceManager);
+public class WDMClientFactory
+{
+    public WDMClient create(WeaveDeviceManager deviceManager)
+    {
+        WDMClientImpl wdmClient = new WDMClientImpl();
+        wdmClient.connect(deviceManager.getDeviceMgrPtr());
+        return wdmClient;
+    }
 }
