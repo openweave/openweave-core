@@ -96,7 +96,7 @@ public:
 
     WEAVE_ERROR SetBoolean(const char * apPath, bool aValue, bool aIsConditional=false);
     WEAVE_ERROR SetString(const char * apPath, const char * aValue, bool aIsConditional=false);
-    WEAVE_ERROR SetNull(const char * apPath, bool aIsConditional=false);
+    WEAVE_ERROR SetNULL(const char * apPath, bool aIsConditional=false);
     WEAVE_ERROR SetBytes(const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional=false);
     WEAVE_ERROR SetTLVBytes(const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional=false);
 

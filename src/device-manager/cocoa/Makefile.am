@@ -65,7 +65,6 @@ libNLWeaveDeviceManager_a_HEADERS        = \
     NLWeaveKeyExportSupport.h              \
     NLWDMClient.h                          \
     NLGenericTraitUpdatableDataSink.h      \
-    NLResourceTypes.h                       \
     NLResourceIdentifier.h                 \
     NLResourceIdentifier_Protected.h       \
     $(NULL)

@@ -392,12 +392,12 @@ static void onGenericUpdatableDataSinkError(void * dataSink, void * appReqState,
     });
 }
 
-- (WEAVE_ERROR)SetIntOnPath:(NSString *)path
+- (WEAVE_ERROR)SetSignedOnPath:(NSString *)path
                     Value:(int64_t)val
-               Conditionality:(BOOL) isConditional
+           Conditionality:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalConverted = isConditional == YES ? true : false;
+    __block bool isConditionalBool = isConditional == YES ? true : false;
 
     WDM_LOG_METHOD_SIG();
 
@@ -408,11 +408,10 @@ static void onGenericUpdatableDataSinkError(void * dataSink, void * appReqState,
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
-            err = _mWeaveCppGenericTraitUpdatableDataSink->SetData([path UTF8String], val, isConditionalConverted);
+            err = _mWeaveCppGenericTraitUpdatableDataSink->SetData([path UTF8String], val, isConditionalBool);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetData, ignore");
-
+                WDM_LOG_DEBUG(@"Got incorrect state error from SetSigned, ignore");
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
             }
         });
@@ -423,11 +422,11 @@ exit:
 }
 
 - (WEAVE_ERROR)SetUnsignedOnPath:(NSString *)path
-                         Value:(uint64_t)val
-                Conditionality:(BOOL) isConditional
+                           Value:(uint64_t)val
+                  Conditionality:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalConverted = isConditional == YES ? true : false;
+    __block bool isConditionalBool = isConditional == YES ? true : false;
 
     WDM_LOG_METHOD_SIG();
 
@@ -438,10 +437,10 @@ exit:
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
-            err = _mWeaveCppGenericTraitUpdatableDataSink->SetData([path UTF8String], val, isConditionalConverted);
+            err = _mWeaveCppGenericTraitUpdatableDataSink->SetData([path UTF8String], val, isConditionalBool);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetData, ignore");
+                WDM_LOG_DEBUG(@"Got incorrect state error from SetUnsigned, ignore");
 
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
             }
@@ -453,11 +452,11 @@ exit:
 }
 
 - (WEAVE_ERROR)SetDoubleOnPath:(NSString *)path
-                       Value:(double)val
-              Conditionality:(BOOL) isConditional
+                        Value:(double)val
+               Conditionality:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalConverted = isConditional == YES ? true : false;
+    __block bool isConditionalBool = isConditional == YES ? true : false;
 
     WDM_LOG_METHOD_SIG();
 
@@ -468,11 +467,10 @@ exit:
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
-            err = _mWeaveCppGenericTraitUpdatableDataSink->SetData([path UTF8String], val, isConditionalConverted);
+            err = _mWeaveCppGenericTraitUpdatableDataSink->SetData([path UTF8String], val, isConditionalBool);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetData, ignore");
-
+                WDM_LOG_DEBUG(@"Got incorrect state error from SetDouble, ignore");
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
             }
         });
@@ -483,12 +481,12 @@ exit:
 }
 
 - (WEAVE_ERROR)SetBooleanOnPath:(NSString *)path
-                        Value:(BOOL) val
-               Conditionality:(BOOL) isConditional
+                         Value:(BOOL) val
+                Conditionality:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalConverted = isConditional == YES ? true : false;
-    __block bool valConverted = val == YES ? true : false;
+    __block bool isConditionalBool = isConditional == YES ? true : false;
+    __block bool valBool= val == YES ? true : false;
     WDM_LOG_METHOD_SIG();
 
     VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -498,11 +496,10 @@ exit:
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
-            err = _mWeaveCppGenericTraitUpdatableDataSink->SetBoolean([path UTF8String], valConverted, isConditionalConverted);
+            err = _mWeaveCppGenericTraitUpdatableDataSink->SetBoolean([path UTF8String], valBool, isConditionalBool);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetData, ignore");
-
+                WDM_LOG_DEBUG(@"Got incorrect state error from SetBoolean, ignore");
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
             }
         });
@@ -513,11 +510,11 @@ exit:
 }
 
 - (WEAVE_ERROR)SetStringOnPath:(NSString *) path
-                       Value:(NSString *) val
-               Conditionality:(BOOL) isConditional
+                         Value:(NSString *) val
+                Conditionality:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalConverted = (isConditional == YES ? true : false);
+    __block bool isConditionalBool = (isConditional == YES ? true : false);
     WDM_LOG_METHOD_SIG();
 
     VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -526,11 +523,10 @@ exit:
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
-            err = _mWeaveCppGenericTraitUpdatableDataSink->SetBoolean([path UTF8String], [val UTF8String], isConditionalConverted);
+            err = _mWeaveCppGenericTraitUpdatableDataSink->SetString([path UTF8String], [val UTF8String], isConditionalBool);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
                 WDM_LOG_DEBUG(@"Got incorrect state error from SetData, ignore");
-
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
             }
         });
@@ -541,10 +537,10 @@ exit:
 }
 
 - (WEAVE_ERROR)SetNULLOnPath:(NSString *)path
-               Conditionality:(BOOL) isConditional
+              Conditionality:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalConverted = isConditional == YES ? true : false;
+    __block bool isConditionalBool = isConditional == YES ? true : false;
 
     WDM_LOG_METHOD_SIG();
 
@@ -554,11 +550,10 @@ exit:
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
-            err = _mWeaveCppGenericTraitUpdatableDataSink->SetNull([path UTF8String], isConditional);
+            err = _mWeaveCppGenericTraitUpdatableDataSink->SetNULL([path UTF8String], isConditionalBool);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
                 WDM_LOG_DEBUG(@"Got incorrect state error from SetData, ignore");
-
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
             }
         });
@@ -570,10 +565,10 @@ exit:
 
 - (WEAVE_ERROR)SetBytesOnPath:(NSString *) path
                        Value:(NSData *) val
-               Conditionality:(BOOL) isConditional
+              Conditionality:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalConverted = isConditional == YES ? true : false;
+    __block bool isConditionalBool= isConditional == YES ? true : false;
 
     WDM_LOG_METHOD_SIG();
 
@@ -588,11 +583,10 @@ exit:
 
             uint32_t valLen = (uint32_t)[val length];
             uint8_t * pVal = (uint8_t *) [val bytes];
-            err = _mWeaveCppGenericTraitUpdatableDataSink->SetBytes([path UTF8String], pVal, valLen, isConditionalConverted);
+            err = _mWeaveCppGenericTraitUpdatableDataSink->SetBytes([path UTF8String], pVal, valLen, isConditionalBool);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
                 WDM_LOG_DEBUG(@"Got incorrect state error from SetBytes, ignore");
-
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
             }
         });
@@ -600,6 +594,47 @@ exit:
 
 exit:
     return err;
+}
+
+- (WEAVE_ERROR)SetSignedOnPath:(NSString *)path
+                    Value:(int64_t)val
+{
+    return [self SetSignedOnPath:path Value:val];
+}
+
+- (WEAVE_ERROR)SetUnsignedOnPath:(NSString *)path
+                         Value:(uint64_t)val
+{
+    return [self SetUnsignedOnPath:path Value:val];
+}
+
+- (WEAVE_ERROR)SetDoubleOnPath:(NSString *)path
+                       Value:(double)val
+{
+    return [self SetDoubleOnPath:path Value:val];
+}
+
+- (WEAVE_ERROR)SetBooleanOnPath:(NSString *)path
+                        Value:(BOOL) val
+{
+    return [self SetBooleanOnPath:path Value:val];
+}
+
+- (WEAVE_ERROR)SetStringOnPath:(NSString *) path
+                       Value:(NSString *) val
+{
+    return [self SetStringOnPath:path Value:val];
+}
+
+- (WEAVE_ERROR)SetNULLOnPath:(NSString *)path
+{
+    return [self SetNULLOnPath:path];
+}
+
+- (WEAVE_ERROR)SetBytesOnPath:(NSString *) path
+                       Value:(NSData *) val
+{
+    return [self SetBytesOnPath:path Value:val];
 }
 
 - (WEAVE_ERROR)GetInt:(int64_t *)val

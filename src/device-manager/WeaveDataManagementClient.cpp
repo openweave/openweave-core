@@ -233,7 +233,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR GenericTraitUpdatableDataSink::SetNull(const char * apPath, bool aIsConditional)
+WEAVE_ERROR GenericTraitUpdatableDataSink::SetNULL(const char * apPath, bool aIsConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVWriter writer;

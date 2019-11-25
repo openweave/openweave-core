@@ -269,8 +269,8 @@ am__libNLWeaveDeviceManager_a_HEADERS_DIST = Base64Encoding.h \
 	NLNevisPairingCodeDecoding.h NLWeaveKeyIds.h NLHKDF.h \
 	NLWeavePasscodeEncryptionSupport.h NLWeaveKeyExportClient.h \
 	NLWeaveKeyExportSupport.h NLWDMClient.h \
-	NLGenericTraitUpdatableDataSink.h NLResourceTypes.h \
-	NLResourceIdentifier.h NLResourceIdentifier_Protected.h
+	NLGenericTraitUpdatableDataSink.h NLResourceIdentifier.h \
+	NLResourceIdentifier_Protected.h
 am__noinst_HEADERS_DIST = NLIdentifyDeviceCriteria_Protected.h \
 	NLNetworkInfo_Protected.h NLWeaveDeviceDescriptor_Protected.h \
 	NLWeaveError_Protected.h NLWeaveDeviceManager_Protected.h \
@@ -597,7 +597,6 @@ EXTRA_DIST = \
 @WEAVE_WITH_COCOA_TRUE@    NLWeaveKeyExportSupport.h              \
 @WEAVE_WITH_COCOA_TRUE@    NLWDMClient.h                          \
 @WEAVE_WITH_COCOA_TRUE@    NLGenericTraitUpdatableDataSink.h      \
-@WEAVE_WITH_COCOA_TRUE@    NLResourceTypes.h                       \
 @WEAVE_WITH_COCOA_TRUE@    NLResourceIdentifier.h                 \
 @WEAVE_WITH_COCOA_TRUE@    NLResourceIdentifier_Protected.h       \
 @WEAVE_WITH_COCOA_TRUE@    $(NULL)

@@ -54,11 +54,10 @@ typedef void (^GenericTraitUpdatableDataSinkFailureBlock)(id owner, NSError * er
 
 // ----- Error Logging -----
 - (NSString *)toErrorString:(WEAVE_ERROR)err;
-//-(NSError *)toError:(WEAVE_ERROR)err;
 
 - (void)refreshDataCompletion:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler failure:(GenericTraitUpdatableDataSinkFailureBlock)failureHandler;
 
-- (WEAVE_ERROR)SetIntOnPath:(NSString *)path
+- (WEAVE_ERROR)SetSignedOnPath:(NSString *)path
                     Value:(int64_t)val
                Conditionality:(BOOL) isConditional;
 - (WEAVE_ERROR)SetUnsignedOnPath:(NSString *)path
@@ -75,12 +74,24 @@ typedef void (^GenericTraitUpdatableDataSinkFailureBlock)(id owner, NSError * er
                Conditionality:(BOOL) isConditional;
 - (WEAVE_ERROR)SetNULLOnPath:(NSString *)path
                Conditionality:(BOOL) isConditional;
-- (WEAVE_ERROR)SetStringOnPath:(NSString *) path
-                       Value:(NSString *) val
-               Conditionality:(BOOL) isConditional;
 - (WEAVE_ERROR)SetBytesOnPath:(NSString *) path
                        Value:(NSData *) val
                Conditionality:(BOOL) isConditional;
+
+- (WEAVE_ERROR)SetSignedOnPath:(NSString *)path
+                    Value:(int64_t)val;
+- (WEAVE_ERROR)SetUnsignedOnPath:(NSString *)path
+                         Value:(uint64_t)val;
+- (WEAVE_ERROR)SetDoubleOnPath:(NSString *)path
+                       Value:(double)val;
+- (WEAVE_ERROR)SetBooleanOnPath:(NSString *)path
+                        Value:(BOOL) val;
+- (WEAVE_ERROR)SetStringOnPath:(NSString *) path
+                       Value:(NSString *) val;
+- (WEAVE_ERROR)SetNULLOnPath:(NSString *)path;
+- (WEAVE_ERROR)SetBytesOnPath:(NSString *) path
+                       Value:(NSData *) val;
+
 - (WEAVE_ERROR)GetInt:(int64_t *)val
                OnPath:(NSString *)path;
 - (WEAVE_ERROR)GetUnsigned:(uint64_t *)val

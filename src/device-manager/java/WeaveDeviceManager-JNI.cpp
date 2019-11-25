@@ -3854,7 +3854,7 @@ void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_setNULL(JNIE
     pPathStr = env->GetStringUTFChars(path, 0);
     VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    err = pDataSink->SetNull(pPathStr, isConditional == JNI_TRUE);
+    err = pDataSink->SetNULL(pPathStr, isConditional == JNI_TRUE);
 
 exit:
     if (pPathStr != NULL)
