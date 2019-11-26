@@ -841,9 +841,9 @@ WEAVE_ERROR ReadDataForType(TLVReader &aReader, void *aStructureData, const Fiel
             err = aReader.Get(v);
             SuccessOrExit(err);
 
-            LogReadWrite("%s int64 %d", "R", v);
+            LogReadWrite("%s int64 %lld", "R", v);
 
-            *static_cast<int8_t *>(aStructureData) = v;
+            *static_cast<int64_t *>(aStructureData) = v;
             break;
         }
 
