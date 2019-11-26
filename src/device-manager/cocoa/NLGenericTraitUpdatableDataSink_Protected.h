@@ -24,7 +24,7 @@
 
 #include <Weave/Core/WeaveCore.h>
 #include <WeaveDataManagementClient.h>
-#import "NLWeaveDeviceManager.h"
+#import "NLGenericTraitUpdatableDataSink.h"
 
 @interface NLGenericTraitUpdatableDataSink ()
 - (instancetype)init:(NSString *)name

@@ -24,6 +24,8 @@
 
 #import <Foundation/Foundation.h>
 #import "NLWeaveErrorCodes.h"
+#import "NLResourceIdentifier.h"
+#import "NLGenericTraitUpdatableDataSink.h"
 
 typedef void (^WDMClientCompletionBlock)(id owner, id data);
 typedef void (^WDMClientFailureBlock)(id owner, NSError * error);
@@ -39,18 +41,11 @@ typedef void (^WDMClientFailureBlock)(id owner, NSError * error);
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  @brief Close all connections gracifully.
- *
- *  The device manager would be ready for another connection after completion.
- */
-- (void)Close:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler failure:(GenericTraitUpdatableDataSinkFailureBlock)failureHandler;
-
-/**
  *  @brief Forcifully release all resources and destroy all references.
  *
  *  There is no way to revive this device manager after this call.
  */
-- (void)Shutdown:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler;
+- (void)Close:(WDMClientCompletionBlock)completionHandler;
 
 
 // ----- Error Logging -----
@@ -67,6 +62,6 @@ typedef void (^WDMClientFailureBlock)(id owner, NSError * error);
 
 - (void)refreshDataCompletion:(WDMClientCompletionBlock)completionHandler failure:(WDMClientFailureBlock)failureHandler;
 
-- (void) removeDataSinkRef:(long long)traitInstancePtr;
+- (void)removeDataSinkRef:(long long)traitInstancePtr;
 
 @end

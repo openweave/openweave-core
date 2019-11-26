@@ -39,18 +39,10 @@ typedef void (^GenericTraitUpdatableDataSinkFailureBlock)(id owner, NSError * er
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  @brief Close all connections gracifully.
- *
- *  The device manager would be ready for another connection after completion.
- */
-- (void)Close:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler failure:(GenericTraitUpdatableDataSinkFailureBlock)failureHandler;
-
-/**
  *  @brief Forcifully release all resources and destroy all references.
  *
- *  There is no way to revive this device manager after this call.
  */
-- (void)Shutdown:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler;
+- (void)Close:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler;
 
 // ----- Error Logging -----
 - (NSString *)toErrorString:(WEAVE_ERROR)err;

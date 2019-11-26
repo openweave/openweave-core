@@ -66,7 +66,6 @@ libNLWeaveDeviceManager_a_HEADERS        = \
     NLWDMClient.h                          \
     NLGenericTraitUpdatableDataSink.h      \
     NLResourceIdentifier.h                 \
-    NLResourceIdentifier_Protected.h       \
     $(NULL)
 
 noinst_HEADERS                           = \
@@ -77,6 +76,7 @@ noinst_HEADERS                           = \
     NLWeaveDeviceManager_Protected.h       \
     NLWDMClient_Protected.h                \
     NLGenericTraitUpdatableDataSink_Protected.h       \
+    NLResourceIdentifier_Protected.h       \
     $(NULL)
 
 libNLWeaveDeviceManager_a_SOURCES        = \
@@ -99,7 +99,7 @@ libNLWeaveDeviceManager_a_SOURCES        = \
     NLWeavePasscodeEncryptionSupport.mm    \
     NLWeaveKeyExportClient.mm              \
     NLWeaveKeyExportSupport.mm             \
-    NLWDMClient.mm.                        \
+    NLWDMClient.mm                         \
     NLGenericTraitUpdatableDataSink.mm     \
     $(NULL)
 

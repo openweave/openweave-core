@@ -189,7 +189,7 @@ am__libNLWeaveDeviceManager_a_SOURCES_DIST = Base64Encoding.mm \
 	NLWeaveStack.mm NLWeaveConstants.mm \
 	NLNevisPairingCodeDecoding.mm NLWeaveKeyIds.mm NLHKDF.mm \
 	NLWeavePasscodeEncryptionSupport.mm NLWeaveKeyExportClient.mm \
-	NLWeaveKeyExportSupport.mm NLWDMClient.mm. \
+	NLWeaveKeyExportSupport.mm NLWDMClient.mm \
 	NLGenericTraitUpdatableDataSink.mm
 @WEAVE_WITH_COCOA_TRUE@am_libNLWeaveDeviceManager_a_OBJECTS = libNLWeaveDeviceManager_a-Base64Encoding.$(OBJEXT) \
 @WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLIdentifyDeviceCriteria.$(OBJEXT) \
@@ -210,6 +210,7 @@ am__libNLWeaveDeviceManager_a_SOURCES_DIST = Base64Encoding.mm \
 @WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLWeavePasscodeEncryptionSupport.$(OBJEXT) \
 @WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLWeaveKeyExportClient.$(OBJEXT) \
 @WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLWeaveKeyExportSupport.$(OBJEXT) \
+@WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLWDMClient.$(OBJEXT) \
 @WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLGenericTraitUpdatableDataSink.$(OBJEXT)
 libNLWeaveDeviceManager_a_OBJECTS =  \
 	$(am_libNLWeaveDeviceManager_a_OBJECTS)
@@ -269,13 +270,13 @@ am__libNLWeaveDeviceManager_a_HEADERS_DIST = Base64Encoding.h \
 	NLNevisPairingCodeDecoding.h NLWeaveKeyIds.h NLHKDF.h \
 	NLWeavePasscodeEncryptionSupport.h NLWeaveKeyExportClient.h \
 	NLWeaveKeyExportSupport.h NLWDMClient.h \
-	NLGenericTraitUpdatableDataSink.h NLResourceIdentifier.h \
-	NLResourceIdentifier_Protected.h
+	NLGenericTraitUpdatableDataSink.h NLResourceIdentifier.h
 am__noinst_HEADERS_DIST = NLIdentifyDeviceCriteria_Protected.h \
 	NLNetworkInfo_Protected.h NLWeaveDeviceDescriptor_Protected.h \
 	NLWeaveError_Protected.h NLWeaveDeviceManager_Protected.h \
 	NLWDMClient_Protected.h \
-	NLGenericTraitUpdatableDataSink_Protected.h
+	NLGenericTraitUpdatableDataSink_Protected.h \
+	NLResourceIdentifier_Protected.h
 HEADERS = $(libNLWeaveDeviceManager_a_HEADERS) $(noinst_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
@@ -598,7 +599,6 @@ EXTRA_DIST = \
 @WEAVE_WITH_COCOA_TRUE@    NLWDMClient.h                          \
 @WEAVE_WITH_COCOA_TRUE@    NLGenericTraitUpdatableDataSink.h      \
 @WEAVE_WITH_COCOA_TRUE@    NLResourceIdentifier.h                 \
-@WEAVE_WITH_COCOA_TRUE@    NLResourceIdentifier_Protected.h       \
 @WEAVE_WITH_COCOA_TRUE@    $(NULL)
 
 @WEAVE_WITH_COCOA_TRUE@noinst_HEADERS = \
@@ -609,6 +609,7 @@ EXTRA_DIST = \
 @WEAVE_WITH_COCOA_TRUE@    NLWeaveDeviceManager_Protected.h       \
 @WEAVE_WITH_COCOA_TRUE@    NLWDMClient_Protected.h                \
 @WEAVE_WITH_COCOA_TRUE@    NLGenericTraitUpdatableDataSink_Protected.h       \
+@WEAVE_WITH_COCOA_TRUE@    NLResourceIdentifier_Protected.h       \
 @WEAVE_WITH_COCOA_TRUE@    $(NULL)
 
 @WEAVE_WITH_COCOA_TRUE@libNLWeaveDeviceManager_a_SOURCES = \
@@ -631,7 +632,7 @@ EXTRA_DIST = \
 @WEAVE_WITH_COCOA_TRUE@    NLWeavePasscodeEncryptionSupport.mm    \
 @WEAVE_WITH_COCOA_TRUE@    NLWeaveKeyExportClient.mm              \
 @WEAVE_WITH_COCOA_TRUE@    NLWeaveKeyExportSupport.mm             \
-@WEAVE_WITH_COCOA_TRUE@    NLWDMClient.mm.                        \
+@WEAVE_WITH_COCOA_TRUE@    NLWDMClient.mm                         \
 @WEAVE_WITH_COCOA_TRUE@    NLGenericTraitUpdatableDataSink.mm     \
 @WEAVE_WITH_COCOA_TRUE@    $(NULL)
 
@@ -721,6 +722,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLPairingCodeUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLProfileStatusError.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLServiceInfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLWDMClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLWeaveBleDelegate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLWeaveConstants.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLWeaveDeviceDescriptor.Po@am__quote@
@@ -1022,6 +1024,20 @@ libNLWeaveDeviceManager_a-NLWeaveKeyExportSupport.obj: NLWeaveKeyExportSupport.m
 @AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX)source='NLWeaveKeyExportSupport.mm' object='libNLWeaveDeviceManager_a-NLWeaveKeyExportSupport.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	DEPDIR=$(DEPDIR) $(OBJCXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX@am__nodep@)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -c -o libNLWeaveDeviceManager_a-NLWeaveKeyExportSupport.obj `if test -f 'NLWeaveKeyExportSupport.mm'; then $(CYGPATH_W) 'NLWeaveKeyExportSupport.mm'; else $(CYGPATH_W) '$(srcdir)/NLWeaveKeyExportSupport.mm'; fi`
+
+libNLWeaveDeviceManager_a-NLWDMClient.o: NLWDMClient.mm
+@am__fastdepOBJCXX_TRUE@	$(AM_V_OBJCXX)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -MT libNLWeaveDeviceManager_a-NLWDMClient.o -MD -MP -MF $(DEPDIR)/libNLWeaveDeviceManager_a-NLWDMClient.Tpo -c -o libNLWeaveDeviceManager_a-NLWDMClient.o `test -f 'NLWDMClient.mm' || echo '$(srcdir)/'`NLWDMClient.mm
+@am__fastdepOBJCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libNLWeaveDeviceManager_a-NLWDMClient.Tpo $(DEPDIR)/libNLWeaveDeviceManager_a-NLWDMClient.Po
+@AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX)source='NLWDMClient.mm' object='libNLWeaveDeviceManager_a-NLWDMClient.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	DEPDIR=$(DEPDIR) $(OBJCXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX@am__nodep@)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -c -o libNLWeaveDeviceManager_a-NLWDMClient.o `test -f 'NLWDMClient.mm' || echo '$(srcdir)/'`NLWDMClient.mm
+
+libNLWeaveDeviceManager_a-NLWDMClient.obj: NLWDMClient.mm
+@am__fastdepOBJCXX_TRUE@	$(AM_V_OBJCXX)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -MT libNLWeaveDeviceManager_a-NLWDMClient.obj -MD -MP -MF $(DEPDIR)/libNLWeaveDeviceManager_a-NLWDMClient.Tpo -c -o libNLWeaveDeviceManager_a-NLWDMClient.obj `if test -f 'NLWDMClient.mm'; then $(CYGPATH_W) 'NLWDMClient.mm'; else $(CYGPATH_W) '$(srcdir)/NLWDMClient.mm'; fi`
+@am__fastdepOBJCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libNLWeaveDeviceManager_a-NLWDMClient.Tpo $(DEPDIR)/libNLWeaveDeviceManager_a-NLWDMClient.Po
+@AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX)source='NLWDMClient.mm' object='libNLWeaveDeviceManager_a-NLWDMClient.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	DEPDIR=$(DEPDIR) $(OBJCXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX@am__nodep@)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -c -o libNLWeaveDeviceManager_a-NLWDMClient.obj `if test -f 'NLWDMClient.mm'; then $(CYGPATH_W) 'NLWDMClient.mm'; else $(CYGPATH_W) '$(srcdir)/NLWDMClient.mm'; fi`
 
 libNLWeaveDeviceManager_a-NLGenericTraitUpdatableDataSink.o: NLGenericTraitUpdatableDataSink.mm
 @am__fastdepOBJCXX_TRUE@	$(AM_V_OBJCXX)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -MT libNLWeaveDeviceManager_a-NLGenericTraitUpdatableDataSink.o -MD -MP -MF $(DEPDIR)/libNLWeaveDeviceManager_a-NLGenericTraitUpdatableDataSink.Tpo -c -o libNLWeaveDeviceManager_a-NLGenericTraitUpdatableDataSink.o `test -f 'NLGenericTraitUpdatableDataSink.mm' || echo '$(srcdir)/'`NLGenericTraitUpdatableDataSink.mm

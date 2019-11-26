@@ -29,7 +29,7 @@
 
 using namespace nl::Weave::Profiles::DataManagement;
 
-@interface NLNetworkInfo ()
+@interface NLResourceIdentifier ()
 
 - (ResourceIdentifier)toResourceIdentifier;
 

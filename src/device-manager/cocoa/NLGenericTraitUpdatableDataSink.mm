@@ -34,13 +34,11 @@
 
 #include <net/if.h>
 
-#import "NLWeaveBleDelegate.h"
 #import "NLWeaveDeviceManager_Protected.h"
 #import "NLWeaveDeviceDescriptor_Protected.h"
-#import "NLNetworkInfo_Protected.h"
 #import "NLProfileStatusError.h"
 #import "NLWeaveError_Protected.h"
-#include <Weave/Profiles/device-description/DeviceDescription.h>
+
 #import "NLIdentifyDeviceCriteria_Protected.h"
 #import "Base64Encoding.h"
 
@@ -310,59 +308,21 @@ static void onGenericUpdatableDataSinkError(void * dataSink, void * appReqState,
     }
 }
 
-- (void)Shutdown:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler
+- (void)Close:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler
 {
     WDM_LOG_METHOD_SIG();
 
     dispatch_async(_mWeaveWorkQueue, ^() {
-        // Note that conceptually we probably should not call shutdown while we're still closing the device manager and vice versa,
-        // but both Shutdown and Close are implemented in a synchronous way so there is really no chance for them to be intertwined.
         if (nil != _mRequestName) {
-            WDM_LOG_ERROR(@"%@: Forcefully shutdown while we're still executing %@, continue shutdown", _name, _mRequestName);
+            WDM_LOG_ERROR(@"%@: Forcefully close while we're still executing %@, continue close", _name, _mRequestName);
         }
 
         [self MarkTransactionCompleted];
 
         _mCompletionHandler = completionHandler;
-        _mRequestName = @"Shutdown";
+        _mRequestName = @"Close";
         [self Shutdown_Internal];
     });
-}
-
-- (void)Close:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler failure:(WDMFailureBlock)failureHandler;
-{
-    WDM_LOG_METHOD_SIG();
-
-    NSString * taskName = @"Close";
-
-    dispatch_async(_mWeaveWorkQueue, ^() {
-        bool IsOKay = true;
-        if (nil != _mRequestName) {
-            // Note that conceptually we probably should not call shutdown while we're still closing the device manager and vice
-            // versa, but both Shutdown and Close are implemented in a synchronous way so there is really no chance for them to be
-            // intertwined.
-            if ([_mRequestName isEqualToString:@"Shutdown"]) {
-                IsOKay = false;
-            }
-        }
-
-        if (IsOKay) {
-            // Note that we're already in Weave work queue, which means all callbacks for the previous or current request
-            // has either happened/completed or would be canceled by this call to Close. Therefore, it should be safe
-            // to wipe out request context variables like _mRequestName and _mCompletionHandler.
-            _mWeaveCppGenericTraitUpdatableDataSink->Close();
-
-            _mRequestName = taskName;
-            _mCompletionHandler = completionHandler;
-            [self DispatchAsyncCompletionBlock:nil];
-        } else {
-            WDM_LOG_ERROR(@"%@: Attemp to %@ while we're still executing %@, ignore", _name, taskName, _mRequestName);
-
-            // do not change _mRequestName, as we're rejecting this request
-            [self DispatchAsyncFailureBlock:WEAVE_ERROR_INCORRECT_STATE taskName:taskName handler:failureHandler];
-        }
-    });
-
 }
 
 - (void)refreshDataCompletion:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler failure:(GenericTraitUpdatableDataSinkFailureBlock)failureHandler

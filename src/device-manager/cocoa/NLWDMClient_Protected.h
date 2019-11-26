@@ -25,6 +25,7 @@
 #include <Weave/Core/WeaveCore.h>
 #include <WeaveDataManagementClient.h>
 #import "NLWeaveDeviceManager.h"
+#import "NLWDMClient.h"
 
 @interface NLWDMClient ()
 - (instancetype)init:(NSString *)name
