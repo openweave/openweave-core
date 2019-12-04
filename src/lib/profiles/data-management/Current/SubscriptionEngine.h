@@ -421,7 +421,7 @@ private:
              const WeaveMessageInfo * mMsgInfo;
         };
 
-    static void OnUpdateRequest(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+    static void OnUpdateRequest(nl::Weave::ExchangeContext * apEC, const nl::Inet::IPPacketInfo * aPktInfo,
                                                const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
                                                PacketBuffer * aPayload);
 #endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
@@ -458,16 +458,22 @@ private:
         uint32_t mNumDataElements;
     };
 
-    static WEAVE_ERROR GetPreviousFirstSameTraitVersion(TLV::TLVReader & aDataListReader, uint32_t &aProfileId, uint64_t &aInstanceId, uint64_t &aPreviousFirstSameTraitVersion, uint32_t aNumDataElements);
+    static WEAVE_ERROR GetPreviousFirstSameTraitVersion(TLV::TLVReader & aDataListReader, uint32_t &aProfileId, uint64_t &aInstanceId, uint64_t &aPreviousFirstSameTraitVersion, uint32_t &aNumDataElements);
     static WEAVE_ERROR GetProfileAndInstanceIds(TLV::TLVReader & aPathReader, uint32_t &aProfileId, uint64_t &aInstanceId);
     static WEAVE_ERROR AllocateRightSizedBuffer(PacketBuffer *& buf,
                                               const uint32_t desiredSize,
                                               const uint32_t minSize,
                                               uint32_t & outMaxPayloadSize);
-    static void StatusVersionListWriter(nl::Weave::TLV::TLVWriter &aWriter, void  *apContext);
-    static void BuildStatusDataHandleElement(void * apStartAddr, TraitDataHandle aTraitDataHandle,uint32_t aProfileId, uint16_t aStatusCode, uint32_t aNumDataElement);
+    static void StatusListVersionListWriter(nl::Weave::TLV::TLVWriter &aWriter, void  *apContext);
+    static void BuildStatusDataHandleElement(PacketBuffer* pBuf, TraitDataHandle aTraitDataHandle,uint32_t aProfileId, uint16_t aStatusCode, uint32_t aNumDataElement);
 
-    static WEAVE_ERROR ProcessDataListAndGenerateUpdateResponse(nl::Weave::ExchangeContext * aEC, nl::Weave::TLV::TLVReader & aReader,
+    static WEAVE_ERROR StoreUpdateDE(Weave::TLV::TLVReader & aReader, uint64_t & aPreviousFirstSameTraitVersion, TraitDataHandle & aHandle, PropertyPathHandle & aPathHandle,  TraitDataSource * apDataSource);
+
+    static WEAVE_ERROR GenerateUpdateResponse(nl::Weave::ExchangeContext * apEC, uint32_t aNumDataElements, const TraitCatalogBase<TraitDataSource> * apCatalog, PacketBuffer* pBuf, bool existSuccess, bool existFailure, uint32_t aMaxPayloadSize);
+
+    static WEAVE_ERROR CheckAndStoreDataList(Weave::TLV::TLVReader & aDataListReader, Weave::TLV::TLVReader & aReader, uint64_t & aPreviousFirstSameTraitVersion, uint32_t & aNumDataElements, TraitDataHandle & aHandle, PropertyPathHandle & aPathHandle, bool & aOutIsPartialChange, const TraitCatalogBase<TraitDataSource> * apCatalog, IUpdateRequestDataElementAccessControlDelegate & acDelegate);
+
+    static WEAVE_ERROR ProcessDataListAndGenerateUpdateResponse(nl::Weave::ExchangeContext * apEC, nl::Weave::TLV::TLVReader & aReader,
                                        const TraitCatalogBase<TraitDataSource> * apCatalog,
                                        bool & aOutIsPartialChange,
                                        TraitDataHandle & aOutTraitDataHandle,
