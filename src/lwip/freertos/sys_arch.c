@@ -274,12 +274,11 @@ u32_t sys_now(void)
 
 sys_prot_t sys_arch_protect(void)
 {
-    taskENTER_CRITICAL();
-    return 1;
+    return taskENTER_CRITICAL_FROM_ISR();
 }
 
 void sys_arch_unprotect(sys_prot_t pval)
 {
-    taskEXIT_CRITICAL();
+    taskEXIT_CRITICAL_FROM_ISR(pval);
 }
 

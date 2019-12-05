@@ -802,7 +802,7 @@ void BLEManagerImpl::SoftDeviceBLEEventCallback(const ble_evt_t * bleEvent, void
     }
 
     // Post the event to the Weave queue.
-#if NRF_SDH_DISPATCH_MODEL_INTERRUPT
+#if (NRF_SDH_DISPATCH_MODEL == NRF_SDH_DISPATCH_MODEL_INTERRUPT)
     BaseType_t yieldRequired;
     PlatformMgrImpl().PostEventFromISR(&event, yieldRequired);
     portYIELD_FROM_ISR(yieldRequired);
@@ -1050,4 +1050,3 @@ bool BLEManagerImpl::IsSubscribed(uint16_t conId)
 } // namespace nl
 
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-
