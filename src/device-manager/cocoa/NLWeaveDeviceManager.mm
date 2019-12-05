@@ -31,6 +31,7 @@
 #include <Weave/Support/CodeUtils.h>
 
 #include <WeaveDeviceManager.h>
+#include <WeaveDataManagementClient.h>
 
 #include <net/if.h>
 
@@ -381,6 +382,15 @@ exit:
     if ((WEAVE_NO_ERROR == err) && (NULL != deviceId)) {
         *deviceId = result;
     }
+    return err;
+}
+
+- (WEAVE_ERROR)GetDeviceMgrPtr:(long long*)deviceMgrPtr
+{
+    __block WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WDM_LOG_METHOD_SIG();
+    *deviceMgrPtr = (long long)_mWeaveCppDM;
+
     return err;
 }
 

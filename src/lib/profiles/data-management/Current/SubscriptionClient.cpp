@@ -2916,6 +2916,7 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
 
         numInProgress = mInProgressUpdateList.GetNumItems();
         mInProgressUpdateList.Clear();
+        SetPendingSetState(kPendingSetEmpty);
     }
     else
     {
@@ -3248,6 +3249,11 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate(bool aForce)
 
 exit:
     UnlockUpdateMutex();
+
+    if (mPendingSetState == kPendingSetEmpty)
+    {
+        NoMorePendingEventCbHelper();
+    }
 
     return err;
 }

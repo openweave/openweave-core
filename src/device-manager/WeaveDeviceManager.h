@@ -27,11 +27,15 @@
 #ifndef __WEAVEDEVICEMANAGER_H
 #define __WEAVEDEVICEMANAGER_H
 
+#include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
+
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/common/WeaveMessage.h>
+#include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Profiles/device-description/DeviceDescription.h>
+#include <Weave/Profiles/locale/LocaleProfile.hpp>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/network-provisioning/NetworkInfo.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
@@ -48,6 +52,7 @@ namespace Weave {
 namespace DeviceManager {
 
 using namespace nl::Weave::Profiles;
+using namespace nl::Weave::Profiles::DataManagement;
 using namespace nl::Weave::Profiles::DeviceDescription;
 using namespace nl::Weave::Profiles::Vendor::Nestlabs::DropcamLegacyPairing;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
@@ -100,7 +105,6 @@ public:
     } State;                        // [READ-ONLY] Current state
 
     WeaveDeviceManager();
-
     void *AppState;
 
     WEAVE_ERROR Init(WeaveExchangeManager *exchangeMsg, WeaveSecurityManager *securityMgr);
@@ -252,6 +256,7 @@ public:
     WEAVE_ERROR SetWiFiRendezvousAddress(IPAddress addr); // DEPRECATED -- Use SetRendezvousAddress()
     WEAVE_ERROR RendezvousDevice(const char *pairingCode, void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
 
+    WEAVE_ERROR ConfigureBinding(Binding * const apBinding);
 private:
     enum OpState
     {
@@ -298,7 +303,7 @@ private:
         kOpState_UnpairToken                            = 41,
         kOpState_GetCameraAuthData                      = 42,
         kOpState_EnumerateDevices                       = 43,
-        kOpState_RemotePassiveRendezvousTimedOut        = 44
+        kOpState_RemotePassiveRendezvousTimedOut        = 44,
     };
 
     enum ConnectionState
@@ -619,7 +624,6 @@ enum ProductWildcardId
     kProductWildcardId_NestProtect        = 0xFFF1,
     kProductWildcardId_NestCam            = 0xFFF2
 };
-
 
 } // namespace DeviceManager
 } // namespace Weave

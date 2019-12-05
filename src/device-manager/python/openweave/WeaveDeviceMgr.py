@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2013-2017 Nest Labs, Inc.
+#    Copyright (c) 2013-2018 Nest Labs, Inc.
+#    Copyright (c) 2019 Google, LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,10 +34,12 @@ import datetime
 import time
 import glob
 import platform
+import ast
 from threading import Thread, Lock, Event
 from ctypes import *
+from WeaveStack import *
 
-__all__ = [ 'WeaveDeviceManager', 'NetworkInfo', 'DeviceManagerException', 'DeviceError', 'DeviceManagerError' ]
+__all__ = [ 'WeaveDeviceManager', 'NetworkInfo', 'DeviceDescriptor' ]
 
 NetworkType_WiFi                            = 1
 NetworkType_Thread                          = 2
@@ -85,66 +88,6 @@ SystemTest_ProductList                      = { 'thermostat'    : 0x235A000A,
 
 DeviceDescriptorFlag_IsRendezvousWiFiESSIDSuffix = 0x01
 
-
-def _VoidPtrToByteArray(ptr, len):
-    if ptr:
-        v = bytearray(len)
-        memmove((c_byte * len).from_buffer(v), ptr, len)
-        return v
-    else:
-        return None
-
-def _ByteArrayToVoidPtr(array):
-    if array != None:
-        if not (isinstance(array, str) or isinstance(array, bytearray)):
-            raise TypeError("Array must be an str or a bytearray")
-        return cast( (c_byte * len(array)) .from_buffer_copy(array), c_void_p)
-    else:
-        return c_void_p(0)
-
-def _IsByteArrayAllZeros(array):
-    for i in range(len(array)):
-        if (array[i] != 0):
-            return False
-    return True
-
-def _ByteArrayToHex(array):
-    return binascii.hexlify(bytes(array))
-WeaveDeviceMgrDLLBaseName = '_WeaveDeviceMgr.so'
-
-def _AllDirsToRoot(dir):
-    dir = os.path.abspath(dir)
-    while True:
-        yield dir
-        parent = os.path.dirname(dir)
-        if parent == '' or parent == dir:
-            break
-        dir = parent
-    
-def _LocateWeaveDLL():
-    scriptDir = os.path.dirname(os.path.abspath(__file__))
-    
-    # When properly installed in the weave package, the Weave Device Manager DLL will
-    # be located in the package root directory, along side the package's
-    # modules.
-    dmDLLPath = os.path.join(scriptDir, WeaveDeviceMgrDLLBaseName)
-    if os.path.exists(dmDLLPath):
-        return dmDLLPath
-
-    # For the convenience of developers, search the list of parent paths relative to the
-    # running script looking for an OpenWeave build directory containing the Weave Device
-    # Manager DLL. This makes it possible to import and use the WeaveDeviceMgr module
-    # directly from a built copy of the OpenWeave source tree.        
-    buildMachineGlob = '%s-*-%s*' % (platform.machine(), platform.system().lower())
-    relDMDLLPathGlob = os.path.join('build', buildMachineGlob, 'src/device-manager/python/.libs', WeaveDeviceMgrDLLBaseName)
-    for dir in _AllDirsToRoot(scriptDir):
-        dmDLLPathGlob = os.path.join(dir, relDMDLLPathGlob)
-        for dmDLLPath in glob.glob(dmDLLPathGlob):
-            if os.path.exists(dmDLLPath):
-                return dmDLLPath
-
-    raise Exception("Unable to locate Weave Device Manager DLL (%s); expected location: %s" % (WeaveDeviceMgrDLLBaseName, scriptDir))
-
 class NetworkInfo:
     def __init__(self, networkType=None, networkId=None, wifiSSID=None, wifiMode=None, wifiRole=None,
                  wifiSecurityType=None, wifiKey=None,
@@ -182,11 +125,11 @@ class NetworkInfo:
         if self.ThreadNetworkName != None:
             print "%sThread Network Name: \"%s\"" % (prefix, self.ThreadNetworkName)
         if self.ThreadExtendedPANId != None:
-            print "%sThread Extended PAN Id: %s" % (prefix, _ByteArrayToHex(self.ThreadExtendedPANId))
+            print "%sThread Extended PAN Id: %s" % (prefix, WeaveStack.ByteArrayToHex(self.ThreadExtendedPANId))
         if self.ThreadNetworkKey != None:
-            print "%sThread Network Key: %s" % (prefix, _ByteArrayToHex(self.ThreadNetworkKey))
+            print "%sThread Network Key: %s" % (prefix, WeaveStack.ByteArrayToHex(self.ThreadNetworkKey))
         if self.ThreadPSKc != None:
-            print "%sThread Network PSKc: %s" % (prefix, _ByteArrayToHex(self.ThreadPSKc))
+            print "%sThread Network PSKc: %s" % (prefix, WeaveStack.ByteArrayToHex(self.ThreadPSKc))
         if self.ThreadPANId != None:
             print "%sThread PAN Id: %04x" % (prefix, self.ThreadPANId)
         if self.ThreadChannel != None:
@@ -280,9 +223,9 @@ class DeviceDescriptor:
             else:
                 print "%sManufacturing Date: %04d/%02d" % (prefix, self.ManufacturingYear, self.ManufacturingMonth)
         if self.Primary802154MACAddress != None:
-            print "%sPrimary 802.15.4 MAC Address: %s" % (prefix, _ByteArrayToHex(self.Primary802154MACAddress))
+            print "%sPrimary 802.15.4 MAC Address: %s" % (prefix, WeaveStack.ByteArrayToHex(self.Primary802154MACAddress))
         if self.PrimaryWiFiMACAddress != None:
-            print "%sPrimary WiFi MAC Address: %s" % (prefix, _ByteArrayToHex(self.PrimaryWiFiMACAddress))
+            print "%sPrimary WiFi MAC Address: %s" % (prefix, WeaveStack.ByteArrayToHex(self.PrimaryWiFiMACAddress))
         if self.RendezvousWiFiESSID != None:
             print "%sRendezvous WiFi ESSID%s: %s" % (prefix, " Suffix" if self.IsRendezvousWiFiESSIDSuffix else "", self.RendezvousWiFiESSID)
         if self.PairingCode != None:
@@ -297,45 +240,6 @@ class DeviceDescriptor:
     @property
     def IsRendezvousWiFiESSIDSuffix(self):
         return (self.Flags & DeviceDescriptorFlag_IsRendezvousWiFiESSIDSuffix) != 0
-
-
-class DeviceManagerException(Exception):
-    pass
-
-class DeviceManagerError(DeviceManagerException):
-    def __init__(self, err, msg=None):
-        self.err = err
-        if msg != None:
-            self.msg = msg
-        else:
-            self.msg = "Device Manager Error %ld" % (err)
-
-    def __str__(self):
-        return self.msg
-
-class DeviceError(DeviceManagerException):
-    def __init__(self, profileId, statusCode, systemErrorCode, msg=None):
-        self.profileId = profileId
-        self.statusCode = statusCode
-        self.systemErrorCode = systemErrorCode
-        if (msg == None):
-            if (systemErrorCode):
-                return "[ %08X:%d ] (system err %d)" % (profileId, statusCode, systemErrorCode)
-            else:
-                return "[ %08X:%d ]" % (profileId, statusCode)
-        self.message = msg
-
-    def __str__(self):
-        return "Device Error: " + self.message
-
-
-class _DeviceStatusStruct(Structure):
-    _fields_ = [
-        ("ProfileId",       c_uint32),
-        ("StatusCode",      c_uint16),
-        ("SysErrorCode",    c_uint32)
-    ]
-
 
 class _IdentifyDeviceCriteriaStruct(Structure):
     _fields_ = [
@@ -374,11 +278,11 @@ class _NetworkInfoStruct(Structure):
             wifiMode = self.WiFiMode if self.WiFiMode != -1 else None,
             wifiRole = self.WiFiRole if self.WiFiRole != -1 else None,
             wifiSecurityType = self.WiFiSecurityType if self.WiFiSecurityType != -1 else None,
-            wifiKey = _VoidPtrToByteArray(self.WiFiKey, self.WiFiKeyLen),
+            wifiKey = WeaveStack.VoidPtrToByteArray(self.WiFiKey, self.WiFiKeyLen),
             threadNetworkName = self.ThreadNetworkName,
-            threadExtendedPANId = _VoidPtrToByteArray(self.ThreadExtendedPANId, 8),
-            threadNetworkKey = _VoidPtrToByteArray(self.ThreadNetworkKey, 16),
-            threadPSKc = _VoidPtrToByteArray(self.ThreadPSKc, 16),
+            threadExtendedPANId = WeaveStack.VoidPtrToByteArray(self.ThreadExtendedPANId, 8),
+            threadNetworkKey = WeaveStack.VoidPtrToByteArray(self.ThreadNetworkKey, 16),
+            threadPSKc = WeaveStack.VoidPtrToByteArray(self.ThreadPSKc, 16),
             threadPANId = self.ThreadPANId if self.ThreadPANId != ThreadPANId_NotSpecified else None,
             threadChannel = self.ThreadChannel if self.ThreadChannel != ThreadChannel_NotSpecified else None,
             wirelessSignalStrength = self.WirelessSignalStrength if self.WirelessSignalStrength != -32768 else None
@@ -393,12 +297,12 @@ class _NetworkInfoStruct(Structure):
         networkInfoStruct.WiFiMode = networkInfo.WiFiMode if networkInfo.WiFiMode != None else -1
         networkInfoStruct.WiFiRole = networkInfo.WiFiRole if networkInfo.WiFiRole != None else -1
         networkInfoStruct.WiFiSecurityType = networkInfo.WiFiSecurityType if networkInfo.WiFiSecurityType != None else -1
-        networkInfoStruct.WiFiKey = _ByteArrayToVoidPtr(networkInfo.WiFiKey)
+        networkInfoStruct.WiFiKey = WeaveStack.ByteArrayToVoidPtr(networkInfo.WiFiKey)
         networkInfoStruct.WiFiKeyLen = len(networkInfo.WiFiKey) if (networkInfo.WiFiKey != None) else 0
         networkInfoStruct.ThreadNetworkName = networkInfo.ThreadNetworkName
-        networkInfoStruct.ThreadExtendedPANId = _ByteArrayToVoidPtr(networkInfo.ThreadExtendedPANId)
-        networkInfoStruct.ThreadNetworkKey = _ByteArrayToVoidPtr(networkInfo.ThreadNetworkKey)
-        networkInfoStruct.ThreadPSKc = _ByteArrayToVoidPtr(networkInfo.ThreadPSKc)
+        networkInfoStruct.ThreadExtendedPANId = WeaveStack.ByteArrayToVoidPtr(networkInfo.ThreadExtendedPANId)
+        networkInfoStruct.ThreadNetworkKey = WeaveStack.ByteArrayToVoidPtr(networkInfo.ThreadNetworkKey)
+        networkInfoStruct.ThreadPSKc = WeaveStack.ByteArrayToVoidPtr(networkInfo.ThreadPSKc)
         networkInfoStruct.ThreadPANId = networkInfo.ThreadPANId if networkInfo.ThreadPANId != None else ThreadPANId_NotSpecified
         networkInfoStruct.ThreadChannel = networkInfo.ThreadChannel if networkInfo.ThreadChannel != None else ThreadChannel_NotSpecified
         networkInfoStruct.WirelessSignalStrength = networkInfo.WirelessSignalStrength if networkInfo.WirelessSignalStrength != None else -32768
@@ -436,8 +340,8 @@ class _DeviceDescriptorStruct(Structure):
             manufacturingYear = self.ManufacturingYear if self.ManufacturingYear != 0 else None,
             manufacturingMonth = self.ManufacturingMonth if self.ManufacturingMonth != 0 else None,
             manufacturingDay = self.ManufacturingDay if self.ManufacturingDay != 0 else None,
-            primary802154MACAddress = bytearray(self.Primary802154MACAddress) if not _IsByteArrayAllZeros(self.Primary802154MACAddress) else None,
-            primaryWiFiMACAddress = bytearray(self.PrimaryWiFiMACAddress) if not _IsByteArrayAllZeros(self.PrimaryWiFiMACAddress) else None,
+            primary802154MACAddress = bytearray(self.Primary802154MACAddress) if not WeaveStack.IsByteArrayAllZeros(self.Primary802154MACAddress) else None,
+            primaryWiFiMACAddress = bytearray(self.PrimaryWiFiMACAddress) if not WeaveStack.IsByteArrayAllZeros(self.PrimaryWiFiMACAddress) else None,
             serialNumber = self.SerialNumber if len(self.SerialNumber) != 0 else None,
             softwareVersion = self.SoftwareVersion if len(self.SoftwareVersion) != 0 else None,
             rendezvousWiFiESSID = self.RendezvousWiFiESSID if len(self.RendezvousWiFiESSID) != 0 else None,
@@ -447,8 +351,6 @@ class _DeviceDescriptorStruct(Structure):
             deviceFeatures = self.DeviceFeatures,
             flags = self.Flags)
 
-
-_dmLib = None
 _CompleteFunct                              = CFUNCTYPE(None, c_void_p, c_void_p)
 _IdentifyDeviceCompleteFunct                = CFUNCTYPE(None, c_void_p, c_void_p, POINTER(_DeviceDescriptorStruct))
 _PairTokenCompleteFunct                     = CFUNCTYPE(None, c_void_p, c_void_p, c_void_p, c_uint32)
@@ -459,7 +361,7 @@ _GetNetworksCompleteFunct                   = CFUNCTYPE(None, c_void_p, c_void_p
 _GetCameraAuthDataCompleteFunct             = CFUNCTYPE(None, c_void_p, c_void_p, c_char_p, c_char_p)
 _GetRendezvousModeCompleteFunct             = CFUNCTYPE(None, c_void_p, c_void_p, c_uint16)
 _GetFabricConfigCompleteFunct               = CFUNCTYPE(None, c_void_p, c_void_p, c_void_p, c_uint32)
-_ErrorFunct                                 = CFUNCTYPE(None, c_void_p, c_void_p, c_ulong, POINTER(_DeviceStatusStruct))
+_ErrorFunct                                 = CFUNCTYPE(None, c_void_p, c_void_p, c_ulong, POINTER(DeviceStatusStruct))
 _GetBleEventFunct                           = CFUNCTYPE(c_void_p)
 _WriteBleCharacteristicFunct                = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p, c_uint16)
 _SubscribeBleCharacteristicFunct            = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_bool)
@@ -478,35 +380,25 @@ class WeaveDeviceManager:
 
     def __init__(self, startNetworkThread=True):
         self.devMgr = None
-        self.callbackRes = None
         self.networkThread = None
         self.networkThreadRunable = False
-        self.networkLock = Lock()
-        self.completeEvent = Event()
+        self._weaveStack = WeaveStack()
+        self._dmLib = None
 
         self._InitLib()
 
         devMgr = c_void_p(None)
-        res = _dmLib.nl_Weave_DeviceManager_NewDeviceManager(pointer(devMgr))
+        res = self._dmLib.nl_Weave_DeviceManager_NewDeviceManager(pointer(devMgr))
         if (res != 0):
-            raise self._ErrorToException(res)
+            raise self._weaveStack.ErrorToException(res)
 
         self.devMgr = devMgr
-
-        def HandleComplete(devMgr, reqState):
-            self.callbackRes = True
-            self.completeEvent.set()
-
-        def HandleError(devMgr, reqState, err, devStatusPtr):
-            self.callbackRes = self._ErrorToException(err, devStatusPtr)
-            self.completeEvent.set()
+        self._weaveStack.devMgr = devMgr
 
         def HandleDeviceEnumerationResponse(devMgr, deviceDescPtr, deviceAddrStr):
             print "    Enumerated device IP: %s" % (deviceAddrStr)
             deviceDescPtr.contents.toDeviceDescriptor().Print("    ")
 
-        self.cbHandleComplete = _CompleteFunct(HandleComplete)
-        self.cbHandleError = _ErrorFunct(HandleError)
         self.cbHandleDeviceEnumerationResponse = _DeviceEnumerationResponseFunct(HandleDeviceEnumerationResponse)
         self.blockingCB = None # set by other modules(BLE) that require service by thread while thread blocks.
         self.cbHandleBleEvent = None # set by other modules (BLE) that provide event callback to Weave.
@@ -519,35 +411,35 @@ class WeaveDeviceManager:
 
     def __del__(self):
         if (self.devMgr != None):
-            _dmLib.nl_Weave_DeviceManager_DeleteDeviceManager(self.devMgr)
+            self._dmLib.nl_Weave_DeviceManager_DeleteDeviceManager(self.devMgr)
 
         self.StopNetworkThread()
 
     def DriveBleIO(self):
         # perform asynchronous write to pipe in IO thread's select() to wake for BLE input
-        res = _dmLib.nl_Weave_DeviceManager_WakeForBleIO()
+        res = self._dmLib.nl_Weave_DeviceManager_WakeForBleIO()
         if (res != 0):
-            raise self._ErrorToException(res)
+            raise self._weaveStack.ErrorToException(res)
 
     def SetBleEventCB(self, bleEventCB):
         if (self.devMgr != None):
             self.cbHandleBleEvent = _GetBleEventFunct(bleEventCB)
-            _dmLib.nl_Weave_DeviceManager_SetBleEventCB(self.cbHandleBleEvent)
+            self._dmLib.nl_Weave_DeviceManager_SetBleEventCB(self.cbHandleBleEvent)
 
     def SetBleWriteCharCB(self, bleWriteCharCB):
         if (self.devMgr != None):
             self.cbHandleBleWriteChar = _WriteBleCharacteristicFunct(bleWriteCharCB)
-            _dmLib.nl_Weave_DeviceManager_SetBleWriteCharacteristic(self.cbHandleBleWriteChar)
+            self._dmLib.nl_Weave_DeviceManager_SetBleWriteCharacteristic(self.cbHandleBleWriteChar)
 
     def SetBleSubscribeCharCB(self, bleSubscribeCharCB):
         if (self.devMgr != None):
             self.cbHandleBleSubscribeChar = _SubscribeBleCharacteristicFunct(bleSubscribeCharCB)
-            _dmLib.nl_Weave_DeviceManager_SetBleSubscribeCharacteristic(self.cbHandleBleSubscribeChar)
+            self._dmLib.nl_Weave_DeviceManager_SetBleSubscribeCharacteristic(self.cbHandleBleSubscribeChar)
 
     def SetBleCloseCB(self, bleCloseCB):
         if (self.devMgr != None):
             self.cbHandleBleClose = _CloseBleFunct(bleCloseCB)
-            _dmLib.nl_Weave_DeviceManager_SetBleClose(self.cbHandleBleClose)
+            self._dmLib.nl_Weave_DeviceManager_SetBleClose(self.cbHandleBleClose)
 
     def StartNetworkThread(self):
         if (self.networkThread != None):
@@ -555,9 +447,9 @@ class WeaveDeviceManager:
 
         def RunNetworkThread():
             while (self.networkThreadRunable):
-                self.networkLock.acquire()
-                _dmLib.nl_Weave_DeviceManager_DriveIO(50)
-                self.networkLock.release()
+                self._weaveStack.networkLock.acquire()
+                self._dmLib.nl_Weave_DeviceManager_DriveIO(50)
+                self._weaveStack.networkLock.release()
                 time.sleep(0.005)
 
         self.networkThread = Thread(target=RunNetworkThread, name="WeaveNetworkThread")
@@ -572,53 +464,52 @@ class WeaveDeviceManager:
             self.networkThread = None
 
     def IsConnected(self):
-        return self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_IsConnected(self.devMgr)
+        return self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_IsConnected(self.devMgr)
         )
 
     def DeviceId(self):
-        return self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_DeviceId(self.devMgr)
+        return self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_DeviceId(self.devMgr)
         )
 
     def DeviceAddress(self):
-        return self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_DeviceAddress(self.devMgr)
+        return self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_DeviceAddress(self.devMgr)
         )
 
     def SetRendezvousAddress(self, addr, intf = None):
         if addr is not None and "\x00" in addr:
-            raise ValueError("Unexpected NUL character in addr");
-
-        res = self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress(self.devMgr, addr, intf)
+            raise ValueError("Unexpected NUL character in addr")
+        res = self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_SetRendezvousAddress(self.devMgr, addr, intf)
         )
         if (res != 0):
-            raise self._ErrorToException(res)
+            raise self._weaveStack.ErrorToException(res)
 
     def SetConnectTimeout(self, timeoutMS):
         if timeoutMS < 0 or timeoutMS > pow(2,32):
             raise ValueError("timeoutMS must be an unsigned 32-bit integer")
 
-        res = self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_SetConnectTimeout(self.devMgr, timeoutMS)
+        res = self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_SetConnectTimeout(self.devMgr, timeoutMS)
         )
         if (res != 0):
-            raise self._ErrorToException(res)
+            raise self._weaveStack.ErrorToException(res)
 
     def SetAutoReconnect(self, autoReconnect):
-        res = self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_SetAutoReconnect(self.devMgr, autoReconnect)
+        res = self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_SetAutoReconnect(self.devMgr, autoReconnect)
         )
         if (res != 0):
-            raise self._ErrorToException(res)
+            raise self._weaveStack.ErrorToException(res)
 
     def SetRendezvousLinkLocal(self, RendezvousLinkLocal):
-        res = self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_SetRendezvousLinkLocal(self.devMgr, RendezvousLinkLocal)
+        res = self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_SetRendezvousLinkLocal(self.devMgr, RendezvousLinkLocal)
         )
         if (res != 0):
-            raise self._ErrorToException(res)
+            raise self._weaveStack.ErrorToException(res)
 
     def StartDeviceEnumeration(self, targetFabricId=TargetFabricId_AnyFabric,
                          targetModes=TargetDeviceMode_Any,
@@ -633,13 +524,13 @@ class WeaveDeviceManager:
         deviceCriteria.TargetProductId = targetProductId
         deviceCriteria.TargetDeviceId = targetDeviceId
 
-        self._CallDevMgr(
-                lambda: _dmLib.nl_Weave_DeviceManager_StartDeviceEnumeration(self.devMgr, deviceCriteria, self.cbHandleDeviceEnumerationResponse, self.cbHandleError)
+        self._weaveStack.Call(
+                lambda: self._dmLib.nl_Weave_DeviceManager_StartDeviceEnumeration(self.devMgr, deviceCriteria, self.cbHandleDeviceEnumerationResponse, self._weaveStack.cbHandleError)
             )
 
     def StopDeviceEnumeration(self):
-        res = self._CallDevMgr(
-                lambda: _dmLib.nl_Weave_DeviceManager_StopDeviceEnumeration(self.devMgr)
+        res = self._weaveStack.Call(
+                lambda: self._dmLib.nl_Weave_DeviceManager_StopDeviceEnumeration(self.devMgr)
             )
 
     def ConnectDevice(self, deviceId, deviceAddr=None,
@@ -654,16 +545,16 @@ class WeaveDeviceManager:
             raise ValueError('Must specify only one of pairingCode or accessToken when calling WeaveDeviceManager.ConnectDevice')
 
         if (pairingCode == None and accessToken == None):
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_NoAuth(self.devMgr, deviceId, deviceAddr, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_ConnectDevice_NoAuth(self.devMgr, deviceId, deviceAddr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
         elif (pairingCode != None):
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_PairingCode(self.devMgr, deviceId, deviceAddr, pairingCode, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_ConnectDevice_PairingCode(self.devMgr, deviceId, deviceAddr, pairingCode, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
         else:
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_AccessToken(self.devMgr, deviceId, deviceAddr, _ByteArrayToVoidPtr(accessToken), len(accessToken), self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_ConnectDevice_AccessToken(self.devMgr, deviceId, deviceAddr, WeaveStack.ByteArrayToVoidPtr(accessToken), len(accessToken), self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
 
     def RendezvousDevice(self, pairingCode=None, accessToken=None,
@@ -687,46 +578,46 @@ class WeaveDeviceManager:
         deviceCriteria.TargetDeviceId = targetDeviceId
 
         if (pairingCode == None and accessToken == None):
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RendezvousDevice_NoAuth(self.devMgr, deviceCriteria, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_RendezvousDevice_NoAuth(self.devMgr, deviceCriteria, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
         elif (pairingCode != None):
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RendezvousDevice_PairingCode(self.devMgr, pairingCode, deviceCriteria, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_RendezvousDevice_PairingCode(self.devMgr, pairingCode, deviceCriteria, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
         else:
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RendezvousDevice_AccessToken(self.devMgr, _ByteArrayToVoidPtr(accessToken), len(accessToken), deviceCriteria, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_RendezvousDevice_AccessToken(self.devMgr, WeaveStack.ByteArrayToVoidPtr(accessToken), len(accessToken), deviceCriteria, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
 
     # methods for testing BLE performance are not a part of the Weave Device Manager API, but rather are considered internal.
     def TestBle(self, connObj, count, duration, delay, ack, size, rx):
-        res = self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_TestBle(self.devMgr, connObj, self.cbHandleComplete, self.cbHandleError, count, duration, delay, ack, size, rx)
+        res = self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_TestBle(self.devMgr, connObj, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError, count, duration, delay, ack, size, rx)
         )
         if (res != 0):
-            raise self._ErrorToException(res)
+            raise self._weaveStack.ErrorToException(res)
 
     def TestResultBle(self, connObj, local):
-        res = self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_TestResultBle(self.devMgr, connObj, local)
+        res = self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_TestResultBle(self.devMgr, connObj, local)
         )
         if (res != 0):
-            raise self._ErrorToException(res)
+            raise self._weaveStack.ErrorToException(res)
 
     def TestAbortBle(self, connObj):
-        res = self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_TestAbortBle(self.devMgr, connObj)
+        res = self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_TestAbortBle(self.devMgr, connObj)
         )
         if (res != 0):
-            raise self._ErrorToException(res)
+            raise self._weaveStack.ErrorToException(res)
 
     def TxTimingBle(self, connObj, enabled, remote):
-        res = self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_TxTimingBle(self.devMgr, connObj, enabled, remote)
+        res = self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_TxTimingBle(self.devMgr, connObj, enabled, remote)
         )
         if (res != 0):
-            raise self._ErrorToException(res)
+            raise self._weaveStack.ErrorToException(res)
 
     # end of BLE testing methods
 
@@ -738,16 +629,16 @@ class WeaveDeviceManager:
             raise ValueError('Must specify only one of pairingCode or accessToken when calling WeaveDeviceManager.ConnectBle')
 
         if (pairingCode == None and accessToken == None):
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectBle_NoAuth(self.devMgr, bleConnection, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_ConnectBle_NoAuth(self.devMgr, bleConnection, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
         elif (pairingCode != None):
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectBle_PairingCode(self.devMgr, bleConnection, pairingCode, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_ConnectBle_PairingCode(self.devMgr, bleConnection, pairingCode, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
         else:
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectBle_AccessToken(self.devMgr, bleConnection, _ByteArrayToVoidPtr(accessToken), len(accessToken), self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_ConnectBle_AccessToken(self.devMgr, bleConnection, WeaveStack.ByteArrayToVoidPtr(accessToken), len(accessToken), self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
 
     def PassiveRendezvousDevice(self, pairingCode=None, accessToken=None):
@@ -758,16 +649,16 @@ class WeaveDeviceManager:
             raise ValueError('Must specify only one of pairingCode or accessToken when calling WeaveDeviceManager.PassiveRendezvousDevice')
 
         if (pairingCode == None and accessToken == None):
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_NoAuth(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_NoAuth(self.devMgr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
         elif (pairingCode != None):
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_PairingCode(self.devMgr, pairingCode, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_PairingCode(self.devMgr, pairingCode, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
         else:
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_AccessToken(self.devMgr, _ByteArrayToVoidPtr(accessToken), len(accessToken), self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_AccessToken(self.devMgr, WeaveStack.ByteArrayToVoidPtr(accessToken), len(accessToken), self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
 
     def RemotePassiveRendezvous(self, rendezvousDeviceAddr=None, pairingCode=None, accessToken=None, rendezvousTimeout=None, inactivityTimeout=None):
@@ -781,26 +672,26 @@ class WeaveDeviceManager:
             raise ValueError("Unexpected NUL character in pairingCode")
 
         if (pairingCode == None and accessToken == None):
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_NoAuth(self.devMgr, rendezvousDeviceAddr, rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_NoAuth(self.devMgr, rendezvousDeviceAddr, rendezvousTimeout, inactivityTimeout, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
         elif (pairingCode != None):
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_PASEAuth(self.devMgr, rendezvousDeviceAddr, pairingCode, rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_PASEAuth(self.devMgr, rendezvousDeviceAddr, pairingCode, rendezvousTimeout, inactivityTimeout, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
         else:
-            self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_CASEAuth(self.devMgr, rendezvousDeviceAddr, _ByteArrayToVoidPtr(accessToken), len(accessToken), rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
+            self._weaveStack.CallAsync(
+                lambda: self._dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_CASEAuth(self.devMgr, rendezvousDeviceAddr, WeaveStack.ByteArrayToVoidPtr(accessToken), len(accessToken), rendezvousTimeout, inactivityTimeout, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
             )
 
     def ReconnectDevice(self):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_ReconnectDevice(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_ReconnectDevice(self.devMgr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def Close(self):
-        self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_Close(self.devMgr)
+        self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_Close(self.devMgr)
         )
 
     def EnableConnectionMonitor(self, interval, timeout):
@@ -810,68 +701,68 @@ class WeaveDeviceManager:
         if timeout < 0 or timeout > pow(2,16):
             raise ValueError("timeout must be an unsigned 16-bit unsigned value")
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_EnableConnectionMonitor(self.devMgr, interval, timeout, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_EnableConnectionMonitor(self.devMgr, interval, timeout, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def DisableConnectionMonitor(self):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_DisableConnectionMonitor(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_DisableConnectionMonitor(self.devMgr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def IdentifyDevice(self):
         def HandleIdentifyDeviceComplete(devMgr, reqState, deviceDescPtr):
-            self.callbackRes = deviceDescPtr.contents.toDeviceDescriptor()
-            self.completeEvent.set()
+            self._weaveStack.callbackRes = deviceDescPtr.contents.toDeviceDescriptor()
+            self._weaveStack.completeEvent.set()
 
         cbHandleIdentifyDeviceComplete = _IdentifyDeviceCompleteFunct(HandleIdentifyDeviceComplete)
 
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_IdentifyDevice(self.devMgr, cbHandleIdentifyDeviceComplete, self.cbHandleError)
+        return self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_IdentifyDevice(self.devMgr, cbHandleIdentifyDeviceComplete, self._weaveStack.cbHandleError)
         )
 
     def PairToken(self, pairingToken):
         def HandlePairTokenComplete(devMgr, reqState, tokenPairingBundlePtr, tokenPairingBundleLen):
-            self.callbackRes = _VoidPtrToByteArray(tokenPairingBundlePtr, tokenPairingBundleLen)
-            self.completeEvent.set()
+            self._weaveStack.callbackRes = WeaveStack.VoidPtrToByteArray(tokenPairingBundlePtr, tokenPairingBundleLen)
+            self._weaveStack.completeEvent.set()
 
         cbHandlePairTokenComplete = _PairTokenCompleteFunct(HandlePairTokenComplete)
 
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_PairToken(self.devMgr, _ByteArrayToVoidPtr(pairingToken), len(pairingToken), cbHandlePairTokenComplete, self.cbHandleError)
+        return self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_PairToken(self.devMgr, WeaveStack.ByteArrayToVoidPtr(pairingToken), len(pairingToken), cbHandlePairTokenComplete, self._weaveStack.cbHandleError)
         )
 
     def UnpairToken(self):
         def HandleUnpairTokenComplete(devMgr, reqState):
-            self.callbackRes = True
-            self.completeEvent.set()
+            self._weaveStack.callbackRes = True
+            self._weaveStack.completeEvent.set()
 
         cbHandleUnpairTokenComplete = _UnpairTokenCompleteFunct(HandleUnpairTokenComplete)
 
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_UnpairToken(self.devMgr, cbHandleUnpairTokenComplete, self.cbHandleError)
+        return self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_UnpairToken(self.devMgr, cbHandleUnpairTokenComplete, self._weaveStack.cbHandleError)
         )
 
     def ScanNetworks(self, networkType):
         def HandleScanNetworksComplete(devMgr, reqState, netCount, netInfoPtr):
-            self.callbackRes = [ netInfoPtr[i].toNetworkInfo() for i in range(netCount) ]
-            self.completeEvent.set()
+            self._weaveStack.callbackRes = [ netInfoPtr[i].toNetworkInfo() for i in range(netCount) ]
+            self._weaveStack.completeEvent.set()
 
         cbHandleScanNetworksComplete = _NetworkScanCompleteFunct(HandleScanNetworksComplete)
 
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_ScanNetworks(self.devMgr, networkType, cbHandleScanNetworksComplete, self.cbHandleError)
+        return self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_ScanNetworks(self.devMgr, networkType, cbHandleScanNetworksComplete, self._weaveStack.cbHandleError)
         )
 
     def GetNetworks(self, getFlags):
         def HandleGetNetworksComplete(devMgr, reqState, netCount, netInfoPtr):
-            self.callbackRes = [ netInfoPtr[i].toNetworkInfo() for i in range(netCount) ]
-            self.completeEvent.set()
+            self._weaveStack.callbackRes = [ netInfoPtr[i].toNetworkInfo() for i in range(netCount) ]
+            self._weaveStack.completeEvent.set()
 
         cbHandleGetNetworksComplete = _GetNetworksCompleteFunct(HandleGetNetworksComplete)
 
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_GetNetworks(self.devMgr, getFlags, cbHandleGetNetworksComplete, self.cbHandleError)
+        return self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_GetNetworks(self.devMgr, getFlags, cbHandleGetNetworksComplete, self._weaveStack.cbHandleError)
         )
 
     def GetCameraAuthData(self, nonce):
@@ -879,41 +770,41 @@ class WeaveDeviceManager:
             raise ValueError("Unexpected NUL character in nonce")
 
         def HandleGetCameraAuthDataComplete(devMgr, reqState, macAddress, signedCameraPayload):
-            self.callbackRes = [ macAddress, signedCameraPayload ]
-            self.completeEvent.set()
+            self._weaveStack.callbackRes = [ macAddress, signedCameraPayload ]
+            self._weaveStack.completeEvent.set()
 
         cbHandleGetCameraAuthDataComplete = _GetCameraAuthDataCompleteFunct(HandleGetCameraAuthDataComplete)
 
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_GetCameraAuthData(self.devMgr, nonce, cbHandleGetCameraAuthDataComplete, self.cbHandleError)
+        return self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_GetCameraAuthData(self.devMgr, nonce, cbHandleGetCameraAuthDataComplete, self._weaveStack.cbHandleError)
         )
 
     def AddNetwork(self, networkInfo):
         def HandleAddNetworkComplete(devMgr, reqState, networkId):
-            self.callbackRes = networkId
-            self.completeEvent.set()
+            self._weaveStack.callbackRes = networkId
+            self._weaveStack.completeEvent.set()
 
         cbHandleAddNetworkComplete = _AddNetworkCompleteFunct(HandleAddNetworkComplete)
 
         networkInfoStruct = _NetworkInfoStruct.fromNetworkInfo(networkInfo)
 
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_AddNetwork(self.devMgr, networkInfoStruct, cbHandleAddNetworkComplete, self.cbHandleError)
+        return self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_AddNetwork(self.devMgr, networkInfoStruct, cbHandleAddNetworkComplete, self._weaveStack.cbHandleError)
         )
 
     def UpdateNetwork(self, networkInfo):
         networkInfoStruct = _NetworkInfoStruct.fromNetworkInfo(networkInfo)
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_UpdateNetwork(self.devMgr, networkInfoStruct, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_UpdateNetwork(self.devMgr, networkInfoStruct, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def RemoveNetwork(self, networkId):
         if networkId < 0 or networkId > pow(2,32):
             raise ValueError("networkId must be an unsigned 32-bit integer")
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_RemoveNetwork(self.devMgr, networkId, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_RemoveNetwork(self.devMgr, networkId, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def EnableNetwork(self, networkId):
@@ -921,103 +812,103 @@ class WeaveDeviceManager:
         if networkId < 0 or networkId > pow(2,32):
             raise ValueError("networkId must be an unsigned 32-bit integer")
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_EnableNetwork(self.devMgr, networkId, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_EnableNetwork(self.devMgr, networkId, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def DisableNetwork(self, networkId):
         if networkId < 0 or networkId > pow(2,32):
             raise ValueError("networkId must be an unsigned 32-bit integer")
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_DisableNetwork(self.devMgr, networkId, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_DisableNetwork(self.devMgr, networkId, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def TestNetworkConnectivity(self, networkId):
         if networkId < 0 or networkId > pow(2,32):
             raise ValueError("networkId must be an unsigned 32-bit integer")
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_TestNetworkConnectivity(self.devMgr, networkId, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_TestNetworkConnectivity(self.devMgr, networkId, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def GetRendezvousMode(self):
         def HandleGetRendezvousModeComplete(devMgr, reqState, modeFlags):
-            self.callbackRes = modeFlags
-            self.completeEvent.set()
+            self._weaveStack.callbackRes = modeFlags
+            self._weaveStack.completeEvent.set()
 
         cbHandleGetRendezvousModeComplete = _GetRendezvousModeCompleteFunct(HandleGetRendezvousModeComplete)
 
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_GetRendezvousMode(self.devMgr, cbHandleGetRendezvousModeComplete, self.cbHandleError)
+        return self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_GetRendezvousMode(self.devMgr, cbHandleGetRendezvousModeComplete, self._weaveStack.cbHandleError)
         )
 
     def SetRendezvousMode(self, modeFlags):
         if modeFlags < 0 or modeFlags > pow(2,16):
             raise ValueError("modeFlags must be an unsigned 16-bit integer")
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_SetRendezvousMode(self.devMgr, modeFlags, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_SetRendezvousMode(self.devMgr, modeFlags, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def GetLastNetworkProvisioningResult(self):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult(self.devMgr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def CreateFabric(self):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_CreateFabric(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_CreateFabric(self.devMgr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def LeaveFabric(self):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_LeaveFabric(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_LeaveFabric(self.devMgr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def GetFabricConfig(self):
         def HandleGetFabricConfigComplete(devMgr, reqState, fabricConfigPtr, fabricConfigLen):
-            self.callbackRes = _VoidPtrToByteArray(fabricConfigPtr, fabricConfigLen)
-            self.completeEvent.set()
+            self._weaveStack.callbackRes = WeaveStack.VoidPtrToByteArray(fabricConfigPtr, fabricConfigLen)
+            self._weaveStack.completeEvent.set()
 
         cbHandleGetFabricConfigComplete = _GetFabricConfigCompleteFunct(HandleGetFabricConfigComplete)
 
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_GetFabricConfig(self.devMgr, cbHandleGetFabricConfigComplete, self.cbHandleError)
+        return self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_GetFabricConfig(self.devMgr, cbHandleGetFabricConfigComplete, self._weaveStack.cbHandleError)
         )
 
     def JoinExistingFabric(self, fabricConfig):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_JoinExistingFabric(self.devMgr, _ByteArrayToVoidPtr(fabricConfig), len(fabricConfig),
-                                              self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_JoinExistingFabric(self.devMgr, WeaveStack.ByteArrayToVoidPtr(fabricConfig), len(fabricConfig),
+                                              self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def Ping(self):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_Ping(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_Ping(self.devMgr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def RegisterServicePairAccount(self, serviceId, accountId, serviceConfig, pairingToken, pairingInitData):
         if accountId is not None and '\x00' in accountId:
             raise ValueError("Unexpected NUL character in accountId")
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_RegisterServicePairAccount(self.devMgr, serviceId, accountId,
-                                                      _ByteArrayToVoidPtr(serviceConfig), len(serviceConfig),
-                                                      _ByteArrayToVoidPtr(pairingToken), len(pairingToken),
-                                                      _ByteArrayToVoidPtr(pairingInitData), len(pairingInitData),
-                                                      self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_RegisterServicePairAccount(self.devMgr, serviceId, accountId,
+                                                      WeaveStack.ByteArrayToVoidPtr(serviceConfig), len(serviceConfig),
+                                                      WeaveStack.ByteArrayToVoidPtr(pairingToken), len(pairingToken),
+                                                      WeaveStack.ByteArrayToVoidPtr(pairingInitData), len(pairingInitData),
+                                                      self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def UpdateService(self, serviceId, serviceConfig):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_UpdateService(self.devMgr, serviceId, _ByteArrayToVoidPtr(serviceConfig),
-                                         len(serviceConfig), self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_UpdateService(self.devMgr, serviceId, WeaveStack.ByteArrayToVoidPtr(serviceConfig),
+                                         len(serviceConfig), self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def UnregisterService(self, serviceId):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_UnregisterService(self.devMgr, serviceId, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_UnregisterService(self.devMgr, serviceId, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def ArmFailSafe(self, armMode, failSafeToken):
@@ -1027,47 +918,43 @@ class WeaveDeviceManager:
         if failSafeToken < 0 or failSafeToken > pow(2, 32):
             raise ValueError("failSafeToken must be an unsigned 32-bit integer")
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_ArmFailSafe(self.devMgr, armMode, failSafeToken, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_ArmFailSafe(self.devMgr, armMode, failSafeToken, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def DisarmFailSafe(self):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_DisarmFailSafe(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_DisarmFailSafe(self.devMgr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def ResetConfig(self, resetFlags):
         if resetFlags < 0 or resetFlags > pow(2, 16):
             raise ValueError("resetFlags must be an unsigned 16-bit integer")
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_ResetConfig(self.devMgr, resetFlags, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_ResetConfig(self.devMgr, resetFlags, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def CloseEndpoints(self):
-        self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_CloseEndpoints()
-        )
-    def Shutdown(self):
-        self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_Shutdown()
+        self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_CloseEndpoints()
         )
 
     def SetLogFilter(self, category):
         if category < 0 or category > pow(2, 8):
             raise ValueError("category must be an unsigned 8-bit integer")
 
-        self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_SetLogFilter(category)
+        self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_SetLogFilter(category)
         )
 
     def GetLogFilter(self):
-        self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_GetLogFilter()
+        self._weaveStack.Call(
+            lambda: self._dmLib.nl_Weave_DeviceManager_GetLogFilter()
         )
 
     def SetBlockingCB(self, blockingCB):
-        self.blockingCB = blockingCB
+        self._weaveStack.blockingCB = blockingCB
 
     def StartSystemTest(self, profileId, testId):
         if profileId < 0 or profileId > pow(2, 32):
@@ -1076,285 +963,232 @@ class WeaveDeviceManager:
         if testId < 0 or testId > pow(2, 32):
             raise ValueError("testId must be an unsigned 32-bit integer")
 
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_StartSystemTest(self.devMgr, profileId, testId, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_StartSystemTest(self.devMgr, profileId, testId, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def StopSystemTest(self):
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_StopSystemTest(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+        self._weaveStack.CallAsync(
+            lambda: self._dmLib.nl_Weave_DeviceManager_StopSystemTest(self.devMgr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     # ----- Private Members -----
     def _InitLib(self):
-        global _dmLib
-        if (_dmLib == None):
-            _dmLib = CDLL(_LocateWeaveDLL())
-            _dmLib.nl_Weave_DeviceManager_Init.argtypes = [ ]
-            _dmLib.nl_Weave_DeviceManager_Init.restype = c_uint32
+        if (self._dmLib == None):
+            self._dmLib = CDLL(self._weaveStack.LocateWeaveDLL())
 
-            _dmLib.nl_Weave_DeviceManager_Shutdown.argtypes = [ ]
-            _dmLib.nl_Weave_DeviceManager_Shutdown.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_NewDeviceManager.argtypes = [ POINTER(c_void_p) ]
+            self._dmLib.nl_Weave_DeviceManager_NewDeviceManager.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_NewDeviceManager.argtypes = [ POINTER(c_void_p) ]
-            _dmLib.nl_Weave_DeviceManager_NewDeviceManager.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_DeleteDeviceManager.argtypes = [ c_void_p ]
+            self._dmLib.nl_Weave_DeviceManager_DeleteDeviceManager.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_DeleteDeviceManager.argtypes = [ c_void_p ]
-            _dmLib.nl_Weave_DeviceManager_DeleteDeviceManager.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_Close.argtypes = [ c_void_p ]
+            self._dmLib.nl_Weave_DeviceManager_Close.restype = None
 
-            _dmLib.nl_Weave_DeviceManager_Close.argtypes = [ c_void_p ]
-            _dmLib.nl_Weave_DeviceManager_Close.restype = None
+            self._dmLib.nl_Weave_DeviceManager_DriveIO.argtypes = [ c_uint32 ]
+            self._dmLib.nl_Weave_DeviceManager_DriveIO.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_DriveIO.argtypes = [ c_uint32 ]
-            _dmLib.nl_Weave_DeviceManager_DriveIO.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_WakeForBleIO.argtypes = [ ]
+            self._dmLib.nl_Weave_DeviceManager_WakeForBleIO.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_WakeForBleIO.argtypes = [ ]
-            _dmLib.nl_Weave_DeviceManager_WakeForBleIO.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_SetBleEventCB.argtypes = [ _GetBleEventFunct ]
+            self._dmLib.nl_Weave_DeviceManager_SetBleEventCB.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetBleEventCB.argtypes = [ _GetBleEventFunct ]
-            _dmLib.nl_Weave_DeviceManager_SetBleEventCB.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_SetBleWriteCharacteristic.argtypes = [ _WriteBleCharacteristicFunct ]
+            self._dmLib.nl_Weave_DeviceManager_SetBleWriteCharacteristic.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetBleWriteCharacteristic.argtypes = [ _WriteBleCharacteristicFunct ]
-            _dmLib.nl_Weave_DeviceManager_SetBleWriteCharacteristic.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_SetBleSubscribeCharacteristic.argtypes = [ _SubscribeBleCharacteristicFunct ]
+            self._dmLib.nl_Weave_DeviceManager_SetBleSubscribeCharacteristic.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetBleSubscribeCharacteristic.argtypes = [ _SubscribeBleCharacteristicFunct ]
-            _dmLib.nl_Weave_DeviceManager_SetBleSubscribeCharacteristic.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_SetBleClose.argtypes = [ _CloseBleFunct ]
+            self._dmLib.nl_Weave_DeviceManager_SetBleClose.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetBleClose.argtypes = [ _CloseBleFunct ]
-            _dmLib.nl_Weave_DeviceManager_SetBleClose.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_IsConnected.argtypes = [ c_void_p ]
+            self._dmLib.nl_Weave_DeviceManager_IsConnected.restype = c_bool
 
-            _dmLib.nl_Weave_DeviceManager_IsConnected.argtypes = [ c_void_p ]
-            _dmLib.nl_Weave_DeviceManager_IsConnected.restype = c_bool
+            self._dmLib.nl_Weave_DeviceManager_DeviceId.argtypes = [ c_void_p ]
+            self._dmLib.nl_Weave_DeviceManager_DeviceId.restype = c_uint64
 
-            _dmLib.nl_Weave_DeviceManager_DeviceId.argtypes = [ c_void_p ]
-            _dmLib.nl_Weave_DeviceManager_DeviceId.restype = c_uint64
+            self._dmLib.nl_Weave_DeviceManager_DeviceAddress.argtypes = [ c_void_p ]
+            self._dmLib.nl_Weave_DeviceManager_DeviceAddress.restype = c_char_p
 
-            _dmLib.nl_Weave_DeviceManager_DeviceAddress.argtypes = [ c_void_p ]
-            _dmLib.nl_Weave_DeviceManager_DeviceAddress.restype = c_char_p
+            self._dmLib.nl_Weave_DeviceManager_StartDeviceEnumeration.argtypes = [ c_void_p, POINTER(_IdentifyDeviceCriteriaStruct), _DeviceEnumerationResponseFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_StartDeviceEnumeration.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_StartDeviceEnumeration.argtypes = [ c_void_p, POINTER(_IdentifyDeviceCriteriaStruct), _DeviceEnumerationResponseFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_StartDeviceEnumeration.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_StopDeviceEnumeration.argtypes = [ c_void_p ]
+            self._dmLib.nl_Weave_DeviceManager_StopDeviceEnumeration.restype = None
 
-            _dmLib.nl_Weave_DeviceManager_StopDeviceEnumeration.argtypes = [ c_void_p ]
-            _dmLib.nl_Weave_DeviceManager_StopDeviceEnumeration.restype = None
+            self._dmLib.nl_Weave_DeviceManager_ConnectDevice_NoAuth.argtypes = [ c_void_p, c_uint64, c_char_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_ConnectDevice_NoAuth.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ConnectDevice_NoAuth.argtypes = [ c_void_p, c_uint64, c_char_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ConnectDevice_NoAuth.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_ConnectDevice_PairingCode.argtypes = [ c_void_p, c_uint64, c_char_p, c_char_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_ConnectDevice_PairingCode.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ConnectDevice_PairingCode.argtypes = [ c_void_p, c_uint64, c_char_p, c_char_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ConnectDevice_PairingCode.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_ConnectDevice_AccessToken.argtypes = [ c_void_p, c_uint64, c_char_p, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_ConnectDevice_AccessToken.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ConnectDevice_AccessToken.argtypes = [ c_void_p, c_uint64, c_char_p, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ConnectDevice_AccessToken.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_RendezvousDevice_NoAuth.argtypes = [ c_void_p, POINTER(_IdentifyDeviceCriteriaStruct), _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_RendezvousDevice_NoAuth.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_RendezvousDevice_NoAuth.argtypes = [ c_void_p, POINTER(_IdentifyDeviceCriteriaStruct), _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_RendezvousDevice_NoAuth.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_RendezvousDevice_PairingCode.argtypes = [ c_void_p, c_char_p, POINTER(_IdentifyDeviceCriteriaStruct), _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_RendezvousDevice_PairingCode.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_RendezvousDevice_PairingCode.argtypes = [ c_void_p, c_char_p, POINTER(_IdentifyDeviceCriteriaStruct), _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_RendezvousDevice_PairingCode.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_RendezvousDevice_AccessToken.argtypes = [ c_void_p, c_void_p, c_uint32, POINTER(_IdentifyDeviceCriteriaStruct), _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_RendezvousDevice_AccessToken.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_RendezvousDevice_AccessToken.argtypes = [ c_void_p, c_void_p, c_uint32, POINTER(_IdentifyDeviceCriteriaStruct), _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_RendezvousDevice_AccessToken.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_NoAuth.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_NoAuth.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_NoAuth.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_NoAuth.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_PairingCode.argtypes = [ c_void_p, c_char_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_PairingCode.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_PairingCode.argtypes = [ c_void_p, c_char_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_PairingCode.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_AccessToken.argtypes = [ c_void_p, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_AccessToken.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_AccessToken.argtypes = [ c_void_p, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_AccessToken.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_TestBle.argtypes = [ c_void_p, c_void_p, _CompleteFunct, _ErrorFunct, c_uint32, c_uint32, c_uint16, c_uint8, c_uint16, c_bool ]
+            self._dmLib.nl_Weave_DeviceManager_TestBle.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_TestResultBle.argtypes = [ c_void_p, c_void_p, c_bool ]
+            self._dmLib.nl_Weave_DeviceManager_TestResultBle.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_TestAbortBle.argtypes = [ c_void_p, c_void_p ]
+            self._dmLib.nl_Weave_DeviceManager_TestAbortBle.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_TxTimingBle.argtypes = [ c_void_p, c_void_p, c_bool, c_bool ]
+            self._dmLib.nl_Weave_DeviceManager_TxTimingBle.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_TestBle.argtypes = [ c_void_p, c_void_p, _CompleteFunct, _ErrorFunct, c_uint32, c_uint32, c_uint16, c_uint8, c_uint16, c_bool ]
-            _dmLib.nl_Weave_DeviceManager_TestBle.restype = c_uint32
-            _dmLib.nl_Weave_DeviceManager_TestResultBle.argtypes = [ c_void_p, c_void_p, c_bool ]
-            _dmLib.nl_Weave_DeviceManager_TestResultBle.restype = c_uint32
-            _dmLib.nl_Weave_DeviceManager_TestAbortBle.argtypes = [ c_void_p, c_void_p ]
-            _dmLib.nl_Weave_DeviceManager_TestAbortBle.restype = c_uint32
-            _dmLib.nl_Weave_DeviceManager_TxTimingBle.argtypes = [ c_void_p, c_void_p, c_bool, c_bool ]
-            _dmLib.nl_Weave_DeviceManager_TxTimingBle.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_ConnectBle_NoAuth.argtypes = [ c_void_p, c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_ConnectBle_NoAuth.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ConnectBle_NoAuth.argtypes = [ c_void_p, c_void_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ConnectBle_NoAuth.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_ConnectBle_PairingCode.argtypes = [ c_void_p, c_void_p, c_char_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_ConnectBle_PairingCode.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ConnectBle_PairingCode.argtypes = [ c_void_p, c_void_p, c_char_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ConnectBle_PairingCode.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_ConnectBle_AccessToken.argtypes = [ c_void_p, c_void_p, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_ConnectBle_AccessToken.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ConnectBle_AccessToken.argtypes = [ c_void_p, c_void_p, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ConnectBle_AccessToken.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_CASEAuth.argtypes = [ c_void_p, c_char_p, c_char_p, c_uint32, c_uint16, c_uint16, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_CASEAuth.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_CASEAuth.argtypes = [ c_void_p, c_char_p, c_char_p, c_uint32, c_uint16, c_uint16, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_CASEAuth.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_PASEAuth.argtypes = [ c_void_p, c_char_p, c_char_p, c_uint16, c_uint16, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_PASEAuth.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_PASEAuth.argtypes = [ c_void_p, c_char_p, c_char_p, c_uint16, c_uint16, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_PASEAuth.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_NoAuth.argtypes = [ c_void_p, c_char_p, c_uint16, c_uint16, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_NoAuth.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_NoAuth.argtypes = [ c_void_p, c_char_p, c_uint16, c_uint16, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_NoAuth.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_ReconnectDevice.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_ReconnectDevice.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ReconnectDevice.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ReconnectDevice.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_EnableConnectionMonitor.argtypes = [ c_void_p, c_uint16, c_uint16, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_EnableConnectionMonitor.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_EnableConnectionMonitor.argtypes = [ c_void_p, c_uint16, c_uint16, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_EnableConnectionMonitor.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_DisableConnectionMonitor.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_DisableConnectionMonitor.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_DisableConnectionMonitor.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_DisableConnectionMonitor.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_IdentifyDevice.argtypes = [ c_void_p, _IdentifyDeviceCompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_IdentifyDevice.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_IdentifyDevice.argtypes = [ c_void_p, _IdentifyDeviceCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_IdentifyDevice.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_PairToken.argtypes = [ c_void_p, c_void_p, c_uint32, _PairTokenCompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_PairToken.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_PairToken.argtypes = [ c_void_p, c_void_p, c_uint32, _PairTokenCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_PairToken.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_UnpairToken.argtypes = [ c_void_p, _UnpairTokenCompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_UnpairToken.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_UnpairToken.argtypes = [ c_void_p, _UnpairTokenCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_UnpairToken.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_ScanNetworks.argtypes = [ c_void_p, c_int, _NetworkScanCompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_ScanNetworks.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ScanNetworks.argtypes = [ c_void_p, c_int, _NetworkScanCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ScanNetworks.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_GetNetworks.argtypes = [ c_void_p, c_int, _GetNetworksCompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_GetNetworks.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_GetNetworks.argtypes = [ c_void_p, c_int, _GetNetworksCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_GetNetworks.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_GetCameraAuthData.argtypes = [ c_void_p, c_char_p, _GetCameraAuthDataCompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_GetCameraAuthData.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_GetCameraAuthData.argtypes = [ c_void_p, c_char_p, _GetCameraAuthDataCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_GetCameraAuthData.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_AddNetwork.argtypes = [ c_void_p, POINTER(_NetworkInfoStruct), _AddNetworkCompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_AddNetwork.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_AddNetwork.argtypes = [ c_void_p, POINTER(_NetworkInfoStruct), _AddNetworkCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_AddNetwork.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_UpdateNetwork.argtypes = [ c_void_p, POINTER(_NetworkInfoStruct), _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_UpdateNetwork.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_UpdateNetwork.argtypes = [ c_void_p, POINTER(_NetworkInfoStruct), _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_UpdateNetwork.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_RemoveNetwork.argtypes = [ c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_RemoveNetwork.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_RemoveNetwork.argtypes = [ c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_RemoveNetwork.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_EnableNetwork.argtypes = [ c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_EnableNetwork.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_EnableNetwork.argtypes = [ c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_EnableNetwork.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_DisableNetwork.argtypes = [ c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_DisableNetwork.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_DisableNetwork.argtypes = [ c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_DisableNetwork.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_TestNetworkConnectivity.argtypes = [ c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_TestNetworkConnectivity.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_TestNetworkConnectivity.argtypes = [ c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_TestNetworkConnectivity.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_GetRendezvousMode.argtypes = [ c_void_p, _GetRendezvousModeCompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_GetRendezvousMode.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_GetRendezvousMode.argtypes = [ c_void_p, _GetRendezvousModeCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_GetRendezvousMode.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_SetRendezvousMode.argtypes = [ c_void_p, c_uint16, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_SetRendezvousMode.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetRendezvousMode.argtypes = [ c_void_p, c_uint16, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_SetRendezvousMode.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_GetLastNetworkProvisioningResult.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_CreateFabric.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_CreateFabric.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_CreateFabric.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_CreateFabric.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_LeaveFabric.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_LeaveFabric.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_LeaveFabric.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_LeaveFabric.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_GetFabricConfig.argtypes = [ c_void_p, _GetFabricConfigCompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_GetFabricConfig.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_GetFabricConfig.argtypes = [ c_void_p, _GetFabricConfigCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_GetFabricConfig.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_SetRendezvousAddress.argtypes = [ c_void_p, c_char_p, c_char_p ]
+            self._dmLib.nl_Weave_DeviceManager_SetRendezvousAddress.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_JoinExistingFabric.argtypes = [ c_void_p, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_JoinExistingFabric.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_JoinExistingFabric.argtypes = [ c_void_p, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_JoinExistingFabric.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_Ping.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_Ping.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_Ping.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_Ping.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress.argtypes = [ c_void_p, c_char_p, c_char_p ]
-            _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_SetRendezvousAddress.argtypes = [ c_void_p, c_char_p ]
+            self._dmLib.nl_Weave_DeviceManager_SetRendezvousAddress.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetConnectTimeout.argtypes = [ c_void_p, c_uint32 ]
-            _dmLib.nl_Weave_DeviceManager_SetConnectTimeout.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_SetConnectTimeout.argtypes = [ c_void_p, c_uint32 ]
+            self._dmLib.nl_Weave_DeviceManager_SetConnectTimeout.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetAutoReconnect.argtypes = [ c_void_p, c_bool ]
-            _dmLib.nl_Weave_DeviceManager_SetAutoReconnect.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_SetAutoReconnect.argtypes = [ c_void_p, c_bool ]
+            self._dmLib.nl_Weave_DeviceManager_SetAutoReconnect.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetRendezvousLinkLocal.argtypes = [ c_void_p, c_bool ]
-            _dmLib.nl_Weave_DeviceManager_SetRendezvousLinkLocal.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_SetRendezvousLinkLocal.argtypes = [ c_void_p, c_bool ]
+            self._dmLib.nl_Weave_DeviceManager_SetRendezvousLinkLocal.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_RegisterServicePairAccount.argtypes = [ c_void_p, c_uint64, c_char_p, c_void_p, c_uint32, c_void_p, c_uint32, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_RegisterServicePairAccount.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_RegisterServicePairAccount.argtypes = [ c_void_p, c_uint64, c_char_p, c_void_p, c_uint32, c_void_p, c_uint32, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_RegisterServicePairAccount.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_UpdateService.argtypes = [ c_void_p, c_uint64, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_UpdateService.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_UpdateService.argtypes = [ c_void_p, c_uint64, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_UpdateService.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_UnregisterService.argtypes = [ c_void_p, c_uint64, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_UnregisterService.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_UnregisterService.argtypes = [ c_void_p, c_uint64, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_UnregisterService.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ArmFailSafe.argtypes = [ c_void_p, c_uint8, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ArmFailSafe.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_ArmFailSafe.argtypes = [ c_void_p, c_uint8, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_ArmFailSafe.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_DisarmFailSafe.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_DisarmFailSafe.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_DisarmFailSafe.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_DisarmFailSafe.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ResetConfig.argtypes = [ c_void_p, c_uint16, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ResetConfig.restype = c_uint32
+            self._dmLib.nl_Weave_DeviceManager_ResetConfig.argtypes = [ c_void_p, c_uint16, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_ResetConfig.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_ErrorToString.argtypes = [ c_uint32 ]
-            _dmLib.nl_Weave_DeviceManager_ErrorToString.restype = c_char_p
+            self._dmLib.nl_Weave_DeviceManager_GetLogFilter.argtypes = [ ]
+            self._dmLib.nl_Weave_DeviceManager_GetLogFilter.restype = c_uint8
 
-            _dmLib.nl_Weave_DeviceManager_StatusReportToString.argtypes = [ c_uint32, c_uint16 ]
-            _dmLib.nl_Weave_DeviceManager_StatusReportToString.restype = c_char_p
+            self._dmLib.nl_Weave_DeviceManager_SetLogFilter.argtypes = [ c_uint8 ]
+            self._dmLib.nl_Weave_DeviceManager_SetLogFilter.restype = None
 
-            _dmLib.nl_Weave_DeviceManager_GetLogFilter.argtypes = [ ]
-            _dmLib.nl_Weave_DeviceManager_GetLogFilter.restype = c_uint8
+            self._dmLib.nl_Weave_DeviceManager_CloseEndpoints.argtypes = [ ]
+            self._dmLib.nl_Weave_DeviceManager_CloseEndpoints.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_SetLogFilter.argtypes = [ c_uint8 ]
-            _dmLib.nl_Weave_DeviceManager_SetLogFilter.restype = None
+            self._dmLib.nl_Weave_DeviceManager_StartSystemTest.argtypes = [ c_void_p, c_uint32, c_uint32, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_StartSystemTest.restype = c_uint32
 
-            _dmLib.nl_Weave_DeviceManager_CloseEndpoints.argtypes = [ ]
-            _dmLib.nl_Weave_DeviceManager_CloseEndpoints.restype = c_uint32
-
-            _dmLib.nl_Weave_DeviceManager_StartSystemTest.argtypes = [ c_void_p, c_uint32, c_uint32, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_StartSystemTest.restype = c_uint32
-
-            _dmLib.nl_Weave_DeviceManager_StopSystemTest.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_StopSystemTest.restype = c_uint32
-
-        res = _dmLib.nl_Weave_DeviceManager_Init()
-        if (res != 0):
-            raise self._ErrorToException(res)
-
-    def _CallDevMgr(self, callFunct):
-        # throw error if op in progress
-        self.callbackRes = None
-        self.completeEvent.clear()
-        with self.networkLock:
-            res = callFunct()
-        self.completeEvent.set()
-        return res
-
-    def _CallDevMgrAsync(self, callFunct):
-        # throw error if op in progress
-        self.callbackRes = None
-        self.completeEvent.clear()
-        with self.networkLock:
-            res = callFunct()
-
-        if (res != 0):
-            self.completeEvent.set()
-            raise self._ErrorToException(res)
-        while (not self.completeEvent.isSet()):
-            if self.blockingCB:
-                self.blockingCB()
-
-            self.completeEvent.wait(0.05)
-        if (isinstance(self.callbackRes, DeviceManagerException)):
-            raise self.callbackRes
-        return self.callbackRes
-
-    def _ErrorToException(self, err, devStatusPtr=None):
-        if (err == 4044 and devStatusPtr):
-            devStatus = devStatusPtr.contents
-            msg = _dmLib.nl_Weave_DeviceManager_StatusReportToString(devStatus.ProfileId, devStatus.StatusCode)
-            sysErrorCode = devStatus.SysErrorCode if (devStatus.SysErrorCode != 0) else None
-            if (sysErrorCode != None):
-                msg = msg + " (system err %d)" % (sysErrorCode)
-            return DeviceError(devStatus.ProfileId, devStatus.StatusCode, sysErrorCode, msg)
-        else:
-            return DeviceManagerError(err, _dmLib.nl_Weave_DeviceManager_ErrorToString(err))
-
+            self._dmLib.nl_Weave_DeviceManager_StopSystemTest.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._dmLib.nl_Weave_DeviceManager_StopSystemTest.restype = c_uint32
 
 def NetworkTypeToString(val):
     if (val == NetworkType_WiFi):

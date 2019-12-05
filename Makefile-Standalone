@@ -38,6 +38,7 @@ USE_LWIP                       ?= 0
 NO_OPENSSL                     ?= 0
 BLUEZ                          ?= 0
 USE_FUZZING                    ?= 0
+TESTS                          ?= 1
 
 HOSTOS                          = $(shell uname -s |tr [:upper:] [:lower:])
 ARCH                            = $(shell uname -m |tr [:upper:] [:lower:])
@@ -168,6 +169,13 @@ else
 configure_OPTIONS              +=
 endif
 
+# Disable tests generation
+ifeq ($(TESTS),0)
+configure_OPTIONS              += --disable-tests
+else
+configure_OPTIONS              +=
+endif
+
 # If the user has asserted TIMESTAMP, alter the configuration options
 # accordingly.
 ifeq ($(TIMESTAMP),1)
@@ -229,6 +237,12 @@ endif # SERVICE
 
 ifdef DNS
 configure_OPTIONS              += --with-happy-dns=$(DNS)
+else
+configure_OPTIONS              +=
+endif
+
+ifdef SCHEMA
+configure_OPTIONS              += --with-schema=$(SCHEMA)
 else
 configure_OPTIONS              +=
 endif
@@ -547,6 +561,8 @@ command line or in the environment:
   DOCS=[1|0]              Enable/disable Doxygen-generated documentation (default: '$(DOCS)').
                           Note this flag only has an effect when Doxygen is
                           installed.
+
+  TESTS=[1|0]             Enable/disable tests (default: '$(TESTS)').
 
   HAPPY=[1|0]             When set to 0, skip the functional tests that require
                           Happy orchestration tool.  When set to 1, pick the

@@ -53,6 +53,14 @@ public:
     virtual WEAVE_ERROR Unlock(void) = 0;
 };
 
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+class IUpdateRequestDataElementAccessControlDelegate
+{
+public:
+    virtual WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath, const TraitCatalogBase<TraitDataSource> & aCatalog) = 0;
+};
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+
 /**
  * @class SubscriptionEngine
  *
@@ -89,6 +97,14 @@ public:
         kEvent_SubscriptionlessNotificationProcessingComplete =
             3, ///< Called upon completion of processing of all trait data in the subscriptionless notify.
 #endif         // #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+        kEvent_OnIncomingUpdateRequest =
+            4, ///< Called when an incoming update has arrived before updating the data element.
+        kEvent_UpdateRequestDataElementAccessControlCheck =
+            5, ///< Called when an incoming update is being processed for access control of each data element.
+        kEvent_UpdateRequestProcessingComplete =
+            6, ///< Called upon completion of processing of all trait data in the update.
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
     };
 
     /**
@@ -129,6 +145,23 @@ public:
             const nl::Weave::WeaveMessageInfo * mMsgInfo; ///< A pointer to the message information for the request
         } mDataElementAccessControlForNotification;
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+        struct
+        {
+            WEAVE_ERROR processingError;                  ///< The WEAVE_ERROR encountered in processing the
+                                                          ///< Update Request.
+            const nl::Weave::WeaveMessageInfo * mMsgInfo; ///< A pointer to the message information for the request
+        } mIncomingUpdateRequest;
+
+        struct
+        {
+            const TraitCatalogBase<TraitDataSource> * mCatalog; ///< A pointer to the TraitCatalog for the data sources.
+            const TraitPath *mPath;                             ///< A pointer to the TraitPath being accessed by the
+                                                                ///< update request.
+            const nl::Weave::WeaveMessageInfo * mMsgInfo; ///< A pointer to the message information for the request
+        } mDataElementAccessControlForUpdateRequest;
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
     };
 
     /**
@@ -167,6 +200,19 @@ public:
             WEAVE_ERROR mReason;           ///< The reason for the rejection, if any.
         } mDataElementAccessControlForNotification;
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+        struct
+        {
+            bool mShouldContinueProcessing;      ///< Set to true if update is allowed.
+        } mIncomingUpdateRequest;
+
+        struct
+        {
+            bool mRejectUpdateRequest;      ///< Set to true if update is rejected.
+            WEAVE_ERROR mReason;     ///< The reason for the rejection, if any.
+        } mDataElementAccessControlForUpdateRequest;
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
     };
 
     /**
@@ -359,6 +405,27 @@ private:
                                                PacketBuffer * aPayload);
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+    class UpdateRequestDataElementAccessControlDelegate : public IUpdateRequestDataElementAccessControlDelegate
+        {
+        public:
+             UpdateRequestDataElementAccessControlDelegate(const WeaveMessageInfo * aMsgInfo)
+             {
+                 mMsgInfo = aMsgInfo;
+             }
+
+             WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath,
+                                                const TraitCatalogBase<TraitDataSource> & aCatalog);
+
+        private:
+             const WeaveMessageInfo * mMsgInfo;
+        };
+
+    static void OnUpdateRequest(nl::Weave::ExchangeContext * apEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                               const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                               PacketBuffer * aPayload);
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+
 #if WDM_ENABLE_SUBSCRIPTION_CLIENT
     // Client-specific features
 
@@ -375,6 +442,44 @@ private:
                                        bool & aOutIsPartialChange,
                                        TraitDataHandle & aOutTraitDataHandle,
                                        IDataElementAccessControlDelegate & acDelegate);
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+    struct StatusDataHandleElement
+    {
+        uint32_t        mProfileId;
+        uint16_t        mStatusCode;
+        TraitDataHandle mTraitDataHandle;
+    };
+
+    struct UpdateResponseWriterContext
+    {
+        void * mpFirstStatusDataHandleElement;
+        const TraitCatalogBase<TraitDataSource> * mpCatalog;
+        uint32_t mNumDataElements;
+    };
+
+    static WEAVE_ERROR GetPreviousFirstSameTraitVersion(TLV::TLVReader & aDataListReader, uint32_t &aProfileId, uint64_t &aInstanceId, uint64_t &aPreviousFirstSameTraitVersion, uint32_t &aNumDataElements);
+    static WEAVE_ERROR GetProfileAndInstanceIds(TLV::TLVReader & aPathReader, uint32_t &aProfileId, uint64_t &aInstanceId);
+    static WEAVE_ERROR AllocateRightSizedBuffer(PacketBuffer *& buf,
+                                              const uint32_t desiredSize,
+                                              const uint32_t minSize,
+                                              uint32_t & outMaxPayloadSize);
+    static void StatusListVersionListWriter(nl::Weave::TLV::TLVWriter &aWriter, void  *apContext);
+    static void BuildStatusDataHandleElement(PacketBuffer* pBuf, TraitDataHandle aTraitDataHandle,uint32_t aProfileId, uint16_t aStatusCode, uint32_t aNumDataElement);
+
+    static WEAVE_ERROR StoreUpdateDE(Weave::TLV::TLVReader & aReader, uint64_t & aPreviousFirstSameTraitVersion, TraitDataHandle & aHandle, PropertyPathHandle & aPathHandle,  TraitDataSource * apDataSource);
+
+    static WEAVE_ERROR GenerateUpdateResponse(nl::Weave::ExchangeContext * apEC, uint32_t aNumDataElements, const TraitCatalogBase<TraitDataSource> * apCatalog, PacketBuffer* pBuf, bool existSuccess, bool existFailure, uint32_t aMaxPayloadSize);
+
+    static WEAVE_ERROR CheckAndStoreDataList(Weave::TLV::TLVReader & aDataListReader, Weave::TLV::TLVReader & aReader, uint64_t & aPreviousFirstSameTraitVersion, uint32_t & aNumDataElements, TraitDataHandle & aHandle, PropertyPathHandle & aPathHandle, bool & aOutIsPartialChange, const TraitCatalogBase<TraitDataSource> * apCatalog, IUpdateRequestDataElementAccessControlDelegate & acDelegate);
+
+    static WEAVE_ERROR ProcessDataListAndGenerateUpdateResponse(nl::Weave::ExchangeContext * apEC, nl::Weave::TLV::TLVReader & aReader,
+                                       const TraitCatalogBase<TraitDataSource> * apCatalog,
+                                       bool & aOutIsPartialChange,
+                                       TraitDataHandle & aOutTraitDataHandle,
+                                       IUpdateRequestDataElementAccessControlDelegate & acDelegate);
+
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
 #if WEAVE_DETAIL_LOGGING
     void LogSubscriptionFreed(void) const;
 #endif // #if WEAVE_DETAIL_LOGGING

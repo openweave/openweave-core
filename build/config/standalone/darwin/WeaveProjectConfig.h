@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2017 Nest Labs, Inc.
+ *    Copyright (c) 2017-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019-2020 Google, LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +24,56 @@
 #ifndef WEAVEPROJECTCONFIG_OSX_H
 #define WEAVEPROJECTCONFIG_OSX_H
 
-#include "../WeaveProjectConfig.h"
+#ifndef WEAVEPROJECTCONFIG_H
+#define WEAVEPROJECTCONFIG_H
+
 #define INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT 0
 
+#define WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT 1
+
+// Configure WDM for event offload
+#define WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD 1
+
+#define WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS 1
+
+#define WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS 2
+
+#define WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT 1
+
+#define WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE 300
+
+// Uncomment this for a large Tunnel MTU.
+//#define WEAVE_CONFIG_TUNNEL_INTERFACE_MTU                           (9000)
+
+// Max number of Bindings per WeaveExchangeManager
+#define WEAVE_CONFIG_MAX_BINDINGS 8
+
+// Enable support functions for parsing command-line arguments
+#define WEAVE_CONFIG_ENABLE_ARG_PARSER 1
+
+// Enable reading DRBG seed data from /dev/(u)random.
+// This is needed for test applications and the Weave device manager to function
+// properly when WEAVE_CONFIG_RNG_IMPLEMENTATION_NESTDRBG is enabled.
+#define WEAVE_CONFIG_DEV_RANDOM_DRBG_SEED 1
+
+#define WEAVE_CONFIG_SECURITY_TEST_MODE 1
+
+#define WDM_ENFORCE_EXPIRY_TIME 1
+
+// Increase session idle timeout in stand-alone builds for the convenience of developers.
+#define WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT           120000
+
+#define WEAVE_CONFIG_ENABLE_WDM_UPDATE 1
+
+#define WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE 0
+
+#define WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE 0
+
+#define WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMP 1
+
+#define INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES 1
+
+#define WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES 1
+
 #endif /* WEAVEPROJECTCONFIG_H */
+#endif /* WEAVEPROJECTCONFIG_OSX_H */

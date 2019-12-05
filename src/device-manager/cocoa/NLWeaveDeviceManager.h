@@ -60,6 +60,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError * error);
 
 // ----- Device Information -----
 - (WEAVE_ERROR)GetDeviceId:(uint64_t *)deviceId;
+- (WEAVE_ERROR)GetDeviceMgrPtr:(long long *)deviceMgrPtr;
 - (WEAVE_ERROR)GetDeviceAddress:(NSMutableString *)strAddr;
 
 // ----- Connection Management -----

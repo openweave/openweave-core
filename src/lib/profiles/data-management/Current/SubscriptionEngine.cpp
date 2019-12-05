@@ -32,6 +32,7 @@
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Profiles/data-management/NotificationEngine.h>
+#include <Weave/Profiles/status-report/StatusReportProfile.h>
 #include <Weave/Profiles/time/WeaveTime.h>
 #include <Weave/Support/crypto/WeaveCrypto.h>
 #include <Weave/Support/WeaveFaultInjection.h>
@@ -357,6 +358,13 @@ void SubscriptionEngine::UnsolicitedMessageHandler(nl::Weave::ExchangeContext * 
         func = OnSubscriptionlessNotification;
         break;
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+    case kMsgType_UpdateRequest:
+        func = OnUpdateRequest;
+        break;
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+
     default:
         break;
     }
@@ -1480,7 +1488,6 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
                 ExitNow();
             }
         }
-
         // Note we cannot just use pathReader at here because the TDM related functions
         // generally assume they can move the reader at their will.
         // Note that callee is supposed to cache whatever is useful in the TLV stream into its own memory
@@ -1519,7 +1526,558 @@ exit:
 }
 #endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
 
-#endif // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+WEAVE_ERROR SubscriptionEngine::GetPreviousFirstSameTraitVersion(TLV::TLVReader & aDataListReader, uint32_t &aProfileId, uint64_t &aInstanceId, uint64_t &aPreviousFirstSameTraitVersion, uint32_t &aNumDataElements)
+{
+    WEAVE_ERROR err     = WEAVE_NO_ERROR;
+    Weave::TLV::TLVReader dataListReader;
+    uint32_t profileId = 0;
+    uint64_t instanceId = 0;
+    uint32_t numNeedSearchedElements = aNumDataElements - 1;
+    dataListReader.Init(aDataListReader);
+
+    while (WEAVE_NO_ERROR == (err = dataListReader.Next()) && numNeedSearchedElements > 0)
+    {
+        nl::Weave::TLV::TLVReader pathReader;
+        DataElement::Parser element;
+
+        err = element.Init(dataListReader);
+        if (WEAVE_NO_ERROR != err)
+        {
+            numNeedSearchedElements --;
+            continue;
+        }
+
+        err = element.GetReaderOnPath(&pathReader);
+        if (WEAVE_NO_ERROR != err)
+        {
+            numNeedSearchedElements --;
+            continue;
+        }
+
+        err = GetProfileAndInstanceIds(pathReader, profileId, instanceId);
+        if (WEAVE_NO_ERROR != err)
+        {
+            numNeedSearchedElements --;
+            continue;
+        }
+
+        if (aProfileId == profileId && aInstanceId == instanceId)
+        {
+            err = element.GetVersion(&aPreviousFirstSameTraitVersion);
+        }
+
+        numNeedSearchedElements --;
+    }
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR SubscriptionEngine::GetProfileAndInstanceIds(TLV::TLVReader & aPathReader, uint32_t & aProfileId, uint64_t & aInstanceId)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    Path::Parser path;
+    SchemaVersionRange versionRange;
+
+    err = path.Init(aPathReader);
+    SuccessOrExit(err);
+
+    err = path.GetProfileID(&aProfileId, &versionRange);
+    SuccessOrExit(err);
+
+    err = path.GetInstanceID(&aInstanceId);
+    if (WEAVE_END_OF_TLV == err)
+    {
+        err = WEAVE_NO_ERROR;
+    }
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR SubscriptionEngine::AllocateRightSizedBuffer(PacketBuffer *& buf,
+                                              const uint32_t desiredSize,
+                                              const uint32_t minSize,
+                                              uint32_t & outMaxPayloadSize)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t bufferAllocSize = 0;
+    uint32_t maxWeavePayloadSize;
+    uint32_t weaveTrailerSize = WEAVE_TRAILER_RESERVE_SIZE;
+    uint32_t weaveHeaderSize = WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE;
+
+    bufferAllocSize = nl::Weave::min(desiredSize,
+                                     static_cast<uint32_t>(WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX -
+                                      weaveHeaderSize -
+                                      weaveTrailerSize));
+
+    // Add the Weave Trailer size as NewWithAvailableSize() includes that in
+    // availableSize.
+    bufferAllocSize += weaveTrailerSize;
+
+    buf = PacketBuffer::NewWithAvailableSize(weaveHeaderSize, bufferAllocSize);
+    VerifyOrExit(buf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    maxWeavePayloadSize = WeaveMessageLayer::GetMaxWeavePayloadSize(buf, true, WEAVE_CONFIG_DEFAULT_UDP_MTU_SIZE);
+
+    outMaxPayloadSize = nl::Weave::min(maxWeavePayloadSize, bufferAllocSize);
+
+    if (outMaxPayloadSize < minSize)
+    {
+        err = WEAVE_ERROR_BUFFER_TOO_SMALL;
+
+        PacketBuffer::Free(buf);
+        buf = NULL;
+    }
+
+exit:
+    return err;
+}
+
+void SubscriptionEngine::StatusListVersionListWriter(nl::Weave::TLV::TLVWriter &aWriter, void  *apContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    nl::Weave::TLV::TLVWriter checkpoint = aWriter;
+    TraitDataSource * dataSource = NULL;
+    struct StatusDataHandleElement * elementTracker = NULL;
+    UpdateResponseWriterContext * context = NULL;
+    UpdateResponse::Builder updateResponseBuilder;
+
+    VerifyOrExit(NULL != apContext, err = WEAVE_ERROR_INCORRECT_STATE);
+    context = static_cast<UpdateResponseWriterContext*> (apContext);
+
+    err = updateResponseBuilder.Init(&aWriter);
+    SuccessOrExit(err);
+
+    elementTracker = static_cast<struct StatusDataHandleElement *> (context->mpFirstStatusDataHandleElement);
+    {
+        VersionList::Builder &lVLBuilder = updateResponseBuilder.CreateVersionListBuilder();
+        for (uint32_t i = 0; i < context->mNumDataElements; i++)
+        {
+            if (!(elementTracker->mProfileId == nl::Weave::Profiles::kWeaveProfile_Common) && (elementTracker->mStatusCode == nl::Weave::Profiles::Common::kStatus_Success))
+            {
+                lVLBuilder.AddNull();
+            }
+            else if (context->mpCatalog->Locate(elementTracker->mTraitDataHandle, &dataSource) == WEAVE_NO_ERROR)
+            {
+                lVLBuilder.AddVersion(dataSource->GetVersion());
+            }
+            elementTracker ++;
+        }
+        lVLBuilder.EndOfVersionList();
+        SuccessOrExit(lVLBuilder.GetError());
+    }
+
+    elementTracker = static_cast<struct StatusDataHandleElement *> (context->mpFirstStatusDataHandleElement);
+    {
+        StatusList::Builder &lSLBuilder = updateResponseBuilder.CreateStatusListBuilder();
+        for (uint32_t j = 0; j < context->mNumDataElements; j++)
+        {
+            lSLBuilder.AddStatus(elementTracker->mProfileId , elementTracker->mStatusCode);
+            elementTracker ++;
+        }
+        lSLBuilder.EndOfStatusList();
+        SuccessOrExit(lSLBuilder.GetError());
+    }
+
+    updateResponseBuilder.EndOfResponse();
+    SuccessOrExit(updateResponseBuilder.GetError());
+    aWriter.Finalize();
+
+    WeaveLogDetail(DataManagement, "StatusListVersionListWriter success");
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        aWriter = checkpoint;
+    }
+}
+
+void SubscriptionEngine::BuildStatusDataHandleElement(PacketBuffer* pBuf, TraitDataHandle aTraitDataHandle,uint32_t aProfileId, uint16_t aStatusCode, uint32_t aNumDataElement)
+{
+    StatusDataHandleElement * pStatusDataHandleElement = reinterpret_cast<StatusDataHandleElement *> (pBuf->Start()) + aNumDataElement - 1;
+    pStatusDataHandleElement->mProfileId = aProfileId;
+    pStatusDataHandleElement->mStatusCode = aStatusCode;
+    pStatusDataHandleElement->mTraitDataHandle = aTraitDataHandle;
+}
+
+WEAVE_ERROR SubscriptionEngine::StoreUpdateDE(Weave::TLV::TLVReader & aReader, uint64_t & aPreviousFirstSameTraitVersion, TraitDataHandle & aHandle, PropertyPathHandle & aPathHandle, TraitDataSource * apDataSource)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    bool isLocked        = false;
+    Weave::TLV::TLVReader pathReader;
+    pathReader.Init(aReader);
+
+    TraitUpdatableDataSource * updatableSource = static_cast<TraitUpdatableDataSource *>(apDataSource);
+
+    updatableSource->Lock();
+    isLocked = true;
+
+    err = updatableSource->StoreDataElement(aPathHandle, pathReader, 0, NULL, NULL, aHandle, aPreviousFirstSameTraitVersion);
+    SuccessOrExit(err);
+    updatableSource->SetDirty(aPathHandle);
+
+    updatableSource->Unlock(true);
+    isLocked = false;
+
+exit:
+    if (isLocked && updatableSource != NULL)
+    {
+        updatableSource->Unlock(true);
+    }
+
+    return err;
+}
+
+WEAVE_ERROR SubscriptionEngine::GenerateUpdateResponse(nl::Weave::ExchangeContext * apEC, uint32_t aNumDataElements, const TraitCatalogBase<TraitDataSource> * apCatalog, PacketBuffer* pBuf, bool existSuccess, bool existFailure, uint32_t aMaxPayloadSize)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    UpdateResponseWriterContext context;
+    StatusReport statusReport;
+    ReferencedTLVData referenceTLVData;
+    uint32_t totalStatusDataHandleListBytes = 0;
+    uint32_t overalStatusProfile = nl::Weave::Profiles::kWeaveProfile_Common;
+    uint16_t overalStatusCode = nl::Weave::Profiles::Common::kStatus_Success;
+    uint8_t* movedStartAddr = NULL;
+    uint8_t* pBufStartAddr = pBuf->Start();
+
+    totalStatusDataHandleListBytes = aNumDataElements * sizeof(StatusDataHandleElement);
+    movedStartAddr = pBufStartAddr + aMaxPayloadSize - totalStatusDataHandleListBytes;
+    memmove(movedStartAddr, pBufStartAddr, totalStatusDataHandleListBytes);
+    memset(pBufStartAddr, 0, totalStatusDataHandleListBytes);
+    WeaveLogDetail(DataManagement, "relocating the %d bytes statusDataHandleList to the end, NumDataElements is %d", totalStatusDataHandleListBytes, aNumDataElements);
+
+    context.mpFirstStatusDataHandleElement = movedStartAddr;
+    context.mpCatalog = apCatalog;
+    context.mNumDataElements = aNumDataElements;
+
+    err = referenceTLVData.init(StatusListVersionListWriter, &context);
+    SuccessOrExit(err);
+
+    if (existFailure && existSuccess)
+    {
+        overalStatusProfile = nl::Weave::Profiles::kWeaveProfile_WDM;
+        overalStatusCode = kStatus_MultipleFailures;
+    }
+    else if (!existFailure)
+    {
+        overalStatusProfile = nl::Weave::Profiles::kWeaveProfile_Common;
+        overalStatusCode = nl::Weave::Profiles::Common::kStatus_Success;
+    }
+    else if (!existSuccess)
+    {
+        overalStatusProfile = nl::Weave::Profiles::kWeaveProfile_Common;
+        overalStatusCode = nl::Weave::Profiles::Common::kStatus_BadRequest;
+    }
+
+    err = statusReport.init(overalStatusProfile, overalStatusCode, &referenceTLVData);
+    SuccessOrExit(err);
+
+    err = statusReport.pack(pBuf, aMaxPayloadSize - totalStatusDataHandleListBytes);
+    SuccessOrExit(err);
+
+    WeaveLogDetail(DataManagement, "Send Update Response with profileId 0x%" PRIX32 " statusCode 0x%" PRIX16 " ", overalStatusProfile , overalStatusCode);
+    err = apEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, pBuf);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR SubscriptionEngine::CheckAndStoreDataList(Weave::TLV::TLVReader & aDataListReader, Weave::TLV::TLVReader & aReader, uint64_t & aPreviousFirstSameTraitVersion, uint32_t & aNumDataElements, TraitDataHandle & aHandle, PropertyPathHandle & aPathHandle, bool & aOutIsPartialChange, const TraitCatalogBase<TraitDataSource> * apCatalog, IUpdateRequestDataElementAccessControlDelegate & acDelegate)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t currentProfildId = 0;
+    uint64_t currentInstanceID = 0;
+    Weave::TLV::TLVReader pathReader;
+    TraitPath traitPath;
+    DataElement::Parser element;
+    bool isPartialChange = false;
+    SchemaVersionRange versionRange;
+    TraitDataSource * dataSource = NULL;
+
+    err = element.Init(aReader);
+    SuccessOrExit(err);
+    err = element.GetReaderOnPath(&pathReader);
+    SuccessOrExit(err);
+    err = GetProfileAndInstanceIds(pathReader, currentProfildId, currentInstanceID);
+    SuccessOrExit(err);
+    err = GetPreviousFirstSameTraitVersion(aDataListReader, currentProfildId, currentInstanceID, aPreviousFirstSameTraitVersion, aNumDataElements);
+    SuccessOrExit(err);
+
+    // Todo: Add Partial Change handling support
+    isPartialChange = false;
+    element.GetPartialChangeFlag(&isPartialChange);
+    VerifyOrExit(isPartialChange == false, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    err = apCatalog->AddressToHandle(pathReader, aHandle, versionRange);
+    SuccessOrExit(err);
+
+    err = apCatalog->Locate(aHandle, &dataSource);
+    SuccessOrExit(err);
+
+    err = dataSource->GetSchemaEngine()->MapPathToHandle(pathReader, aPathHandle);
+
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
+    if (err == WEAVE_ERROR_TLV_TAG_NOT_FOUND)
+    {
+        WeaveLogDetail(DataManagement, "Ignoring un-mappable path!");
+        err = WEAVE_NO_ERROR;
+    }
+#endif
+
+    traitPath.mTraitDataHandle = aHandle;
+    traitPath.mPropertyPathHandle = aPathHandle;
+
+    err = acDelegate.DataElementAccessCheck(traitPath, *apCatalog);
+    SuccessOrExit(err);
+
+    err = StoreUpdateDE(aReader, aPreviousFirstSameTraitVersion, aHandle, aPathHandle, dataSource);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR SubscriptionEngine::ProcessDataListAndGenerateUpdateResponse(nl::Weave::ExchangeContext * apEC, nl::Weave::TLV::TLVReader & aReader,
+                                                const TraitCatalogBase<TraitDataSource> * apCatalog,
+                                                bool & aOutIsPartialChange,
+                                                TraitDataHandle & aOutTraitDataHandle,
+                                                IUpdateRequestDataElementAccessControlDelegate & acDelegate)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    PacketBuffer* pBuf = NULL;
+    bool existSuccess= false;
+    bool existFailure = false;
+    uint32_t numDataElements = 0;
+    uint32_t maxPayloadSize = 0;
+    nl::Weave::TLV::TLVReader DEListReaderCopy;
+
+    VerifyOrExit(apCatalog != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = AllocateRightSizedBuffer(pBuf, WDM_MAX_UPDATE_RESPONSE_SIZE, WDM_MIN_UPDATE_RESPONSE_SIZE, maxPayloadSize);
+    SuccessOrExit(err);
+
+    DEListReaderCopy.Init(aReader);
+
+    while (WEAVE_NO_ERROR == (err = aReader.Next()))
+    {
+        TraitDataHandle handle;
+        PropertyPathHandle pathHandle;
+        uint64_t previousFirstSameTraitVersion = 0;
+        numDataElements += 1;
+        uint32_t profileId = nl::Weave::Profiles::kWeaveProfile_Common;
+        uint16_t statusCode = nl::Weave::Profiles::Common::kStatus_Success;
+
+        err = CheckAndStoreDataList(DEListReaderCopy, aReader, previousFirstSameTraitVersion, numDataElements, handle, pathHandle, aOutIsPartialChange, apCatalog, acDelegate);
+        if (WEAVE_NO_ERROR != err)
+        {
+            WeaveLogDetail(DataManagement, "Ignoring DE since CheckAndStoreDataList fails with err %d", err);
+            if (WEAVE_ERROR_ACCESS_DENIED == err)
+            {
+                profileId = nl::Weave::Profiles::kWeaveProfile_Common;
+                statusCode = nl::Weave::Profiles::Common::kStatus_AccessDenied;
+            }
+            else if (WEAVE_ERROR_INVALID_PROFILE_ID == err)
+            {
+                profileId = nl::Weave::Profiles::kWeaveProfile_WDM;
+                statusCode = kStatus_InvalidPath;
+            }
+            else
+            {
+                profileId = nl::Weave::Profiles::kWeaveProfile_Common;
+                statusCode = nl::Weave::Profiles::Common::kStatus_InternalError;
+            }
+
+            BuildStatusDataHandleElement(pBuf, handle, profileId, statusCode, numDataElements);
+            existFailure = true;
+            err = WEAVE_NO_ERROR;
+            continue;
+        }
+        existSuccess = true;
+        BuildStatusDataHandleElement(pBuf, handle, profileId, statusCode, numDataElements);
+    }
+
+    // if we have exhausted this container
+    if (WEAVE_END_OF_TLV == err)
+    {
+        err = WEAVE_NO_ERROR;
+        apCatalog->DispatchEvent(TraitUpdatableDataSource::kEventUpdateRequestEnd, NULL);
+    }
+    SuccessOrExit(err);
+
+    err = GenerateUpdateResponse(apEC, numDataElements, apCatalog, pBuf, existSuccess, existFailure, maxPayloadSize);
+    SuccessOrExit(err);
+    pBuf = NULL;
+
+exit:
+    if (pBuf != NULL)
+    {
+        PacketBuffer::Free(pBuf);
+    }
+
+    return err;
+}
+
+void SubscriptionEngine::OnUpdateRequest(nl::Weave::ExchangeContext * apEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                         const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                         PacketBuffer * aPayload)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    UpdateRequest::Parser update;
+    nl::Weave::TLV::TLVReader reader;
+    bool isDataListPresent = false;
+    InEventParam inParam;
+    OutEventParam outParam;
+
+    SubscriptionEngine * const pEngine = reinterpret_cast<SubscriptionEngine *>(apEC->AppState);
+
+    inParam.Clear();
+    outParam.Clear();
+
+    inParam.mIncomingUpdateRequest.processingError = err;
+    inParam.mIncomingUpdateRequest.mMsgInfo = aMsgInfo;
+    outParam.mIncomingUpdateRequest.mShouldContinueProcessing = true;
+
+    if (pEngine->mEventCallback)
+    {
+        pEngine->mEventCallback(pEngine->mAppState, kEvent_OnIncomingUpdateRequest, inParam, outParam);
+    }
+
+    pEngine->mPublisherCatalog->DispatchEvent(TraitUpdatableDataSource::kEventUpdateRequestBegin, NULL);
+
+    if (!outParam.mIncomingUpdateRequest.mShouldContinueProcessing)
+    {
+        WeaveLogDetail(DataManagement, "Update not allowed");
+        ExitNow();
+    }
+
+    reader.Init(aPayload);
+
+    err = reader.Next();
+    SuccessOrExit(err);
+
+    err = update.Init(reader);
+    SuccessOrExit(err);
+
+#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+    err = update.CheckSchemaValidity();
+    SuccessOrExit(err);
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+
+    {
+        DataList::Parser dataList;
+
+        err = update.GetDataList(&dataList);
+        if (WEAVE_NO_ERROR == err)
+        {
+            isDataListPresent = true;
+        }
+        else if (WEAVE_END_OF_TLV == err)
+        {
+            isDataListPresent = false;
+            err               = WEAVE_NO_ERROR;
+        }
+        SuccessOrExit(err);
+
+        // re-initialize the reader to point to individual date element (reuse to save stack depth).
+        dataList.GetReader(&reader);
+    }
+
+    if (isDataListPresent)
+    {
+        bool isPartialChange = false;
+        TraitDataHandle traitDataHandle;
+        UpdateRequestDataElementAccessControlDelegate acDelegate(aMsgInfo);
+        IUpdateRequestDataElementAccessControlDelegate & acDelegateRef = acDelegate;
+
+        err = ProcessDataListAndGenerateUpdateResponse(apEC, reader, pEngine->mPublisherCatalog,
+                              isPartialChange, traitDataHandle, acDelegateRef);
+        SuccessOrExit(err);
+
+        pEngine->GetNotificationEngine()->ScheduleRun();
+    }
+
+exit:
+    if (NULL != aPayload)
+    {
+        PacketBuffer::Free(aPayload);
+        aPayload = NULL;
+    }
+
+    if (NULL != apEC)
+    {
+        apEC->Abort();
+        apEC = NULL;
+    }
+
+    if (NULL != pEngine->mEventCallback)
+    {
+        inParam.Clear();
+        outParam.Clear();
+
+        inParam.mIncomingUpdateRequest.processingError = err;
+        inParam.mIncomingUpdateRequest.mMsgInfo = aMsgInfo;
+        // Update completion event indication.
+        pEngine->mEventCallback(pEngine->mAppState, kEvent_UpdateRequestProcessingComplete, inParam, outParam);
+    }
+}
+
+WEAVE_ERROR SubscriptionEngine::UpdateRequestDataElementAccessControlDelegate::DataElementAccessCheck(const TraitPath & aTraitPath, const TraitCatalogBase<TraitDataSource> & aCatalog)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitDataSource *dataSource;
+    InEventParam inParam;
+    OutEventParam outParam;
+    SubscriptionEngine * pEngine = SubscriptionEngine::GetInstance();
+
+    err = aCatalog.Locate(aTraitPath.mTraitDataHandle, &dataSource);
+    SuccessOrExit(err);
+
+    inParam.Clear();
+    outParam.Clear();
+
+    if (dataSource->IsUpdatableDataSource())
+    {
+        outParam.mDataElementAccessControlForUpdateRequest.mRejectUpdateRequest = false;
+        outParam.mDataElementAccessControlForUpdateRequest.mReason = WEAVE_NO_ERROR;
+    }
+    else
+    {
+        outParam.mDataElementAccessControlForUpdateRequest.mRejectUpdateRequest = true;
+        outParam.mDataElementAccessControlForUpdateRequest.mReason = WEAVE_ERROR_ACCESS_DENIED;
+    }
+
+    inParam.mDataElementAccessControlForUpdateRequest.mPath = &aTraitPath;
+    inParam.mDataElementAccessControlForUpdateRequest.mCatalog = &aCatalog;
+    inParam.mDataElementAccessControlForUpdateRequest.mMsgInfo = mMsgInfo;
+
+    if (NULL != pEngine->mEventCallback)
+    {
+        pEngine->mEventCallback(pEngine->mAppState, kEvent_UpdateRequestDataElementAccessControlCheck,
+                                inParam, outParam);
+    }
+
+    // If application rejects it then deny access, else set reason to whatever
+    // reason is set by application.
+    if (outParam.mDataElementAccessControlForUpdateRequest.mRejectUpdateRequest == true)
+    {
+        err = WEAVE_ERROR_ACCESS_DENIED;
+    }
+    else
+    {
+        err = outParam.mDataElementAccessControlForUpdateRequest.mReason;
+    }
+
+exit:
+
+   return err;
+}
+
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+
+#endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles

@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2015-2017 Nest Labs, Inc.
+ *    Copyright (c) 2015-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google, LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,16 +24,22 @@
  */
 
 #import <Foundation/Foundation.h>
-
 #import "NLWeaveStack.h"
 #import "NLLogging.h"
+#import "NLWeaveBleDelegate_Protected.h"
+#import "NLWeaveDeviceManager.h"
+#import "NLWeaveDeviceManager_Protected.h"
+#import "NLWdmClient_Protected.h"
 
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveError.h>
 #include <Weave/Support/CodeUtils.h>
-#import "NLWeaveBleDelegate_Protected.h"
-#import "NLWeaveDeviceManager.h"
-#import "NLWeaveDeviceManager_Protected.h"
+#include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
+#include <Weave/Profiles/data-management/DataManagement.h>
+#include <WeaveDataManagementClient.h>
+
+using namespace nl::Weave::Profiles;
+using namespace nl::Weave::Profiles::DataManagement;
 
 @interface NLWeaveStack () {
     dispatch_queue_t _mWorkQueue;
@@ -43,6 +50,8 @@
     nl::Weave::WeaveMessageLayer _mMessageLayer;
     nl::Weave::WeaveExchangeManager _mExchangeMgr;
     nl::Weave::WeaveSecurityManager _mSecurityMgr;
+    NLWeaveDeviceManager * _mDeviceMgr;
+    NLWdmClient * _mWdmClient;
 
     // for shutdown
     bool _mIsWaitingOnSelect;
@@ -236,6 +245,9 @@ exit:
 
     // Initialize the Security Manager object.
     err = _mSecurityMgr.Init(_mExchangeMgr, _mSystemLayer);
+    SuccessOrExit(err);
+
+    err = SubscriptionEngine::GetInstance()->Init(&_mExchangeMgr, NULL, NULL);
     SuccessOrExit(err);
 
     self.currentState = kWeaveStack_FullyInitialized;
@@ -465,15 +477,78 @@ exit:
 {
     WDM_LOG_METHOD_SIG();
 
-    NLWeaveDeviceManager * wdm = [[NLWeaveDeviceManager alloc] init:name
+    _mDeviceMgr = [[NLWeaveDeviceManager alloc] init:name
                                                      weaveWorkQueue:_mWorkQueue
                                                    appCallbackQueue:appCallbackQueue
                                                         exchangeMgr:&_mExchangeMgr
                                                         securityMgr:&_mSecurityMgr];
-    if (nil == wdm) {
+    if (nil == _mDeviceMgr) {
         WDM_LOG_ERROR(@"Cannot create new NLWeaveDeviceManager\n");
     }
-    return wdm;
+    return _mDeviceMgr;
 }
 
+- (NLWdmClient *)createWdmClient:(NSString *)name appCallbackQueue:(dispatch_queue_t)appCallbackQueue
+{
+    WDM_LOG_METHOD_SIG();
+
+    NLWdmClient * _mWdmClient = [[NLWdmClient alloc] init:name
+                                         weaveWorkQueue:_mWorkQueue
+                                         appCallbackQueue:appCallbackQueue
+                                         exchangeMgr:&_mExchangeMgr
+                                         messageLayer:&_mMessageLayer
+                                         nlWeaveDeviceManager:_mDeviceMgr];
+    if (nil == _mWdmClient) {
+        WDM_LOG_ERROR(@"Cannot create new NLWdmClient\n");
+    }
+    return _mWdmClient;
+}
 @end
+
+namespace nl {
+namespace Weave {
+namespace Platform {
+namespace PersistedStorage {
+WEAVE_ERROR Read(const char *aKey, uint32_t &aValue)
+{
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR Write(const char *aKey, uint32_t aValue)
+{
+    return WEAVE_NO_ERROR;
+}
+
+} // PersistentStorage
+} // Platform
+} // Weave
+} // nl
+
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
+
+SubscriptionEngine * SubscriptionEngine::GetInstance()
+{
+    static nl::Weave::Profiles::DataManagement::SubscriptionEngine sWdmSubscriptionEngine;
+    return &sWdmSubscriptionEngine;
+}
+
+namespace Platform {
+void CriticalSectionEnter()
+{
+    return;
+}
+
+void CriticalSectionExit()
+{
+    return;
+}
+    
+} // Platform
+
+} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // Profiles
+} // Weave
+} // nl

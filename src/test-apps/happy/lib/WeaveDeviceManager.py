@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 #
-#    Copyright (c) 2017 Nest Labs, Inc.
+#    Copyright (c) 2017-2018 Nest Labs, Inc.
+#    Copyright (c) 2019 Google, LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,9 +42,29 @@ if os.path.exists(weaveDeviceMgrPath):
     sys.path.append(weaveDeviceMgrPath)
 
 try:
+    from openweave import WeaveStack
+except Exception as ex:
+    print ("Failed to import WeaveStack: %s" % (str(ex)))
+
+try:
     from openweave import WeaveDeviceMgr
 except Exception as ex:
     print ("Failed to import WeaveDeviceMgr: %s" % (str(ex)))
+
+try:
+    from openweave import WdmClient
+except Exception as ex:
+    print ("Failed to import WdmClient: %s" % (str(ex)))
+
+try:
+    from openweave import GenericTraitUpdatableDataSink
+except Exception as ex:
+    print ("Failed to import GenericTraitUpdatableDataSink: %s" % (str(ex)))
+
+try:
+    from openweave import ResourceIdentifier
+except Exception as ex:
+    print ("Failed to import ResourceIdentifier: %s" % (str(ex)))
 
 # Dummy Access Token
 #
@@ -101,6 +122,334 @@ def parseNetworkId(value):
     except ValueError:
         print "Invalid network id"
         return None
+
+class MockWeaveDataManagementClientImp():
+    def __init_(self):
+        self.wdmClient = None
+
+    def createWdmClient(self):
+        try:
+            self.wdmClient = WdmClient.WdmClient()
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+    def closeWdmClient(self):
+        try:
+            if self.wdmClient:
+                self.wdmClient.close()
+                self.wdmClient = None
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "close wdm client complete"
+
+    def newDataSink(self, profileid, instanceid, path, testResOption="default"):
+        """
+          new-data-sink <profileid, instanceid, path>
+        """
+        if self.wdmClient == None:
+            print "wdmclient not initialized"
+            return
+
+        if testResOption == "default" :
+            resourceIdentifier = ResourceIdentifier.ResourceIdentifier()
+        elif testResOption == "ResTypeIdInt":
+            resourceIdentifier = ResourceIdentifier.ResourceIdentifier.MakeResTypeIdInt(0, -2)
+        elif testResOption == "ResTypeIdBytes":
+            resourceIdentifier = ResourceIdentifier.ResourceIdentifier.MakeResTypeIdBytes(0, '\xff\xff\xff\xff\xff\xff\xff\xfe')
+
+        try:
+            traitInstance = self.wdmClient.newDataSink(resourceIdentifier, profileid, instanceid, path)
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "new data sink complete"
+        return traitInstance
+
+    def flushUpdate(self):
+        if self.wdmClient == None:
+            print "wdmclient not initialized"
+            return
+
+        try:
+            self.wdmClient.flushUpdate()
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "flush update complete"
+
+    def refreshData(self):
+        if self.wdmClient == None:
+            print "wdmclient not initialized"
+            return
+
+        try:
+            self.wdmClient.refreshData()
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "refresh trait data complete"
+
+    def refreshIndividualData(self, traitInstance):
+        if self.wdmClient == None or traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        try:
+            traitInstance.refreshData()
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "refresh individual trait data complete"
+
+    def closeIndividualTrait(self, traitInstance):
+        if self.wdmClient == None or traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        try:
+            traitInstance.close()
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "close current trait"
+
+    def setData(self, traitInstance, path, value):
+        if self.wdmClient == None or traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        isConditional = False
+
+        try:
+            val = ast.literal_eval(args[1])
+        except:
+            val = value
+
+        try:
+            traitInstance.setData(path, val, isConditional)
+            print "set string data in trait complete"
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+    def getData(self, traitInstance, path):
+        if self.wdmClient == None or traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        try:
+            val = traitInstance.getData(path)
+            print val
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "get data in trait complete"
+
+    def getVersion(self, traitInstance):
+        if self.wdmClient == None or traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        try:
+            val = traitInstance.getVersion()
+            print val
+            return val
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+        print "get version in trait complete"
+
+def testWdmClientCreateClose(testObject):
+    testObject.createWdmClient()
+    testObject.closeWdmClient()
+    print "testWdmClientCreationClose completes"
+
+def testWdmClientDataSinkCreateClose(testObject):
+    testObject.createWdmClient()
+    LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkCreateClose completes"
+
+def testWdmClientDataSinkEmptyFlushData(testObject):
+    testObject.createWdmClient()
+    LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.flushUpdate()
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkEmptyFlushData completes"
+
+def testWdmClientDataSinkSetFlushData(testObject):
+    testObject.createWdmClient()
+    LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.setData(LocaleSettingTrait, "/1", "en-US")
+    testObject.setData(TestCTrait, "/1", False)
+    testObject.setData(TestCTrait, "/2", 15)
+    testObject.setData(TestCTrait, "/3/1", 16)
+    testObject.setData(TestCTrait, "/3/2", False)
+    testObject.setData(TestCTrait, "/4", 17)
+    testObject.flushUpdate()
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkSetFlushData completes"
+
+def testWdmClientDataSinkRefreshIndividualGetDataRefresh(testObject):
+    testObject.createWdmClient()
+    LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.refreshIndividualData(LocaleSettingTrait)
+    testObject.getData(LocaleSettingTrait, "/1")
+    testObject.refreshIndividualData(TestCTrait)
+    TestCTraitVersion = testObject.getVersion(TestCTrait)
+    testObject.getData(TestCTrait, "/1")
+    testObject.getData(TestCTrait, "/2")
+    testObject.getData(TestCTrait, "/3/1")
+    testObject.getData(TestCTrait, "/3/2")
+    testObject.getData(TestCTrait, "/4")
+    testObject.refreshIndividualData(TestCTrait)
+    TestCTraitVersion = testObject.getVersion(TestCTrait)
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkRefreshIndividualGetDataRefresh completes"
+
+def testWdmClientDataSinkRefreshGetDataRefresh(testObject):
+    testObject.createWdmClient()
+    LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.refreshData()
+    LocaleSettingTraitVersion = testObject.getVersion(LocaleSettingTrait)
+    TestCTraitVersion = testObject.getVersion(TestCTrait)
+    testObject.getData(LocaleSettingTrait, "/1")
+    testObject.getData(TestCTrait, "/1")
+    testObject.getData(TestCTrait, "/2")
+    testObject.getData(TestCTrait, "/3/1")
+    testObject.getData(TestCTrait, "/3/2")
+    testObject.getData(TestCTrait, "/4")
+    testObject.refreshData()
+    LocaleSettingTraitVersion = testObject.getVersion(LocaleSettingTrait)
+    TestCTraitVersion = testObject.getVersion(TestCTrait)
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkRefreshGetDataRefresh completes"
+
+def testWdmClientDataSinkCloseIndividualData(testObject):
+    testObject.createWdmClient()
+    LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.refreshIndividualData(LocaleSettingTrait)
+    testObject.closeIndividualTrait(LocaleSettingTrait)
+    testObject.refreshIndividualData(TestCTrait)
+    testObject.closeIndividualTrait(TestCTrait)
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkCloseIndividualData completes"
+
+def testWdmClientDataSinkSetFlushRefreshGetData(testObject):
+    testObject.createWdmClient()
+    LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.setData(LocaleSettingTrait, "/1", "en-US")
+    testObject.setData(TestCTrait, "/1", False)
+    testObject.setData(TestCTrait, "/2", 15)
+    testObject.setData(TestCTrait, "/3/1", 16)
+    testObject.setData(TestCTrait, "/3/2", False)
+    testObject.setData(TestCTrait, "/4", 17)
+    testObject.flushUpdate()
+    testObject.refreshData()
+    testObject.getData(LocaleSettingTrait, "/1")
+    testObject.getData(TestCTrait, "/1")
+    testObject.getData(TestCTrait, "/2")
+    testObject.getData(TestCTrait, "/3/1")
+    testObject.getData(TestCTrait, "/3/2")
+    testObject.getData(TestCTrait, "/4")
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkSetFlushRefreshGetData completes"
+
+def testWdmClientDataSinkSetRefreshFlushGetData(testObject):
+    testObject.createWdmClient()
+    LocaleSettingTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.setData(LocaleSettingTrait, "/1", "en-US")
+    testObject.setData(TestCTrait, "/1", False)
+    testObject.setData(TestCTrait, "/2", 15)
+    testObject.setData(TestCTrait, "/3/1", 16)
+    testObject.setData(TestCTrait, "/3/2", False)
+    testObject.setData(TestCTrait, "/4", 17)
+    testObject.refreshData()
+    testObject.flushUpdate()
+    testObject.getData(LocaleSettingTrait, "/1")
+    testObject.getData(TestCTrait, "/1")
+    testObject.getData(TestCTrait, "/2")
+    testObject.getData(TestCTrait, "/3/1")
+    testObject.getData(TestCTrait, "/3/2")
+    testObject.getData(TestCTrait, "/4")
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkSetRefreshFlushGetData completes"
+
+def testWdmClientDataSinkResourceIdentifierMakeResTypeIdInt(testObject):
+    testObject.createWdmClient()
+    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", "ResTypeIdInt")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/", "ResTypeIdInt")
+    testObject.setData(LocaleSettingTrait, "/1", "en-US")
+    testObject.setData(TestCTrait, "/1", False)
+    testObject.setData(TestCTrait, "/2", 15)
+    testObject.setData(TestCTrait, "/3/1", 16)
+    testObject.setData(TestCTrait, "/3/2", False)
+    testObject.setData(TestCTrait, "/4", 17)
+    testObject.flushUpdate()
+    testObject.refreshData()
+    testObject.getData(LocaleSettingTrait, "/1")
+    testObject.getData(TestCTrait, "/1")
+    testObject.getData(TestCTrait, "/2")
+    testObject.getData(TestCTrait, "/3/1")
+    testObject.getData(TestCTrait, "/3/2")
+    testObject.getData(TestCTrait, "/4")
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkResourceIdentifierMakeResTypeIdInt completes"
+
+def testWdmClientDataSinkResourceIdentifierMakeResTypeIdBytes(testObject):
+    testObject.createWdmClient()
+    LocaleSettingTrait = testObject.newDataSink(20, 0, "/", "ResTypeIdBytes")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/", "ResTypeIdBytes")
+    testObject.setData(LocaleSettingTrait, "/1", "en-US")
+    testObject.setData(TestCTrait, "/1", False)
+    testObject.setData(TestCTrait, "/2", 15)
+    testObject.setData(TestCTrait, "/3/1", 16)
+    testObject.setData(TestCTrait, "/3/2", False)
+    testObject.setData(TestCTrait, "/4", 17)
+    testObject.flushUpdate()
+    testObject.refreshData()
+    testObject.getData(LocaleSettingTrait, "/1")
+    testObject.getData(TestCTrait, "/1")
+    testObject.getData(TestCTrait, "/2")
+    testObject.getData(TestCTrait, "/3/1")
+    testObject.getData(TestCTrait, "/3/2")
+    testObject.getData(TestCTrait, "/4")
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkResourceIdentifierMakeResTypeIdBytes completes"
+
+def RunWdmClientTest():
+    print "Run Weave Data Management Test"
+    testObject = MockWeaveDataManagementClientImp()
+    testWdmClientCreateClose(testObject)
+    testWdmClientDataSinkEmptyFlushData(testObject)
+    testWdmClientDataSinkCreateClose(testObject)
+    testWdmClientDataSinkSetFlushData(testObject)
+    testWdmClientDataSinkRefreshGetDataRefresh(testObject)
+    testWdmClientDataSinkRefreshIndividualGetDataRefresh(testObject)
+    testWdmClientDataSinkCloseIndividualData(testObject)
+    testWdmClientDataSinkSetRefreshFlushGetData(testObject)
+    testWdmClientDataSinkResourceIdentifierMakeResTypeIdInt(testObject)
+    testWdmClientDataSinkResourceIdentifierMakeResTypeIdBytes(testObject)
+
+    print "Run Weave Data Management Complete"
 
 class ExtendedOption (Option):
     TYPES = Option.TYPES + ("base64", "hexint", )
@@ -166,25 +515,27 @@ if __name__ == '__main__':
 
             try:
                 bleManager.ble_adapter_select(identifier=options.bleSrcAddr)
-            except WeaveDeviceMgr.DeviceManagerException, ex:
+            except WeaveStack.WeaveStackException, ex:
                 print ex
                 exit()
 
             try:
                 line = ' ' + str(options.bleDstAddr)
                 bleManager.scan_connect(line)
-            except WeaveDeviceMgr.DeviceManagerException, ex:
+            except WeaveStack.WeaveStackException, ex:
                 print ex
                 exit()
 
             devMgr.ConnectBle(bleConnection=FAKE_CONN_OBJ_VALUE,
                                    pairingCode=options.pairingCode,
                                    accessToken=options.accessToken)
+
+            RunWdmClientTest()
             try:
                 devMgr.Close()
                 devMgr.CloseEndpoints()
                 bleManager.disconnect()
-            except WeaveDeviceMgr.DeviceManagerException, ex:
+            except WeaveStack.WeaveStackException, ex:
                 print str(ex)
                 exit()
 
@@ -197,7 +548,7 @@ if __name__ == '__main__':
                                       pairingCode=options.pairingCode,
                                       accessToken=options.accessToken)
 
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
         exit()
 
@@ -207,7 +558,7 @@ if __name__ == '__main__':
         print '#################################register-real-NestService#################################'
         try:
             devMgr.RegisterServicePairAccount(0x18B4300200000010, options.account_id, base64.b64decode(options.service_config), options.pairing_token, options.init_data)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             exit()
 
@@ -219,7 +570,7 @@ if __name__ == '__main__':
         print '#################################unregister-real-NestService#################################'
         try:
             devMgr.UnregisterService(0x18B4300200000010)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             exit()
 
@@ -231,7 +582,7 @@ if __name__ == '__main__':
         try:
             devMgr.Close()
             devMgr.CloseEndpoints()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
+        except WeaveStack.WeaveStackException, ex:
             print str(ex)
             exit()
         print "Shutdown complete"
@@ -243,7 +594,7 @@ if __name__ == '__main__':
     try:
         devMgr.Close()
         devMgr.CloseEndpoints()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -252,7 +603,7 @@ if __name__ == '__main__':
     try:
         devMgr.ConnectDevice(deviceId=nodeId, deviceAddr=addr)
 
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
         exit()
 
@@ -263,7 +614,7 @@ if __name__ == '__main__':
     try:
         devMgr.Close()
         devMgr.CloseEndpoints()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -271,7 +622,7 @@ if __name__ == '__main__':
     print '#################################set-rendezvous-linklocal#################################'
     try:
         devMgr.SetRendezvousLinkLocal(0)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -280,7 +631,7 @@ if __name__ == '__main__':
     print '#################################set-rendezvous-address#################################'
     try:
         devMgr.SetRendezvousAddress(addr)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -292,7 +643,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.SetConnectTimeout(timeoutMS)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -308,7 +659,7 @@ if __name__ == '__main__':
                                 targetVendorId=WeaveDeviceMgr.TargetVendorId_Any,
                                 targetProductId=WeaveDeviceMgr.TargetProductId_Any,
                                 targetDeviceId=WeaveDeviceMgr.TargetDeviceId_Any)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -320,7 +671,7 @@ if __name__ == '__main__':
     try:
         devMgr.Close()
         devMgr.CloseEndpoints()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -334,7 +685,7 @@ if __name__ == '__main__':
                                 targetVendorId=WeaveDeviceMgr.TargetVendorId_Any,
                                 targetProductId=WeaveDeviceMgr.TargetProductId_Any,
                                 targetDeviceId=WeaveDeviceMgr.TargetDeviceId_Any)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -346,7 +697,7 @@ if __name__ == '__main__':
     try:
         devMgr.Close()
         devMgr.CloseEndpoints()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -355,7 +706,7 @@ if __name__ == '__main__':
     try:
         devMgr.RendezvousDevice(
                                 pairingCode=options.pairingCode)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -367,7 +718,7 @@ if __name__ == '__main__':
     try:
         devMgr.Close()
         devMgr.CloseEndpoints()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -375,7 +726,7 @@ if __name__ == '__main__':
     print '#################################rendezvous4#################################'
     try:
         devMgr.RendezvousDevice()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -387,7 +738,7 @@ if __name__ == '__main__':
     try:
         devMgr.Close()
         devMgr.CloseEndpoints()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -396,7 +747,7 @@ if __name__ == '__main__':
     try:
         devMgr.ConnectDevice(deviceId=nodeId, deviceAddr=addr, pairingCode=options.pairingCode)
 
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
         exit()
 
@@ -404,7 +755,7 @@ if __name__ == '__main__':
     print '#################################set-rendezvous-mode#################################'
     try:
         devMgr.SetRendezvousMode(10)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -416,7 +767,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.ArmFailSafe(1, failSafeToken)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
         exit()
 
@@ -424,7 +775,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.ArmFailSafe(2, failSafeToken)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
         exit()
 
@@ -432,7 +783,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.ArmFailSafe(3, failSafeToken)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
         exit()
 
@@ -442,7 +793,7 @@ if __name__ == '__main__':
     print '#################################disarm-fail-safe#################################'
     try:
         devMgr.DisarmFailSafe()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -455,7 +806,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.ResetConfig(resetFlags)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -467,7 +818,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.SetAutoReconnect(autoReconnect)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -487,18 +838,20 @@ if __name__ == '__main__':
 
     try:
         devMgr.SetLogFilter(category)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
     print "Done."
+
+    RunWdmClientTest()
 
     print ''
     print '#################################scan-network#################################'
     try:
         networkType = WeaveDeviceMgr.ParseNetworkType("wifi")
         scanResult = devMgr.ScanNetworks(networkType)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
     print "ScanNetworks complete, %d network(s) found" % (len(scanResult))
     i = 1
@@ -509,7 +862,7 @@ if __name__ == '__main__':
     try:
         networkType = WeaveDeviceMgr.ParseNetworkType("thread")
         scanResult = devMgr.ScanNetworks(networkType)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
     print "ScanNetworks complete, %d network(s) found" % (len(scanResult))
     i = 1
@@ -529,7 +882,7 @@ if __name__ == '__main__':
 
     try:
         addResult = devMgr.AddNetwork(networkInfo)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
         exit()
 
@@ -552,7 +905,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.UpdateNetwork(networkInfo)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -563,7 +916,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.DisableNetwork(lastNetworkId)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
 
     print "Disable network complete"
@@ -573,7 +926,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.EnableNetwork(lastNetworkId)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
         exit()
 
@@ -584,7 +937,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.TestNetworkConnectivity(lastNetworkId)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
         exit()
 
@@ -597,7 +950,7 @@ if __name__ == '__main__':
         # Send a GetNetworks without asking for credentials
         flags = 0
         getResult = devMgr.GetNetworks(flags)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -617,7 +970,7 @@ if __name__ == '__main__':
         kGetNetwork_IncludeCredentials = 1
         flags = kGetNetwork_IncludeCredentials
         getResult = devMgr.GetNetworks(flags)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print "expected Device Error: [ Common(00000000):20 ] Access denied"
         print "caught " + str(ex)
         if ex.profileId != 0 or ex.statusCode != 20:
@@ -628,7 +981,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.RemoveNetwork(lastNetworkId)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -639,7 +992,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.CreateFabric()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
          print 'Already member of fabric'
 
     print "Create fabric complete"
@@ -649,7 +1002,7 @@ if __name__ == '__main__':
 
     try:
         fabricConfig = devMgr.GetFabricConfig()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -661,7 +1014,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.LeaveFabric()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -672,7 +1025,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.JoinExistingFabric(fabricConfig)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -683,7 +1036,7 @@ if __name__ == '__main__':
 
     try:
         deviceDesc = devMgr.IdentifyDevice()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -695,7 +1048,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.GetLastNetworkProvisioningResult()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -704,7 +1057,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.Ping()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
     print "Ping complete"
@@ -713,7 +1066,7 @@ if __name__ == '__main__':
     print '#################################register-service#################################'
     try:
         devMgr.RegisterServicePairAccount(0x18B4300100000001, '21245530', base64.b64decode(DUMMY_SERVICE_CONFIG), DUMMY_PAIRING_TOKEN, DUMMY_INIT_DATA)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print ex
         exit()
 
@@ -723,7 +1076,7 @@ if __name__ == '__main__':
     print '#################################update-service#################################'
     try:
         devMgr.UpdateService(0x18B4300100000001, base64.b64decode(DUMMY_SERVICE_CONFIG))
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -734,7 +1087,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.UnregisterService(0x18B4300100000001)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -745,7 +1098,7 @@ if __name__ == '__main__':
     try:
         devMgr.Close()
         devMgr.CloseEndpoints()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
     print ''
@@ -753,7 +1106,7 @@ if __name__ == '__main__':
 
     try:
         devMgr.ReconnectDevice()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -763,7 +1116,7 @@ if __name__ == '__main__':
     timeout = 1000
     try:
         devMgr.EnableConnectionMonitor(interval, timeout)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -773,7 +1126,7 @@ if __name__ == '__main__':
     print '#################################disable-connection-monitor#################################'
     try:
         devMgr.DisableConnectionMonitor()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -783,7 +1136,7 @@ if __name__ == '__main__':
     print '#################################start-system-test#################################'
     try:
         devMgr.StartSystemTest(WeaveDeviceMgr.SystemTest_ProductList["thermostat"], 1)
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -792,7 +1145,7 @@ if __name__ == '__main__':
     print '#################################stop-system-test#################################'
     try:
         devMgr.StopSystemTest()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -802,7 +1155,7 @@ if __name__ == '__main__':
     print '#################################pair-token#################################'
     try:
         tokenPairingBundle = devMgr.PairToken('Test')
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -813,7 +1166,7 @@ if __name__ == '__main__':
     print '#################################unpair-token#################################'
     try:
         devMgr.UnpairToken()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -826,7 +1179,7 @@ if __name__ == '__main__':
     try:
         devMgr.Close()
         devMgr.CloseEndpoints()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
 
@@ -834,7 +1187,7 @@ if __name__ == '__main__':
     print '#################################shutdown#################################'
     try:
         devMgr.__del__()
-    except WeaveDeviceMgr.DeviceManagerException, ex:
+    except WeaveStack.WeaveStackException, ex:
         print str(ex)
         exit()
     print "Shutdown complete"

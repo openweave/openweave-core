@@ -32,6 +32,8 @@
 #include <errno.h>
 #include <time.h>
 
+#include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
+
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Support/Base64.h>
 #include <Weave/Support/CodeUtils.h>
@@ -42,6 +44,7 @@
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
 #include <Weave/Profiles/fabric-provisioning/FabricProvisioning.h>
+#include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Profiles/device-description/DeviceDescription.h>
 #include <Weave/Profiles/device-control/DeviceControl.h>
 #include <Weave/Profiles/vendor/nestlabs/device-description/NestProductIdentifiers.hpp>
@@ -63,7 +66,9 @@ namespace DeviceManager {
 
 using namespace nl::Weave::Encoding;
 using namespace nl::Weave::Profiles;
+using namespace nl::Weave::Profiles::DataManagement;
 using namespace nl::Weave::Profiles::DeviceDescription;
+using namespace nl::Weave::Profiles::Locale;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
 using namespace nl::Weave::Profiles::Security;
 using namespace nl::Weave::Profiles::ServiceProvisioning;
@@ -73,9 +78,12 @@ using namespace nl::Weave::Profiles::Vendor::Nestlabs::DropcamLegacyPairing;
 using namespace nl::Weave::Profiles::Vendor::Nestlabs::Thermostat;
 using namespace nl::Weave::TLV;
 
+const nl::Weave::ExchangeContext::Timeout kResponseTimeoutMsec = 15000;
+
 static bool IsProductWildcard(uint16_t productId);
 
 static const uint32_t ENUMERATED_NODES_LIST_INITIAL_SIZE = 256;
+
 
 WeaveDeviceManager *WeaveDeviceManager::sListeningDeviceMgr = NULL;
 
@@ -143,7 +151,6 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mEnumeratedNodes = NULL;
     mEnumeratedNodesLen = 0;
     mEnumeratedNodesMaxLen = 0;
-
     // By default, rendezvous messages are sent to the IPv6 link-local, all-nodes multicast address.
     mRendezvousAddr = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
 
@@ -5088,6 +5095,40 @@ WEAVE_ERROR WeaveDeviceManager::EndCertValidation(WeaveCertificateSet& certSet, 
 {
     // Nothing to do
     return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR WeaveDeviceManager::ConfigureBinding(Binding * const apBinding)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    nl::Weave::Binding::Configuration bindingConfig = apBinding->BeginConfiguration();
+
+    if (mDeviceCon != NULL)
+    {
+        bindingConfig
+                .Target_NodeId(mDeviceId)
+                .Transport_ExistingConnection(mDeviceCon)
+                .Exchange_ResponseTimeoutMsec(kResponseTimeoutMsec);
+
+        if (mSessionKeyId == WeaveKeyId::kNone)
+        {
+            bindingConfig.Security_None();
+        }
+        else
+        {
+            bindingConfig.Security_Key(mSessionKeyId);
+            bindingConfig.Security_EncryptionType(mEncType);
+        }
+
+        err = bindingConfig.PrepareBinding();
+    }
+    else
+    {
+        WeaveLogDetail(DeviceManager, "apDeviceCon is NULL");
+        err = WEAVE_ERROR_INCORRECT_STATE;
+    }
+
+    return err;
 }
 
 bool IsProductWildcard(uint16_t productId)
