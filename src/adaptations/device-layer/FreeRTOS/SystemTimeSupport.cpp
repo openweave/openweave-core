@@ -71,8 +71,8 @@ uint64_t FreeRTOSTicksSinceBoot(void)
     {
         // Note that sNumOverflows may be quite stale, and under those
         // circumstances, the function may violate monotonicity guarantees
-        timeout.xTimeOnEntering = xTaskGetTickCountFromISR();
-        timeout.xOverflowCount = sNumOfOverflows;
+        timeOut.xTimeOnEntering = xTaskGetTickCountFromISR();
+        timeOut.xOverflowCount = sNumOfOverflows;
     }
     else
     {
