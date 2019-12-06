@@ -33,7 +33,7 @@ typedef QueueHandle_t sys_mbox_t;
 typedef xSemaphoreHandle sys_mutex_t;
 typedef xSemaphoreHandle sys_sem_t;
 typedef TaskHandle_t sys_thread_t;
-typedef int sys_prot_t;
+typedef UBaseType_t sys_prot_t;
 
 #include "arch/sys_arch.h"
 #include "lwip/opt.h"
