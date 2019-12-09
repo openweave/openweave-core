@@ -361,6 +361,7 @@ void Binding::DoReset(State newState)
     if (GetFlag(kFlag_KeyReserved))
     {
         sm->ReleaseKey(mPeerNodeId, mKeyId);
+        ClearFlag(kFlag_KeyReserved);
     }
 
 #if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
@@ -379,7 +380,9 @@ void Binding::DoReset(State newState)
     {
         mCon->OnConnectionComplete = NULL;
         mCon->Release();
+        ClearFlag(kFlag_ConnectionReferenced);
     }
+    mCon = NULL;
 
     // If a session establishment was in progress, cancel it.
     if (origState == kState_PreparingSecurity_EstablishSession)
@@ -387,8 +390,16 @@ void Binding::DoReset(State newState)
         sm->CancelSessionEstablishment(this);
     }
 
-    // Reset the configuration state of the binding.
-    ResetConfig();
+    // Reset the configuration state of the binding, except when entering the Failed state.
+    //
+    // We leave the configuration state of the binding intact in the Failed state so that
+    // applications can inspected it during failure handling.  If the application decides
+    // to re-prepare the bind, the configuration state will be reset when binding enters
+    // the Configuring state.
+    if (newState != kState_Failed)
+    {
+        ResetConfig();
+    }
 
     // Advance to the new state.
     mState = newState;
@@ -1195,8 +1206,15 @@ exit:
 /**
  * Determine if a particular incoming message is from the configured peer and is suitably authenticated.
  *
- * This method confirms that the message in question originated from the peer node of the binding and
- * that the encryption key and type used to encrypt the message matches those configured in the binding.
+ * This method confirms the following details about the given message:
+ *
+ * - The message originated from the peer node of the binding
+ *
+ * - The message was received over the same transport type as the binding. If the message was
+ * received over a connection, the method also confirms that the message was received over the
+ * exact connection associated with the binding.
+ *
+ * - The encryption key and type used to encrypt the message matches those configured in the binding.
  * For bindings configured without the use of security, the method confirms that the incoming message is
  * NOT encrypted.
  *
@@ -1205,7 +1223,7 @@ exit:
  * the method allows the local node to confirm that the incoming unsolicited message was sent by the
  * associated peer.  (Of course, for Bindings configured without the use of message encryption, this
  * assertion provides no value from a security perspective.  It merely confirms that the sender node
- * id in the received message matches the peer's node id.)
+ * id and transport types match.)
  *
  * Note that if the binding is not in the Ready state, this method will always return false.
  *
@@ -1220,6 +1238,17 @@ bool Binding::IsAuthenticMessageFromPeer(const nl::Weave::WeaveMessageHeader *ms
 
     if (msgInfo->SourceNodeId != mPeerNodeId)
         return false;
+
+    if (msgInfo->InCon != NULL)
+    {
+        if ((mTransportOption != kTransport_TCP && mTransportOption != kTransport_ExistingConnection) || msgInfo->InCon != mCon)
+            return false;
+    }
+    else
+    {
+        if (mTransportOption != kTransport_UDP && mTransportOption != kTransport_UDP_WRM)
+            return false;
+    }
 
     if (msgInfo->EncryptionType != mEncType)
         return false;
@@ -1429,6 +1458,11 @@ Binding::Configuration::Configuration(Binding& aBinding)
 {
     if (mBinding.CanBePrepared())
     {
+        if (mBinding.mState != kState_NotConfigured)
+        {
+            mBinding.ResetConfig();
+        }
+
         mBinding.mState = kState_Configuring;
         mError = WEAVE_NO_ERROR;
 
@@ -1652,9 +1686,13 @@ Binding::Configuration& Binding::Configuration::Transport_DefaultWRMPConfig(cons
 /**
  * Use an existing Weave connection to communicate with the peer.
  *
+ * NOTE: The reference count on the connection object is incremented when binding
+ * preparation succeeds. Thus the application is responsible for ensuring the
+ * connection object remain alive until that time.
+ *
  * @param[in] con		        A pointer to the existing Weave connection.
  *
- * @return                              A reference to the binding object.
+ * @return                      A reference to the binding object.
  */
 Binding::Configuration& Binding::Configuration::Transport_ExistingConnection(WeaveConnection *con)
 {
@@ -1895,51 +1933,51 @@ Binding::Configuration& Binding::Configuration::Security_AuthenticationMode(Weav
 /**
  *  Configure the binding to allow communication with the sender of a received message.
  *
- *  @param[in]  apMsgHeader     Message information structure associated with the received message.
- *  @param[in]  apConnection    The connection over which the message was received; or NULL if the message
- *                              was not received via a connection.
- *  @param[in]  apPktInfo       Packet information for the received message.
+ *  @param[in]  aMsgInfo        Message information structure associated with the received message.
+ *  @param[in]  aPacketInfo     Packet information for the received message.
  *
  */
 Binding::Configuration& Binding::Configuration::ConfigureFromMessage(
-        const nl::Weave::WeaveMessageHeader *apMsgHeader,
-        const nl::Inet::IPPacketInfo *apPktInfo,
-        WeaveConnection *apConnection)
+        const nl::Weave::WeaveMessageInfo *aMsgInfo,
+        const nl::Inet::IPPacketInfo *aPacketInfo)
 {
-    mBinding.mPeerNodeId = apMsgHeader->SourceNodeId;
+    mBinding.mPeerNodeId = aMsgInfo->SourceNodeId;
 
-    // Configure the outgoing interface only if the received message is from a
-    // link-local address because we need to specify the interface when we are
-    // sending to a link local address. Otherwise, defer to the routing logic
-    // to choose the outgoing interface.
-    TargetAddress_IP(apPktInfo->SrcAddress, apPktInfo->SrcPort,
-                     apPktInfo->SrcAddress.IsIPv6LinkLocal() ? apPktInfo->Interface : INET_NULL_INTERFACEID);
-
-    if (apConnection != NULL)
+    if (aMsgInfo->InCon != NULL)
     {
-        Transport_ExistingConnection(apConnection);
-    }
-    else if (apMsgHeader->Flags & kWeaveMessageFlag_PeerRequestedAck)
-    {
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-        Transport_UDP_WRM();
-#else
-        mError = WEAVE_ERROR_NOT_IMPLEMENTED;
-#endif // #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+        Transport_ExistingConnection(aMsgInfo->InCon);
     }
     else
     {
-        Transport_UDP();
+        if (aMsgInfo->Flags & kWeaveMessageFlag_PeerRequestedAck)
+        {
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+            Transport_UDP_WRM();
+#else
+            mError = WEAVE_ERROR_NOT_IMPLEMENTED;
+#endif // #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+        }
+        else
+        {
+            Transport_UDP();
+        }
+
+        // Configure the outgoing interface only if the received message is from a
+        // link-local address because we need to specify the interface when we are
+        // sending to a link local address. Otherwise, defer to the routing logic
+        // to choose the outgoing interface.
+        TargetAddress_IP(aPacketInfo->SrcAddress, aPacketInfo->SrcPort,
+                aPacketInfo->SrcAddress.IsIPv6LinkLocal() ? aPacketInfo->Interface : INET_NULL_INTERFACEID);
     }
 
-    if (apMsgHeader->KeyId == WeaveKeyId::kNone)
+    if (aMsgInfo->KeyId == WeaveKeyId::kNone)
     {
         Security_None();
     }
     else
     {
-        Security_Key(apMsgHeader->KeyId);
-        Security_EncryptionType(apMsgHeader->EncryptionType);
+        Security_Key(aMsgInfo->KeyId);
+        Security_EncryptionType(aMsgInfo->EncryptionType);
     }
 
     return *this;
