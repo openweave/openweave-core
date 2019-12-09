@@ -697,7 +697,7 @@ public:
     virtual UpdateEncoder * GetUpdateEncoder() { return NULL; }
 
     /* Subclass can invoke this to clear out their version */
-    void ClearVersion(void) { mHasValidVersion = false; }
+    void ClearVersion(void);
 
 protected: // ISetDataDelegate
     virtual WEAVE_ERROR SetLeafData(PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader & aReader) __OVERRIDE = 0;

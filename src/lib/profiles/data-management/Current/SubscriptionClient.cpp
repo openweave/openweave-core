@@ -43,8 +43,6 @@
 #include <Weave/Support/FibonacciUtils.h>
 #include <SystemLayer/SystemStats.h>
 
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-
 namespace nl {
 namespace Weave {
 namespace Profiles {
@@ -127,6 +125,10 @@ WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apA
     mAppState                               = apAppState;
     mEventCallback                          = aEventCallback;
 
+    // Set the protocol callback on the binding object so that the SubscriptionClient gets
+    // notified of changes in the binding's state.
+    mBinding->SetProtocolLayerCallback(BindingEventCallback, this);
+
     if (NULL == apCatalog)
     {
         mDataSinkCatalog = NULL;
@@ -190,8 +192,8 @@ const char * SubscriptionClient::GetStateStr() const
     case kState_Resubscribe_Holdoff:
         return "RETRY";
 
-    case kState_Aborting:
-        return "ABTNG";
+    case kState_Terminated:
+        return "TERM";
     }
     return "N/A";
 }
@@ -247,7 +249,7 @@ void SubscriptionClient::DisableResubscribe(void)
     if (mCurrentState == kState_Resubscribe_Holdoff)
     {
         // cancel timer
-        SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnTimerCallback, this);
+        CancelSubscriptionTimer();
 
         // app doesn't need to know since it triggered this
         AbortSubscription();
@@ -262,7 +264,7 @@ void SubscriptionClient::ResetResubscribe(void)
     if (mCurrentState == kState_Resubscribe_Holdoff)
     {
         // cancel timer
-        SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnTimerCallback, this);
+        CancelSubscriptionTimer();
         MoveToState(kState_Initialized);
     }
 
@@ -387,10 +389,6 @@ void SubscriptionClient::_InitiateSubscription(void)
     // If the binding is ready...
     if (mBinding->IsReady())
     {
-        // Using the binding, form and send a SubscribeRequest to the publisher.
-        err = SendSubscribeRequest();
-        SuccessOrExit(err);
-
         // Enter the Subscribing state.
         if (IsInitiator())
         {
@@ -400,6 +398,10 @@ void SubscriptionClient::_InitiateSubscription(void)
         {
             MoveToState(kState_Subscribing_IdAssigned);
         }
+
+        // Using the binding, form and send a SubscribeRequest to the publisher.
+        err = SendSubscribeRequest();
+        SuccessOrExit(err);
 
         err = RefreshTimer();
         SuccessOrExit(err);
@@ -415,7 +417,7 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
+        TerminateSubscription(err, NULL, false);
     }
 
     _Release();
@@ -433,12 +435,6 @@ WEAVE_ERROR SubscriptionClient::_PrepareBinding()
     }
     else if (mBinding->CanBePrepared())
     {
-        // Set the protocol callback on the binding object.  NOTE: This should only happen once the
-        // app has explicitly started the subscription process by calling either InitiateSubscription() or
-        // InitiateCounterSubscription().  Otherwise the client object might receive callbacks from
-        // the binding before it's ready.
-        mBinding->SetProtocolLayerCallback(BindingEventCallback, this);
-
         // Ask the application prepare the binding by delivering a PrepareRequested API event to it via the
         // binding's callback.  At some point the binding will callback into the SubscriptionClient signaling
         // that preparation has completed (successfully or otherwise).  Note that this callback can happen
@@ -485,7 +481,7 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
         mSubscriptionId = outSubscribeParam.mSubscribeRequestPrepareNeeded.mSubscriptionId;
     }
 
-    VerifyOrExit(kState_Initialized == mCurrentState, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit((kState_Subscribing == mCurrentState || kState_Subscribing_IdAssigned == mCurrentState), err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit((outSubscribeParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMin <= kMaxTimeoutSec) ||
                      (kNoTimeOut == outSubscribeParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMin),
                  err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -692,7 +688,7 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
 #endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
 
     err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, msgType, msgBuf,
-                           nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+                              nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
     msgBuf = NULL;
     SuccessOrExit(err);
 
@@ -755,13 +751,32 @@ void SubscriptionClient::_Release()
 {
     WeaveLogIfFalse(mRefCount > 0);
 
-    --mRefCount;
-
-    if (0 == mRefCount)
+    // If releasing the last reference...
+    if (1 == mRefCount)
     {
+        // Just to be safe, call AbortSubscription() to ensure that the subscription
+        // is properly terminated. If the state transition logic is correct everywhere
+        // else in the code, the subscription will already have been terminated and
+        // this call will be a no-op.
+        AbortSubscription();
+
+        // Clean up resources/state associated with the client object.
         _Cleanup();
 
+        // Return the client to the Free state.
+        // NOTE: mRefCount is set to zero here solely to satisfy automated tests that look for
+        // a specific reference count in the "Moving to [ FREE]" log message.
+        mRefCount = 0;
+        MoveToState(kState_Free);
+
+        // Re-initialize all state data.
+        InitAsFree();
+
         SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDM_NumSubscriptionClients);
+    }
+    else
+    {
+        --mRefCount;
     }
 }
 
@@ -792,8 +807,10 @@ WEAVE_ERROR SubscriptionClient::ReplaceExchangeContext()
     mEC->AppState          = this;
     mEC->OnMessageReceived = OnMessageReceivedFromLocallyInitiatedExchange;
     mEC->OnResponseTimeout = OnResponseTimeout;
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     mEC->OnSendError       = OnSendError;
     mEC->OnAckRcvd         = NULL;
+#endif
 
     inParam.mExchangeStart.mEC     = mEC;
     inParam.mExchangeStart.mClient = this;
@@ -816,8 +833,10 @@ void SubscriptionClient::FlushExistingExchangeContext(const bool aAbortNow)
         mEC->AppState          = NULL;
         mEC->OnMessageReceived = NULL;
         mEC->OnResponseTimeout = NULL;
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
         mEC->OnSendError       = NULL;
         mEC->OnAckRcvd         = NULL;
+#endif
         if (aAbortNow)
         {
             mEC->Abort();
@@ -830,16 +849,39 @@ void SubscriptionClient::FlushExistingExchangeContext(const bool aAbortNow)
     }
 }
 
-#if WDM_ENABLE_SUBSCRIPTION_CANCEL
+/**
+ * Gracefully end a client subscription
+ *
+ * Gracefully terminates the client end of a subscription.  If subscription cancel
+ * support is enabled, a SubscribeCancelRequest message is sent to the subscription
+ * publisher and the system awaits a reply before terminating the subscription;
+ * otherwise the subscription is immediately terminated in a similar manner to
+ * AbortSubscription().  If a mutual subscription exists, the counter subscription
+ * is terminated as well.
+ *
+ * While awaiting a response to a SubscribeCancelRequest, the \c SubscriptionClient
+ * enters the \c Canceling state.
+ *
+ * Once the termination process begins, the \c SubscriptionClient object enters the
+ * `Terminated` state and an \c OnSubscriptionTerminated event is delivered to
+ * the application's event handler.  Note that, if cancel support is _not_ enabled,
+ * the event handler may be called synchronously within the call to EndSubscription().
+ *
+ * After the application's event handler returns, the \c SubscriptionClient object enters
+ * the `Initialized` state.   At this point the \c SubscriptionClient object may be used
+ * to initiate another subscription, or it may be freed by calling the Free() method.
+ */
 WEAVE_ERROR SubscriptionClient::EndSubscription()
 {
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
+
+#if WDM_ENABLE_SUBSCRIPTION_CANCEL
+
     WEAVE_ERROR err       = WEAVE_NO_ERROR;
     PacketBuffer * msgBuf = NULL;
     nl::Weave::TLV::TLVWriter writer;
     SubscribeCancelRequest::Builder request;
-
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
-                   GetStateStr(), __func__, mRefCount);
 
     // Make sure we're not freed by accident.
     _AddRef();
@@ -853,19 +895,18 @@ WEAVE_ERROR SubscriptionClient::EndSubscription()
         // fall through
     case kState_Subscribing_IdAssigned:
 
-        WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s: subscription not established yet, abort",
-                       SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__);
-
-        _AbortSubscription();
-
-        ExitNow();
+        // If the subscription is not full established, simply terminate it without
+        // informing the peer.
+        TerminateSubscription(WEAVE_NO_ERROR, NULL, false);
         break;
 
     case kState_SubscriptionEstablished_Confirming:
         // forget we're in the middle of confirmation, as the outcome
         // has become irrelevant
         FlushExistingExchangeContext();
+
         // fall through
+
     case kState_SubscriptionEstablished_Idle:
         msgBuf = PacketBuffer::NewWithAvailableSize(request.kBaseMessageSubscribeId_PayloadLen);
         VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
@@ -883,7 +924,7 @@ WEAVE_ERROR SubscriptionClient::EndSubscription()
 
         // NOTE: State could be changed if there is a sync error callback from message layer
         err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscribeCancelRequest, msgBuf,
-                               nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+                                  nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
         msgBuf = NULL;
         SuccessOrExit(err);
 
@@ -907,75 +948,16 @@ exit:
     _Release();
 
     return err;
-}
 
 #else // WDM_ENABLE_SUBSCRIPTION_CANCEL
 
-WEAVE_ERROR SubscriptionClient::EndSubscription()
-{
-    AbortSubscription();
-
+    // When Cancel support is not enabled, simply terminate the subscription without
+    // informing the peer.
+    mConfig = kConfig_Down;
+    TerminateSubscription(WEAVE_NO_ERROR, NULL, false);
     return WEAVE_NO_ERROR;
-}
 
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
-
-void SubscriptionClient::_AbortSubscription()
-{
-    WEAVE_ERROR err          = WEAVE_NO_ERROR;
-
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
-                   GetStateStr(), __func__, mRefCount);
-
-    // Make sure we're not freed by accident.
-    _AddRef();
-
-    if (kState_Free == mCurrentState)
-    {
-        // This must not happen
-        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
-    }
-    else if (kState_Initialized == mCurrentState || kState_Aborting == mCurrentState)
-    {
-        FlushExistingExchangeContext(true);
-
-        // we're already aborted, so there is nothing else to flush
-        ExitNow();
-    }
-    else
-    {
-        // This is an intermediate state for external calls during the abort process
-        uint64_t peerNodeId                = mBinding->GetPeerNodeId();
-        uint64_t subscriptionId            = mSubscriptionId;
-        bool deliverSubTerminatedToCatalog = ((NULL != mDataSinkCatalog) && (mCurrentState >= kState_NotifyDataSinkOnAbort_Begin) &&
-                                              (mCurrentState <= kState_NotifyDataSinkOnAbort_End));
-
-        MoveToState(kState_Aborting);
-
-        if (deliverSubTerminatedToCatalog)
-        {
-            // iterate through the whole catalog and deliver kEventSubscriptionTerminated event
-            mDataSinkCatalog->DispatchEvent(TraitDataSink::kEventSubscriptionTerminated, NULL);
-        }
-
-        // Note that ref count is not touched at here, as _Abort doesn't change the ownership
-        FlushExistingExchangeContext(true);
-        (void) RefreshTimer();
-
-        mRetryCounter = 0;
-        mSubscriptionId = 0;
-
-        MoveToState(kState_Initialized);
-
-#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-        SubscriptionEngine::GetInstance()->UpdateHandlerLiveness(peerNodeId, subscriptionId, true);
-#endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-    }
-
-exit:
-    WeaveLogFunctError(err);
-
-    _Release();
 }
 
 void SubscriptionClient::_Cleanup(void)
@@ -992,92 +974,127 @@ void SubscriptionClient::_Cleanup(void)
 
     mDataSinkCatalog->Iterate(CleanupUpdatableSinkTrait, this);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
-
-    Reset();
-
-    MoveToState(kState_Free);
 }
 
+/**
+ * Abort a client subscription
+ *
+ * Terminates the client end of a subscription, without notifying the subscription
+ * publisher and without delivering an \c OnSubscriptionTerminated event to the
+ * application's event handler.  If a mutual subscription exists, the counter
+ * subscription is terminated as well.
+ *
+ * Upon calling AbortSubscription(), the \c SubscriptionClient object enters the
+ * `Terminated` state. Once the termination process completes, the object enters
+ * the `Initialized` state. Both transitions happen synchronously within the call
+ * to AbortSubscription().
+ *
+ * After AbortSubscription() returns, the \c SubscriptionClient object may be used to
+ * initiate another subscription, or it may be freed by calling the Free() method.
+ */
 void SubscriptionClient::AbortSubscription(void)
 {
-    mConfig = kConfig_Down;
-
-    _AbortSubscription();
-}
-
-void SubscriptionClient::HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERROR aReason,
-                                                      StatusReporting::StatusReport * aStatusReportPtr)
-{
-    void * const pAppState     = mAppState;
-    EventCallback callbackFunc = mEventCallback;
-
     WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
                    GetStateStr(), __func__, mRefCount);
 
-    _AddRef();
+    // Immediately terminate any active or in progress subscription.  Since Abort
+    // is always synchronous in nature, suppress the OnSubscriptionTerminated callback
+    // to the application (but not the SubscriptionTerminated event to the trait handlers).
+    mConfig = kConfig_Down;
+    TerminateSubscription(WEAVE_NO_ERROR, NULL, true);
+}
 
-    if (!aWillRetry)
+void SubscriptionClient::TerminateSubscription(WEAVE_ERROR aReason, StatusReporting::StatusReport * aStatusReport, bool suppressAppCallback)
+{
+    // If the SubscriptionClient is active...
+    if (mCurrentState != kState_Initialized && mCurrentState != kState_Terminated)
     {
-        AbortSubscription();
-    }
-    else
-    {
-        // We do not need to perform a full-fledged subscription
-        // abort.  On the other hand, we can safely flush existing
-        // exchange context as any communication on that exchange
-        // context should be considered an error.
-        const bool abortExchangeContext = true;
-        FlushExistingExchangeContext(abortExchangeContext);
-    }
+        const ClientState prevState = mCurrentState;
 
-    if (NULL != callbackFunc)
-    {
-        InEventParam inParam;
-        OutEventParam outParam;
+        WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                       GetStateStr(), __func__, mRefCount);
 
-        inParam.Clear();
-        outParam.Clear();
+        // Ensure that the client object isn't freed while any callbacks are active.
+        _AddRef();
 
-        inParam.mSubscriptionTerminated.mReason            = aReason;
-        inParam.mSubscriptionTerminated.mClient            = this;
-        inParam.mSubscriptionTerminated.mWillRetry         = aWillRetry;
-        inParam.mSubscriptionTerminated.mIsStatusCodeValid = (aStatusReportPtr != NULL);
-        if (aStatusReportPtr != NULL)
+        // Abort any in-progress exchange.
+        FlushExistingExchangeContext(true);
+
+        // Stop the subscription timer
+        CancelSubscriptionTimer();
+
+        MoveToState(kState_Terminated);
+
+        if (prevState >= kState_Subscribing && prevState <= kState_Canceling)
         {
-            inParam.mSubscriptionTerminated.mStatusProfileId   = aStatusReportPtr->mProfileId;
-            inParam.mSubscriptionTerminated.mStatusCode        = aStatusReportPtr->mStatusCode;
-            inParam.mSubscriptionTerminated.mAdditionalInfoPtr = &(aStatusReportPtr->mAdditionalInfo);
+#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+            const uint64_t subscriptionId = mSubscriptionId;
+            const uint64_t peerNodeId = mBinding->GetPeerNodeId();
+#endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+
+            // Deliver SubscriptionTerminated event to trait handlers.
+            if (NULL != mDataSinkCatalog)
+            {
+                mDataSinkCatalog->DispatchEvent(TraitDataSink::kEventSubscriptionTerminated, NULL);
+            }
+
+            // Deliver OnSubscriptionTerminated event to application.
+            if (NULL != mEventCallback && !suppressAppCallback)
+            {
+                InEventParam inParam;
+                OutEventParam outParam;
+
+                inParam.Clear();
+                outParam.Clear();
+
+                inParam.mSubscriptionTerminated.mReason            = aReason;
+                inParam.mSubscriptionTerminated.mClient            = this;
+                inParam.mSubscriptionTerminated.mWillRetry         = (ShouldSubscribe() && IsRetryEnabled());
+                if (aStatusReport != NULL)
+                {
+                    inParam.mSubscriptionTerminated.mIsStatusCodeValid = true;
+                    inParam.mSubscriptionTerminated.mStatusProfileId   = aStatusReport->mProfileId;
+                    inParam.mSubscriptionTerminated.mStatusCode        = aStatusReport->mStatusCode;
+                    inParam.mSubscriptionTerminated.mAdditionalInfoPtr = &(aStatusReport->mAdditionalInfo);
+                }
+
+                mEventCallback(mAppState, kEvent_OnSubscriptionTerminated, inParam, outParam);
+            }
+
+#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+            SubscriptionEngine::GetInstance()->UpdateHandlerLiveness(peerNodeId, subscriptionId, true);
+#endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
         }
 
-        callbackFunc(pAppState, kEvent_OnSubscriptionTerminated, inParam, outParam);
-    }
-    else
-    {
-        WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) app layer callback skipped",
-                       SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
-    }
+        if (mCurrentState == kState_Terminated)
+        {
+            if (ShouldSubscribe() && IsRetryEnabled())
+            {
+                SetRetryTimer(aReason);
+            }
+            else
+            {
+                MoveToState(kState_Initialized);
+                mRetryCounter = 0;
+                mSubscriptionId = 0;
+            }
+        }
 
-    if (aWillRetry && ShouldSubscribe())
-    {
-        SetRetryTimer(aReason);
+        _Release();
     }
-
-    _Release();
 }
 
 void SubscriptionClient::SetRetryTimer(WEAVE_ERROR aReason)
 {
     WEAVE_ERROR err                   = WEAVE_NO_ERROR;
-    ClientState entryState            = mCurrentState;
-    ResubscribePolicyCallback entryCb = mResubscribePolicyCallback;
+
+    _AddRef();
 
     // this check serves to see whether we already have a timer set
     // and if resubscribes are enabled
-    if (entryCb && entryState < kState_Resubscribe_Holdoff)
+    if (ShouldSubscribe() && IsRetryEnabled() && mCurrentState != kState_Resubscribe_Holdoff)
     {
         uint32_t timeoutMsec = 0;
-
-        _AddRef();
 
         MoveToState(kState_Resubscribe_Holdoff);
 
@@ -1100,15 +1117,29 @@ exit:
     // all errors are considered fatal in this function
     if (err != WEAVE_NO_ERROR)
     {
-        HandleSubscriptionTerminated(false, err, NULL);
+        mConfig = kConfig_Down;
+        TerminateSubscription(err, NULL, false);
     }
 
-    if (entryCb && (entryState < kState_Resubscribe_Holdoff))
-    {
-        _Release();
-    }
+    _Release();
 }
 
+void SubscriptionClient::CancelSubscriptionTimer(void)
+{
+    SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnTimerCallback, this);
+}
+
+/**
+ * Free a \c SubscriptionClient object.
+ *
+ * Frees the \c SubscriptionClient object.  If a subscription is active or in-progress, the
+ * subscription is immediately terminated in a similar manner to calling AbortSubscription().
+ * If any update requests are in progress, they are similarly aborted.
+ *
+ * The application is responsible for calling Free() exactly once during the lifetime of
+ * a \c SubscriptionClient object. After Free() is called, no further references should be
+ * made to the object.
+ */
 void SubscriptionClient::Free()
 {
     WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
@@ -1117,11 +1148,8 @@ void SubscriptionClient::Free()
     WeaveLogIfFalse(kState_Free != mCurrentState);
     WeaveLogIfFalse(mRefCount > 0);
 
-    // Abort the subscription if we're not already aborted
-    if (kState_Initialized < mCurrentState)
-    {
-        AbortSubscription();
-    }
+    // Abort the subscription if active.
+    AbortSubscription();
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     AbortUpdates(WEAVE_NO_ERROR);
@@ -1135,9 +1163,6 @@ void SubscriptionClient::BindingEventCallback(void * const aAppState, const Bind
                                               const Binding::InEventParam & aInParam, Binding::OutEventParam & aOutParam)
 {
     SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aAppState);
-
-    bool failed = false;
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     pClient->_AddRef();
 
@@ -1153,39 +1178,59 @@ void SubscriptionClient::BindingEventCallback(void * const aAppState, const Bind
             }
         }
 #endif
-        // Binding is ready. We can send the subscription req now.
+        // The binding is ready.  If the SubscriptionClient is still in a state where
+        // a subscription is desired, go send the subscription request now.
         if (pClient->mCurrentState == kState_Initialized && pClient->ShouldSubscribe())
         {
             pClient->_InitiateSubscription();
         }
         break;
 
-    case Binding::kEvent_BindingFailed:
-        failed = true;
-        err = aInParam.BindingFailed.Reason;
+    case Binding::kEvent_PrepareFailed:
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        if (pClient->IsUpdatePendingOrInProgress())
+        {
+            pClient->StartUpdateRetryTimer(aInParam.PrepareFailed.Reason);
+        }
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
+        // Binding preparation failed.  If the SubscriptionClient is still in a state where
+        // a subscription is desired, arm the subscription retry timer.
+        if (pClient->mCurrentState == kState_Initialized && pClient->ShouldSubscribe())
+        {
+            pClient->SetRetryTimer(aInParam.PrepareFailed.Reason);
+        }
+
         break;
 
-    case Binding::kEvent_PrepareFailed:
-        failed = true;
-        err = aInParam.PrepareFailed.Reason;
+    case Binding::kEvent_BindingFailed:
+
+        // The binding has failed.  This can happen because an underling connection has closed,
+        // or a security session has failed.
+
+        // Cancel any in-progress Update request and arrange to re-try it after a delay.
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        pClient->mUpdateClient.CancelUpdate();
+        if (pClient->IsUpdatePendingOrInProgress())
+        {
+            pClient->StartUpdateRetryTimer(aInParam.BindingFailed.Reason);
+        }
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
+        // If a subscription is in-progress, established or being canceled, terminate the
+        // subscription immediately. Do nothing if the SubscriptionClient is idle (Initialized)
+        // or waiting to re-subscribe (Resubscribe_Holdoff). In those cases, when the time arrives
+        // to subscribe again, the binding will be re-prepared.
+        if (pClient->IsInProgressOrEstablished() || pClient->mCurrentState == kState_Canceling)
+        {
+            pClient->TerminateSubscription(aInParam.BindingFailed.Reason, NULL, false);
+        }
+
         break;
 
     default:
         Binding::DefaultEventHandler(aAppState, aEvent, aInParam, aOutParam);
-    }
-
-    if (failed)
-    {
-#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-        if (pClient->IsUpdatePendingOrInProgress())
-        {
-            pClient->StartUpdateRetryTimer(err);
-        }
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
-        if (pClient->ShouldSubscribe())
-        {
-            pClient->SetRetryTimer(err);
-        }
     }
 
     pClient->_Release();
@@ -1197,6 +1242,7 @@ void SubscriptionClient::OnTimerCallback(System::Layer * aSystemLayer, void * aA
 
     pClient->TimerEventHandler();
 }
+
 WEAVE_ERROR SubscriptionClient::RefreshTimer(void)
 {
     WEAVE_ERROR err      = WEAVE_NO_ERROR;
@@ -1207,7 +1253,7 @@ WEAVE_ERROR SubscriptionClient::RefreshTimer(void)
                    GetStateStr(), __func__, mRefCount);
 
     // Cancel timer first
-    SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnTimerCallback, this);
+    CancelSubscriptionTimer();
 
     // Arm timer according to current state
     switch (mCurrentState)
@@ -1228,7 +1274,14 @@ WEAVE_ERROR SubscriptionClient::RefreshTimer(void)
     case kState_SubscriptionEstablished_Idle:
         if (kNoTimeOut != mLivenessTimeoutMsec)
         {
-            if (IsInitiator())
+            timeoutMsec = mLivenessTimeoutMsec;
+            isTimerNeeded = true;
+
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+
+            // If the subscription is over Weave Reliable Messaging and the local node
+            // is the subscription initiator...
+            if (IsInitiator() && mBinding->IsWRMTransport())
             {
                 // Calculate margin to reserve for WRM activity, so we send out SubscribeConfirm earlier
                 // Note that wrap around could happen, if the system is configured with excessive delays and number of retries
@@ -1236,35 +1289,29 @@ WEAVE_ERROR SubscriptionClient::RefreshTimer(void)
                 const uint32_t marginMsec = (defaultWRMPConfig.mMaxRetrans + 1) * defaultWRMPConfig.mInitialRetransTimeout;
 
                 // If the margin is smaller than the desired liveness timeout, set a timer for the difference.
-                // Otherwise, set the timer to 0 (which will fire immediately)
-                if (marginMsec < mLivenessTimeoutMsec)
+                // Otherwise, fail with an error.
+                if (marginMsec < timeoutMsec)
                 {
-                    timeoutMsec = mLivenessTimeoutMsec - marginMsec;
+                    timeoutMsec = timeoutMsec - marginMsec;
                 }
                 else
                 {
                     // This is a system configuration problem
-                    WeaveLogError(DataManagement,
-                                  "Client[%u] Liveness period (%" PRIu32 " msec) <= margin reserved for WRM (%" PRIu32 " msec)",
-                                  SubscriptionEngine::GetInstance()->GetClientId(this), mLivenessTimeoutMsec, marginMsec);
+                    WeaveLogDetail(DataManagement,
+                                   "Client[%u] Liveness period (%" PRIu32 " msec) <= margin reserved for WRM (%" PRIu32 " msec)",
+                                   SubscriptionEngine::GetInstance()->GetClientId(this), mLivenessTimeoutMsec, marginMsec);
 
                     ExitNow(err = WEAVE_ERROR_TIMEOUT);
                 }
             }
-            else
-            {
-                timeoutMsec = mLivenessTimeoutMsec;
-            }
-            isTimerNeeded = true;
+
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
 
             WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) Set timer for liveness confirmation to %" PRIu32 " msec",
                            SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount, timeoutMsec);
         }
         break;
     case kState_SubscriptionEstablished_Confirming:
-        // Do nothing
-        break;
-    case kState_Aborting:
         // Do nothing
         break;
     default:
@@ -1335,7 +1382,7 @@ void SubscriptionClient::TimerEventHandler(void)
 
             // NOTE: State could be changed if there is a send error callback from message layer
             err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscribeConfirmRequest, msgBuf,
-                                   nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+                                      nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
             msgBuf = NULL;
             SuccessOrExit(err);
 
@@ -1388,7 +1435,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
+        TerminateSubscription(err, NULL, false);
     }
 
     if (!skipTimerCheck)
@@ -1601,8 +1648,7 @@ void SubscriptionClient::NotificationRequestHandler(nl::Weave::ExchangeContext *
         nl::Weave::Encoding::LittleEndian::Write32(p, nl::Weave::Profiles::kWeaveProfile_Common);
         nl::Weave::Encoding::LittleEndian::Write16(p, nl::Weave::Profiles::Common::kStatus_Success);
 
-        err    = aEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport,
-                               msgBuf, aEC->HasPeerRequestedAck() ? nl::Weave::ExchangeContext::kSendFlag_RequestAck : 0);
+        err    = aEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, msgBuf);
         msgBuf = NULL;
         SuccessOrExit(err);
     }
@@ -1632,7 +1678,7 @@ exit:
     if (WEAVE_NO_ERROR != err)
     {
         // If we're not aborted yet, make a callback to app layer
-        HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
+        TerminateSubscription(err, NULL, false);
     }
 
     _Release();
@@ -1656,8 +1702,6 @@ void SubscriptionClient::CancelRequestHandler(nl::Weave::ExchangeContext * aEC, 
     // Make sure we're not freed by accident
     _AddRef();
 
-    mBinding->AdjustResponseTimeout(aEC);
-
     VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
 
     // Verify the cancel request is truly from the publisher.  If not, reject the request with
@@ -1675,24 +1719,26 @@ void SubscriptionClient::CancelRequestHandler(nl::Weave::ExchangeContext * aEC, 
     nl::Weave::Encoding::LittleEndian::Write16(p, statusCode);
     msgBuf->SetDataLength(statusReportLen);
 
-    err    = aEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, msgBuf,
-                           aEC->HasPeerRequestedAck() ? nl::Weave::ExchangeContext::kSendFlag_RequestAck : 0);
+    err    = aEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, msgBuf);
     msgBuf = NULL;
     SuccessOrExit(err);
+
+    // Proactively close the exchange.  This prevents the call to TerminateSubscription()
+    // below from aborting the exchange, which, when using WRM, would prevent the
+    // StatusReport message from being re-transmitted if necessary.
+    FlushExistingExchangeContext();
 
 exit:
     WeaveLogFunctError(err);
 
-    if (NULL != msgBuf)
-    {
-        PacketBuffer::Free(msgBuf);
-        msgBuf = NULL;
-    }
+    PacketBuffer::Free(msgBuf);
 
-    // In either case, the subscription is already canceled, move to kConfig_Down and kState_Initialized
-    if ((WEAVE_NO_ERROR != err) || canceled)
+    // If the subscription was canceled, or if an error occurred while handing
+    // the Cancel request, terminate the subscription and notify the application.
+    if (canceled || WEAVE_NO_ERROR != err)
     {
-        HandleSubscriptionTerminated(false, err, NULL);
+        mConfig = kConfig_Down;
+        TerminateSubscription(err, NULL, false);
     }
 
     _Release();
@@ -1752,7 +1798,7 @@ exit:
 
     if ((subscribeRequestFailed) || (WEAVE_NO_ERROR != err))
     {
-        pClient->HandleSubscriptionTerminated(pClient->IsRetryEnabled(), err, NULL);
+        pClient->TerminateSubscription(err, NULL, false);
     }
 
     pClient->_Release();
@@ -1784,8 +1830,7 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
 
     WEAVE_ERROR err              = WEAVE_NO_ERROR;
     SubscriptionClient * pClient = reinterpret_cast<SubscriptionClient *>(aEC->AppState);
-    InEventParam inParam;
-    OutEventParam outParam;
+    bool terminateSubscription = false;
     bool retainExchangeContext = false;
     bool isStatusReportValid   = false;
     nl::Weave::Profiles::StatusReporting::StatusReport status;
@@ -1886,22 +1931,31 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
             err = pClient->RefreshTimer();
             SuccessOrExit(err);
 
+            // Release the response buffer before initiating any callbacks to reduce overall
+            // buffer pressure.
+            PacketBuffer::Free(aPayload);
+            aPayload = NULL;
+
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
             SubscriptionEngine::GetInstance()->UpdateHandlerLiveness(pClient->mBinding->GetPeerNodeId(), pClient->mSubscriptionId);
 #endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
 
             pClient->mRetryCounter = 0;
 
-            inParam.mSubscriptionActivity.mClient = pClient;
-            pClient->mEventCallback(pClient->mAppState, kEvent_OnSubscriptionActivity, inParam, outParam);
+            {
+                InEventParam inParam;
+                OutEventParam outParam;
 
-            inParam.Clear();
-            inParam.mSubscriptionEstablished.mSubscriptionId = pClient->mSubscriptionId;
-            inParam.mSubscriptionEstablished.mClient         = pClient;
+                // Emit an OnSubscriptionActivity event to the application.
+                inParam.mSubscriptionActivity.mClient = pClient;
+                pClient->mEventCallback(pClient->mAppState, kEvent_OnSubscriptionActivity, inParam, outParam);
 
-            // it's allowed to cancel or even abandon this subscription right inside this callback
-            pClient->mEventCallback(pClient->mAppState, kEvent_OnSubscriptionEstablished, inParam, outParam);
-            // since the state could have been changed, we must not assume anything
+                // Emit an OnSubscriptionEstablished event to the application.
+                // Note that it's allowed to cancel or even abandon this subscription right inside this callback.
+                inParam.mSubscriptionEstablished.mSubscriptionId = pClient->mSubscriptionId;
+                inParam.mSubscriptionEstablished.mClient         = pClient;
+                pClient->mEventCallback(pClient->mAppState, kEvent_OnSubscriptionEstablished, inParam, outParam);
+            }
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
             pClient->LockUpdateMutex();
@@ -1925,40 +1979,47 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
         break;
 
     case kState_SubscriptionEstablished_Confirming:
-        if (isStatusReportValid && status.success())
+
+        // Verify the response is a status report.
+        VerifyOrExit(isStatusReportValid, err = WEAVE_ERROR_INVALID_MESSAGE_TYPE);
+
+        // Verify that response is Success.
+        VerifyOrExit(status.success(), err = WEAVE_ERROR_STATUS_REPORT_RECEIVED);
+
+        // Close the exchange context and move back to idle state
+        pClient->FlushExistingExchangeContext();
+        pClient->MoveToState(kState_SubscriptionEstablished_Idle);
+
+        WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] liveness confirmed",
+                       SubscriptionEngine::GetInstance()->GetClientId(pClient), pClient->GetStateStr());
+
+        // Emit an OnSubscriptionActivity event
         {
-            // Status Report (success) for Subscribe Confirm request
-            // confirmed, move back to idle state
-            pClient->FlushExistingExchangeContext();
-            pClient->MoveToState(kState_SubscriptionEstablished_Idle);
-
-            WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] liveness confirmed",
-                           SubscriptionEngine::GetInstance()->GetClientId(pClient), pClient->GetStateStr());
-
-            // Emit an OnSubscriptionActivity event
+            InEventParam inParam;
+            OutEventParam outParam;
             inParam.mSubscriptionActivity.mClient = pClient;
             pClient->mEventCallback(pClient->mAppState, kEvent_OnSubscriptionActivity, inParam, outParam);
+        }
 
-            err = pClient->RefreshTimer();
-            SuccessOrExit(err);
+        // Restart the subscription timer.
+        err = pClient->RefreshTimer();
+        SuccessOrExit(err);
 
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-            SubscriptionEngine::GetInstance()->UpdateHandlerLiveness(pClient->mBinding->GetPeerNodeId(), pClient->mSubscriptionId);
+        SubscriptionEngine::GetInstance()->UpdateHandlerLiveness(pClient->mBinding->GetPeerNodeId(), pClient->mSubscriptionId);
 #endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-        }
-        else
-        {
-            // anything else is a failure, tear down the subscription
-            ExitNow(err = WEAVE_ERROR_INVALID_MESSAGE_TYPE);
-        }
+
         break;
 
 #if WDM_ENABLE_SUBSCRIPTION_CANCEL
     case kState_Canceling:
-        // It doesn't really matter what we receive from the other end, as we're heading out
-        // call abort silently without callback to upper layer, for this subscription was canceled by the upper layer
-        pClient->_AbortSubscription();
-        ExitNow();
+
+        // Verify the response is a status report.
+        // NOTE: It doesn't really matter what status code we receive from the other end as
+        // the subscription is being terminated regardless.
+        VerifyOrExit(isStatusReportValid, err = WEAVE_ERROR_INVALID_MESSAGE_TYPE);
+        terminateSubscription = true;
+
         break;
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
 
@@ -1971,22 +2032,25 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
 exit:
     WeaveLogFunctError(err);
 
-    if (NULL != aPayload)
-    {
-        PacketBuffer::Free(aPayload);
-        aPayload = NULL;
-    }
-
+    // If the exchange is over, close the exchange context.
     if (!retainExchangeContext)
     {
         pClient->FlushExistingExchangeContext();
     }
 
-    if (err != WEAVE_NO_ERROR)
+    // Terminate the subscription if indicated, or if an unexpected error occurred.
+    // Pass the status report information to the application's OnSubscriptionTerminated
+    // callback if its pertinent in this case.
+    if (terminateSubscription || err != WEAVE_NO_ERROR)
     {
-        // if we're already aborted, this call becomes a no-op
-        pClient->HandleSubscriptionTerminated(pClient->IsRetryEnabled(), err, isStatusReportValid ? &status : NULL);
+        pClient->TerminateSubscription(err, (err == WEAVE_ERROR_STATUS_REPORT_RECEIVED) ? &status : NULL, false);
     }
+
+    // Free the message buffer if it hasn't been done already.  Note that in the case the
+    // response was a status report, this must be done *after* the call to TerminateSubscription
+    // as the StatusReport object that is passed to that method may contain a pointer into
+    // the buffer.
+    PacketBuffer::Free(aPayload);
 
     pClient->_Release();
 }
@@ -2686,7 +2750,7 @@ exit:
     if (needToResubscribe && IsInProgressOrEstablished())
     {
         WeaveLogDetail(DataManagement, "UpdateResponse: triggering resubscription");
-        HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
+        TerminateSubscription(err, NULL, false);
     }
 
     UnlockUpdateMutex();
@@ -2760,9 +2824,6 @@ void SubscriptionClient::UpdateEventCallback (void * const aAppState,
 {
     SubscriptionClient * const pSubClient = reinterpret_cast<SubscriptionClient *>(aAppState);
 
-    VerifyOrExit(!(pSubClient->IsAborting()),
-            WeaveLogDetail(DataManagement, "<UpdateEventCallback> subscription has been aborted"));
-
     switch (aEvent)
     {
     case UpdateClient::kEvent_UpdateComplete:
@@ -2788,7 +2849,6 @@ void SubscriptionClient::UpdateEventCallback (void * const aAppState,
         break;
     }
 
-exit:
     return;
 }
 
@@ -2905,7 +2965,7 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
 
     if (mResubscribeNeeded && IsInProgressOrEstablished())
     {
-        HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_NO_ERROR, NULL);
+        TerminateSubscription(WEAVE_NO_ERROR, NULL, false);
     }
 
     // If there's an error code, notify the application
@@ -3022,7 +3082,7 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
 
     if ((numPendingPathsDeleted > 0) && IsInProgressOrEstablished())
     {
-        HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_ERROR_WDM_VERSION_MISMATCH, NULL);
+        TerminateSubscription(WEAVE_ERROR_WDM_VERSION_MISMATCH, NULL, false);
     }
 
 exit:
@@ -3371,5 +3431,3 @@ void SubscriptionClient::UpdateRequestContext::Reset()
 }; // namespace Profiles
 }; // namespace Weave
 }; // namespace nl
-
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING

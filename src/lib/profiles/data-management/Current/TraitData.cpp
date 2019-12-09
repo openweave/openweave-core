@@ -939,6 +939,12 @@ void TraitDataSink::SetVersion(uint64_t aVersion)
     mHasValidVersion = true;
 }
 
+void TraitDataSink::ClearVersion(void)
+{
+    WeaveLogDetail(DataManagement, "Trait %08x version: cleared", mSchemaEngine->GetProfileId());
+    mHasValidVersion = false;
+}
+
 void TraitDataSink::SetLastNotifyVersion(uint64_t aVersion)
 {
     WeaveLogDetail(DataManagement, "Trait %08x last notify version: 0x%" PRIx64 " -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), mLastNotifyVersion,
@@ -1050,7 +1056,7 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
         else
         {
             // We need to clear this since we don't have a good version of data anymore.
-            mHasValidVersion = false;
+            ClearVersion();
         }
     }
     else
