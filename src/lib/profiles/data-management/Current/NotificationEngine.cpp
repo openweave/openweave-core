@@ -1121,13 +1121,17 @@ WEAVE_ERROR NotificationEngine::SendNotify(PacketBuffer * aBuffer, SubscriptionH
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    err = aSubHandler->SendNotificationRequest(aBuffer);
-    SuccessOrExit(err);
-
     // We can only have 1 notify in flight for any given subscription - increment and break out.
     mNumNotifiesInFlight++;
 
+    err = aSubHandler->SendNotificationRequest(aBuffer);
+    SuccessOrExit(err);
+
 exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        mNumNotifiesInFlight--;
+    }
     return err;
 }
 
@@ -1583,7 +1587,7 @@ exit:
     {
         // abort subscription, squash error, signal to upper
         // layers that the subscription is done
-        aSubHandler->HandleSubscriptionTerminated(err, NULL);
+        aSubHandler->TerminateSubscription(err, NULL, false);
 
         aSubscriptionHandled = true;
         err                  = WEAVE_NO_ERROR;

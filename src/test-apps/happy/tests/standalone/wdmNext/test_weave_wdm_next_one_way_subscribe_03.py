@@ -54,7 +54,7 @@ class test_weave_wdm_next_one_way_subscribe_03(weave_wdm_next_test_base):
         wdm_next_args['server_clear_state_between_iterations'] = True
 
         wdm_next_args['client_log_check'] = [('Client\[0\] \[(ALIVE|CONFM)\] EndSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
-                                             ('Client\[0\] \[(CANCL)\] _AbortSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
+                                             ('Client\[0\] \[(CANCL)\] TerminateSubscription ', wdm_next_args['test_client_iterations']),
                                              ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations']),
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['server_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] CancelRequestHandler Ref\(\d+\)', wdm_next_args['test_client_iterations']),

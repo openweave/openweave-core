@@ -123,6 +123,7 @@ public:
             SubscriptionHandler * mHandler;
             WEAVE_ERROR mReason;
 
+            bool mIsStatusCodeValid;
             uint32_t mStatusProfileId;
             uint16_t mStatusCode;
             ReferencedTLVData * mAdditionalInfoPtr;
@@ -178,7 +179,8 @@ public:
     {
         return (mCurrentState >= kState_Subscribing_Evaluating && mCurrentState <= kState_SubscriptionEstablished_Notifying);
     }
-    bool IsAborted() { return (mCurrentState == kState_Aborted); }
+    bool IsCanceling() const { return (mCurrentState == kState_Canceling); }
+    bool IsTerminated() { return (mCurrentState == kState_Terminated); }
     bool IsFree() { return (mCurrentState == kState_Free); }
 
     uint32_t GetMaxNotificationSize(void) const { return mMaxNotificationSize == 0 ? UINT16_MAX : mMaxNotificationSize; }
@@ -209,12 +211,10 @@ private:
         kState_SubscriptionEstablished_Idle      = 5,
         kState_SubscriptionEstablished_Notifying = 6,
         kState_Canceling                         = 7,
+        kState_Terminated                        = 8,
 
-        kState_SubscriptionInfoValid_Begin = kState_Subscribing,
-        kState_SubscriptionInfoValid_End   = kState_Canceling,
-
-        kState_Aborting = 9,
-        kState_Aborted  = 10,
+        kState_SubscriptionInfoValid_Begin       = kState_Subscribing,
+        kState_SubscriptionInfoValid_End         = kState_Canceling,
     };
 
     HandlerState mCurrentState;
@@ -275,7 +275,7 @@ private:
 
     void _AddRef(void);
     void _Release(void);
-    void HandleSubscriptionTerminated(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * aStatusReportPtr);
+    void TerminateSubscription(WEAVE_ERROR aReason, Profiles::StatusReporting::StatusReport * aStatusReport, bool suppressAppCallback);
     void MoveToState(const HandlerState aTargetState);
     const char * GetStateStr() const;
 
@@ -312,6 +312,8 @@ private:
     inline WEAVE_ERROR ParseSubscriptionId(SubscribeRequest::Parser & aRequest, uint32_t & aRejectReasonProfileId,
                                            uint16_t & aRejectReasonStatusCode, const uint64_t aRandomNumber);
 
+    static void BindingEventCallback(void * const apAppState, const Binding::EventType aEvent,
+                                     const Binding::InEventParam & aInParam, Binding::OutEventParam & aOutParam);
     static void OnTimerCallback(System::Layer * aSystemLayer, void * aAppState, System::Error aErrorCode);
     static void OnAckReceived(ExchangeContext * aEC, void * aMsgSpecificContext);
     static void OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext);

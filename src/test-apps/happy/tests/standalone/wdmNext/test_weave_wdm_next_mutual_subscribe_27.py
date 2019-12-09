@@ -50,12 +50,12 @@ class test_weave_wdm_next_mutual_subscribe_27(weave_wdm_next_test_base):
         wdm_next_args['enable_server_flip'] = 0
 
         wdm_next_args['client_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] bound mutual subscription is going away', wdm_next_args['test_client_iterations']),
-                                             ('Client\[0\] \[(ALIVE|CONFM)\] _AbortSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
+                                             ('Client\[0\] \[(ALIVE|CONFM)\] TerminateSubscription ', wdm_next_args['test_client_iterations']),
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['server_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] bound mutual subscription is going away', wdm_next_args['test_client_iterations']),
-                                             ('Handler\[0\] \[(ALIVE|CONFM)\] AbortSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
+                                             ('Handler\[0\] \[(ALIVE|CONFM)\] TerminateSubscription ', wdm_next_args['test_client_iterations']),
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]

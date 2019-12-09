@@ -44,8 +44,6 @@
 
 #include <Weave/Profiles/status-report/StatusReportProfile.h>
 
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-
 namespace nl {
 namespace Weave {
 namespace Profiles {
@@ -149,6 +147,27 @@ void SubscriptionHandler::DefaultEventHandler(EventID aEvent, const InEventParam
     }
 }
 
+/**
+ * Gracefully end a publisher subscription
+ *
+ * Gracefully terminates the publisher end of a subscription.  If subscription cancel
+ * support is enabled, a SubscribeCancelRequest message is sent to the subscription
+ * client and the system awaits a reply before terminating the subscription;
+ * otherwise the subscription is immediately terminated in a similar manner to
+ * AbortSubscription().  If a mutual subscription exists, the counter subscription
+ * from the publisher back to the client is terminated as well.
+ *
+ * While awaiting a response to a SubscribeCancelRequest, the \c SubscriptionHandler
+ * enters the \c Canceling state.
+ *
+ * Once the termination process begins, the \c SubscriptionHandler object enters the
+ * `Terminated` state and an \c OnSubscriptionTerminated event is delivered to
+ * the application's event handler.  Note that, if cancel support is _not_ enabled,
+ * the event handler may be called synchronously within the call to EndSubscription().
+ *
+ * After the application's event handler returns, if there are no additional references
+ * to the \c SubscriptionHandler object, the object is freed.
+ */
 WEAVE_ERROR SubscriptionHandler::EndSubscription(const uint32_t aReasonProfileId, const uint16_t aReasonStatusCode)
 {
     WEAVE_ERROR err   = WEAVE_NO_ERROR;
@@ -173,8 +192,7 @@ WEAVE_ERROR SubscriptionHandler::EndSubscription(const uint32_t aReasonProfileId
             nl::Weave::Encoding::LittleEndian::Write16(p, aReasonStatusCode);
             msgBuf->SetDataLength(statusReportLen);
 
-            err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport,
-                                   msgBuf, mEC->HasPeerRequestedAck() ? nl::Weave::ExchangeContext::kSendFlag_RequestAck : 0);
+            err    = mEC->SendMessage(Profiles::kWeaveProfile_Common, Profiles::Common::kMsgType_StatusReport, msgBuf);
             msgBuf = NULL;
             SuccessOrExit(err);
 
@@ -632,10 +650,13 @@ void SubscriptionHandler::InitWithIncomingRequest(Binding * const aBinding, cons
 
     WeaveLogIfFalse(0 == mRefCount);
 
+    // Maintain a reference for the duration of this method.
     _AddRef();
 
+    // Capture the binding and arrange to receive event callbacks.
     aBinding->AddRef();
     mBinding = aBinding;
+    mBinding->SetProtocolLayerCallback(BindingEventCallback, this);
 
     mPeerNodeId     = aMsgInfo->SourceNodeId;
     mBytesOffloaded = 0;
@@ -644,9 +665,10 @@ void SubscriptionHandler::InitWithIncomingRequest(Binding * const aBinding, cons
     // The ownership has been transferred to this subscription
     aEC = NULL;
 
-    // Add reference when we enter this initial state
+    // Add reference when we enter this initial subscribing state.
     // This is needed because the app layer doesn't automatically get hold of this instance,
-    // but we need this instance to be around until we clear the protocol state machine (by entering aborted)
+    // but we need this instance to be around until we clear the protocol state machine
+    // (by entering Terminated)
     _AddRef();
     MoveToState(kState_Subscribing_Evaluating);
 
@@ -764,7 +786,7 @@ WEAVE_ERROR SubscriptionHandler::SendNotificationRequest(PacketBuffer * aMsgBuf)
 
     // Note we're sending back a message using an EC initiated by the client
     err     = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_NotificationRequest, aMsgBuf,
-                           nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+                               nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
     aMsgBuf = NULL;
     SuccessOrExit(err);
 
@@ -781,7 +803,7 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        HandleSubscriptionTerminated(err, NULL);
+        TerminateSubscription(err, NULL, false);
     }
 
     _Release();
@@ -862,8 +884,7 @@ WEAVE_ERROR SubscriptionHandler::SendSubscribeResponse(const bool aPossibleLossO
     SuccessOrExit(err);
 
     // Note we're sending back a message using an EC initiated by the client
-    err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscribeResponse, msgBuf,
-                           nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+    err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscribeResponse, msgBuf);
     msgBuf = NULL;
     SuccessOrExit(err);
 
@@ -881,7 +902,7 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        HandleSubscriptionTerminated(err, NULL);
+        TerminateSubscription(err, NULL, false);
     }
 
     _Release();
@@ -903,8 +924,10 @@ void SubscriptionHandler::InitExchangeContext()
 {
     mEC->AppState          = this;
     mEC->OnResponseTimeout = OnResponseTimeout;
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     mEC->OnSendError       = OnSendError;
     mEC->OnAckRcvd         = OnAckReceived;
+#endif
     mEC->OnMessageReceived = OnMessageReceivedFromLocallyHeldExchange;
 }
 
@@ -946,8 +969,10 @@ void SubscriptionHandler::FlushExistingExchangeContext(const bool aAbortNow)
         mEC->AppState          = NULL;
         mEC->OnMessageReceived = NULL;
         mEC->OnResponseTimeout = NULL;
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
         mEC->OnSendError       = NULL;
         mEC->OnAckRcvd         = NULL;
+#endif
         if (aAbortNow)
         {
             mEC->Abort();
@@ -1014,8 +1039,8 @@ WEAVE_ERROR SubscriptionHandler::Cancel()
         SuccessOrExit(err);
 
         // NOTE: State could be changed if there is a sync error callback from message layer
-        err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscribeCancelRequest, msgBuf,
-                               nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+        err    = mEC->SendMessage(Profiles::kWeaveProfile_WDM, kMsgType_SubscribeCancelRequest, msgBuf,
+                                  ExchangeContext::kSendFlag_ExpectResponse);
         msgBuf = NULL;
         SuccessOrExit(err);
 
@@ -1069,184 +1094,121 @@ void SubscriptionHandler::_Release()
 {
     WeaveLogIfFalse(mRefCount > 0);
 
-    --mRefCount;
-
-    if (0 == mRefCount)
+    // If releasing the last reference...
+    if (1 == mRefCount)
     {
-        SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDM_NumSubscriptionHandlers);
+        // Just to be safe, call AbortSubscription() to ensure that the subscription
+        // is properly terminated. If the state transition logic is correct everywhere
+        // else in the code, the subscription will already have been terminated and
+        // this call will be a no-op.
         AbortSubscription();
-    }
-}
 
-void SubscriptionHandler::HandleSubscriptionTerminated(WEAVE_ERROR aReason, StatusReporting::StatusReport * aStatusReportPtr)
-{
-    void * const appState      = mAppState;
-    EventCallback callbackFunc = mEventCallback;
-    uint64_t peerNodeId;
+        // Return the handler to the Free state.
+        // NOTE: mRefCount is set to zero here solely to satisfy automated tests that look for
+        // a specific reference count in the "Moving to [ FREE]" log message.
+        mRefCount = 0;
+        MoveToState(kState_Free);
 
-    WeaveLogDetail(DataManagement, "Handler[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetHandlerId(this),
-                   GetStateStr(), __func__, mRefCount);
+        // Re-initialize all state data.
+        InitAsFree();
 
-    _AddRef();
-
-    // Retain a copy of the NodeId before AbortSubscription wipes it. We'll then stuff it back into mNodeId
-    // momentarily so that the application can still observe that field on the ensuing up-call.
-    // After the up-call returns, we'll nuke it back to 0.
-    //
-    // NOTE: This is a quick fix that has the least impact to the behaviors in this file. There's a lot that
-    // leaves to be desired around AddRef/_Release and its interactions with AbortSubscription. As part of cleaning
-    // that up, we'll find a better approach for retaining peer node ID through the up-call (see WEAV-2367).
-    peerNodeId = mPeerNodeId;
-
-    // Flush most internal states, except for mRefCount and mCurrentState
-    // move to kState_Aborted
-    AbortSubscription();
-
-    mPeerNodeId = peerNodeId;
-
-    // Make app layer callback in kState_Aborted
-    // Note that mRefCount should still be more than 0 when we make this callback.
-    // Since this function does not call _AddRef, it is possible if the app
-    // calls Free() that we'll exit the app callback in a free state.
-    // In that case, we won't have any cleanup to do.
-    // On the other hand, if the caller of this function has AddRef'ed,
-    // the state after exiting the app callback could be Aborted.
-    // In that case, we still won't have cleanup, since everything will
-    // be cleaned up upon _Release by the caller of this func.
-    if (NULL != callbackFunc)
-    {
-        InEventParam inParam;
-        OutEventParam outParam;
-
-        inParam.Clear();
-        outParam.Clear();
-
-        inParam.mSubscriptionTerminated.mReason  = aReason;
-        inParam.mSubscriptionTerminated.mHandler = this;
-        if (aStatusReportPtr != NULL)
-        {
-            inParam.mSubscriptionTerminated.mStatusProfileId   = aStatusReportPtr->mProfileId;
-            inParam.mSubscriptionTerminated.mStatusCode        = aStatusReportPtr->mStatusCode;
-            inParam.mSubscriptionTerminated.mAdditionalInfoPtr = &(aStatusReportPtr->mAdditionalInfo);
-        }
-
-        callbackFunc(appState, kEvent_OnSubscriptionTerminated, inParam, outParam);
+        SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDM_NumSubscriptionHandlers);
     }
     else
     {
-        WeaveLogDetail(DataManagement, "Handler[%u] [%5.5s] %s Ref(%d) app layer callback skipped",
-                       SubscriptionEngine::GetInstance()->GetHandlerId(this), GetStateStr(), __func__, mRefCount);
+        --mRefCount;
     }
-
-    mPeerNodeId = 0;
-
-    _Release();
 }
 
-void SubscriptionHandler::AbortSubscription()
+void SubscriptionHandler::TerminateSubscription(WEAVE_ERROR aReason, StatusReporting::StatusReport * aStatusReport, bool suppressAppCallback)
 {
-    WEAVE_ERROR err          = WEAVE_NO_ERROR;
-    const bool nullReference = (0 == mRefCount);
-
-    if (!nullReference)
+    if (!IsFree() && !IsTerminated())
     {
-        // only do verbose logging if we're still referenced by someone
         WeaveLogDetail(DataManagement, "Handler[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetHandlerId(this),
                        GetStateStr(), __func__, mRefCount);
 
-        // Make sure we're not freed by accident.
-        // NOTE: In the last Abort call from _Release, mRefCount is already 0.
-        // In that case, we do not need this AddRef/Release pair, and we move to FREE state.
+        bool isNotifying = IsNotifying();
+
         _AddRef();
-    }
 
-    if (kState_Free == mCurrentState)
-    {
-        // This must not happen
-        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
-    }
-    else if (kState_Aborted == mCurrentState || kState_Aborting == mCurrentState)
-    {
-        // we're already aborted, so there is nothing else to flush
-        ExitNow();
-    }
-    else
-    {
-        // This is an intermediate state for external calls during the abort process
-        uint64_t peerNodeId            = mPeerNodeId;
-        uint64_t subscriptionId        = mSubscriptionId;
-        bool notifyEngineCleanupNeeded = false;
+        // Advance to the Terminated state. The handler will remain in this state until
+        // it is freed.
+        MoveToState(kState_Terminated);
 
-        // If we were previously in a notifying state, we must tell NE so that it can do some clean-up.
-        // However, we should wait till the subscription state has moved to aborting before attempting
-        // to do so.
-        if (IsNotifying())
-        {
-            notifyEngineCleanupNeeded = true;
-        }
-
-        MoveToState(kState_Aborting);
-
-        if (notifyEngineCleanupNeeded)
-        {
-            const bool notifySuccessfullyDelivered = true;
-
-            SubscriptionEngine::GetInstance()->GetNotificationEngine()->OnNotifyConfirm(this, !notifySuccessfullyDelivered);
-        }
-
-        mBinding->SetProtocolLayerCallback(NULL, NULL);
-
-        mBinding->Release();
-        mBinding = NULL;
-
+        // Abort any in-progress exchange.
         FlushExistingExchangeContext(true);
-        mLivenessTimeoutMsec           = kNoTimeout;
-        mPeerNodeId                    = 0;
-        mSubscriptionId                = 0;
-        mIsInitiator                   = false;
-        mAppState                      = NULL;
-        mEventCallback                 = NULL;
-        mMaxNotificationSize           = 0;
-        mSubscribeToAllEvents          = false;
-        mCurProcessingTraitInstanceIdx = 0;
-        mCurrentImportance             = kImportanceType_Invalid;
-        (void) RefreshTimer();
+
+        // Clear any outstanding timer.
+        (void)RefreshTimer();
+
+        // If a notify was in progress, inform the notification engine that the notify message
+        // wasn't delivered, so that it can do some clean-up.
+        if (isNotifying)
+        {
+            SubscriptionEngine::GetInstance()->GetNotificationEngine()->OnNotifyConfirm(this, false);
+        }
+
+        // Deliver OnSubscriptionTerminated event to application.
+        if (NULL != mEventCallback && !suppressAppCallback)
+        {
+            InEventParam inParam;
+            OutEventParam outParam;
+
+            inParam.Clear();
+            outParam.Clear();
+
+            inParam.mSubscriptionTerminated.mReason  = aReason;
+            inParam.mSubscriptionTerminated.mHandler = this;
+            if (aStatusReport != NULL)
+            {
+                inParam.mSubscriptionTerminated.mIsStatusCodeValid = true;
+                inParam.mSubscriptionTerminated.mStatusProfileId   = aStatusReport->mProfileId;
+                inParam.mSubscriptionTerminated.mStatusCode        = aStatusReport->mStatusCode;
+                inParam.mSubscriptionTerminated.mAdditionalInfoPtr = &(aStatusReport->mAdditionalInfo);
+            }
+
+            mEventCallback(mAppState, kEvent_OnSubscriptionTerminated, inParam, outParam);
+        }
 
         // release all trait instances back to the shared pool
         SubscriptionEngine::GetInstance()->ReclaimTraitInfo(this);
 
-        mTraitInstanceList = NULL;
-        mNumTraitInstances = 0;
-
-        memset(mSelfVendedEvents, 0, sizeof(mSelfVendedEvents));
-        memset(mLastScheduledEventId, 0, sizeof(mLastScheduledEventId));
-
-        MoveToState(kState_Aborted);
-
-        // decrease the ref we added when we first started the protocol state machine
-        // now we've cleared this state machine (nothing for the protocol anymore),
-        // this instance doesn't need to be around any more
-        _Release();
-
 #if WDM_ENABLE_SUBSCRIPTION_CLIENT
-        (void) SubscriptionEngine::GetInstance()->UpdateClientLiveness(peerNodeId, subscriptionId, true);
+        (void) SubscriptionEngine::GetInstance()->UpdateClientLiveness(mPeerNodeId, mSubscriptionId, true);
 #endif // WDM_ENABLE_SUBSCRIPTION_CLIENT
-    }
 
-exit:
-    WeaveLogFunctError(err);
+        // Release the binding.
+        mBinding->SetProtocolLayerCallback(NULL, NULL);
+        mBinding->Release();
+        mBinding = NULL;
 
-    if (nullReference)
-    {
-        // No one is referencing us, move to FREE
-        MoveToState(kState_Free);
-    }
-    else
-    {
-        // Note that this call could lower ref count to 0 and cause this instance to be freed
-        // this is because we have an extra _Release when we first move into Aborting state
+        // Release the ref added when the subscription arrived.
+        _Release();
+
+        // Release the ref added above.  Note that, in most instances, this will be the
+        // last reference, resulting in the handler transitioning to the Free state.
         _Release();
     }
+}
+
+/**
+ * Abort a publisher subscription
+ *
+ * Terminates the publisher end of a subscription, without notifying the subscription
+ * client and without delivering an \c OnSubscriptionTerminated event to the application's
+ * event handler.  If a mutual subscription exists, the counter subscription from the
+ * publisher back to the client is terminated as well.
+ *
+ * Upon calling AbortSubscription(), the \c SubscriptionHandler object enters the
+ * `Terminated` state.  If there are no additional references to the object when
+ * the termination process completes, the \c SubscriptionHandler object is freed.
+ */
+void SubscriptionHandler::AbortSubscription()
+{
+    WeaveLogDetail(DataManagement, "Handler[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetHandlerId(this),
+                   GetStateStr(), __func__, mRefCount);
+
+    TerminateSubscription(WEAVE_NO_ERROR, NULL, true);
 }
 
 #if WDM_ENABLE_SUBSCRIPTION_CANCEL
@@ -1267,8 +1229,6 @@ void SubscriptionHandler::CancelRequestHandler(nl::Weave::ExchangeContext * aEC,
     // Make sure we're not freed by accident.
     _AddRef();
 
-    mBinding->AdjustResponseTimeout(aEC);
-
     VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
 
     // Verify the cancel request is truly from the client.  If not, reject the request with
@@ -1286,28 +1246,55 @@ void SubscriptionHandler::CancelRequestHandler(nl::Weave::ExchangeContext * aEC,
     nl::Weave::Encoding::LittleEndian::Write16(p, statusCode);
     msgBuf->SetDataLength(statusReportLen);
 
-    err    = aEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, msgBuf,
-                           aEC->HasPeerRequestedAck() ? nl::Weave::ExchangeContext::kSendFlag_RequestAck : 0);
+    err    = aEC->SendMessage(Profiles::kWeaveProfile_Common, Profiles::Common::kMsgType_StatusReport, msgBuf);
     msgBuf = NULL;
     SuccessOrExit(err);
+
+    // Proactively close the exchange.  This prevents the call to TerminateSubscription()
+    // below from aborting the exchange, which, when using WRM, would prevent the
+    // StatusReport message from being re-transmitted if necessary.
+    FlushExistingExchangeContext();
 
 exit:
     WeaveLogFunctError(err);
 
-    if (NULL != msgBuf)
-    {
-        PacketBuffer::Free(msgBuf);
-        msgBuf = NULL;
-    }
+    PacketBuffer::Free(msgBuf);
 
-    if (canceled)
+    // If the subscription was canceled, or if an error occurred while handing
+    // the Cancel request, terminate the subscription and notify the application.
+    if (canceled || WEAVE_NO_ERROR != err)
     {
-        HandleSubscriptionTerminated(WEAVE_ERROR_TRANSACTION_CANCELED, NULL);
+        TerminateSubscription(err, NULL, false);
     }
 
     _Release();
 }
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
+
+
+void SubscriptionHandler::BindingEventCallback(void * const aAppState, const Binding::EventType aEvent,
+                                               const Binding::InEventParam & aInParam, Binding::OutEventParam & aOutParam)
+{
+    SubscriptionHandler * const pHandler = reinterpret_cast<SubscriptionHandler *>(aAppState);
+
+    // NOTE: This handler is only registered on the binding after the binding has been
+    // prepared. Thus the only meaningful event that can occur is BindingFailed.
+
+    switch (aEvent)
+    {
+    case Binding::kEvent_BindingFailed:
+
+        // The binding has failed.  This can happen because an underling connection has closed,
+        // or a security session has failed.  When this occurs, simply terminate the subscription.
+        //
+        pHandler->TerminateSubscription(aInParam.BindingFailed.Reason, NULL, false);
+
+        break;
+
+    default:
+        Binding::DefaultEventHandler(aAppState, aEvent, aInParam, aOutParam);
+    }
+}
 
 void SubscriptionHandler::OnTimerCallback(System::Layer * aSystemLayer, void * aAppState, System::Error)
 {
@@ -1348,7 +1335,7 @@ WEAVE_ERROR SubscriptionHandler::RefreshTimer(void)
             VerifyOrExit(WEAVE_SYSTEM_NO_ERROR == err, /* no-op */);
         }
         break;
-    case kState_Aborting:
+    case kState_Terminated:
         // Do nothing
         break;
     default:
@@ -1391,7 +1378,7 @@ void SubscriptionHandler::TimerEventHandler(void)
 exit:
     if (ShouldCleanUp)
     {
-        HandleSubscriptionTerminated(WEAVE_ERROR_TIMEOUT, NULL);
+        TerminateSubscription(WEAVE_ERROR_TIMEOUT, NULL, false);
     }
 
     if (!skipTimerCheck)
@@ -1478,11 +1465,8 @@ const char * SubscriptionHandler::GetStateStr() const
     case kState_Canceling:
         return "CANCL";
 
-    case kState_Aborting:
-        return "ABTNG";
-
-    case kState_Aborted:
-        return "ABORT";
+    case kState_Terminated:
+        return "TERM";
     }
     return "N/A";
 }
@@ -1506,6 +1490,8 @@ void SubscriptionHandler::MoveToState(const HandlerState aTargetState)
     }
 #endif // #if WEAVE_DETAIL_LOGGING
 }
+
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
 
 void SubscriptionHandler::OnAckReceived(ExchangeContext * aEC, void * aMsgSpecificContext)
 {
@@ -1551,11 +1537,13 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        pHandler->HandleSubscriptionTerminated(err, NULL);
+        pHandler->TerminateSubscription(err, NULL, false);
     }
 
     pHandler->_Release();
 }
+
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
 
 void SubscriptionHandler::OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext)
 {
@@ -1566,7 +1554,7 @@ void SubscriptionHandler::OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorC
 
     // Make sure we're not freed by accident.
     pHandler->_AddRef();
-    pHandler->HandleSubscriptionTerminated(aErrorCode, NULL);
+    pHandler->TerminateSubscription(aErrorCode, NULL, false);
     pHandler->_Release();
 
     // Run it again to do more useful work.
@@ -1583,7 +1571,7 @@ void SubscriptionHandler::OnResponseTimeout(nl::Weave::ExchangeContext * aEC)
 
     // Make sure we're not freed by accident.
     pHandler->_AddRef();
-    pHandler->HandleSubscriptionTerminated(WEAVE_ERROR_TIMEOUT, NULL);
+    pHandler->TerminateSubscription(WEAVE_ERROR_TIMEOUT, NULL, false);
     pHandler->_Release();
 }
 
@@ -1596,13 +1584,13 @@ void SubscriptionHandler::OnMessageReceivedFromLocallyHeldExchange(nl::Weave::Ex
     // Status Report for Notification request when subscription is alive
     // Status Report for Cancel request
 
-    WEAVE_ERROR err                      = WEAVE_NO_ERROR;
-    SubscriptionHandler * const pHandler = reinterpret_cast<SubscriptionHandler *>(aEC->AppState);
-
-    bool RetainExchangeContext                 = false;
+    WEAVE_ERROR err                            = WEAVE_NO_ERROR;
+    SubscriptionHandler * const pHandler       = reinterpret_cast<SubscriptionHandler *>(aEC->AppState);
+    bool terminateSubscription                 = false;
+    bool retainExchangeContext                 = false;
     bool isStatusReportValid                   = false;
     bool isNotificationRejectedForInvalidValue = false;
-    nl::Weave::Profiles::StatusReporting::StatusReport status;
+    StatusReporting::StatusReport status;
 
     WeaveLogDetail(DataManagement, "Handler[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetHandlerId(pHandler),
                    pHandler->GetStateStr(), __func__, pHandler->mRefCount);
@@ -1651,7 +1639,7 @@ void SubscriptionHandler::OnMessageReceivedFromLocallyHeldExchange(nl::Weave::Ex
         }
 
         // only retain the EC if we're good to continue processing
-        RetainExchangeContext = true;
+        retainExchangeContext = true;
 
         // Only prompt the NotificationEngine if we received a status report indicating success. Otherwise, the subscription will
         // get torn down and as part of that clean-up, a similar invocation of OnNotifyConfirm will happen.
@@ -1685,7 +1673,7 @@ void SubscriptionHandler::OnMessageReceivedFromLocallyHeldExchange(nl::Weave::Ex
         }
 
         // don't call flush for us in the end
-        RetainExchangeContext = true;
+        retainExchangeContext = true;
 
         // Only prompt the NotificationEngine if we received a status report indicating success. Otherwise, the subscription will
         // get torn down and as part of that clean-up, a similar invocation of OnNotifyConfirm will happen.
@@ -1715,9 +1703,13 @@ void SubscriptionHandler::OnMessageReceivedFromLocallyHeldExchange(nl::Weave::Ex
 
 #if WDM_ENABLE_SUBSCRIPTION_CANCEL
     case kState_Canceling:
-        // response for cancel request while subscription is alive. close the exchange context
-        // call abort silently without callback to upper layer, for this subscription was canceled by the upper layer
-        pHandler->AbortSubscription();
+
+        // Verify the response is a status report.
+        // NOTE: It doesn't really matter what status code we receive from the other end as
+        // the subscription is being terminated regardless.
+        VerifyOrExit(isStatusReportValid, err = WEAVE_ERROR_INVALID_MESSAGE_TYPE);
+        terminateSubscription = true;
+
         break;
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
 
@@ -1730,21 +1722,25 @@ void SubscriptionHandler::OnMessageReceivedFromLocallyHeldExchange(nl::Weave::Ex
 exit:
     WeaveLogFunctError(err);
 
-    if (NULL != aPayload)
-    {
-        PacketBuffer::Free(aPayload);
-        aPayload = NULL;
-    }
-
-    if (!RetainExchangeContext)
+    // If the exchange is over, close the exchange context.
+    if (!retainExchangeContext)
     {
         pHandler->FlushExistingExchangeContext();
     }
 
-    if (WEAVE_NO_ERROR != err)
+    // Terminate the subscription if indicated, or if an unexpected error occurred.
+    // Pass the status report information to the application's OnSubscriptionTerminated
+    // callback if its pertinent in this case.
+    if (terminateSubscription || err != WEAVE_NO_ERROR)
     {
-        pHandler->HandleSubscriptionTerminated(err, isStatusReportValid ? &status : NULL);
+        pHandler->TerminateSubscription(err, (err == WEAVE_ERROR_STATUS_REPORT_RECEIVED) ? &status : NULL, false);
     }
+
+    // Free the message buffer if it hasn't been done already.  Note that in the case the
+    // response was a status report, this must be done *after* the call to TerminateSubscription
+    // as the StatusReport object that is passed to that method may contain a pointer into
+    // the buffer.
+    PacketBuffer::Free(aPayload);
 
     pHandler->_Release();
 }
@@ -1761,5 +1757,3 @@ void SubscriptionHandler::SetMaxNotificationSize(const uint32_t aMaxSize)
 }; // namespace Profiles
 }; // namespace Weave
 }; // namespace nl
-
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING

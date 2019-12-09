@@ -36,6 +36,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
     mWdmRoleInTest(0),
     mEnableMutualSubscription(false),
     mTestCaseId(NULL),
+    mUseTCP(false),
     mEnableStopTest(false),
     mNumDataChangeBeforeCancellation(NULL),
     mFinalStatus(NULL),
@@ -61,6 +62,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
     static OptionDef optionDefs[] =
     {
         { "test-case",                                      kArgumentRequired,  kToolOpt_TestCaseId },
+        { "tcp",                                            kNoArgument,        kToolOpt_UseTCP },
         { "enable-stop",                                    kNoArgument,        kToolOpt_EnableStopTest },
         { "total-count",                                    kArgumentRequired,  kToolOpt_NumDataChangeBeforeCancellation },
         { "final-status",                                   kArgumentRequired,  kToolOpt_FinalStatus },
@@ -137,6 +139,9 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         "\n"
         "  --test-case <test case id>\n"
         "       Further configure device behavior with this test case id\n"
+        "\n"
+        "  --tcp\n"
+        "       Use tcp when initiating an interaction with a publisher\n"
         "\n"
         "  --enable-stop\n"
         "       Terminate WDM Next test in advance for Happy test\n"
@@ -417,6 +422,9 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
             free(const_cast<char *>(mTestCaseId));
         }
         mTestCaseId = strdup(arg);
+        break;
+    case kToolOpt_UseTCP:
+        mUseTCP = true;
         break;
     case kToolOpt_EnableStopTest:
         mEnableStopTest = true;

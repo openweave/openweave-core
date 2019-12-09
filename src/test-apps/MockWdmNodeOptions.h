@@ -42,6 +42,7 @@ enum
     kToolOpt_WdmInitMutualSubscription,
     kToolOpt_WdmRespMutualSubscription,
     kToolOpt_TestCaseId,
+    kToolOpt_UseTCP,
     kToolOpt_EnableStopTest,
     kToolOpt_NumDataChangeBeforeCancellation,
     kToolOpt_FinalStatus,
@@ -132,6 +133,7 @@ public:
     int mWdmRoleInTest;
     bool mEnableMutualSubscription;
     const char * mTestCaseId;
+    bool mUseTCP;
     bool mEnableStopTest;
     const char * mNumDataChangeBeforeCancellation;
     const char * mFinalStatus;
