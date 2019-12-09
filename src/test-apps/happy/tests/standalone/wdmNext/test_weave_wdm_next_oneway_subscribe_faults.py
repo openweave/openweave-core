@@ -64,7 +64,7 @@ class test_weave_wdm_next_oneway_subscribe_faults(weave_wdm_next_test_base):
         wdm_next_args['enable_server_flip'] = 1
 
         wdm_next_args['client_log_check'] = [('Client\[0\] \[(ALIVE|CONFM)\] EndSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
-                                             ('Client\[0\] \[CANCL\] _AbortSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
+                                             ('Client\[0\] \[CANCL\] TerminateSubscription ', wdm_next_args['test_client_iterations']),
                                              ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_server_count']) +1),
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['server_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] CancelRequestHandler', wdm_next_args['test_client_iterations']),
