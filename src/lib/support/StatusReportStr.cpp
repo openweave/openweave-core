@@ -287,7 +287,7 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         case ServiceProvisioning::kStatusCode_PairingServerError                        : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Error talking to pairing server"; break;
         case ServiceProvisioning::kStatusCode_InvalidPairingToken                       : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Invalid pairing token"; break;
         case ServiceProvisioning::kStatusCode_PairingTokenOld                           : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Pairing token no longer valid"; break;
-        case ServiceProvisioning::kStatusCode_ServiceCommuncationError                  : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Service communication error"; break;
+        case ServiceProvisioning::kStatusCode_ServiceCommunicationError                 : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Service communication error"; break;
         case ServiceProvisioning::kStatusCode_ServiceConfigTooLarge                     : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Service configuration too large"; break;
         case ServiceProvisioning::kStatusCode_WrongFabric                               : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Wrong fabric"; break;
         case ServiceProvisioning::kStatusCode_TooManyFabrics                            : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Too many fabrics"; break;
