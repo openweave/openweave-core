@@ -103,6 +103,13 @@ WeaveDeviceManager_jar_JAVA_SRCS                   =        \
     nl/Weave/DeviceManager/WeaveDeviceException.java        \
     nl/Weave/DeviceManager/DeviceFeatures.java              \
     nl/Weave/DeviceManager/NevisPairingCodeDecoding.java    \
+    nl/Weave/DeviceManager/WeaveDeviceManager.java          \
+    nl/Weave/DataManagement/WdmClient.java                  \
+    nl/Weave/DataManagement/WdmClientImpl.java              \
+    nl/Weave/DataManagement/GenericTraitUpdatableDataSink.java \
+    nl/Weave/DataManagement/GenericTraitUpdatableDataSinkImpl.java \
+    nl/Weave/DataManagement/WdmClientFactory.java           \
+    nl/Weave/DataManagement/ResourceIdentifier.java         \
     $(NULL)
 
 WeaveDeviceManager_jar_JFLAGS                      = -source 6 -target 6
