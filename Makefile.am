@@ -196,7 +196,7 @@ $(distdir)/.dist-version $(builddir)/.local-version:
 # this.
 #
 
-DISTCHECK_CONFIGURE_FLAGS = `chmod u+w .. ../third_party`
+DISTCHECK_CONFIGURE_FLAGS = `chmod u+w ../.. ../../third_party`
 
 #
 # BlueZ is not well set-up without patching to handle 'make distcheck';

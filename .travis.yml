@@ -27,6 +27,9 @@ sudo: required
 before_install:
   - .travis/before_install.sh
 
+before_script:
+  - ./bootstrap
+
 script:
   - .travis/script.sh
 

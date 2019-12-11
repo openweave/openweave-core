@@ -1,3 +1,7 @@
+1.6.15 (2019-12-06)
+
+        * Remove redundant libtool m4 libraries.
+
 1.6.14 (2019-07-16)
 
         * Update MANIFEST to ensure that 'make dist' works correctly.
