@@ -991,6 +991,17 @@
 #endif // WEAVE_CONFIG_MAX_EC_BITS
 
 /**
+ *  @def WEAVE_CONFIG_MAX_RSA_BITS
+ *
+ *  @brief
+ *    The maximum size RSA modulus supported, in bits.
+ *
+ */
+#ifndef WEAVE_CONFIG_MAX_RSA_BITS
+#define WEAVE_CONFIG_MAX_RSA_BITS                           4096
+#endif // WEAVE_CONFIG_MAX_RSA_BITS
+
+/**
  *  @def WEAVE_CONFIG_MAX_PEER_NODES
  *
  *  @brief
