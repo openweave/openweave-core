@@ -209,6 +209,48 @@ endif
 JOBSFLAG := -j$(BuildJobs)
 
 #
+# automake files
+#
+AMFILES = src/system/SystemLayer.am			\
+	src/system/Makefile.am				\
+	src/platform/ble/bluez/Makefile.am		\
+	src/adaptations/device-layer/Makefile.am	\
+	src/include/Makefile.am				\
+	src/lib/profiles/WeaveProfiles.am		\
+	src/lib/core/WeaveCore.am			\
+	src/lib/support/verhoeff/Makefile.am		\
+	src/lib/support/WeaveSupport.am			\
+	src/lib/support/Makefile.am			\
+	src/lib/Makefile.am				\
+	src/warm/Warm.am				\
+	src/warm/Makefile.am				\
+	src/inet/InetLayer.am				\
+	src/inet/Makefile.am				\
+	src/ble/BleLayer.am				\
+	src/ble/Makefile.am				\
+	src/test-apps/fuzz/Makefile.am			\
+	src/test-apps/wrapper-tests/jni/Makefile.am	\
+	src/test-apps/Makefile.am			\
+	src/examples/Makefile.am			\
+	src/wrappers/jni/jni-utils/Makefile.am		\
+	src/wrappers/jni/security-support/Makefile.am	\
+	src/wrappers/jni/Makefile.am			\
+	src/lwip/Makefile.am				\
+	src/Makefile.am					\
+	src/ra-daemon/Makefile.am			\
+	src/tools/weave/Makefile.am			\
+	src/tools/misc/Makefile.am			\
+	src/device-manager/DeviceManager.am		\
+	src/device-manager/cocoa/Makefile.am		\
+	src/device-manager/java/Makefile.am		\
+	src/device-manager/python/Makefile.am		\
+	third_party/Makefile.am				\
+	doc/Makefile.am					\
+	Makefile.am					\
+	configure.ac					\
+	$(NULL)
+
+#
 # configure-arch <arch>
 #
 # Configure the Weave SDK for the specified architecture.
@@ -363,7 +405,7 @@ configure-$(1): IOS_SDK=$$($(1)_arch_IOS_SDK)
 configure-$(1): CROSS_SDK=$$($(1)_arch_CROSS_SDK)
 configure-$(1): CROSS_TOP=$$($(1)_arch_CROSS_TOP)
 
-configure-$(1): $(BuildPath)/$(1)-$(TargetTuple)/config.status
+configure-$(1): Makefile.in $(BuildPath)/$(1)-$(TargetTuple)/config.status
 
 $(BuildPath)/$(1)-$(TargetTuple)/config.status: | $(BuildPath)/$(1)-$(TargetTuple)
 	$$(call configure-arch,$(1))
@@ -443,6 +485,12 @@ $(foreach arch,$(ARCHS),$(eval $(call ARCH_template,$(arch))))
 #
 # Common / Finalization
 #
+
+.PHONY : configure build check coverage stage pretty lint pretty-check clean help
+
+Makefile.in: $(AMFILES)
+	$(ECHO) "BOOTSTRAP"
+	@./bootstrap
 
 configure: $(CONFIGURE_TARGETS)
 

@@ -255,6 +255,48 @@ endif
 JOBSFLAG := -j$(BuildJobs)
 
 #
+# automake files
+#
+AMFILES = src/system/SystemLayer.am			\
+	src/system/Makefile.am				\
+	src/platform/ble/bluez/Makefile.am		\
+	src/adaptations/device-layer/Makefile.am	\
+	src/include/Makefile.am				\
+	src/lib/profiles/WeaveProfiles.am		\
+	src/lib/core/WeaveCore.am			\
+	src/lib/support/verhoeff/Makefile.am		\
+	src/lib/support/WeaveSupport.am			\
+	src/lib/support/Makefile.am			\
+	src/lib/Makefile.am				\
+	src/warm/Warm.am				\
+	src/warm/Makefile.am				\
+	src/inet/InetLayer.am				\
+	src/inet/Makefile.am				\
+	src/ble/BleLayer.am				\
+	src/ble/Makefile.am				\
+	src/test-apps/fuzz/Makefile.am			\
+	src/test-apps/wrapper-tests/jni/Makefile.am	\
+	src/test-apps/Makefile.am			\
+	src/examples/Makefile.am			\
+	src/wrappers/jni/jni-utils/Makefile.am		\
+	src/wrappers/jni/security-support/Makefile.am	\
+	src/wrappers/jni/Makefile.am			\
+	src/lwip/Makefile.am				\
+	src/Makefile.am					\
+	src/ra-daemon/Makefile.am			\
+	src/tools/weave/Makefile.am			\
+	src/tools/misc/Makefile.am			\
+	src/device-manager/DeviceManager.am		\
+	src/device-manager/cocoa/Makefile.am		\
+	src/device-manager/java/Makefile.am		\
+	src/device-manager/python/Makefile.am		\
+	third_party/Makefile.am				\
+	doc/Makefile.am					\
+	Makefile.am					\
+	configure.ac					\
+	$(NULL)
+
+#
 # configure-arch <target>
 #
 # Configure the Weave SDK for the specified target.
@@ -373,7 +415,7 @@ PRETTY_CHECK_TARGETS += pretty-check-$(1)
 BUILD_DIRS           += $(BuildPath)/$(1)
 DIRECTORIES          += $(BuildPath)/$(1)
 
-configure-$(1): $(BuildPath)/$(1)/config.status
+configure-$(1): Makefile.in $(BuildPath)/$(1)/config.status
 
 $(BuildPath)/$(1)/config.status: | $(BuildPath)/$(1)
 	$$(call configure-target,$(1))
@@ -407,7 +449,7 @@ lint-$(1) pretty-check-$(1): configure-$(1)
 $(1): stage-$(1)
 endef # TARGET_template
 
-.PHONY : clean ensure-sudo help
+.PHONY : configure build check coverage stage pretty lint pretty-check clean ensure-sudo help
 
 ensure-sudo:
 	$(ECHO) "Selected target will require sudo access."
@@ -424,6 +466,10 @@ $(eval $(call TARGET_template,$(TargetTuple)))
 #
 # Common / Finalization
 #
+
+Makefile.in: $(AMFILES)
+	$(ECHO) "BOOTSTRAP"
+	@./bootstrap
 
 configure: $(CONFIGURE_TARGETS)
 
@@ -509,4 +555,3 @@ command line or in the environment:
                           the Happy tool.
 
 endef
-	
