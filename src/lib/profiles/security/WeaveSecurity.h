@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -75,6 +76,10 @@ enum
     kMsgType_KeyExportResponse                  = 31,
     kMsgType_KeyExportReconfigure               = 32,
 
+    // ---- Certificate Provisioning Protocol ----
+    kMsgType_GetCertificateRequest              = 40,
+    kMsgType_GetCertificateResponse             = 41,
+
     // ---- General Messages ----
     kMsgType_EndSession                         = 100,
     kMsgType_KeyError                           = 101,
@@ -104,6 +109,9 @@ enum
     kStatusCode_InternalKeyError                = 16, // The receiver of the Weave message encountered key error.
     kStatusCode_NoCommonKeyExportConfiguration  = 17, // No common key export protocol configuration supported.
     kStatusCode_UnathorizedKeyExportRequest     = 18, // An unauthorized key export request.
+    kStatusCode_ServiceCommunicationError       = 19, /**< The device could not complete certificate provisioning because it encountered an error when communicating with the service. */
+    kStatusCode_UnathorizedGetCertRequest       = 20, /**< An unauthorized get certificate request. */
+    kStatusCode_NoNewCertRequired               = 21, /**< No new certificate required. */
 };
 
 // Weave Key Error Message Size
@@ -209,12 +217,13 @@ enum
                                                         //   validators are expected to have the necessary certificates for validation.
                                                         //   At least one of SigningCertificateRef or RelatedCertificates must be present.
     kTag_WeaveSignature_SignatureAlgorithm      = 5,    // [ unsigned int ] Enumerated value identifying the signature algorithm.
-                                                        //   Legal values per the schema are: kOID_SigAlgo_ECDSAWithSHA1, kOID_SigAlgo_ECDSAWithSHA256
-                                                        //     and kOID_SigAlgo_SHA1WithRSAEncryption.
+                                                        //   Legal values per the schema are: kOID_SigAlgo_ECDSAWithSHA1, kOID_SigAlgo_ECDSAWithSHA256,
+                                                        //     kOID_SigAlgo_SHA1WithRSAEncryption and kOID_SigAlgo_SHA256WithRSAEncryption.
                                                         //   For backwards compatibility, this field should be omitted when the signature
                                                         //     algorithm is ECDSAWithSHA1.
                                                         //   When this field is included it must appear first within the WeaveSignature structure.
-                                                        //   kOID_SigAlgo_SHA1WithRSAEncryption is not presently supported in the code.
+                                                        //   kOID_SigAlgo_SHA1WithRSAEncryption and kOID_SigAlgo_SHA256WithRSAEncryption are
+                                                        //     not presently supported in the code.
 
     // ---- Context-specific Tags for Weave Certificate Reference Structure ----
     kTag_WeaveCertificateRef_Subject            = 1,    // [ path ] The subject DN of the referenced certificate.
@@ -243,6 +252,49 @@ enum
     kTag_GroupKeySignature_KeyId                = 2,    //  [ unsigned int ] Weave KeyId to be used to generate and verify the signature
     kTag_GroupKeySignature_Signature            = 3,    //  [ byte string ] Signature bytes themselves.
 
+    // ---- Context-specific Tags for GetCertificateRequest Message Structure ----
+    kTag_GetCertReqMsg_ReqType                  = 1,    // [ unsigned int ] Identifies the certificate request type.
+    kTag_GetCertReqMsg_Authorize_PairingToken   = 2,    // [ byte string, optional ] Pairing token from the service. This token is used to authorize
+                                                        //   GetCertificateRequest message to the CA service.
+    kTag_GetCertReqMsg_Authorize_PairingInitData= 3,    // [ byte string, optional ] Pairing initialization data from the service. This data is used
+                                                        //   to authorize GetCertificateRequest message to the CA service.
+    kTag_GetCertReqMsg_OpDeviceCert             = 4,    // [ structure ] Weave operational device certificate.
+                                                        //   This has the same internal structure as an kTag_WeaveCertificate.
+    kTag_GetCertReqMsg_OpRelatedCerts           = 5,    // [ array, optional ] An optional array of Weave operational intermediate CA certificates,
+                                                        //   which are needed to validate Weave operational device certificate. May be omitted if
+                                                        //   validators are expected to have the necessary certificates for validation.
+                                                        //   Each element of this array has the same internal structure as an kTag_WeaveCertificate.
+    kTag_GetCertReqMsg_MfrAttest_WeaveCert      = 6,    // [ structure ] Weave device certificate provisioned at the factory at manufacturing time.
+                                                        //   This has the same internal structure as an kTag_WeaveCertificate.
+    kTag_GetCertReqMsg_MfrAttest_WeaveRelCerts  = 7,    // [ array, optional ] An optional array of Weave intermediate CA certificates, which are needed
+                                                        //   to validate included manufacturer-assigned Weave device certificate. May be omitted if
+                                                        //   validators are expected to have the necessary certificates for validation.
+                                                        //   Each element of this array has the same internal structure as an kTag_WeaveCertificate.
+    kTag_GetCertReqMsg_MfrAttest_X509Cert       = 8,    // [ byte string ] X509 device certificate provisioned at the factory at manufacturing time.
+                                                        //   This is an ASN1 encoded ECDSA or RSA certificate TLV-encoded as a data blob.
+    kTag_GetCertReqMsg_MfrAttest_X509RelCerts   = 9,    // [ array, optional ] An optional array of X509 intermediate CA certificates,
+                                                        //   which are needed to validate included manufacturer-assigned X509 device certificate.
+                                                        //   May be omitted if validators are expected to have the necessary certificates for validation.
+                                                        //   Each element of this array is a byte string, and each X509 certificate is TLV-encoded as a data blob.
+    kTag_GetCertReqMsg_MfrAttest_HMACKeyId      = 10,   // [ unsigned int ] Identifies the secret key that is used for the HMAC manufacturer attestation.
+    kTag_GetCertReqMsg_MfrAttest_HMACMetaData   = 11,   // [ byte string, optional ] Meta data associated with the HMAC manufacturer attestation.
+    kTag_GetCertReqMsg_OpDeviceSigAlgo          = 12,   // [ unsigned int ] Enumerated value identifying the operational signature algorithm.
+                                                        //   Legal values are taken from the kOID_SigAlgo_* constant namespace.
+    kTag_GetCertReqMsg_OpDeviceSig_ECDSA        = 13,   // [ structure ] Operational device EC signature.
+                                                        //   This has the same internal structure as an kTag_ECDSASignature.
+    kTag_GetCertReqMsg_MfrAttestSigAlgo         = 14,   // [ unsigned int ] Enumerated value identifying the manufacturer attestation signature algorithm.
+                                                        //   Legal values are taken from the kOID_SigAlgo_* constant namespace.
+    kTag_GetCertReqMsg_MfrAttestSig_ECDSA       = 15,   // [ structure ] Manufacturer attestation device EC signature.
+                                                        //   This has the same internal structure as an kTag_ECDSASignature.
+    kTag_GetCertReqMsg_MfrAttestSig_RSA         = 16,   // [ byte string ] Manufacturer attestation device RSA signature.
+    kTag_GetCertReqMsg_MfrAttestSig_HMAC        = 17,   // [ byte string ] Manufacturer attestation device HMAC signature.
+
+    // ---- Context-specific Tags for GetCertificateResponse Message Structure ----
+    kTag_GetCertRespMsg_OpDeviceCert            = 1,    // [ structure ] Service assigned Weave operational device certificate.
+                                                        //   This has the same internal structure as an kTag_WeaveCertificate.
+    kTag_GetCertRespMsg_OpRelatedCerts          = 2,    // [ array, optional ] An optional array of Weave certificates related to the
+                                                        //   operational device certificate, which are needed to validate certificate.
+                                                        //   Each element of this array has the same internal structure as an kTag_WeaveCertificate.
 
     // ---- Context-specific Tags for Weave representation of X.509 Distinguished Name Attributes ----
     //
