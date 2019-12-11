@@ -147,7 +147,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodePrivateKey(bool isInitiator, const uint8_t 
     SuccessOrExit(err);
 
     // Fail if no private key has been configured.
-    VerifyOrExit(privKeyLen != 0, err = WEAVE_ERROR_CERT_NOT_FOUND);
+    VerifyOrExit(privKeyLen != 0, err = WEAVE_ERROR_KEY_NOT_FOUND);
 
     // Create a temporary buffer to hold the private key.
     mPrivKeyBuf = (uint8_t *)MemoryAlloc(privKeyLen);
