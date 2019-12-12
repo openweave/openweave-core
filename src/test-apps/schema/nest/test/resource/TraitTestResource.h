@@ -1,3 +1,4 @@
+
 /*
  *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2016-2018 Nest Labs, Inc.
@@ -19,28 +20,37 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: enum.common.h
- *    SOURCE PROTO: weave/common/time.proto
+ *    SOURCE TEMPLATE: resource.cpp.h
+ *    SOURCE PROTO: nest/test/resource/trait_test_resource.proto
  *
  */
-#ifndef _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
-#define _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+
+#ifndef _NEST_TEST_RESOURCE__TRAIT_TEST_RESOURCE_H_
+#define _NEST_TEST_RESOURCE__TRAIT_TEST_RESOURCE_H_
 
 namespace Schema {
-namespace Weave {
-namespace Common {
+namespace Nest {
+namespace Test {
+namespace Resource {
+namespace TraitTestResource {
 
-enum DayOfWeek {
-    DAY_OF_WEEK_SUNDAY = 1,
-    DAY_OF_WEEK_MONDAY = 2,
-    DAY_OF_WEEK_TUESDAY = 4,
-    DAY_OF_WEEK_WEDNESDAY = 8,
-    DAY_OF_WEEK_THURSDAY = 16,
-    DAY_OF_WEEK_FRIDAY = 32,
-    DAY_OF_WEEK_SATURDAY = 64,
+
+enum {
+    ServiceA = 0,
+    ServiceB = 0,
+    ServiceC = 0,
+    ServiceD = 0,
+    DeviceA = 1,
+    DeviceB = 1,
+    DeviceC = 1,
+    DeviceD = 1,
+    DeviceA2 = 2,
+    DeviceA3 = 3,
 };
+} // namespace TraitTestResource
 
-} // namespace Common
-} // namespace Weave
+} // namespace Resource
+} // namespace Test
+} // namespace Nest
 } // namespace Schema
-#endif // _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+#endif // _NEST_TEST_RESOURCE__TRAIT_TEST_RESOURCE_H_

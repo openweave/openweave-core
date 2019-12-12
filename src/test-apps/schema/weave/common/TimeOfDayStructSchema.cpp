@@ -19,28 +19,43 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: enum.common.h
+ *    SOURCE TEMPLATE: struct.cpp
  *    SOURCE PROTO: weave/common/time.proto
  *
  */
-#ifndef _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
-#define _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+
+#include <weave/common/TimeOfDayStructSchema.h>
 
 namespace Schema {
 namespace Weave {
 namespace Common {
 
-enum DayOfWeek {
-    DAY_OF_WEEK_SUNDAY = 1,
-    DAY_OF_WEEK_MONDAY = 2,
-    DAY_OF_WEEK_TUESDAY = 4,
-    DAY_OF_WEEK_WEDNESDAY = 8,
-    DAY_OF_WEEK_THURSDAY = 16,
-    DAY_OF_WEEK_FRIDAY = 32,
-    DAY_OF_WEEK_SATURDAY = 64,
+
+const nl::FieldDescriptor TimeOfDayFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(TimeOfDay, hour), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt8, 0), 5
+    },
+
+    {
+        NULL, offsetof(TimeOfDay, minute), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt8, 0), 6
+    },
+
+    {
+        NULL, offsetof(TimeOfDay, second), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt8, 0), 7
+    },
+
 };
+
+const nl::SchemaFieldDescriptor TimeOfDay::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(TimeOfDayFieldDescriptors)/sizeof(TimeOfDayFieldDescriptors[0]),
+    .mFields = TimeOfDayFieldDescriptors,
+    .mSize = sizeof(TimeOfDay)
+};
+
+
 
 } // namespace Common
 } // namespace Weave
 } // namespace Schema
-#endif // _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_

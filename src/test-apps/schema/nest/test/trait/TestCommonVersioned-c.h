@@ -1,3 +1,4 @@
+
 /*
  *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2016-2018 Nest Labs, Inc.
@@ -19,28 +20,35 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: enum.common.h
- *    SOURCE PROTO: weave/common/time.proto
+ *    SOURCE TEMPLATE: typespace.c.h
+ *    SOURCE PROTO: nest/test/trait/test_common_versioned.proto
  *
  */
-#ifndef _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
-#define _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+#ifndef _NEST_TEST_TRAIT__TEST_COMMON_VERSIONED_C_H_
+#define _NEST_TEST_TRAIT__TEST_COMMON_VERSIONED_C_H_
 
-namespace Schema {
-namespace Weave {
-namespace Common {
 
-enum DayOfWeek {
-    DAY_OF_WEEK_SUNDAY = 1,
-    DAY_OF_WEEK_MONDAY = 2,
-    DAY_OF_WEEK_TUESDAY = 4,
-    DAY_OF_WEEK_WEDNESDAY = 8,
-    DAY_OF_WEEK_THURSDAY = 16,
-    DAY_OF_WEEK_FRIDAY = 32,
-    DAY_OF_WEEK_SATURDAY = 64,
-};
+    //
+    // Enums
+    //
 
-} // namespace Common
-} // namespace Weave
-} // namespace Schema
-#endif // _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+    // CommonEnumA
+    typedef enum
+    {
+    COMMON_ENUM_A_VALUE_1 = 1,
+    COMMON_ENUM_A_VALUE_2 = 2,
+    COMMON_ENUM_A_VALUE_3 = 3,
+    } schema_nest_test_test_common_versioned_common_enum_a_t;
+    // CommonEnumE
+    typedef enum
+    {
+    COMMON_ENUM_E_VALUE_1 = 1,
+    COMMON_ENUM_E_VALUE_2 = 2,
+    COMMON_ENUM_E_VALUE_3 = 3,
+    COMMON_ENUM_E_VALUE_4 = 4,
+    } schema_nest_test_test_common_versioned_common_enum_e_t;
+
+
+
+
+#endif // _NEST_TEST_TRAIT__TEST_COMMON_VERSIONED_C_H_

@@ -20,27 +20,22 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: enum.common.h
- *    SOURCE PROTO: weave/common/time.proto
+ *    SOURCE PROTO: wdl/data_access.proto
  *
  */
-#ifndef _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
-#define _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+#ifndef _WDL__EVENT_IMPORTANCE_ENUM_H_
+#define _WDL__EVENT_IMPORTANCE_ENUM_H_
 
 namespace Schema {
-namespace Weave {
-namespace Common {
+namespace Wdl {
 
-enum DayOfWeek {
-    DAY_OF_WEEK_SUNDAY = 1,
-    DAY_OF_WEEK_MONDAY = 2,
-    DAY_OF_WEEK_TUESDAY = 4,
-    DAY_OF_WEEK_WEDNESDAY = 8,
-    DAY_OF_WEEK_THURSDAY = 16,
-    DAY_OF_WEEK_FRIDAY = 32,
-    DAY_OF_WEEK_SATURDAY = 64,
+enum EventImportance {
+    EVENT_IMPORTANCE_PRODUCTION_CRITICAL = 1,
+    EVENT_IMPORTANCE_PRODUCTION_STANDARD = 2,
+    EVENT_IMPORTANCE_INFO = 3,
+    EVENT_IMPORTANCE_DEBUG = 4,
 };
 
-} // namespace Common
-} // namespace Weave
+} // namespace Wdl
 } // namespace Schema
-#endif // _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+#endif // _WDL__EVENT_IMPORTANCE_ENUM_H_

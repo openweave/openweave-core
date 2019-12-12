@@ -19,28 +19,38 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: enum.common.h
- *    SOURCE PROTO: weave/common/time.proto
+ *    SOURCE TEMPLATE: struct.cpp.h
+ *    SOURCE PROTO: google/protobuf/field_mask.proto
  *
  */
-#ifndef _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
-#define _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+#ifndef _GOOGLE_PROTOBUF__FIELD_MASK_STRUCT_SCHEMA_H_
+#define _GOOGLE_PROTOBUF__FIELD_MASK_STRUCT_SCHEMA_H_
+
+#include <Weave/Support/SerializationUtils.h>
+#include <Weave/Profiles/data-management/DataManagement.h>
+
+
 
 namespace Schema {
-namespace Weave {
-namespace Common {
+namespace Google {
+namespace Protobuf {
 
-enum DayOfWeek {
-    DAY_OF_WEEK_SUNDAY = 1,
-    DAY_OF_WEEK_MONDAY = 2,
-    DAY_OF_WEEK_TUESDAY = 4,
-    DAY_OF_WEEK_WEDNESDAY = 8,
-    DAY_OF_WEEK_THURSDAY = 16,
-    DAY_OF_WEEK_FRIDAY = 32,
-    DAY_OF_WEEK_SATURDAY = 64,
+struct FieldMask
+{
+    nl::SerializedFieldTypeUTF8String_array  paths;
+
+    static const nl::SchemaFieldDescriptor FieldSchema;
+
 };
 
-} // namespace Common
-} // namespace Weave
+struct FieldMask_array {
+    uint32_t num;
+    FieldMask *buf;
+};
+
+
+
+} // namespace Protobuf
+} // namespace Google
 } // namespace Schema
-#endif // _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+#endif // _GOOGLE_PROTOBUF__FIELD_MASK_STRUCT_SCHEMA_H_

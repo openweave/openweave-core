@@ -19,28 +19,39 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: enum.common.h
- *    SOURCE PROTO: weave/common/time.proto
+ *    SOURCE TEMPLATE: struct.cpp
+ *    SOURCE PROTO: weave/common/identifiers.proto
  *
  */
-#ifndef _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
-#define _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+
+#include <weave/common/TraitTypeInstanceStructSchema.h>
 
 namespace Schema {
 namespace Weave {
 namespace Common {
 
-enum DayOfWeek {
-    DAY_OF_WEEK_SUNDAY = 1,
-    DAY_OF_WEEK_MONDAY = 2,
-    DAY_OF_WEEK_TUESDAY = 4,
-    DAY_OF_WEEK_WEDNESDAY = 8,
-    DAY_OF_WEEK_THURSDAY = 16,
-    DAY_OF_WEEK_FRIDAY = 32,
-    DAY_OF_WEEK_SATURDAY = 64,
+
+const nl::FieldDescriptor TraitTypeInstanceFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(TraitTypeInstance, traitTypeId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 1
+    },
+
+    {
+        NULL, offsetof(TraitTypeInstance, instanceId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 2
+    },
+
 };
+
+const nl::SchemaFieldDescriptor TraitTypeInstance::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(TraitTypeInstanceFieldDescriptors)/sizeof(TraitTypeInstanceFieldDescriptors[0]),
+    .mFields = TraitTypeInstanceFieldDescriptors,
+    .mSize = sizeof(TraitTypeInstance)
+};
+
+
 
 } // namespace Common
 } // namespace Weave
 } // namespace Schema
-#endif // _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_

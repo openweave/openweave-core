@@ -19,28 +19,43 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: enum.common.h
- *    SOURCE PROTO: weave/common/time.proto
+ *    SOURCE TEMPLATE: struct.cpp
+ *    SOURCE PROTO: weave/common/identifiers.proto
  *
  */
-#ifndef _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
-#define _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+
+#include <weave/common/EventIdStructSchema.h>
 
 namespace Schema {
 namespace Weave {
 namespace Common {
 
-enum DayOfWeek {
-    DAY_OF_WEEK_SUNDAY = 1,
-    DAY_OF_WEEK_MONDAY = 2,
-    DAY_OF_WEEK_TUESDAY = 4,
-    DAY_OF_WEEK_WEDNESDAY = 8,
-    DAY_OF_WEEK_THURSDAY = 16,
-    DAY_OF_WEEK_FRIDAY = 32,
-    DAY_OF_WEEK_SATURDAY = 64,
+
+const nl::FieldDescriptor EventIdFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(EventId, resourceId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeByteString, 1), 1
+    },
+
+    {
+        NULL, offsetof(EventId, importance), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 2
+    },
+
+    {
+        NULL, offsetof(EventId, id), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt64, 0), 3
+    },
+
 };
+
+const nl::SchemaFieldDescriptor EventId::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(EventIdFieldDescriptors)/sizeof(EventIdFieldDescriptors[0]),
+    .mFields = EventIdFieldDescriptors,
+    .mSize = sizeof(EventId)
+};
+
+
 
 } // namespace Common
 } // namespace Weave
 } // namespace Schema
-#endif // _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
