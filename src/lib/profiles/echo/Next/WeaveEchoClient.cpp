@@ -400,7 +400,7 @@ exit:
         err = armTimerErr;
     }
 
-    // If needed, deliver a CommuncationError API event to the application.  Note that this may result
+    // If needed, deliver a CommunicationError API event to the application.  Note that this may result
     // in the state of the client object changing (e.g. as a result of the application calling Stop()).
     // So the code here shouldn't presume anything about the current state after the callback.
     if (err != WEAVE_NO_ERROR)
@@ -503,7 +503,7 @@ void WeaveEchoClient::CancelSendTimer()
 }
 
 /**
- * Deliver a CommuncationError API event to the application.
+ * Deliver a CommunicationError API event to the application.
  */
 void WeaveEchoClient::DeliverCommunicationError(WEAVE_ERROR err)
 {
@@ -512,11 +512,11 @@ void WeaveEchoClient::DeliverCommunicationError(WEAVE_ERROR err)
 
     inParam.Clear();
     inParam.Source = this;
-    inParam.CommuncationError.Reason = err;
+    inParam.CommunicationError.Reason = err;
 
     outParam.Clear();
 
-    mEventCallback(AppState, kEvent_CommuncationError, inParam, outParam);
+    mEventCallback(AppState, kEvent_CommunicationError, inParam, outParam);
 }
 
 /**
@@ -551,7 +551,7 @@ void WeaveEchoClient::HandleBindingEvent(void * const appState, const Binding::E
 
             // If SendRepeating mode is enabled arm the send timer.  When the timer fires another
             // attempt will be made to prepare the binding.
-            // Otherwise, if SendRepeating mode is NOT enabled, deliver a CommuncationError API
+            // Otherwise, if SendRepeating mode is NOT enabled, deliver a CommunicationError API
             // event to the application.
             if (client->GetFlag(kFlag_SendRepeating))
             {
