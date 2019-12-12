@@ -1358,7 +1358,7 @@ void TestTdm::TestTdmMismatched_TopLevelPOD(nlTestSuite *inSuite)
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     Reset();
 
-    // set tc_a (known to subscriber) and tc_d (unknown to subscriber)
+    // set tc_a (known to subscriber) and tc_e (unknown to subscriber)
     mMismatchedTestCSource.SetValue(TestMismatchedCTrait::kPropertyHandle_TcA, 10);
     mMismatchedTestCSource.SetValue(TestMismatchedCTrait::kPropertyHandle_TcE_ScA, 10);
 
