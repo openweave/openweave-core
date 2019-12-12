@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -57,8 +58,6 @@ public:
     WEAVE_ERROR _GetFirmwareRevision(char * buf, size_t bufSize, size_t & outLen);
     WEAVE_ERROR _GetFirmwareBuildTime(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth,
             uint8_t & hour, uint8_t & minute, uint8_t & second);
-    WEAVE_ERROR _GetDeviceId(uint64_t & deviceId);
-    WEAVE_ERROR _StoreDeviceId(uint64_t deviceId);
     WEAVE_ERROR _GetSerialNumber(char * buf, size_t bufSize, size_t & serialNumLen);
     WEAVE_ERROR _StoreSerialNumber(const char * serialNum, size_t serialNumLen);
     WEAVE_ERROR _GetPrimaryWiFiMACAddress(uint8_t * buf);
@@ -67,10 +66,25 @@ public:
     WEAVE_ERROR _StorePrimary802154MACAddress(const uint8_t * buf);
     WEAVE_ERROR _GetManufacturingDate(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth);
     WEAVE_ERROR _StoreManufacturingDate(const char * mfgDate, size_t mfgDateLen);
+    WEAVE_ERROR _GetDeviceId(uint64_t & deviceId);
     WEAVE_ERROR _GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
-    WEAVE_ERROR _StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR _GetDeviceIntermediateCACerts(uint8_t * buf, size_t bufSize, size_t & certsLen);
     WEAVE_ERROR _GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    WEAVE_ERROR _StoreDeviceId(uint64_t deviceId);
+    WEAVE_ERROR _StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR _StoreDeviceIntermediateCACerts(const uint8_t * certs, size_t certsLen);
     WEAVE_ERROR _StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
+    WEAVE_ERROR _ClearOperationalDeviceCredentials(void);
+#endif
+    WEAVE_ERROR _GetManufacturerDeviceId(uint64_t & deviceId);
+    WEAVE_ERROR _StoreManufacturerDeviceId(uint64_t deviceId);
+    WEAVE_ERROR _GetManufacturerDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
+    WEAVE_ERROR _StoreManufacturerDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR _GetManufacturerDeviceIntermediateCACerts(uint8_t * buf, size_t bufSize, size_t & certsLen);
+    WEAVE_ERROR _StoreManufacturerDeviceIntermediateCACerts(const uint8_t * certs, size_t certsLen);
+    WEAVE_ERROR _GetManufacturerDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
+    WEAVE_ERROR _StoreManufacturerDevicePrivateKey(const uint8_t * key, size_t keyLen);
     WEAVE_ERROR _GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen);
     WEAVE_ERROR _StorePairingCode(const char * pairingCode, size_t pairingCodeLen);
     WEAVE_ERROR _GetFabricId(uint64_t & fabricId);
@@ -95,14 +109,20 @@ public:
     bool _IsPairedToAccount();
     bool _IsFullyProvisioned();
     WEAVE_ERROR _ComputeProvisioningHash(uint8_t * hashBuf, size_t hashBufSize);
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    bool _OperationalDeviceCredentialsProvisioned();
+    void _UseManufacturerCredentialsAsOperational(bool val);
+#endif
 
 protected:
 
     enum
     {
-        kFlag_IsServiceProvisioned      = 0x01,
-        kFlag_IsMemberOfFabric          = 0x02,
-        kFlag_IsPairedToAccount         = 0x04,
+        kFlag_IsServiceProvisioned                    = 0x01,
+        kFlag_IsMemberOfFabric                        = 0x02,
+        kFlag_IsPairedToAccount                       = 0x04,
+        kFlag_OperationalDeviceCredentialsProvisioned = 0x08,
+        kFlag_UseManufacturerCredentialsAsOperational = 0x10,
     };
 
     uint8_t mFlags;
@@ -115,6 +135,10 @@ private:
     ImplClass * Impl() { return static_cast<ImplClass *>(this); }
 
     static void HashLengthAndBase64Value(Platform::Security::SHA256 & hash, const uint8_t * val, uint16_t valLen);
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    bool UseManufacturerCredentialsAsOperational();
+#endif
 };
 
 // Instruct the compiler to instantiate the template only when explicitly told to do so.
@@ -143,4 +167,3 @@ inline WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetProductId(uin
 } // namespace nl
 
 #endif // GENERIC_CONFIGURATION_MANAGER_IMPL_H
-

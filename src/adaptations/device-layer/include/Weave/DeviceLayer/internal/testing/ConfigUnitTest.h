@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -50,12 +51,12 @@ void RunConfigUnitTest(void)
     {
         uint64_t v = 9872349687345;
 
-        err = ConfigClass::WriteConfigValue(ConfigClass::kConfigKey_DeviceId, v);
+        err = ConfigClass::WriteConfigValue(ConfigClass::kConfigKey_MfrDeviceId, v);
         VerifyOrDie(err == WEAVE_NO_ERROR);
 
         v = 0;
 
-        err = ConfigClass::ReadConfigValue(ConfigClass::kConfigKey_DeviceId, v);
+        err = ConfigClass::ReadConfigValue(ConfigClass::kConfigKey_MfrDeviceId, v);
         VerifyOrDie(err == WEAVE_NO_ERROR);
 
         VerifyOrDie(v == 9872349687345);
@@ -149,10 +150,10 @@ void RunConfigUnitTest(void)
         uint8_t buf[512];
         size_t dataLen;
 
-        err = ConfigClass::WriteConfigValueBin(ConfigClass::kConfigKey_DeviceCert, kTestData, sizeof(kTestData));
+        err = ConfigClass::WriteConfigValueBin(ConfigClass::kConfigKey_MfrDeviceCert, kTestData, sizeof(kTestData));
         VerifyOrDie(err == WEAVE_NO_ERROR);
 
-        err = ConfigClass::ReadConfigValueBin(ConfigClass::kConfigKey_DeviceCert, buf, sizeof(buf), dataLen);
+        err = ConfigClass::ReadConfigValueBin(ConfigClass::kConfigKey_MfrDeviceCert, buf, sizeof(buf), dataLen);
         VerifyOrDie(err == WEAVE_NO_ERROR);
 
         VerifyOrDie(dataLen == sizeof(kTestData));
@@ -164,10 +165,10 @@ void RunConfigUnitTest(void)
         uint8_t buf[512];
         size_t dataLen;
 
-        err = ConfigClass::WriteConfigValueBin(ConfigClass::kConfigKey_DeviceCert, NULL, 0);
+        err = ConfigClass::WriteConfigValueBin(ConfigClass::kConfigKey_MfrDeviceCert, NULL, 0);
         VerifyOrDie(err == WEAVE_NO_ERROR);
 
-        err = ConfigClass::ReadConfigValueBin(ConfigClass::kConfigKey_DeviceCert, buf, sizeof(buf), dataLen);
+        err = ConfigClass::ReadConfigValueBin(ConfigClass::kConfigKey_MfrDeviceCert, buf, sizeof(buf), dataLen);
         VerifyOrDie(err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND);
     }
 
@@ -175,13 +176,13 @@ void RunConfigUnitTest(void)
     {
         bool v;
 
-        v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_DeviceId);
+        v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_MfrDeviceId);
         VerifyOrDie(v == true);
 
         v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_FailSafeArmed);
         VerifyOrDie(v == true);
 
-        v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_DeviceCert);
+        v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_MfrDeviceCert);
         VerifyOrDie(v == false);
     }
 
@@ -192,7 +193,7 @@ void RunConfigUnitTest(void)
         err = ConfigClass::FactoryResetConfig();
         VerifyOrDie(err == WEAVE_NO_ERROR);
 
-        v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_DeviceId);
+        v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_MfrDeviceId);
         VerifyOrDie(v == true);
 
         v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_FailSafeArmed);
