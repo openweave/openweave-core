@@ -19,39 +19,31 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: struct.cpp
- *    SOURCE PROTO: weave/common/identifiers.proto
+ *    SOURCE TEMPLATE: enum.common.h
+ *    SOURCE PROTO: weave/common/resource_type.proto
  *
  */
-
-#include <weave/common/ProfileSpecificStatusCodeStructSchema.h>
+#ifndef _WEAVE_COMMON__RESOURCE_TYPE_ENUM_H_
+#define _WEAVE_COMMON__RESOURCE_TYPE_ENUM_H_
 
 namespace Schema {
 namespace Weave {
 namespace Common {
 
-
-const nl::FieldDescriptor ProfileSpecificStatusCodeFieldDescriptors[] =
-{
-    {
-        NULL, offsetof(ProfileSpecificStatusCode, profileId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 1
-    },
-
-    {
-        NULL, offsetof(ProfileSpecificStatusCode, statusCode), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt16, 0), 2
-    },
-
+enum ResourceType {
+    RESOURCE_TYPE_DEVICE = 1,
+    RESOURCE_TYPE_USER = 2,
+    RESOURCE_TYPE_ACCOUNT = 3,
+    RESOURCE_TYPE_AREA = 4,
+    RESOURCE_TYPE_FIXTURE = 5,
+    RESOURCE_TYPE_GROUP = 6,
+    RESOURCE_TYPE_ANNOTATION = 7,
+    RESOURCE_TYPE_STRUCTURE = 8,
+    RESOURCE_TYPE_GUEST = 9,
+    RESOURCE_TYPE_SERVICE = 10,
 };
-
-const nl::SchemaFieldDescriptor ProfileSpecificStatusCode::FieldSchema =
-{
-    .mNumFieldDescriptorElements = sizeof(ProfileSpecificStatusCodeFieldDescriptors)/sizeof(ProfileSpecificStatusCodeFieldDescriptors[0]),
-    .mFields = ProfileSpecificStatusCodeFieldDescriptors,
-    .mSize = sizeof(ProfileSpecificStatusCode)
-};
-
-
 
 } // namespace Common
 } // namespace Weave
 } // namespace Schema
+#endif // _WEAVE_COMMON__RESOURCE_TYPE_ENUM_H_

@@ -21,17 +21,17 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: trait.cpp
- *    SOURCE PROTO: weave/trait/description/device_identity_trait.proto
+ *    SOURCE PROTO: weave/trait/security/user_nfc_token_metadata_trait.proto
  *
  */
 
-#include <weave/trait/description/DeviceIdentityTrait.h>
+#include <weave/trait/security/UserNFCTokenMetadataTrait.h>
 
 namespace Schema {
 namespace Weave {
 namespace Trait {
-namespace Description {
-namespace DeviceIdentityTrait {
+namespace Security {
+namespace UserNFCTokenMetadataTrait {
 
 using namespace ::nl::Weave::Profiles::DataManagement;
 
@@ -40,32 +40,9 @@ using namespace ::nl::Weave::Profiles::DataManagement;
 //
 
 const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
-    { kPropertyHandle_Root, 1 }, // vendor_id
-    { kPropertyHandle_Root, 2 }, // vendor_id_description
-    { kPropertyHandle_Root, 3 }, // vendor_product_id
-    { kPropertyHandle_Root, 4 }, // product_id_description
-    { kPropertyHandle_Root, 5 }, // product_revision
-    { kPropertyHandle_Root, 6 }, // serial_number
-    { kPropertyHandle_Root, 7 }, // software_version
-    { kPropertyHandle_Root, 8 }, // manufacturing_date
-    { kPropertyHandle_Root, 9 }, // device_id
-    { kPropertyHandle_Root, 10 }, // fabric_id
-};
-
-//
-// IsOptional Table
-//
-
-uint8_t IsOptionalHandleBitfield[] = {
-        0x8a, 0x3
-};
-
-//
-// IsNullable Table
-//
-
-uint8_t IsNullableHandleBitfield[] = {
-        0x8a, 0x0
+    { kPropertyHandle_Root, 1 }, // metadata
+    { kPropertyHandle_Metadata, 1 }, // serial_number
+    { kPropertyHandle_Metadata, 2 }, // tag_number
 };
 
 //
@@ -77,14 +54,14 @@ const TraitSchemaEngine TraitSchema = {
         kWeaveProfileId,
         PropertyMap,
         sizeof(PropertyMap) / sizeof(PropertyMap[0]),
-        1,
+        2,
 #if (TDM_EXTENSION_SUPPORT) || (TDM_VERSIONING_SUPPORT)
         2,
 #endif
         NULL,
-        &IsOptionalHandleBitfield[0],
         NULL,
-        &IsNullableHandleBitfield[0],
+        NULL,
+        NULL,
         NULL,
 #if (TDM_EXTENSION_SUPPORT)
         NULL,
@@ -95,8 +72,31 @@ const TraitSchemaEngine TraitSchema = {
     }
 };
 
-} // namespace DeviceIdentityTrait
-} // namespace Description
+//
+// Event Structs
+//
+
+const nl::FieldDescriptor MetadataFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(Metadata, serialNumber), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUTF8String, 0), 1
+    },
+
+    {
+        NULL, offsetof(Metadata, tagNumber), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUTF8String, 0), 2
+    },
+
+};
+
+const nl::SchemaFieldDescriptor Metadata::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(MetadataFieldDescriptors)/sizeof(MetadataFieldDescriptors[0]),
+    .mFields = MetadataFieldDescriptors,
+    .mSize = sizeof(Metadata)
+};
+
+} // namespace UserNFCTokenMetadataTrait
+} // namespace Security
 } // namespace Trait
 } // namespace Weave
 } // namespace Schema

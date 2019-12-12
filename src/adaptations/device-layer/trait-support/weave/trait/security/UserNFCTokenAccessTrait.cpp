@@ -21,17 +21,17 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: trait.cpp
- *    SOURCE PROTO: weave/trait/description/device_identity_trait.proto
+ *    SOURCE PROTO: weave/trait/security/user_nfc_token_access_trait.proto
  *
  */
 
-#include <weave/trait/description/DeviceIdentityTrait.h>
+#include <weave/trait/security/UserNFCTokenAccessTrait.h>
 
 namespace Schema {
 namespace Weave {
 namespace Trait {
-namespace Description {
-namespace DeviceIdentityTrait {
+namespace Security {
+namespace UserNFCTokenAccessTrait {
 
 using namespace ::nl::Weave::Profiles::DataManagement;
 
@@ -40,32 +40,6 @@ using namespace ::nl::Weave::Profiles::DataManagement;
 //
 
 const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
-    { kPropertyHandle_Root, 1 }, // vendor_id
-    { kPropertyHandle_Root, 2 }, // vendor_id_description
-    { kPropertyHandle_Root, 3 }, // vendor_product_id
-    { kPropertyHandle_Root, 4 }, // product_id_description
-    { kPropertyHandle_Root, 5 }, // product_revision
-    { kPropertyHandle_Root, 6 }, // serial_number
-    { kPropertyHandle_Root, 7 }, // software_version
-    { kPropertyHandle_Root, 8 }, // manufacturing_date
-    { kPropertyHandle_Root, 9 }, // device_id
-    { kPropertyHandle_Root, 10 }, // fabric_id
-};
-
-//
-// IsOptional Table
-//
-
-uint8_t IsOptionalHandleBitfield[] = {
-        0x8a, 0x3
-};
-
-//
-// IsNullable Table
-//
-
-uint8_t IsNullableHandleBitfield[] = {
-        0x8a, 0x0
 };
 
 //
@@ -82,9 +56,9 @@ const TraitSchemaEngine TraitSchema = {
         2,
 #endif
         NULL,
-        &IsOptionalHandleBitfield[0],
         NULL,
-        &IsNullableHandleBitfield[0],
+        NULL,
+        NULL,
         NULL,
 #if (TDM_EXTENSION_SUPPORT)
         NULL,
@@ -95,8 +69,43 @@ const TraitSchemaEngine TraitSchema = {
     }
 };
 
-} // namespace DeviceIdentityTrait
-} // namespace Description
+    //
+    // Events
+    //
+
+const nl::FieldDescriptor UserNFCTokenAccessEventFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(UserNFCTokenAccessEvent, result), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 1
+    },
+
+    {
+        NULL, offsetof(UserNFCTokenAccessEvent, tokenId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt64, 0), 2
+    },
+
+    {
+        NULL, offsetof(UserNFCTokenAccessEvent, userId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeByteString, 1), 3
+    },
+
+};
+
+const nl::SchemaFieldDescriptor UserNFCTokenAccessEvent::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(UserNFCTokenAccessEventFieldDescriptors)/sizeof(UserNFCTokenAccessEventFieldDescriptors[0]),
+    .mFields = UserNFCTokenAccessEventFieldDescriptors,
+    .mSize = sizeof(UserNFCTokenAccessEvent)
+};
+const nl::Weave::Profiles::DataManagement::EventSchema UserNFCTokenAccessEvent::Schema =
+{
+    .mProfileId = kWeaveProfileId,
+    .mStructureType = 0x1,
+    .mImportance = nl::Weave::Profiles::DataManagement::Production,
+    .mDataSchemaVersion = 1,
+    .mMinCompatibleDataSchemaVersion = 1,
+};
+
+} // namespace UserNFCTokenAccessTrait
+} // namespace Security
 } // namespace Trait
 } // namespace Weave
 } // namespace Schema

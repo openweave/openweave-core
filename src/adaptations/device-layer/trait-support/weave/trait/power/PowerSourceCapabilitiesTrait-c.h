@@ -1,3 +1,4 @@
+
 /*
  *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2016-2018 Nest Labs, Inc.
@@ -19,39 +20,33 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: struct.cpp.h
- *    SOURCE PROTO: weave/common/identifiers.proto
+ *    SOURCE TEMPLATE: trait.c.h
+ *    SOURCE PROTO: weave/trait/power/power_source_capabilities_trait.proto
  *
  */
-#ifndef _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
-#define _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
-
-#include <Weave/Support/SerializationUtils.h>
-#include <Weave/Profiles/data-management/DataManagement.h>
+#ifndef _WEAVE_TRAIT_POWER__POWER_SOURCE_CAPABILITIES_TRAIT_C_H_
+#define _WEAVE_TRAIT_POWER__POWER_SOURCE_CAPABILITIES_TRAIT_C_H_
 
 
 
-namespace Schema {
-namespace Weave {
-namespace Common {
 
-struct ProfileSpecificStatusCode
-{
-    uint32_t profileId;
-    uint16_t statusCode;
+    //
+    // Enums
+    //
 
-    static const nl::SchemaFieldDescriptor FieldSchema;
-
-};
-
-struct ProfileSpecificStatusCode_array {
-    uint32_t num;
-    ProfileSpecificStatusCode *buf;
-};
-
+    // PowerSourceType
+    typedef enum
+    {
+    POWER_SOURCE_TYPE_BATTERY = 1,
+    } schema_weave_power_power_source_capabilities_trait_power_source_type_t;
+    // PowerSourceCurrentType
+    typedef enum
+    {
+    POWER_SOURCE_CURRENT_TYPE_DC = 1,
+    POWER_SOURCE_CURRENT_TYPE_AC = 2,
+    } schema_weave_power_power_source_capabilities_trait_power_source_current_type_t;
 
 
-} // namespace Common
-} // namespace Weave
-} // namespace Schema
-#endif // _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
+
+
+#endif // _WEAVE_TRAIT_POWER__POWER_SOURCE_CAPABILITIES_TRAIT_C_H_

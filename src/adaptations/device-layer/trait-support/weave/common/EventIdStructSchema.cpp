@@ -24,30 +24,34 @@
  *
  */
 
-#include <weave/common/ProfileSpecificStatusCodeStructSchema.h>
+#include <weave/common/EventIdStructSchema.h>
 
 namespace Schema {
 namespace Weave {
 namespace Common {
 
 
-const nl::FieldDescriptor ProfileSpecificStatusCodeFieldDescriptors[] =
+const nl::FieldDescriptor EventIdFieldDescriptors[] =
 {
     {
-        NULL, offsetof(ProfileSpecificStatusCode, profileId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 1
+        NULL, offsetof(EventId, resourceId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeByteString, 1), 1
     },
 
     {
-        NULL, offsetof(ProfileSpecificStatusCode, statusCode), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt16, 0), 2
+        NULL, offsetof(EventId, importance), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 2
+    },
+
+    {
+        NULL, offsetof(EventId, id), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt64, 0), 3
     },
 
 };
 
-const nl::SchemaFieldDescriptor ProfileSpecificStatusCode::FieldSchema =
+const nl::SchemaFieldDescriptor EventId::FieldSchema =
 {
-    .mNumFieldDescriptorElements = sizeof(ProfileSpecificStatusCodeFieldDescriptors)/sizeof(ProfileSpecificStatusCodeFieldDescriptors[0]),
-    .mFields = ProfileSpecificStatusCodeFieldDescriptors,
-    .mSize = sizeof(ProfileSpecificStatusCode)
+    .mNumFieldDescriptorElements = sizeof(EventIdFieldDescriptors)/sizeof(EventIdFieldDescriptors[0]),
+    .mFields = EventIdFieldDescriptors,
+    .mSize = sizeof(EventId)
 };
 
 

@@ -19,39 +19,28 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: struct.cpp
- *    SOURCE PROTO: weave/common/identifiers.proto
+ *    SOURCE TEMPLATE: enum.common.h
+ *    SOURCE PROTO: weave/common/time.proto
  *
  */
-
-#include <weave/common/ProfileSpecificStatusCodeStructSchema.h>
+#ifndef _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
+#define _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_
 
 namespace Schema {
 namespace Weave {
 namespace Common {
 
-
-const nl::FieldDescriptor ProfileSpecificStatusCodeFieldDescriptors[] =
-{
-    {
-        NULL, offsetof(ProfileSpecificStatusCode, profileId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 1
-    },
-
-    {
-        NULL, offsetof(ProfileSpecificStatusCode, statusCode), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt16, 0), 2
-    },
-
+enum DayOfWeek {
+    DAY_OF_WEEK_SUNDAY = 1,
+    DAY_OF_WEEK_MONDAY = 2,
+    DAY_OF_WEEK_TUESDAY = 4,
+    DAY_OF_WEEK_WEDNESDAY = 8,
+    DAY_OF_WEEK_THURSDAY = 16,
+    DAY_OF_WEEK_FRIDAY = 32,
+    DAY_OF_WEEK_SATURDAY = 64,
 };
-
-const nl::SchemaFieldDescriptor ProfileSpecificStatusCode::FieldSchema =
-{
-    .mNumFieldDescriptorElements = sizeof(ProfileSpecificStatusCodeFieldDescriptors)/sizeof(ProfileSpecificStatusCodeFieldDescriptors[0]),
-    .mFields = ProfileSpecificStatusCodeFieldDescriptors,
-    .mSize = sizeof(ProfileSpecificStatusCode)
-};
-
-
 
 } // namespace Common
 } // namespace Weave
 } // namespace Schema
+#endif // _WEAVE_COMMON__DAY_OF_WEEK_ENUM_H_

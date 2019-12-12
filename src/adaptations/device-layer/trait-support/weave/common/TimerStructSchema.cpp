@@ -20,34 +20,34 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: struct.cpp
- *    SOURCE PROTO: weave/common/identifiers.proto
+ *    SOURCE PROTO: weave/common/time.proto
  *
  */
 
-#include <weave/common/ProfileSpecificStatusCodeStructSchema.h>
+#include <weave/common/TimerStructSchema.h>
 
 namespace Schema {
 namespace Weave {
 namespace Common {
 
 
-const nl::FieldDescriptor ProfileSpecificStatusCodeFieldDescriptors[] =
+const nl::FieldDescriptor TimerFieldDescriptors[] =
 {
     {
-        NULL, offsetof(ProfileSpecificStatusCode, profileId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 1
+        NULL, offsetof(Timer, time), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt64, 0), 1
     },
 
     {
-        NULL, offsetof(ProfileSpecificStatusCode, statusCode), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt16, 0), 2
+        NULL, offsetof(Timer, timeBasis), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt64, 0), 2
     },
 
 };
 
-const nl::SchemaFieldDescriptor ProfileSpecificStatusCode::FieldSchema =
+const nl::SchemaFieldDescriptor Timer::FieldSchema =
 {
-    .mNumFieldDescriptorElements = sizeof(ProfileSpecificStatusCodeFieldDescriptors)/sizeof(ProfileSpecificStatusCodeFieldDescriptors[0]),
-    .mFields = ProfileSpecificStatusCodeFieldDescriptors,
-    .mSize = sizeof(ProfileSpecificStatusCode)
+    .mNumFieldDescriptorElements = sizeof(TimerFieldDescriptors)/sizeof(TimerFieldDescriptors[0]),
+    .mFields = TimerFieldDescriptors,
+    .mSize = sizeof(Timer)
 };
 
 

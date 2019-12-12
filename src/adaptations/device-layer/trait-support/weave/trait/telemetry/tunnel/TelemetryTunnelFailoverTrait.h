@@ -21,15 +21,16 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: trait.cpp.h
- *    SOURCE PROTO: weave/trait/telemetry/tunnel/telemetry_tunnel_trait.proto
+ *    SOURCE PROTO: weave/trait/telemetry/tunnel/telemetry_tunnel_failover_trait.proto
  *
  */
-#ifndef _WEAVE_TRAIT_TELEMETRY_TUNNEL__TELEMETRY_TUNNEL_TRAIT_H_
-#define _WEAVE_TRAIT_TELEMETRY_TUNNEL__TELEMETRY_TUNNEL_TRAIT_H_
+#ifndef _WEAVE_TRAIT_TELEMETRY_TUNNEL__TELEMETRY_TUNNEL_FAILOVER_TRAIT_H_
+#define _WEAVE_TRAIT_TELEMETRY_TUNNEL__TELEMETRY_TUNNEL_FAILOVER_TRAIT_H_
 
 #include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Support/SerializationUtils.h>
 
+#include <weave/trait/telemetry/tunnel/TelemetryTunnelTrait.h>
 
 
 namespace Schema {
@@ -37,18 +38,18 @@ namespace Weave {
 namespace Trait {
 namespace Telemetry {
 namespace Tunnel {
-namespace TelemetryTunnelTrait {
+namespace TelemetryTunnelFailoverTrait {
 
 extern const nl::Weave::Profiles::DataManagement::TraitSchemaEngine TraitSchema;
 
 enum {
-      kWeaveProfileId = (0x0U << 16) | 0x1701U
+      kWeaveProfileId = (0x0U << 16) | 0x1702U
 };
 
 //
 // Events
 //
-struct TelemetryTunnelStatsEvent
+struct TelemetryTunnelFailoverStatsEvent
 {
     uint64_t txBytesToService;
     uint64_t rxBytesFromService;
@@ -61,46 +62,38 @@ struct TelemetryTunnelStatsEvent
     uint32_t droppedMessagesCount;
     int32_t currentTunnelState;
     int32_t currentActiveTunnel;
+    uint64_t backupTxBytesToService;
+    uint64_t backupRxBytesFromService;
+    uint32_t backupTxMessagesToService;
+    uint32_t backupRxMessagesFromService;
+    uint32_t backupTunnelDownCount;
+    uint32_t backupTunnelConnAttemptCount;
+    int64_t lastTimeBackupTunnelWentDown;
+    int64_t lastTimeBackupTunnelEstablished;
+    uint32_t tunnelFailoverCount;
+    int64_t lastTimeForTunnelFailover;
 
     static const nl::SchemaFieldDescriptor FieldSchema;
 
     // Statically-known Event Struct Attributes:
     enum {
-            kWeaveProfileId = (0x0U << 16) | 0x1701U,
+            kWeaveProfileId = (0x0U << 16) | 0x1702U,
         kEventTypeId = 0x1U
     };
 
     static const nl::Weave::Profiles::DataManagement::EventSchema Schema;
 };
 
-struct TelemetryTunnelStatsEvent_array {
+struct TelemetryTunnelFailoverStatsEvent_array {
     uint32_t num;
-    TelemetryTunnelStatsEvent *buf;
+    TelemetryTunnelFailoverStatsEvent *buf;
 };
 
 
-//
-// Enums
-//
-
-enum TunnelType {
-    TUNNEL_TYPE_NONE = 1,
-    TUNNEL_TYPE_PRIMARY = 2,
-    TUNNEL_TYPE_BACKUP = 3,
-    TUNNEL_TYPE_SHORTCUT = 4,
-};
-
-enum TunnelState {
-    TUNNEL_STATE_NO_TUNNEL = 1,
-    TUNNEL_STATE_PRIMARY_ESTABLISHED = 2,
-    TUNNEL_STATE_BACKUP_ONLY_ESTABLISHED = 3,
-    TUNNEL_STATE_PRIMARY_AND_BACKUP_ESTABLISHED = 4,
-};
-
-} // namespace TelemetryTunnelTrait
+} // namespace TelemetryTunnelFailoverTrait
 } // namespace Tunnel
 } // namespace Telemetry
 } // namespace Trait
 } // namespace Weave
 } // namespace Schema
-#endif // _WEAVE_TRAIT_TELEMETRY_TUNNEL__TELEMETRY_TUNNEL_TRAIT_H_
+#endif // _WEAVE_TRAIT_TELEMETRY_TUNNEL__TELEMETRY_TUNNEL_FAILOVER_TRAIT_H_

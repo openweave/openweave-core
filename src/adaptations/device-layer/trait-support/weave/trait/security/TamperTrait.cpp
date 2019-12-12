@@ -21,17 +21,17 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: trait.cpp
- *    SOURCE PROTO: weave/trait/description/device_identity_trait.proto
+ *    SOURCE PROTO: weave/trait/security/tamper_trait.proto
  *
  */
 
-#include <weave/trait/description/DeviceIdentityTrait.h>
+#include <weave/trait/security/TamperTrait.h>
 
 namespace Schema {
 namespace Weave {
 namespace Trait {
-namespace Description {
-namespace DeviceIdentityTrait {
+namespace Security {
+namespace TamperTrait {
 
 using namespace ::nl::Weave::Profiles::DataManagement;
 
@@ -40,16 +40,9 @@ using namespace ::nl::Weave::Profiles::DataManagement;
 //
 
 const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
-    { kPropertyHandle_Root, 1 }, // vendor_id
-    { kPropertyHandle_Root, 2 }, // vendor_id_description
-    { kPropertyHandle_Root, 3 }, // vendor_product_id
-    { kPropertyHandle_Root, 4 }, // product_id_description
-    { kPropertyHandle_Root, 5 }, // product_revision
-    { kPropertyHandle_Root, 6 }, // serial_number
-    { kPropertyHandle_Root, 7 }, // software_version
-    { kPropertyHandle_Root, 8 }, // manufacturing_date
-    { kPropertyHandle_Root, 9 }, // device_id
-    { kPropertyHandle_Root, 10 }, // fabric_id
+    { kPropertyHandle_Root, 1 }, // tamper_state
+    { kPropertyHandle_Root, 2 }, // first_observed_at
+    { kPropertyHandle_Root, 3 }, // first_observed_at_ms
 };
 
 //
@@ -57,7 +50,7 @@ const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
 //
 
 uint8_t IsOptionalHandleBitfield[] = {
-        0x8a, 0x3
+        0x6
 };
 
 //
@@ -65,8 +58,21 @@ uint8_t IsOptionalHandleBitfield[] = {
 //
 
 uint8_t IsNullableHandleBitfield[] = {
-        0x8a, 0x0
+        0x6
 };
+
+//
+// IsEphemeral Table
+//
+
+uint8_t IsEphemeralHandleBitfield[] = {
+        0x4
+};
+
+//
+// Supported version
+//
+const ConstSchemaVersionRange traitVersion = { .mMinVersion = 1, .mMaxVersion = 2 };
 
 //
 // Schema
@@ -85,18 +91,49 @@ const TraitSchemaEngine TraitSchema = {
         &IsOptionalHandleBitfield[0],
         NULL,
         &IsNullableHandleBitfield[0],
-        NULL,
+        &IsEphemeralHandleBitfield[0],
 #if (TDM_EXTENSION_SUPPORT)
         NULL,
 #endif
 #if (TDM_VERSIONING_SUPPORT)
-        NULL,
+        &traitVersion,
 #endif
     }
 };
 
-} // namespace DeviceIdentityTrait
-} // namespace Description
+    //
+    // Events
+    //
+
+const nl::FieldDescriptor TamperStateChangeEventFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(TamperStateChangeEvent, tamperState), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 1
+    },
+
+    {
+        NULL, offsetof(TamperStateChangeEvent, priorTamperState), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 2
+    },
+
+};
+
+const nl::SchemaFieldDescriptor TamperStateChangeEvent::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(TamperStateChangeEventFieldDescriptors)/sizeof(TamperStateChangeEventFieldDescriptors[0]),
+    .mFields = TamperStateChangeEventFieldDescriptors,
+    .mSize = sizeof(TamperStateChangeEvent)
+};
+const nl::Weave::Profiles::DataManagement::EventSchema TamperStateChangeEvent::Schema =
+{
+    .mProfileId = kWeaveProfileId,
+    .mStructureType = 0x1,
+    .mImportance = nl::Weave::Profiles::DataManagement::ProductionCritical,
+    .mDataSchemaVersion = 2,
+    .mMinCompatibleDataSchemaVersion = 1,
+};
+
+} // namespace TamperTrait
+} // namespace Security
 } // namespace Trait
 } // namespace Weave
 } // namespace Schema

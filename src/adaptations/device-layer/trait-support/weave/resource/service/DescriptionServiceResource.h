@@ -1,3 +1,4 @@
+
 /*
  *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2016-2018 Nest Labs, Inc.
@@ -19,39 +20,28 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: struct.cpp.h
- *    SOURCE PROTO: weave/common/identifiers.proto
+ *    SOURCE TEMPLATE: resource.cpp.h
+ *    SOURCE PROTO: weave/resource/service/description_service_resource.proto
  *
  */
-#ifndef _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
-#define _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
 
-#include <Weave/Support/SerializationUtils.h>
-#include <Weave/Profiles/data-management/DataManagement.h>
-
-
+#ifndef _WEAVE_RESOURCE_SERVICE__DESCRIPTION_SERVICE_RESOURCE_H_
+#define _WEAVE_RESOURCE_SERVICE__DESCRIPTION_SERVICE_RESOURCE_H_
 
 namespace Schema {
 namespace Weave {
-namespace Common {
+namespace Resource {
+namespace Service {
+namespace DescriptionServiceResource {
 
-struct ProfileSpecificStatusCode
-{
-    uint32_t profileId;
-    uint16_t statusCode;
 
-    static const nl::SchemaFieldDescriptor FieldSchema;
-
+enum {
+    DeviceLabel = 0,
 };
+} // namespace DescriptionServiceResource
 
-struct ProfileSpecificStatusCode_array {
-    uint32_t num;
-    ProfileSpecificStatusCode *buf;
-};
-
-
-
-} // namespace Common
+} // namespace Service
+} // namespace Resource
 } // namespace Weave
 } // namespace Schema
-#endif // _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
+#endif // _WEAVE_RESOURCE_SERVICE__DESCRIPTION_SERVICE_RESOURCE_H_

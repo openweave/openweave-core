@@ -21,17 +21,17 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: trait.cpp
- *    SOURCE PROTO: weave/trait/description/device_identity_trait.proto
+ *    SOURCE PROTO: weave/trait/power/power_source_capabilities_trait.proto
  *
  */
 
-#include <weave/trait/description/DeviceIdentityTrait.h>
+#include <weave/trait/power/PowerSourceCapabilitiesTrait.h>
 
 namespace Schema {
 namespace Weave {
 namespace Trait {
-namespace Description {
-namespace DeviceIdentityTrait {
+namespace Power {
+namespace PowerSourceCapabilitiesTrait {
 
 using namespace ::nl::Weave::Profiles::DataManagement;
 
@@ -40,16 +40,13 @@ using namespace ::nl::Weave::Profiles::DataManagement;
 //
 
 const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
-    { kPropertyHandle_Root, 1 }, // vendor_id
-    { kPropertyHandle_Root, 2 }, // vendor_id_description
-    { kPropertyHandle_Root, 3 }, // vendor_product_id
-    { kPropertyHandle_Root, 4 }, // product_id_description
-    { kPropertyHandle_Root, 5 }, // product_revision
-    { kPropertyHandle_Root, 6 }, // serial_number
-    { kPropertyHandle_Root, 7 }, // software_version
-    { kPropertyHandle_Root, 8 }, // manufacturing_date
-    { kPropertyHandle_Root, 9 }, // device_id
-    { kPropertyHandle_Root, 10 }, // fabric_id
+    { kPropertyHandle_Root, 1 }, // type
+    { kPropertyHandle_Root, 2 }, // description
+    { kPropertyHandle_Root, 3 }, // nominal_voltage
+    { kPropertyHandle_Root, 4 }, // maximum_current
+    { kPropertyHandle_Root, 5 }, // current_type
+    { kPropertyHandle_Root, 6 }, // order
+    { kPropertyHandle_Root, 7 }, // removable
 };
 
 //
@@ -57,7 +54,7 @@ const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
 //
 
 uint8_t IsOptionalHandleBitfield[] = {
-        0x8a, 0x3
+        0xa
 };
 
 //
@@ -65,7 +62,7 @@ uint8_t IsOptionalHandleBitfield[] = {
 //
 
 uint8_t IsNullableHandleBitfield[] = {
-        0x8a, 0x0
+        0xa
 };
 
 //
@@ -95,8 +92,8 @@ const TraitSchemaEngine TraitSchema = {
     }
 };
 
-} // namespace DeviceIdentityTrait
-} // namespace Description
+} // namespace PowerSourceCapabilitiesTrait
+} // namespace Power
 } // namespace Trait
 } // namespace Weave
 } // namespace Schema

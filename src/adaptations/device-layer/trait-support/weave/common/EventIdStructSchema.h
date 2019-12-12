@@ -23,8 +23,8 @@
  *    SOURCE PROTO: weave/common/identifiers.proto
  *
  */
-#ifndef _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
-#define _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
+#ifndef _WEAVE_COMMON__EVENT_ID_STRUCT_SCHEMA_H_
+#define _WEAVE_COMMON__EVENT_ID_STRUCT_SCHEMA_H_
 
 #include <Weave/Support/SerializationUtils.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
@@ -35,23 +35,46 @@ namespace Schema {
 namespace Weave {
 namespace Common {
 
-struct ProfileSpecificStatusCode
+struct EventId
 {
-    uint32_t profileId;
-    uint16_t statusCode;
+    nl::SerializedByteString resourceId;
+    void SetResourceIdNull(void);
+    void SetResourceIdPresent(void);
+#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
+    bool IsResourceIdPresent(void);
+#endif
+    int32_t importance;
+    uint64_t id;
+    uint8_t __nullified_fields__[1/8 + 1];
 
     static const nl::SchemaFieldDescriptor FieldSchema;
 
 };
 
-struct ProfileSpecificStatusCode_array {
+struct EventId_array {
     uint32_t num;
-    ProfileSpecificStatusCode *buf;
+    EventId *buf;
 };
 
+inline void EventId::SetResourceIdNull(void)
+{
+    SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0);
+}
+
+inline void EventId::SetResourceIdPresent(void)
+{
+    CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 0);
+}
+
+#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
+inline bool EventId::IsResourceIdPresent(void)
+{
+    return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0));
+}
+#endif
 
 
 } // namespace Common
 } // namespace Weave
 } // namespace Schema
-#endif // _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
+#endif // _WEAVE_COMMON__EVENT_ID_STRUCT_SCHEMA_H_

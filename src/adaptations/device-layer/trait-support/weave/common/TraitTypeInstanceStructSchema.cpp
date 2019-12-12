@@ -24,30 +24,30 @@
  *
  */
 
-#include <weave/common/ProfileSpecificStatusCodeStructSchema.h>
+#include <weave/common/TraitTypeInstanceStructSchema.h>
 
 namespace Schema {
 namespace Weave {
 namespace Common {
 
 
-const nl::FieldDescriptor ProfileSpecificStatusCodeFieldDescriptors[] =
+const nl::FieldDescriptor TraitTypeInstanceFieldDescriptors[] =
 {
     {
-        NULL, offsetof(ProfileSpecificStatusCode, profileId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 1
+        NULL, offsetof(TraitTypeInstance, traitTypeId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 1
     },
 
     {
-        NULL, offsetof(ProfileSpecificStatusCode, statusCode), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt16, 0), 2
+        NULL, offsetof(TraitTypeInstance, instanceId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 2
     },
 
 };
 
-const nl::SchemaFieldDescriptor ProfileSpecificStatusCode::FieldSchema =
+const nl::SchemaFieldDescriptor TraitTypeInstance::FieldSchema =
 {
-    .mNumFieldDescriptorElements = sizeof(ProfileSpecificStatusCodeFieldDescriptors)/sizeof(ProfileSpecificStatusCodeFieldDescriptors[0]),
-    .mFields = ProfileSpecificStatusCodeFieldDescriptors,
-    .mSize = sizeof(ProfileSpecificStatusCode)
+    .mNumFieldDescriptorElements = sizeof(TraitTypeInstanceFieldDescriptors)/sizeof(TraitTypeInstanceFieldDescriptors[0]),
+    .mFields = TraitTypeInstanceFieldDescriptors,
+    .mSize = sizeof(TraitTypeInstance)
 };
 
 

@@ -1,3 +1,4 @@
+
 /*
  *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2016-2018 Nest Labs, Inc.
@@ -19,39 +20,31 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: struct.cpp.h
- *    SOURCE PROTO: weave/common/identifiers.proto
+ *    SOURCE TEMPLATE: trait.c.h
+ *    SOURCE PROTO: weave/trait/synchronization/synchronization_trait.proto
  *
  */
-#ifndef _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
-#define _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
-
-#include <Weave/Support/SerializationUtils.h>
-#include <Weave/Profiles/data-management/DataManagement.h>
+#ifndef _WEAVE_TRAIT_SYNCHRONIZATION__SYNCHRONIZATION_TRAIT_C_H_
+#define _WEAVE_TRAIT_SYNCHRONIZATION__SYNCHRONIZATION_TRAIT_C_H_
 
 
 
-namespace Schema {
-namespace Weave {
-namespace Common {
 
-struct ProfileSpecificStatusCode
-{
-    uint32_t profileId;
-    uint16_t statusCode;
+    //
+    // Enums
+    //
 
-    static const nl::SchemaFieldDescriptor FieldSchema;
-
-};
-
-struct ProfileSpecificStatusCode_array {
-    uint32_t num;
-    ProfileSpecificStatusCode *buf;
-};
+    // SyncronizationStatus
+    typedef enum
+    {
+    SYNCRONIZATION_STATUS_SYNCHRONIZED = 1,
+    SYNCRONIZATION_STATUS_PENDING = 2,
+    SYNCRONIZATION_STATUS_TIMEOUT = 3,
+    SYNCRONIZATION_STATUS_FAILED_RETRY = 4,
+    SYNCRONIZATION_STATUS_FAILED_FATAL = 5,
+    } schema_weave_synchronization_synchronization_trait_syncronization_status_t;
 
 
 
-} // namespace Common
-} // namespace Weave
-} // namespace Schema
-#endif // _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
+
+#endif // _WEAVE_TRAIT_SYNCHRONIZATION__SYNCHRONIZATION_TRAIT_C_H_

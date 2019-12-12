@@ -21,17 +21,17 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: trait.cpp
- *    SOURCE PROTO: weave/trait/description/device_identity_trait.proto
+ *    SOURCE PROTO: weave/trait/security/user_nfc_token_settings_trait.proto
  *
  */
 
-#include <weave/trait/description/DeviceIdentityTrait.h>
+#include <weave/trait/security/UserNFCTokenSettingsTrait.h>
 
 namespace Schema {
 namespace Weave {
 namespace Trait {
-namespace Description {
-namespace DeviceIdentityTrait {
+namespace Security {
+namespace UserNFCTokenSettingsTrait {
 
 using namespace ::nl::Weave::Profiles::DataManagement;
 
@@ -40,32 +40,19 @@ using namespace ::nl::Weave::Profiles::DataManagement;
 //
 
 const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
-    { kPropertyHandle_Root, 1 }, // vendor_id
-    { kPropertyHandle_Root, 2 }, // vendor_id_description
-    { kPropertyHandle_Root, 3 }, // vendor_product_id
-    { kPropertyHandle_Root, 4 }, // product_id_description
-    { kPropertyHandle_Root, 5 }, // product_revision
-    { kPropertyHandle_Root, 6 }, // serial_number
-    { kPropertyHandle_Root, 7 }, // software_version
-    { kPropertyHandle_Root, 8 }, // manufacturing_date
-    { kPropertyHandle_Root, 9 }, // device_id
-    { kPropertyHandle_Root, 10 }, // fabric_id
+    { kPropertyHandle_Root, 1 }, // user_nfc_tokens
+    { kPropertyHandle_UserNfcTokens, 0 }, // value
+    { kPropertyHandle_UserNfcTokens_Value, 1 }, // user_id
+    { kPropertyHandle_UserNfcTokens_Value, 2 }, // token_device_id
+    { kPropertyHandle_UserNfcTokens_Value, 3 }, // public_key
 };
 
 //
-// IsOptional Table
+// IsDictionary Table
 //
 
-uint8_t IsOptionalHandleBitfield[] = {
-        0x8a, 0x3
-};
-
-//
-// IsNullable Table
-//
-
-uint8_t IsNullableHandleBitfield[] = {
-        0x8a, 0x0
+uint8_t IsDictionaryTypeHandleBitfield[] = {
+        0x1
 };
 
 //
@@ -77,14 +64,14 @@ const TraitSchemaEngine TraitSchema = {
         kWeaveProfileId,
         PropertyMap,
         sizeof(PropertyMap) / sizeof(PropertyMap[0]),
-        1,
+        3,
 #if (TDM_EXTENSION_SUPPORT) || (TDM_VERSIONING_SUPPORT)
         2,
 #endif
+        IsDictionaryTypeHandleBitfield,
         NULL,
-        &IsOptionalHandleBitfield[0],
         NULL,
-        &IsNullableHandleBitfield[0],
+        NULL,
         NULL,
 #if (TDM_EXTENSION_SUPPORT)
         NULL,
@@ -95,8 +82,35 @@ const TraitSchemaEngine TraitSchema = {
     }
 };
 
-} // namespace DeviceIdentityTrait
-} // namespace Description
+//
+// Event Structs
+//
+
+const nl::FieldDescriptor UserNFCTokenFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(UserNFCToken, userId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeByteString, 0), 1
+    },
+
+    {
+        NULL, offsetof(UserNFCToken, tokenDeviceId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt64, 0), 2
+    },
+
+    {
+        NULL, offsetof(UserNFCToken, publicKey), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeByteString, 0), 3
+    },
+
+};
+
+const nl::SchemaFieldDescriptor UserNFCToken::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(UserNFCTokenFieldDescriptors)/sizeof(UserNFCTokenFieldDescriptors[0]),
+    .mFields = UserNFCTokenFieldDescriptors,
+    .mSize = sizeof(UserNFCToken)
+};
+
+} // namespace UserNFCTokenSettingsTrait
+} // namespace Security
 } // namespace Trait
 } // namespace Weave
 } // namespace Schema

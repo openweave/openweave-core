@@ -20,34 +20,38 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: struct.cpp
- *    SOURCE PROTO: weave/common/identifiers.proto
+ *    SOURCE PROTO: weave/common/time.proto
  *
  */
 
-#include <weave/common/ProfileSpecificStatusCodeStructSchema.h>
+#include <weave/common/TimeOfDayStructSchema.h>
 
 namespace Schema {
 namespace Weave {
 namespace Common {
 
 
-const nl::FieldDescriptor ProfileSpecificStatusCodeFieldDescriptors[] =
+const nl::FieldDescriptor TimeOfDayFieldDescriptors[] =
 {
     {
-        NULL, offsetof(ProfileSpecificStatusCode, profileId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 1
+        NULL, offsetof(TimeOfDay, hour), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt8, 0), 5
     },
 
     {
-        NULL, offsetof(ProfileSpecificStatusCode, statusCode), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt16, 0), 2
+        NULL, offsetof(TimeOfDay, minute), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt8, 0), 6
+    },
+
+    {
+        NULL, offsetof(TimeOfDay, second), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt8, 0), 7
     },
 
 };
 
-const nl::SchemaFieldDescriptor ProfileSpecificStatusCode::FieldSchema =
+const nl::SchemaFieldDescriptor TimeOfDay::FieldSchema =
 {
-    .mNumFieldDescriptorElements = sizeof(ProfileSpecificStatusCodeFieldDescriptors)/sizeof(ProfileSpecificStatusCodeFieldDescriptors[0]),
-    .mFields = ProfileSpecificStatusCodeFieldDescriptors,
-    .mSize = sizeof(ProfileSpecificStatusCode)
+    .mNumFieldDescriptorElements = sizeof(TimeOfDayFieldDescriptors)/sizeof(TimeOfDayFieldDescriptors[0]),
+    .mFields = TimeOfDayFieldDescriptors,
+    .mSize = sizeof(TimeOfDay)
 };
 
 

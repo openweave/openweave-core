@@ -21,17 +21,17 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: trait.cpp
- *    SOURCE PROTO: weave/trait/description/device_identity_trait.proto
+ *    SOURCE PROTO: weave/trait/power/power_source_trait.proto
  *
  */
 
-#include <weave/trait/description/DeviceIdentityTrait.h>
+#include <weave/trait/power/PowerSourceTrait.h>
 
 namespace Schema {
 namespace Weave {
 namespace Trait {
-namespace Description {
-namespace DeviceIdentityTrait {
+namespace Power {
+namespace PowerSourceTrait {
 
 using namespace ::nl::Weave::Profiles::DataManagement;
 
@@ -40,16 +40,13 @@ using namespace ::nl::Weave::Profiles::DataManagement;
 //
 
 const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
-    { kPropertyHandle_Root, 1 }, // vendor_id
-    { kPropertyHandle_Root, 2 }, // vendor_id_description
-    { kPropertyHandle_Root, 3 }, // vendor_product_id
-    { kPropertyHandle_Root, 4 }, // product_id_description
-    { kPropertyHandle_Root, 5 }, // product_revision
-    { kPropertyHandle_Root, 6 }, // serial_number
-    { kPropertyHandle_Root, 7 }, // software_version
-    { kPropertyHandle_Root, 8 }, // manufacturing_date
-    { kPropertyHandle_Root, 9 }, // device_id
-    { kPropertyHandle_Root, 10 }, // fabric_id
+    { kPropertyHandle_Root, 1 }, // type
+    { kPropertyHandle_Root, 2 }, // assessed_voltage
+    { kPropertyHandle_Root, 3 }, // assessed_current
+    { kPropertyHandle_Root, 4 }, // assessed_frequency
+    { kPropertyHandle_Root, 5 }, // condition
+    { kPropertyHandle_Root, 6 }, // status
+    { kPropertyHandle_Root, 7 }, // present
 };
 
 //
@@ -57,7 +54,7 @@ const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
 //
 
 uint8_t IsOptionalHandleBitfield[] = {
-        0x8a, 0x3
+        0xe
 };
 
 //
@@ -65,7 +62,7 @@ uint8_t IsOptionalHandleBitfield[] = {
 //
 
 uint8_t IsNullableHandleBitfield[] = {
-        0x8a, 0x0
+        0xe
 };
 
 //
@@ -95,8 +92,39 @@ const TraitSchemaEngine TraitSchema = {
     }
 };
 
-} // namespace DeviceIdentityTrait
-} // namespace Description
+    //
+    // Events
+    //
+
+const nl::FieldDescriptor PowerSourceChangedEventFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(PowerSourceChangedEvent, condition), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 1
+    },
+
+    {
+        NULL, offsetof(PowerSourceChangedEvent, status), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 2
+    },
+
+};
+
+const nl::SchemaFieldDescriptor PowerSourceChangedEvent::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(PowerSourceChangedEventFieldDescriptors)/sizeof(PowerSourceChangedEventFieldDescriptors[0]),
+    .mFields = PowerSourceChangedEventFieldDescriptors,
+    .mSize = sizeof(PowerSourceChangedEvent)
+};
+const nl::Weave::Profiles::DataManagement::EventSchema PowerSourceChangedEvent::Schema =
+{
+    .mProfileId = kWeaveProfileId,
+    .mStructureType = 0x1,
+    .mImportance = nl::Weave::Profiles::DataManagement::Production,
+    .mDataSchemaVersion = 1,
+    .mMinCompatibleDataSchemaVersion = 1,
+};
+
+} // namespace PowerSourceTrait
+} // namespace Power
 } // namespace Trait
 } // namespace Weave
 } // namespace Schema

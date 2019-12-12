@@ -1,3 +1,4 @@
+
 /*
  *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2016-2018 Nest Labs, Inc.
@@ -19,39 +20,32 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: struct.cpp.h
- *    SOURCE PROTO: weave/common/identifiers.proto
+ *    SOURCE TEMPLATE: trait.c.h
+ *    SOURCE PROTO: weave/trait/heartbeat/liveness_trait.proto
  *
  */
-#ifndef _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
-#define _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
-
-#include <Weave/Support/SerializationUtils.h>
-#include <Weave/Profiles/data-management/DataManagement.h>
+#ifndef _WEAVE_TRAIT_HEARTBEAT__LIVENESS_TRAIT_C_H_
+#define _WEAVE_TRAIT_HEARTBEAT__LIVENESS_TRAIT_C_H_
 
 
 
-namespace Schema {
-namespace Weave {
-namespace Common {
 
-struct ProfileSpecificStatusCode
-{
-    uint32_t profileId;
-    uint16_t statusCode;
+    //
+    // Enums
+    //
 
-    static const nl::SchemaFieldDescriptor FieldSchema;
-
-};
-
-struct ProfileSpecificStatusCode_array {
-    uint32_t num;
-    ProfileSpecificStatusCode *buf;
-};
+    // LivenessDeviceStatus
+    typedef enum
+    {
+    LIVENESS_DEVICE_STATUS_ONLINE = 1,
+    LIVENESS_DEVICE_STATUS_UNREACHABLE = 2,
+    LIVENESS_DEVICE_STATUS_UNINITIALIZED = 3,
+    LIVENESS_DEVICE_STATUS_REBOOTING = 4,
+    LIVENESS_DEVICE_STATUS_UPGRADING = 5,
+    LIVENESS_DEVICE_STATUS_SCHEDULED_DOWN = 6,
+    } schema_weave_heartbeat_liveness_trait_liveness_device_status_t;
 
 
 
-} // namespace Common
-} // namespace Weave
-} // namespace Schema
-#endif // _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
+
+#endif // _WEAVE_TRAIT_HEARTBEAT__LIVENESS_TRAIT_C_H_

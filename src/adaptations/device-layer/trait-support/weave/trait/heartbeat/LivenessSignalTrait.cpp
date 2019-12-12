@@ -21,17 +21,17 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: trait.cpp
- *    SOURCE PROTO: weave/trait/description/device_identity_trait.proto
+ *    SOURCE PROTO: weave/trait/heartbeat/liveness_signal_trait.proto
  *
  */
 
-#include <weave/trait/description/DeviceIdentityTrait.h>
+#include <weave/trait/heartbeat/LivenessSignalTrait.h>
 
 namespace Schema {
 namespace Weave {
 namespace Trait {
-namespace Description {
-namespace DeviceIdentityTrait {
+namespace Heartbeat {
+namespace LivenessSignalTrait {
 
 using namespace ::nl::Weave::Profiles::DataManagement;
 
@@ -40,32 +40,6 @@ using namespace ::nl::Weave::Profiles::DataManagement;
 //
 
 const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
-    { kPropertyHandle_Root, 1 }, // vendor_id
-    { kPropertyHandle_Root, 2 }, // vendor_id_description
-    { kPropertyHandle_Root, 3 }, // vendor_product_id
-    { kPropertyHandle_Root, 4 }, // product_id_description
-    { kPropertyHandle_Root, 5 }, // product_revision
-    { kPropertyHandle_Root, 6 }, // serial_number
-    { kPropertyHandle_Root, 7 }, // software_version
-    { kPropertyHandle_Root, 8 }, // manufacturing_date
-    { kPropertyHandle_Root, 9 }, // device_id
-    { kPropertyHandle_Root, 10 }, // fabric_id
-};
-
-//
-// IsOptional Table
-//
-
-uint8_t IsOptionalHandleBitfield[] = {
-        0x8a, 0x3
-};
-
-//
-// IsNullable Table
-//
-
-uint8_t IsNullableHandleBitfield[] = {
-        0x8a, 0x0
 };
 
 //
@@ -82,9 +56,9 @@ const TraitSchemaEngine TraitSchema = {
         2,
 #endif
         NULL,
-        &IsOptionalHandleBitfield[0],
         NULL,
-        &IsNullableHandleBitfield[0],
+        NULL,
+        NULL,
         NULL,
 #if (TDM_EXTENSION_SUPPORT)
         NULL,
@@ -95,8 +69,39 @@ const TraitSchemaEngine TraitSchema = {
     }
 };
 
-} // namespace DeviceIdentityTrait
-} // namespace Description
+    //
+    // Events
+    //
+
+const nl::FieldDescriptor LivenessSignalEventFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(LivenessSignalEvent, signalType), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 1
+    },
+
+    {
+        NULL, offsetof(LivenessSignalEvent, wdmSubscriptionId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt64, 1), 2
+    },
+
+};
+
+const nl::SchemaFieldDescriptor LivenessSignalEvent::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(LivenessSignalEventFieldDescriptors)/sizeof(LivenessSignalEventFieldDescriptors[0]),
+    .mFields = LivenessSignalEventFieldDescriptors,
+    .mSize = sizeof(LivenessSignalEvent)
+};
+const nl::Weave::Profiles::DataManagement::EventSchema LivenessSignalEvent::Schema =
+{
+    .mProfileId = kWeaveProfileId,
+    .mStructureType = 0x1,
+    .mImportance = nl::Weave::Profiles::DataManagement::ProductionCritical,
+    .mDataSchemaVersion = 1,
+    .mMinCompatibleDataSchemaVersion = 1,
+};
+
+} // namespace LivenessSignalTrait
+} // namespace Heartbeat
 } // namespace Trait
 } // namespace Weave
 } // namespace Schema

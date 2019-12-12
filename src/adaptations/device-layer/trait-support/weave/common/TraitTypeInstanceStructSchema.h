@@ -19,35 +19,34 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: struct.cpp
+ *    SOURCE TEMPLATE: struct.cpp.h
  *    SOURCE PROTO: weave/common/identifiers.proto
  *
  */
+#ifndef _WEAVE_COMMON__TRAIT_TYPE_INSTANCE_STRUCT_SCHEMA_H_
+#define _WEAVE_COMMON__TRAIT_TYPE_INSTANCE_STRUCT_SCHEMA_H_
 
-#include <weave/common/ProfileSpecificStatusCodeStructSchema.h>
+#include <Weave/Support/SerializationUtils.h>
+#include <Weave/Profiles/data-management/DataManagement.h>
+
+
 
 namespace Schema {
 namespace Weave {
 namespace Common {
 
-
-const nl::FieldDescriptor ProfileSpecificStatusCodeFieldDescriptors[] =
+struct TraitTypeInstance
 {
-    {
-        NULL, offsetof(ProfileSpecificStatusCode, profileId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 1
-    },
+    uint32_t traitTypeId;
+    uint32_t instanceId;
 
-    {
-        NULL, offsetof(ProfileSpecificStatusCode, statusCode), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt16, 0), 2
-    },
+    static const nl::SchemaFieldDescriptor FieldSchema;
 
 };
 
-const nl::SchemaFieldDescriptor ProfileSpecificStatusCode::FieldSchema =
-{
-    .mNumFieldDescriptorElements = sizeof(ProfileSpecificStatusCodeFieldDescriptors)/sizeof(ProfileSpecificStatusCodeFieldDescriptors[0]),
-    .mFields = ProfileSpecificStatusCodeFieldDescriptors,
-    .mSize = sizeof(ProfileSpecificStatusCode)
+struct TraitTypeInstance_array {
+    uint32_t num;
+    TraitTypeInstance *buf;
 };
 
 
@@ -55,3 +54,4 @@ const nl::SchemaFieldDescriptor ProfileSpecificStatusCode::FieldSchema =
 } // namespace Common
 } // namespace Weave
 } // namespace Schema
+#endif // _WEAVE_COMMON__TRAIT_TYPE_INSTANCE_STRUCT_SCHEMA_H_

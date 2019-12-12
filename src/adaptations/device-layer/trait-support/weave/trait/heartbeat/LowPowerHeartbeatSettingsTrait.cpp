@@ -21,17 +21,17 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: trait.cpp
- *    SOURCE PROTO: weave/trait/description/device_identity_trait.proto
+ *    SOURCE PROTO: weave/trait/heartbeat/low_power_heartbeat_settings_trait.proto
  *
  */
 
-#include <weave/trait/description/DeviceIdentityTrait.h>
+#include <weave/trait/heartbeat/LowPowerHeartbeatSettingsTrait.h>
 
 namespace Schema {
 namespace Weave {
 namespace Trait {
-namespace Description {
-namespace DeviceIdentityTrait {
+namespace Heartbeat {
+namespace LowPowerHeartbeatSettingsTrait {
 
 using namespace ::nl::Weave::Profiles::DataManagement;
 
@@ -40,24 +40,10 @@ using namespace ::nl::Weave::Profiles::DataManagement;
 //
 
 const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
-    { kPropertyHandle_Root, 1 }, // vendor_id
-    { kPropertyHandle_Root, 2 }, // vendor_id_description
-    { kPropertyHandle_Root, 3 }, // vendor_product_id
-    { kPropertyHandle_Root, 4 }, // product_id_description
-    { kPropertyHandle_Root, 5 }, // product_revision
-    { kPropertyHandle_Root, 6 }, // serial_number
-    { kPropertyHandle_Root, 7 }, // software_version
-    { kPropertyHandle_Root, 8 }, // manufacturing_date
-    { kPropertyHandle_Root, 9 }, // device_id
-    { kPropertyHandle_Root, 10 }, // fabric_id
-};
-
-//
-// IsOptional Table
-//
-
-uint8_t IsOptionalHandleBitfield[] = {
-        0x8a, 0x3
+    { kPropertyHandle_Root, 1 }, // destination
+    { kPropertyHandle_Root, 2 }, // window
+    { kPropertyHandle_Root, 3 }, // offset
+    { kPropertyHandle_Root, 4 }, // interval
 };
 
 //
@@ -65,7 +51,7 @@ uint8_t IsOptionalHandleBitfield[] = {
 //
 
 uint8_t IsNullableHandleBitfield[] = {
-        0x8a, 0x0
+        0x1
 };
 
 //
@@ -82,7 +68,7 @@ const TraitSchemaEngine TraitSchema = {
         2,
 #endif
         NULL,
-        &IsOptionalHandleBitfield[0],
+        NULL,
         NULL,
         &IsNullableHandleBitfield[0],
         NULL,
@@ -95,8 +81,8 @@ const TraitSchemaEngine TraitSchema = {
     }
 };
 
-} // namespace DeviceIdentityTrait
-} // namespace Description
+} // namespace LowPowerHeartbeatSettingsTrait
+} // namespace Heartbeat
 } // namespace Trait
 } // namespace Weave
 } // namespace Schema

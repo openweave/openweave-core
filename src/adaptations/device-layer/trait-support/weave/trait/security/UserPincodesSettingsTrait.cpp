@@ -21,17 +21,17 @@
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *    SOURCE TEMPLATE: trait.cpp
- *    SOURCE PROTO: weave/trait/description/device_identity_trait.proto
+ *    SOURCE PROTO: weave/trait/security/user_pincodes_settings_trait.proto
  *
  */
 
-#include <weave/trait/description/DeviceIdentityTrait.h>
+#include <weave/trait/security/UserPincodesSettingsTrait.h>
 
 namespace Schema {
 namespace Weave {
 namespace Trait {
-namespace Description {
-namespace DeviceIdentityTrait {
+namespace Security {
+namespace UserPincodesSettingsTrait {
 
 using namespace ::nl::Weave::Profiles::DataManagement;
 
@@ -40,24 +40,19 @@ using namespace ::nl::Weave::Profiles::DataManagement;
 //
 
 const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
-    { kPropertyHandle_Root, 1 }, // vendor_id
-    { kPropertyHandle_Root, 2 }, // vendor_id_description
-    { kPropertyHandle_Root, 3 }, // vendor_product_id
-    { kPropertyHandle_Root, 4 }, // product_id_description
-    { kPropertyHandle_Root, 5 }, // product_revision
-    { kPropertyHandle_Root, 6 }, // serial_number
-    { kPropertyHandle_Root, 7 }, // software_version
-    { kPropertyHandle_Root, 8 }, // manufacturing_date
-    { kPropertyHandle_Root, 9 }, // device_id
-    { kPropertyHandle_Root, 10 }, // fabric_id
+    { kPropertyHandle_Root, 1 }, // user_pincodes
+    { kPropertyHandle_UserPincodes, 0 }, // value
+    { kPropertyHandle_UserPincodes_Value, 1 }, // user_id
+    { kPropertyHandle_UserPincodes_Value, 2 }, // pincode
+    { kPropertyHandle_UserPincodes_Value, 3 }, // pincode_credential_enabled
 };
 
 //
-// IsOptional Table
+// IsDictionary Table
 //
 
-uint8_t IsOptionalHandleBitfield[] = {
-        0x8a, 0x3
+uint8_t IsDictionaryTypeHandleBitfield[] = {
+        0x1
 };
 
 //
@@ -65,7 +60,7 @@ uint8_t IsOptionalHandleBitfield[] = {
 //
 
 uint8_t IsNullableHandleBitfield[] = {
-        0x8a, 0x0
+        0x10
 };
 
 //
@@ -77,12 +72,12 @@ const TraitSchemaEngine TraitSchema = {
         kWeaveProfileId,
         PropertyMap,
         sizeof(PropertyMap) / sizeof(PropertyMap[0]),
-        1,
+        3,
 #if (TDM_EXTENSION_SUPPORT) || (TDM_VERSIONING_SUPPORT)
         2,
 #endif
+        IsDictionaryTypeHandleBitfield,
         NULL,
-        &IsOptionalHandleBitfield[0],
         NULL,
         &IsNullableHandleBitfield[0],
         NULL,
@@ -95,8 +90,35 @@ const TraitSchemaEngine TraitSchema = {
     }
 };
 
-} // namespace DeviceIdentityTrait
-} // namespace Description
+//
+// Event Structs
+//
+
+const nl::FieldDescriptor UserPincodeFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(UserPincode, userId), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeByteString, 0), 1
+    },
+
+    {
+        NULL, offsetof(UserPincode, pincode), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeByteString, 0), 2
+    },
+
+    {
+        NULL, offsetof(UserPincode, pincodeCredentialEnabled), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeBoolean, 1), 3
+    },
+
+};
+
+const nl::SchemaFieldDescriptor UserPincode::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(UserPincodeFieldDescriptors)/sizeof(UserPincodeFieldDescriptors[0]),
+    .mFields = UserPincodeFieldDescriptors,
+    .mSize = sizeof(UserPincode)
+};
+
+} // namespace UserPincodesSettingsTrait
+} // namespace Security
 } // namespace Trait
 } // namespace Weave
 } // namespace Schema

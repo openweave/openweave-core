@@ -1,3 +1,4 @@
+
 /*
  *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2016-2018 Nest Labs, Inc.
@@ -19,39 +20,29 @@
 /*
  *    THIS FILE IS GENERATED. DO NOT MODIFY.
  *
- *    SOURCE TEMPLATE: struct.cpp.h
- *    SOURCE PROTO: weave/common/identifiers.proto
+ *    SOURCE TEMPLATE: trait.c.h
+ *    SOURCE PROTO: weave/trait/log/logging_capabilities_trait.proto
  *
  */
-#ifndef _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
-#define _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
-
-#include <Weave/Support/SerializationUtils.h>
-#include <Weave/Profiles/data-management/DataManagement.h>
+#ifndef _WEAVE_TRAIT_LOG__LOGGING_CAPABILITIES_TRAIT_C_H_
+#define _WEAVE_TRAIT_LOG__LOGGING_CAPABILITIES_TRAIT_C_H_
 
 
 
-namespace Schema {
-namespace Weave {
-namespace Common {
 
-struct ProfileSpecificStatusCode
-{
-    uint32_t profileId;
-    uint16_t statusCode;
+    //
+    // Enums
+    //
 
-    static const nl::SchemaFieldDescriptor FieldSchema;
-
-};
-
-struct ProfileSpecificStatusCode_array {
-    uint32_t num;
-    ProfileSpecificStatusCode *buf;
-};
+    // LogTransport
+    typedef enum
+    {
+    LOG_TRANSPORT_BDX = 1,
+    LOG_TRANSPORT_HTTP = 2,
+    LOG_TRANSPORT_HTTPS = 3,
+    } schema_weave_log_logging_capabilities_trait_log_transport_t;
 
 
 
-} // namespace Common
-} // namespace Weave
-} // namespace Schema
-#endif // _WEAVE_COMMON__PROFILE_SPECIFIC_STATUS_CODE_STRUCT_SCHEMA_H_
+
+#endif // _WEAVE_TRAIT_LOG__LOGGING_CAPABILITIES_TRAIT_C_H_
