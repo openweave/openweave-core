@@ -63,7 +63,6 @@ EXTRA_DIST                                            = \
     test-file-development.txt				\
     test-weave-device-descriptor-encode.sh		\
     weave-bdx-client.cpp				\
-    weave-parallel-test-engine				\
     $(NULL)
 
 SUBDIRS                                               = \
@@ -74,7 +73,7 @@ SUBDIRS                                               = \
 # Define a package-specific test driver (for 'make check').
 #
 
-LOG_DRIVER=$(abs_srcdir)/weave-parallel-test-engine
+LOG_DRIVER=$(abs_top_srcdir)/third_party/autoconf/repo/weave-parallel-test-engine
 
 #
 # Local headers to build against and distribute but not to install

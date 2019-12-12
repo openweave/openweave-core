@@ -29,6 +29,7 @@ EXTRA_DIST                                   = \
     android/platform-system/README.third_party \
     cstyle                                     \
     nlbuild-autotools                          \
+    autoconf                                   \
     $(NULL)
 
 # Always package (e.g. for 'make dist') these subdirectories.
