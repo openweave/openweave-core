@@ -57,11 +57,9 @@ class test_weave_pairing_01(unittest.TestCase):
             if "unstable" not in os.environ["weave_service_address"]:
                 found = re.search('.(\w+).nestlabs.com', os.environ["weave_service_address"])
                 self.tier = found.group(1)
-                self.customized_tunnel_port = None
             else:
                 found = re.search('(\w+.unstable).nestlabs.com', os.environ["weave_service_address"])
                 self.tier = found.group(1)
-                self.customized_tunnel_port = 20895
 
         self.topology_setup_required = int(os.environ.get("TOPOLOGY", "1")) == 1
 
@@ -156,9 +154,6 @@ class test_weave_pairing_01(unittest.TestCase):
 
         options["case"] = self.case
         options["service_dir"] = self.use_service_dir
-
-        if self.customized_tunnel_port:
-            options["customized_tunnel_port"] = self.customized_tunnel_port
 
         weave_tunnel = WeaveTunnelStart.WeaveTunnelStart(options)
         ret = weave_tunnel.run()
