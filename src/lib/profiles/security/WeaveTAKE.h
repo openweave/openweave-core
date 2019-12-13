@@ -34,7 +34,6 @@
 #include <Weave/Core/WeaveError.h>
 #include <Weave/Core/WeaveCore.h>
 #include <SystemLayer/SystemPacketBuffer.h>
-#include <micro-ecc/uECC.h>
 
 #include <stdint.h>
 #include <string.h>
