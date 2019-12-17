@@ -106,6 +106,12 @@ def _ByteArrayToVoidPtr(array):
     else:
         return c_void_p(0)
 
+def _CStringToString(s):
+    return None if s is None else s.decode()
+
+def _StringToCString(s):
+    return None if s is None else s.encode()
+
 def _IsByteArrayAllZeros(array):
     for i in range(len(array)):
         if (array[i] != 0):
@@ -113,7 +119,8 @@ def _IsByteArrayAllZeros(array):
     return True
 
 def _ByteArrayToHex(array):
-    return binascii.hexlify(bytes(array))
+    return binascii.hexlify(bytes(array)).decode()
+
 WeaveDeviceMgrDLLBaseName = '_WeaveDeviceMgr.so'
 
 def _AllDirsToRoot(dir):
@@ -374,12 +381,12 @@ class _NetworkInfoStruct(Structure):
         return NetworkInfo(
             networkType = self.NetworkType if self.NetworkType != -1 else None,
             networkId = self.NetworkId if self.NetworkId != -1 else None,
-            wifiSSID = self.WiFiSSID,
+            wifiSSID = _CStringToString(self.WiFiSSID),
             wifiMode = self.WiFiMode if self.WiFiMode != -1 else None,
             wifiRole = self.WiFiRole if self.WiFiRole != -1 else None,
             wifiSecurityType = self.WiFiSecurityType if self.WiFiSecurityType != -1 else None,
             wifiKey = _VoidPtrToByteArray(self.WiFiKey, self.WiFiKeyLen),
-            threadNetworkName = self.ThreadNetworkName,
+            threadNetworkName = _CStringToString(self.ThreadNetworkName),
             threadExtendedPANId = _VoidPtrToByteArray(self.ThreadExtendedPANId, 8),
             threadNetworkKey = _VoidPtrToByteArray(self.ThreadNetworkKey, 16),
             threadPSKc = _VoidPtrToByteArray(self.ThreadPSKc, 16),
@@ -393,13 +400,13 @@ class _NetworkInfoStruct(Structure):
         networkInfoStruct = cls()
         networkInfoStruct.NetworkType = networkInfo.NetworkType if networkInfo.NetworkType != None else -1
         networkInfoStruct.NetworkId = networkInfo.NetworkId if networkInfo.NetworkId != None else -1
-        networkInfoStruct.WiFiSSID = networkInfo.WiFiSSID
+        networkInfoStruct.WiFiSSID = _StringToCString(networkInfo.WiFiSSID)
         networkInfoStruct.WiFiMode = networkInfo.WiFiMode if networkInfo.WiFiMode != None else -1
         networkInfoStruct.WiFiRole = networkInfo.WiFiRole if networkInfo.WiFiRole != None else -1
         networkInfoStruct.WiFiSecurityType = networkInfo.WiFiSecurityType if networkInfo.WiFiSecurityType != None else -1
         networkInfoStruct.WiFiKey = _ByteArrayToVoidPtr(networkInfo.WiFiKey)
         networkInfoStruct.WiFiKeyLen = len(networkInfo.WiFiKey) if (networkInfo.WiFiKey != None) else 0
-        networkInfoStruct.ThreadNetworkName = networkInfo.ThreadNetworkName
+        networkInfoStruct.ThreadNetworkName = _StringToCString(networkInfo.ThreadNetworkName)
         networkInfoStruct.ThreadExtendedPANId = _ByteArrayToVoidPtr(networkInfo.ThreadExtendedPANId)
         networkInfoStruct.ThreadNetworkKey = _ByteArrayToVoidPtr(networkInfo.ThreadNetworkKey)
         networkInfoStruct.ThreadPSKc = _ByteArrayToVoidPtr(networkInfo.ThreadPSKc)
@@ -442,10 +449,10 @@ class _DeviceDescriptorStruct(Structure):
             manufacturingDay = self.ManufacturingDay if self.ManufacturingDay != 0 else None,
             primary802154MACAddress = bytearray(self.Primary802154MACAddress) if not _IsByteArrayAllZeros(self.Primary802154MACAddress) else None,
             primaryWiFiMACAddress = bytearray(self.PrimaryWiFiMACAddress) if not _IsByteArrayAllZeros(self.PrimaryWiFiMACAddress) else None,
-            serialNumber = self.SerialNumber if len(self.SerialNumber) != 0 else None,
-            softwareVersion = self.SoftwareVersion if len(self.SoftwareVersion) != 0 else None,
-            rendezvousWiFiESSID = self.RendezvousWiFiESSID if len(self.RendezvousWiFiESSID) != 0 else None,
-            pairingCode = self.PairingCode if len(self.PairingCode) != 0 else None,
+            serialNumber = _CStringToString(self.SerialNumber) if len(self.SerialNumber) != 0 else None,
+            softwareVersion = _CStringToString(self.SoftwareVersion) if len(self.SoftwareVersion) != 0 else None,
+            rendezvousWiFiESSID = _CStringToString(self.RendezvousWiFiESSID) if len(self.RendezvousWiFiESSID) != 0 else None,
+            pairingCode = _CStringToString(self.PairingCode) if len(self.PairingCode) != 0 else None,
             pairingCompatibilityVersionMajor = self.PairingCompatibilityVersionMajor,
             pairingCompatibilityVersionMinor = self.PairingCompatibilityVersionMinor,
             deviceFeatures = self.DeviceFeatures,
@@ -473,9 +480,14 @@ _DeviceEnumerationResponseFunct             = CFUNCTYPE(None, c_void_p, POINTER(
 # This is a fix for WEAV-429. Jay Logue recommends revisiting this at a later
 # date to allow for truely multiple instances so this is temporary.
 def _singleton(cls):
-    instance = cls()
-    instance.__call__ = lambda: instance
-    return instance
+    instance = [None]
+
+    def wrapper(*args, **kwargs):
+        if instance[0] is None:
+            instance[0] = cls(*args, **kwargs)
+        return instance[0]
+
+    return wrapper
 
 @_singleton
 class WeaveDeviceManager(object):
@@ -506,7 +518,7 @@ class WeaveDeviceManager(object):
             self.completeEvent.set()
 
         def HandleDeviceEnumerationResponse(devMgr, deviceDescPtr, deviceAddrStr):
-            print("    Enumerated device IP: %s" % (deviceAddrStr))
+            print("    Enumerated device IP: %s" % (_CStringToString(deviceAddrStr)))
             deviceDescPtr.contents.toDeviceDescriptor().Print("    ")
 
         self.cbHandleComplete = _CompleteFunct(HandleComplete)
@@ -587,7 +599,7 @@ class WeaveDeviceManager(object):
 
     def DeviceAddress(self):
         return self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_DeviceAddress(self.devMgr)
+            lambda: _CStringToString(_dmLib.nl_Weave_DeviceManager_DeviceAddress(self.devMgr))
         )
 
     def SetRendezvousAddress(self, addr, intf = None):
@@ -595,7 +607,7 @@ class WeaveDeviceManager(object):
             raise ValueError("Unexpected NUL character in addr");
 
         res = self._CallDevMgr(
-            lambda: _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress(self.devMgr, addr, intf)
+            lambda: _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress(self.devMgr, _StringToCString(addr), _StringToCString(intf))
         )
         if (res != 0):
             raise self._ErrorToException(res)
@@ -659,15 +671,15 @@ class WeaveDeviceManager(object):
 
         if (pairingCode == None and accessToken == None):
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_NoAuth(self.devMgr, deviceId, deviceAddr, self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_NoAuth(self.devMgr, deviceId, _StringToCString(deviceAddr), self.cbHandleComplete, self.cbHandleError)
             )
         elif (pairingCode != None):
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_PairingCode(self.devMgr, deviceId, deviceAddr, pairingCode, self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_PairingCode(self.devMgr, deviceId, _StringToCString(deviceAddr), _StringToCString(pairingCode), self.cbHandleComplete, self.cbHandleError)
             )
         else:
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_AccessToken(self.devMgr, deviceId, deviceAddr, _ByteArrayToVoidPtr(accessToken), len(accessToken), self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_AccessToken(self.devMgr, deviceId, _StringToCString(deviceAddr), _ByteArrayToVoidPtr(accessToken), len(accessToken), self.cbHandleComplete, self.cbHandleError)
             )
 
     def RendezvousDevice(self, pairingCode=None, accessToken=None,
@@ -696,7 +708,7 @@ class WeaveDeviceManager(object):
             )
         elif (pairingCode != None):
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RendezvousDevice_PairingCode(self.devMgr, pairingCode, deviceCriteria, self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_RendezvousDevice_PairingCode(self.devMgr, _StringToCString(pairingCode), deviceCriteria, self.cbHandleComplete, self.cbHandleError)
             )
         else:
             self._CallDevMgrAsync(
@@ -747,7 +759,7 @@ class WeaveDeviceManager(object):
             )
         elif (pairingCode != None):
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectBle_PairingCode(self.devMgr, bleConnection, pairingCode, self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_ConnectBle_PairingCode(self.devMgr, bleConnection, _StringToCString(pairingCode), self.cbHandleComplete, self.cbHandleError)
             )
         else:
             self._CallDevMgrAsync(
@@ -767,7 +779,7 @@ class WeaveDeviceManager(object):
             )
         elif (pairingCode != None):
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_PairingCode(self.devMgr, pairingCode, self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_PairingCode(self.devMgr, _StringToCString(pairingCode), self.cbHandleComplete, self.cbHandleError)
             )
         else:
             self._CallDevMgrAsync(
@@ -786,15 +798,15 @@ class WeaveDeviceManager(object):
 
         if (pairingCode == None and accessToken == None):
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_NoAuth(self.devMgr, rendezvousDeviceAddr, rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_NoAuth(self.devMgr, _StringToCString(rendezvousDeviceAddr), rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
             )
         elif (pairingCode != None):
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_PASEAuth(self.devMgr, rendezvousDeviceAddr, pairingCode, rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_PASEAuth(self.devMgr, _StringToCString(rendezvousDeviceAddr), _StringToCString(pairingCode), rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
             )
         else:
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_CASEAuth(self.devMgr, rendezvousDeviceAddr, _ByteArrayToVoidPtr(accessToken), len(accessToken), rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_CASEAuth(self.devMgr, _StringToCString(rendezvousDeviceAddr), _ByteArrayToVoidPtr(accessToken), len(accessToken), rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
             )
 
     def ReconnectDevice(self):
@@ -883,13 +895,13 @@ class WeaveDeviceManager(object):
             raise ValueError("Unexpected NUL character in nonce")
 
         def HandleGetCameraAuthDataComplete(devMgr, reqState, macAddress, signedCameraPayload):
-            self.callbackRes = [ macAddress, signedCameraPayload ]
+            self.callbackRes = [ _CStringToString(macAddress), _CStringToString(signedCameraPayload) ]
             self.completeEvent.set()
 
         cbHandleGetCameraAuthDataComplete = _GetCameraAuthDataCompleteFunct(HandleGetCameraAuthDataComplete)
 
         return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_GetCameraAuthData(self.devMgr, nonce, cbHandleGetCameraAuthDataComplete, self.cbHandleError)
+            lambda: _dmLib.nl_Weave_DeviceManager_GetCameraAuthData(self.devMgr, _StringToCString(nonce), cbHandleGetCameraAuthDataComplete, self.cbHandleError)
         )
 
     def AddNetwork(self, networkInfo):
@@ -1006,7 +1018,7 @@ class WeaveDeviceManager(object):
             raise ValueError("Unexpected NUL character in accountId")
 
         self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_RegisterServicePairAccount(self.devMgr, serviceId, accountId,
+            lambda: _dmLib.nl_Weave_DeviceManager_RegisterServicePairAccount(self.devMgr, serviceId, _StringToCString(accountId),
                                                       _ByteArrayToVoidPtr(serviceConfig), len(serviceConfig),
                                                       _ByteArrayToVoidPtr(pairingToken), len(pairingToken),
                                                       _ByteArrayToVoidPtr(pairingInitData), len(pairingInitData),
@@ -1351,13 +1363,13 @@ class WeaveDeviceManager(object):
     def _ErrorToException(self, err, devStatusPtr=None):
         if (err == 4044 and devStatusPtr):
             devStatus = devStatusPtr.contents
-            msg = _dmLib.nl_Weave_DeviceManager_StatusReportToString(devStatus.ProfileId, devStatus.StatusCode)
+            msg = _CStringToString(_dmLib.nl_Weave_DeviceManager_StatusReportToString(devStatus.ProfileId, devStatus.StatusCode))
             sysErrorCode = devStatus.SysErrorCode if (devStatus.SysErrorCode != 0) else None
             if (sysErrorCode != None):
                 msg = msg + " (system err %d)" % (sysErrorCode)
             return DeviceError(devStatus.ProfileId, devStatus.StatusCode, sysErrorCode, msg)
         else:
-            return DeviceManagerError(err, _dmLib.nl_Weave_DeviceManager_ErrorToString(err))
+            return DeviceManagerError(err, _CStringToString(_dmLib.nl_Weave_DeviceManager_ErrorToString(err)))
 
 
 def NetworkTypeToString(val):
