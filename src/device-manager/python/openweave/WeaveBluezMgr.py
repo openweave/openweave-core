@@ -20,6 +20,8 @@
 #      BLE Central support for Weave Device Manager via BlueZ APIs.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import abc
 import dbus
 import dbus.service
@@ -34,21 +36,23 @@ import threading
 import time
 import traceback
 import uuid
-import Queue
+import six.moves.queue
 
 
 from ctypes import *
+import six
+from six.moves import range
 
 try:
     from gi.repository import GObject
 except:
     from pgi.repository import GObject
 
-from WeaveBleUtility import *
-from WeaveBleUtility import _VoidPtrToUUIDString
-from WeaveBleUtility import _VoidPtrToByteArray
+from .WeaveBleUtility import *
+from .WeaveBleUtility import _VoidPtrToUUIDString
+from .WeaveBleUtility import _VoidPtrToByteArray
 
-from WeaveBleBase import WeaveBleBase
+from .WeaveBleBase import WeaveBleBase
 
 weave_service = uuid.UUID('0000FEAF-0000-1000-8000-00805F9B34FB')
 weave_tx      = uuid.UUID('18EE2EF5-263D-4559-959F-4F9C429F9D11')
@@ -81,7 +85,7 @@ def get_bluez_objects(bluez, bus, interface, prefix_path):
     results = []
     if bluez is None or bus is None or interface is None or prefix_path is None:
         return results
-    for item in bluez.GetManagedObjects().iteritems():
+    for item in six.iteritems(bluez.GetManagedObjects()):
         delegates = item[1].get(interface)
         if not delegates:
             continue
@@ -166,7 +170,7 @@ class BluezDbusAdapter():
                     self.adapter.StopDiscovery()
                     self.logger.info("scanning stopped")
                 else:
-                    print "it has stopped scanning"
+                    print("it has stopped scanning")
             if action_flag:
                 if not self.adapter_event.wait(bleStatusTransitionTimeoutSec):
                     if enable:
@@ -697,7 +701,7 @@ class BluezManager(WeaveBleBase):
                 format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
         self.scan_quiet= False
         self.peripheral_list = []
-        self.weave_queue = Queue.Queue()
+        self.weave_queue = six.moves.queue.Queue()
         self.Gmainloop = None
         self.daemon_thread = None
         self.adapter = None
@@ -790,7 +794,7 @@ class BluezManager(WeaveBleBase):
             while not self.Gmainloop or not self.Gmainloop.is_running():
                 time.sleep(0.00001)
             target(**kwargs)
-        except Exception, err:
+        except Exception as err:
             traceback.print_exc()
         finally:
             self.Gmainloop.quit()
@@ -954,7 +958,7 @@ class BluezManager(WeaveBleBase):
             else:
                 return False
         else:
-            print "device cannot be found"
+            print("device cannot be found")
             return False
 
     def disconnect(self):

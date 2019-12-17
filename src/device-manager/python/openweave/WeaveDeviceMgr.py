@@ -23,6 +23,8 @@
 """Weave Device Manager interface
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import functools
 import sys
 import os
@@ -35,6 +37,8 @@ import glob
 import platform
 from threading import Thread, Lock, Event
 from ctypes import *
+import six
+from six.moves import range
 
 __all__ = [ 'WeaveDeviceManager', 'NetworkInfo', 'DeviceManagerException', 'DeviceError', 'DeviceManagerError' ]
 
@@ -166,33 +170,33 @@ class NetworkInfo:
         self.WirelessSignalStrength = wirelessSignalStrength
 
     def Print(self, prefix=""):
-        print "%sNetwork Type: %s" % (prefix, NetworkTypeToString(self.NetworkType))
+        print("%sNetwork Type: %s" % (prefix, NetworkTypeToString(self.NetworkType)))
         if self.NetworkId != None:
-            print "%sNetwork Id: %d" % (prefix, self.NetworkId)
+            print("%sNetwork Id: %d" % (prefix, self.NetworkId))
         if self.WiFiSSID != None:
-            print "%sWiFi SSID: \"%s\"" % (prefix, self.WiFiSSID)
+            print("%sWiFi SSID: \"%s\"" % (prefix, self.WiFiSSID))
         if self.WiFiMode != None:
-            print "%sWiFi Mode: %s" % (prefix, WiFiModeToString(self.WiFiMode))
+            print("%sWiFi Mode: %s" % (prefix, WiFiModeToString(self.WiFiMode)))
         if self.WiFiRole != None:
-            print "%sWiFi Role: %s" % (prefix, WiFiRoleToString(self.WiFiRole))
+            print("%sWiFi Role: %s" % (prefix, WiFiRoleToString(self.WiFiRole)))
         if self.WiFiSecurityType != None:
-            print "%sWiFi Security Type: %s" % (prefix, WiFiSecurityTypeToString(self.WiFiSecurityType))
+            print("%sWiFi Security Type: %s" % (prefix, WiFiSecurityTypeToString(self.WiFiSecurityType)))
         if self.WiFiKey != None:
-            print "%sWiFi Key: %s" % (prefix, self.WiFiKey)
+            print("%sWiFi Key: %s" % (prefix, self.WiFiKey))
         if self.ThreadNetworkName != None:
-            print "%sThread Network Name: \"%s\"" % (prefix, self.ThreadNetworkName)
+            print("%sThread Network Name: \"%s\"" % (prefix, self.ThreadNetworkName))
         if self.ThreadExtendedPANId != None:
-            print "%sThread Extended PAN Id: %s" % (prefix, _ByteArrayToHex(self.ThreadExtendedPANId))
+            print("%sThread Extended PAN Id: %s" % (prefix, _ByteArrayToHex(self.ThreadExtendedPANId)))
         if self.ThreadNetworkKey != None:
-            print "%sThread Network Key: %s" % (prefix, _ByteArrayToHex(self.ThreadNetworkKey))
+            print("%sThread Network Key: %s" % (prefix, _ByteArrayToHex(self.ThreadNetworkKey)))
         if self.ThreadPSKc != None:
-            print "%sThread Network PSKc: %s" % (prefix, _ByteArrayToHex(self.ThreadPSKc))
+            print("%sThread Network PSKc: %s" % (prefix, _ByteArrayToHex(self.ThreadPSKc)))
         if self.ThreadPANId != None:
-            print "%sThread PAN Id: %04x" % (prefix, self.ThreadPANId)
+            print("%sThread PAN Id: %04x" % (prefix, self.ThreadPANId))
         if self.ThreadChannel != None:
-            print "%sThread Channel: %d" % (prefix, self.ThreadChannel)
+            print("%sThread Channel: %d" % (prefix, self.ThreadChannel))
         if self.WirelessSignalStrength != None:
-            print "%sWireless Signal Strength: %s" % (prefix, self.WirelessSignalStrength)
+            print("%sWireless Signal Strength: %s" % (prefix, self.WirelessSignalStrength))
 
     def SetField(self, name, val):
         name = name.lower();
@@ -261,38 +265,38 @@ class DeviceDescriptor:
 
     def Print(self, prefix=""):
         if self.DeviceId != None:
-            print "%sDevice Id: %016X" % (prefix, self.DeviceId)
+            print("%sDevice Id: %016X" % (prefix, self.DeviceId))
         if self.FabricId != None:
-            print "%sFabrid Id: %016X" % (prefix, self.FabricId)
+            print("%sFabrid Id: %016X" % (prefix, self.FabricId))
         if self.VendorId != None:
-            print "%sVendor Id: %X" % (prefix, self.VendorId)
+            print("%sVendor Id: %X" % (prefix, self.VendorId))
         if self.ProductId != None:
-            print "%sProduct Id: %X" % (prefix, self.ProductId)
+            print("%sProduct Id: %X" % (prefix, self.ProductId))
         if self.ProductRevision != None:
-            print "%sProduct Revision: %X" % (prefix, self.ProductRevision)
+            print("%sProduct Revision: %X" % (prefix, self.ProductRevision))
         if self.SerialNumber != None:
-            print "%sSerial Number: %s" % (prefix, self.SerialNumber)
+            print("%sSerial Number: %s" % (prefix, self.SerialNumber))
         if self.SoftwareVersion != None:
-            print "%sSoftware Version: %s" % (prefix, self.SoftwareVersion)
+            print("%sSoftware Version: %s" % (prefix, self.SoftwareVersion))
         if self.ManufacturingYear != None and self.ManufacturingMonth != None:
             if self.ManufacturingDay != None:
-                print "%sManufacturing Date: %04d/%02d/%02d" % (prefix, self.ManufacturingYear, self.ManufacturingMonth, self.ManufacturingDay)
+                print("%sManufacturing Date: %04d/%02d/%02d" % (prefix, self.ManufacturingYear, self.ManufacturingMonth, self.ManufacturingDay))
             else:
-                print "%sManufacturing Date: %04d/%02d" % (prefix, self.ManufacturingYear, self.ManufacturingMonth)
+                print("%sManufacturing Date: %04d/%02d" % (prefix, self.ManufacturingYear, self.ManufacturingMonth))
         if self.Primary802154MACAddress != None:
-            print "%sPrimary 802.15.4 MAC Address: %s" % (prefix, _ByteArrayToHex(self.Primary802154MACAddress))
+            print("%sPrimary 802.15.4 MAC Address: %s" % (prefix, _ByteArrayToHex(self.Primary802154MACAddress)))
         if self.PrimaryWiFiMACAddress != None:
-            print "%sPrimary WiFi MAC Address: %s" % (prefix, _ByteArrayToHex(self.PrimaryWiFiMACAddress))
+            print("%sPrimary WiFi MAC Address: %s" % (prefix, _ByteArrayToHex(self.PrimaryWiFiMACAddress)))
         if self.RendezvousWiFiESSID != None:
-            print "%sRendezvous WiFi ESSID%s: %s" % (prefix, " Suffix" if self.IsRendezvousWiFiESSIDSuffix else "", self.RendezvousWiFiESSID)
+            print("%sRendezvous WiFi ESSID%s: %s" % (prefix, " Suffix" if self.IsRendezvousWiFiESSIDSuffix else "", self.RendezvousWiFiESSID))
         if self.PairingCode != None:
-            print "%sPairing Code: %s" % (prefix, self.PairingCode)
+            print("%sPairing Code: %s" % (prefix, self.PairingCode))
         if self.PairingCompatibilityVersionMajor != None:
-            print "%sPairing Compatibility Major Id: %X" % (prefix, self.PairingCompatibilityVersionMajor)
+            print("%sPairing Compatibility Major Id: %X" % (prefix, self.PairingCompatibilityVersionMajor))
         if self.PairingCompatibilityVersionMinor != None:
-            print "%sPairing Compatibility Minor Id: %X" % (prefix, self.PairingCompatibilityVersionMinor)
+            print("%sPairing Compatibility Minor Id: %X" % (prefix, self.PairingCompatibilityVersionMinor))
         if self.DeviceFeatures != None:
-            print "%sDevice Features: %s" % (prefix, " ".join([DeviceFeatureToString(val) for val in self.DeviceFeatures]))
+            print("%sDevice Features: %s" % (prefix, " ".join([DeviceFeatureToString(val) for val in self.DeviceFeatures])))
 
     @property
     def IsRendezvousWiFiESSIDSuffix(self):
@@ -474,7 +478,7 @@ def _singleton(cls):
     return instance
 
 @_singleton
-class WeaveDeviceManager:
+class WeaveDeviceManager(object):
 
     def __init__(self, startNetworkThread=True):
         self.devMgr = None
@@ -502,7 +506,7 @@ class WeaveDeviceManager:
             self.completeEvent.set()
 
         def HandleDeviceEnumerationResponse(devMgr, deviceDescPtr, deviceAddrStr):
-            print "    Enumerated device IP: %s" % (deviceAddrStr)
+            print("    Enumerated device IP: %s" % (deviceAddrStr))
             deviceDescPtr.contents.toDeviceDescriptor().Print("    ")
 
         self.cbHandleComplete = _CompleteFunct(HandleComplete)
@@ -1366,7 +1370,7 @@ def NetworkTypeToString(val):
     return None
 
 def ParseNetworkType(val):
-    if isinstance(val, (int, long)):
+    if isinstance(val, six.integer_types):
         return val
     val = val.lower()
     if (val == "wifi"):
@@ -1385,7 +1389,7 @@ def WiFiModeToString(val):
     return None
 
 def ParseWiFiMode(val):
-    if isinstance(val, (int, long)):
+    if isinstance(val, six.integer_types):
         return val
     val = val.lower()
     if (val == "adhoc" or val == "ad-hoc"):
@@ -1404,7 +1408,7 @@ def WiFiRoleToString(val):
     return None
 
 def ParseWiFiRole(val):
-    if isinstance(val, (int, long)):
+    if isinstance(val, six.integer_types):
         return val
     val = val.lower()
     if (val == "station"):

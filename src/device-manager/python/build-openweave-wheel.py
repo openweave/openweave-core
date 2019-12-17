@@ -20,6 +20,7 @@
 #      Builds a Python wheel package for OpenWeave.
 #
 
+from __future__ import absolute_import
 import sys
 import os
 import stat

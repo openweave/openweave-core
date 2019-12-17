@@ -20,13 +20,14 @@
 #      This file is Weave BLE Base class file
 #
 
+from __future__ import absolute_import
 import abc
 import shlex
 import optparse
 from optparse import OptionParser, Option, OptionValueError
+import six
 
-class WeaveBleBase(object):
-    __metaclass__ = abc.ABCMeta
+class WeaveBleBase(six.with_metaclass(abc.ABCMeta, object)):
     @abc.abstractmethod
     def scan(self, line):
         """ API to initiatae BLE scanning for -t user_timeout seconds."""

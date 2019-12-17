@@ -20,9 +20,12 @@
 #      This file is uitilies for Weave BLE
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import binascii
 import logging
 from ctypes import *
+import six
 
 
 # Duplicates of BLE definitions in WeaveDeviceManager-ScriptBinding.cpp
@@ -54,7 +57,7 @@ def _VoidPtrToUUIDString(ptr, len):
         ptr = ptr[:8] + '-' + ptr[8:12] + '-' + ptr[12:16] + '-' + ptr[16:20] + '-' + ptr[20:]
         ptr = str(ptr)
     except:
-        print "ERROR: failed to convert void * to UUID"
+        print("ERROR: failed to convert void * to UUID")
         ptr = None
 
     return ptr
@@ -74,7 +77,7 @@ def _ByteArrayToVoidPtr(array):
         return c_void_p(0)
 
 def ParseBleEventType(val):
-    if isinstance(val, (int, long)):
+    if isinstance(val, six.integer_types):
         return val
     if (val.lower() == "rx"):
         return BleEventType_Rx
@@ -92,16 +95,16 @@ class BleTxEvent:
         self.Status = status
 
     def Print(self, prefix=""):
-        print "%sBleEvent Type: %s" % (prefix, ("TX" if self.EventType == BleEventType_Tx else "ERROR"))
-        print "%sStatus: %s" % (prefix, str(self.Status))
+        print("%sBleEvent Type: %s" % (prefix, ("TX" if self.EventType == BleEventType_Tx else "ERROR")))
+        print("%sStatus: %s" % (prefix, str(self.Status)))
 
         if self.SvcId:
-            print "%sSvcId:" % (prefix)
-            print binascii.hexlify(self.SvcId)
+            print("%sSvcId:" % (prefix))
+            print(binascii.hexlify(self.SvcId))
 
         if self.CharId:
-            print "%sCharId:" % (prefix)
-            print binascii.hexlify(self.CharId)
+            print("%sCharId:" % (prefix))
+            print(binascii.hexlify(self.CharId))
 
     def SetField(self, name, val):
         name = name.lower()
@@ -123,8 +126,8 @@ class BleDisconnectEvent:
         self.Error = error
 
     def Print(self, prefix=""):
-        print "%sBleEvent Type: %s" % (prefix, ("DC" if self.EventType == BleEventType_Disconnect else "ERROR"))
-        print "%sError: %s" % (prefix, str(self.Error))
+        print("%sBleEvent Type: %s" % (prefix, ("DC" if self.EventType == BleEventType_Disconnect else "ERROR")))
+        print("%sError: %s" % (prefix, str(self.Error)))
 
     def SetField(self, name, val):
         name = name.lower()
@@ -144,18 +147,18 @@ class BleRxEvent:
         self.Buffer = buffer
 
     def Print(self, prefix=""):
-        print "%sBleEvent Type: %s" % (prefix, ("RX" if self.EventType == BleEventType_Rx else "ERROR"))
+        print("%sBleEvent Type: %s" % (prefix, ("RX" if self.EventType == BleEventType_Rx else "ERROR")))
         if self.Buffer:
-            print "%sBuffer:" % (prefix)
-            print binascii.hexlify(self.Buffer)
+            print("%sBuffer:" % (prefix))
+            print(binascii.hexlify(self.Buffer))
 
         if self.SvcId:
-            print "%sSvcId:" % (prefix)
-            print binascii.hexlify(self.SvcId)
+            print("%sSvcId:" % (prefix))
+            print(binascii.hexlify(self.SvcId))
 
         if self.CharId:
-            print "%sCharId:" % (prefix)
-            print binascii.hexlify(self.CharId)
+            print("%sCharId:" % (prefix))
+            print(binascii.hexlify(self.CharId))
 
     def SetField(self, name, val):
         name = name.lower()
@@ -180,17 +183,17 @@ class BleSubscribeEvent:
         self.Operation = operation
 
     def Print(self, prefix=""):
-        print "%sBleEvent Type: %s" % (prefix, ("SUBSCRIBE" if self.EventType == BleEventType_Subscribe else "ERROR"))
-        print "%sStatus: %s" % (prefix, str(self.Status))
-        print "%sOperation: %s" % (prefix, ("UNSUBSCRIBE" if self.Operation == BleSubscribeOperation_Unsubscribe else "SUBSCRIBE"))
+        print("%sBleEvent Type: %s" % (prefix, ("SUBSCRIBE" if self.EventType == BleEventType_Subscribe else "ERROR")))
+        print("%sStatus: %s" % (prefix, str(self.Status)))
+        print("%sOperation: %s" % (prefix, ("UNSUBSCRIBE" if self.Operation == BleSubscribeOperation_Unsubscribe else "SUBSCRIBE")))
 
         if self.SvcId:
-            print "%sSvcId:" % (prefix)
-            print binascii.hexlify(self.SvcId)
+            print("%sSvcId:" % (prefix))
+            print(binascii.hexlify(self.SvcId))
 
         if self.CharId:
-            print "%sCharId:" % (prefix)
-            print binascii.hexlify(self.CharId)
+            print("%sCharId:" % (prefix))
+            print(binascii.hexlify(self.CharId))
 
     def SetField(self, name, val):
         name = name.lower()
