@@ -310,7 +310,7 @@ there are three phases to using the OpenWeave Core build:
 * Build
 * Stage
 
-### Prerequisite
+### Prerequisites
 
 If you're using Weave's bundled OpenSSL, make sure you've installed
 Perl text::template.
@@ -318,12 +318,21 @@ Perl text::template.
 Text::Template is available from http://www.plover.com/~mjd/perl/Template/
 or from CPAN (http://search.cpan.org/dist/Text-Template/).
 
-        % wget "http://search.cpan.org/CPAN/authors/id/M/MS/MSCHOUT/Text-Template-1.47.tar.gz" 
-        % tar -xvzf Text-Template-1.47.tar.gz
-        % cd Text-Template-1.47/
-        % perl Makefile.PL
-        % make test
-        % sudo make install
+```
+% wget "http://search.cpan.org/CPAN/authors/id/M/MS/MSCHOUT/Text-Template-1.47.tar.gz" 
+% tar -xvzf Text-Template-1.47.tar.gz
+% cd Text-Template-1.47/
+% perl Makefile.PL
+% make test
+% sudo make install
+```
+
+To use OpenWeave's Python-based scripts and tools, the following
+packages are required:
+
+```
+% pip install --user google-cloud googleapis-common-protos grpc protobuf pycryptodomex
+```
 
 ### Procedure
 
@@ -466,7 +475,7 @@ NOTE: Feel free to name this directory whatever you would like.
 % mkdir openweave-core-build
 % cd openweave-core-build
 % {WEAVE_SRCDIR}/configure [ <options> ... ]
-
+```
 
 ##### Configuration options
 
