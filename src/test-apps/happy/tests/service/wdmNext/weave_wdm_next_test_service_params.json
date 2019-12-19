@@ -1,0 +1,1707 @@
+{
+    "test_weave_wdm_next_service_mutual_subscribe_01": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-E01: Mutual Subscribe: Root path. Null Version. Client in initiator cancels", 
+                "'Wdm-NestService-M01: Stress Mutual Subscribe: Root path. Null Version. Client in initiator cancels'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_01", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_02": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-E02: Mutual Subscribe: Root path, Null Version, Publisher in initiator Cancel", 
+                "'Wdm-NestService-M02: Stress Mutual Subscribe: Root path, Null Version, Publisher in initiator Cancel'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_02", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_03": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-E03: Mutual Subscribe: Root path. Null Version. Client in initiator aborts", 
+                "'Wdm-NestService-M03: Stress Mutual Subscribe: Root path. Null Version. Client in initiator aborts'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_03", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_04": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10, 
+            "timer_period": 0, 
+            "total_count": 0
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-E04: Mutual Subscribe: Root path. Null Version. Publisher in initiator aborts", 
+                "'Wdm-NestService-M04: Stress Mutual Subscribe: Root path. Null Version. Publisher in initiator aborts'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_04", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_05": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-F01: Mutual Subscribe: Root path, Null Version, Idle, Client in initiator Cancel", 
+                "'Wdm-NestService-M05: Stress Mutual Subscribe: Root path, Null Version, Idle, Client in initiator Cancel'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_05", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_06": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-F02: Mutual Subscribe: Root path. Null Version. Idle. Publisher in initiator cancels", 
+                "'Wdm-NestService-M06: Stress Mutual Subscribe: Root path. Null Version. Idle. Publisher in initiator cancels'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_06", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_07": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-F03: Mutual Subscribe: Root path. Null Version. Idle. Client in initiator aborts", 
+                "'Wdm-NestService-M07: Stress Mutual Subscribe: Root path. Null Version. Idle. Client in initiator aborts'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_07", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_08": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 0, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-F04: Mutual Subscribe: Root path. Null Version. Idle. Publisher in initiator aborts", 
+                "'Wdm-NestService-M08: Stress Mutual Subscribe: Root path. Null Version. Idle. Publisher in initiator aborts'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_08", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_09": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-F05: Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Client in initiator cancels", 
+                "'Wdm-NestService-M09: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Client in initiator cancels'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_09", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_10": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-F06: Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Publisher in initiator cancels", 
+                "'Wdm-NestService-M10: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Publisher in initiator cancels'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_10", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_11": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-F07: Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Client in initiator aborts", 
+                "'Wdm-NestService-M11: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator. Client in initiator aborts'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_11", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_12": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-F08: Mutual Susbscribe: Root path. Null Version. Mutate data in initiator. Publisher in initiator aborts", 
+                "'Wdm-NestService-M12: Stress Mutual Susbscribe: Root path. Null Version. Mutate data in initiator. Publisher in initiator aborts'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_12", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_13": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_iterations": 1, 
+            "timer_period": 5000, 
+            "total_count": 120
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-M21: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator for X times and Y minutes. Client in initiator cancels"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_13", 
+            "timeout": 900, 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_14": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 1, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_iterations": 1, 
+            "timer_period": 5000, 
+            "total_count": 120
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-M22: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator for X times and Y minutes. Publisher in initiator cancels"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_14", 
+            "timeout": 900, 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_15": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_iterations": 1, 
+            "timer_period": 5000, 
+            "total_count": 120
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-M23: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator for X times and Y minutes. Client in initiator abort"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_15", 
+            "timeout": 900, 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_16": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 3, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    1
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    1
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    1
+                ]
+            ], 
+            "test_iterations": 1, 
+            "timer_period": 5000, 
+            "total_count": 120
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-M24: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator for X times and Y minutes. Publisher in initiator aborts"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_16", 
+            "timeout": 900, 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_17": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 0, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-I01: Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Client in initiator cancels", 
+                "'Wdm-NestService-M25: Stress Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Client in initiator cancels'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_17", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_18": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 1, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-I02: Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Publisher in initiator cancels", 
+                "'Wdm-NestService-M26: Stress Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Publisher in initiator cancels'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_18", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_19": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 2, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-I03: Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Client in initiator aborts", 
+                "'Wdm-NestService-M27: Stress Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Client in initiator aborts'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_19", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_20": {
+        "client_options": {
+            "enable_flip": 1, 
+            "event_generator": "Security", 
+            "final_status": 3, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-I04: Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Publisher in initiator aborts", 
+                "'Wdm-NestService-M28: Stress Mutual Subscribe: Initiator Continuous Events. Mutate data in initiator. Publisher in initiator aborts'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_20", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_21": {
+        "client_options": {
+            "enable_flip": 1, 
+            "final_status": 2, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-G02: Mutual Subscribe: Multiple Iterations. Mutate data in Initiator. Client in initiator aborts. Version is kept."
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_21", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_22": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 0, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-I09: Mutual Subscribe: Root path. Initiator Continuous Events. Mutate data in initiator. Client in initiator cancels", 
+                "'Wdm-NestService-M33: Stress Mutual Subscribe: Root path. Initiator Continuous Events. Client in initiator cancels'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_22", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_23": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 1, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-I10: Mutual Subscribe: Root path. Initiator Continuous Events. Publisher in initiator cancels", 
+                "'Wdm-NestService-M34: Stress Mutual Subscribe: Root path. Initiator Continuous Events. Publisher in initiator cancels'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_23", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_24": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 3, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-I11: Mutual Subscribe: Root path. Initiator Continuous Events. Publisher in initiator aborts", 
+                "'Wdm-NestService-M35: Stress Mutual Subscribe: Root path. Initiator Continuous Events. Publisher in initiator aborts'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_24", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_25": {
+        "client_options": {
+            "enable_flip": 0, 
+            "event_generator": "Security", 
+            "final_status": 2, 
+            "inter_event_period": 2000, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] \\[(ALIVE|CONFM)\\] AbortSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-I12: Mutual Subscribe: Root path. Initiator Continuous Events. Client in initiator aborts", 
+                "'Wdm-NestService-M36: Stress Mutual Subscribe: Root path. Initiator Continuous Events. Client in initiator aborts'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_25", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_mutual_subscribe_application_key_01": {
+        "client_options": {
+            "clear_state_between_iterations": true, 
+            "enable_flip": 1, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "bound mutual subscription is going away", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] \\[.+\\] EndSubscription Ref\\(\\d+\\)", 
+                    10
+                ], 
+                [
+                    "Client->kEvent_OnNotificationProcessed", 
+                    10
+                ], 
+                [
+                    "Client\\[0\\] moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ], 
+                [
+                    "Handler\\[0\\] Moving to \\[ FREE\\] Ref\\(0\\)", 
+                    10
+                ]
+            ], 
+            "test_case": 2, 
+            "test_iterations": 10
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-A01: Mutual Subscribe: Application key: Key distribution", 
+                "'Wdm-NestService-B01: B01: Stress Mutual Subscribe: Application key: Key distribution'"
+            ], 
+            "test_tag": "_SERVICE_MUTUAL_SUBSCRIBE_APPLICATION_KEY_01", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_01_cond_OneLeaf": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    1
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "unconditional update", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 1
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O01: Client creates a mutual subscription, sends one UpdateRequest to the publisher, and receives a StatusReport"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_01_COND_ONELEAF", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_02_cond_BackToBack": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    2
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 2, 
+            "wdm_update_number_of_repeated_mutations": 2, 
+            "wdm_update_number_of_traits": 1
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O02: Client creates a mutual subscription, sends two conditional UpdateRequests to the publisher back-to-back"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_02_COND_BACKTOBACK", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_03_uncond_OneLeaf": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    1
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_conditionality": "Unconditional", 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 1
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O03: Client creates mutual subscription, sends an unconditional UpdateRequest to publisher, and receives a StatusReport"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_03_UNCOND_ONELEAF", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_04_uncond_BackToBack": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    2
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_conditionality": "Unconditional", 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 2, 
+            "wdm_update_number_of_repeated_mutations": 2, 
+            "wdm_update_number_of_traits": 1
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O02: Client creates a mutual subscription, sends two unconditional UpdateRequests to the publisher back-to-back"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_04_UNCOND_BACKTOBACK", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_05_cond_WholeDictionary": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    1
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "replace dictionary", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_mutation": "WholeDictionary", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 1
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O05: Client creates a mutual subscription, sends one UpdateRequest to the publisher to replace a whole dictionary, and receives a StatusReport"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_05_COND_WHOLEDICTIONARY", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_06_cond_WholeLargeDictionary": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    2
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_mutation": "WholeLargeDictionary", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 1
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O06: Client creates a mutual subscription, sends one UpdateRequest to the publisher to replace a whole dictionary, and receives a StatusReport"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_06_COND_WHOLELARGEDICTIONARY", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    2
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 2
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O07: Client creates a mutual subscription, sends one UpdateRequest to the publisher with 2 traits, and receives a StatusReport"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_07_COND_ONELEAF_MULTI_TRAITS", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    2
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_conditionality": "Mixed", 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 2
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O08: Client creates a mutual subscription, sends one UpdateRequest to the publisher with 2 traits, one conditional and one not, and receives a StatusReport"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_08_MIXED_ONELEAF_MULTI_TRAITS", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_09_mixed_SameLevelLeafs_multi_traits": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    4
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_conditionality": "Mixed", 
+            "wdm_update_mutation": "SameLevelLeaves", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 2
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O09: Client creates a mutual subscription, sends one UpdateRequest to the publisher with multiple leaves in 2 traits, and receives a StatusReport"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_09_MIXED_SAMELEVELLEAFS_MULTI_TRAITS", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_10_cond_Root_multi_traits": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    4
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "DataElement didn.*; will try again later", 
+                    1
+                ], 
+                [
+                    "Msg sent 0000000B:44", 
+                    1
+                ], 
+                [
+                    "Msg sent 0000000B:34", 
+                    1
+                ], 
+                [
+                    "Removed 2 private InProgress items after 3", 
+                    1
+                ], 
+                [
+                    "Path already present", 
+                    2
+                ], 
+                [
+                    "replace dictionary", 
+                    0
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_mutation": "Root", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 4
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O10: Client creates a mutual subscription, sends one UpdateRequest to the publisher with 4 full traits, and receives a StatusReport"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_10_COND_ROOT_MULTI_TRAITS", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_11_uncond_WholeLargeDictionary": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    1
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_conditionality": "Unconditional", 
+            "wdm_update_mutation": "WholeLargeDictionary", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 1
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O11: Client creates a mutual subscription, sends one UpdateRequest to the publisher to replace a whole dictionary, and receives a StatusReport"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_11_UNCOND_WHOLELARGEDICTIONARY", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_12_uncond_OneLeaf_BeforeSub": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Potential data loss set for traitDataHandle", 
+                    0
+                ], 
+                [
+                    "Potential data loss cleared for traitDataHandle", 
+                    0
+                ], 
+                [
+                    "Update: path result: success", 
+                    1
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_conditionality": "Unconditional", 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 1, 
+            "wdm_update_timing": "BeforeSub"
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O03: Client creates mutual subscription, sends an unconditional UpdateRequest to publisher before starting the subscription"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_12_UNCOND_ONELEAF_BEFORESUB", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_13_cond_ManyDictionaryItems": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "log_check": [
+                [
+                    "Mutual: Good Iteration", 
+                    1
+                ], 
+                [
+                    "Update: path result: success", 
+                    122
+                ], 
+                [
+                    "Update: no more pending updates", 
+                    1
+                ], 
+                [
+                    "Update: path failed", 
+                    0
+                ], 
+                [
+                    "Need to resubscribe", 
+                    0
+                ]
+            ], 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_conditionality": "Conditional", 
+            "wdm_update_mutation": "ManyDictionaryItems", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 4
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "Wdm-NestService-O13: Client creates a mutual subscription, sends a conditional UpdateRequest to publisher with many dictionary items"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_13_COND_MANYDICTIONARYITEMS", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }, 
+    "test_weave_wdm_next_service_update_faults": {
+        "client_options": {
+            "clear_state_between_iterations": false, 
+            "enable_flip": 1, 
+            "enable_retry": true, 
+            "final_status": 0, 
+            "test_case": 10, 
+            "test_delay": 4000, 
+            "test_iterations": 1, 
+            "timer_period": 4000, 
+            "total_count": 1, 
+            "wdm_update_mutation": "OneLeaf", 
+            "wdm_update_number_of_mutations": 1, 
+            "wdm_update_number_of_traits": 2
+        }, 
+        "server_options": {}, 
+        "test_options": {
+            "test_case_name": [
+                "WDM Update sequence for fault-injection"
+            ], 
+            "test_tag": "_SERVICE_UPDATE_FAULTS", 
+            "wdm_option": "mutual_subscribe"
+        }
+    }
+}

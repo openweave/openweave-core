@@ -28,49 +28,19 @@
 import os
 import unittest
 from weave_wdm_next_test_base import weave_wdm_next_test_base
+import WeaveWdmNextOptions as wwno
 
 
 class test_weave_wdm_next_application_key_02(weave_wdm_next_test_base):
 
     def test_weave_wdm_next_application_key_02(self):
-        wdm_next_args = {}
-        wdm_next_args['wdm_option'] = "mutual_subscribe"
-        wdm_next_args['total_client_count'] = 2
-        wdm_next_args['final_client_status'] = 0
-        wdm_next_args['timer_client_period'] = 5000
-        wdm_next_args['test_client_iterations'] = 5
-        wdm_next_args['test_client_delay'] = 2000
-        wdm_next_args['enable_client_flip'] = 1
-
-        wdm_next_args['total_server_count'] = 2
-        wdm_next_args['final_server_status'] = 4
-        wdm_next_args['timer_server_period'] = 4000
-        wdm_next_args['enable_server_flip'] = 1
-
-        wdm_next_args['group_enc'] = True
-        wdm_next_args['group_enc_key_id'] = "0x00005536"
-
-        wdm_next_args['client_clear_state_between_iterations'] = True
-        wdm_next_args['server_clear_state_between_iterations'] = True
-
-        wdm_next_args['client_log_check'] = [('Message Encryption Key', 1),
-                                             ('Handler\[0\] \[(ALIVE|CONFM)\] bound mutual subscription is going away', wdm_next_args['test_client_iterations']),
-                                             ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_server_count'] + 1)),
-                                             ('Client\[0\] \[(ALIVE|CONFM)\] EndSubscription Ref\(1\)', wdm_next_args['test_client_iterations']),
-                                             ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
-                                             ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
-        wdm_next_args['server_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] bound mutual subscription is going away', wdm_next_args['test_client_iterations']),
-                                             ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_client_count'] + 1)),
-                                             ('Client\[0\] \[(ALIVE|CONFM)\] CancelRequestHandler Ref\(1\)', wdm_next_args['test_client_iterations']),
-                                             ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
-                                             ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
-        wdm_next_args['test_tag'] = self.__class__.__name__[35:].upper()
-        wdm_next_args['test_case_name'] = ['B02: Stress Mutual Subscribe: Application key: Group key']
         print 'test file: ' + self.__class__.__name__
         print "test_weave_wdm_next_application_key test A02 and B02"
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ[
+                "WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             print "it does not support wdm with group key encryption under Lwip:"
             return
+        wdm_next_args = self.get_test_param_json(self.__class__.__name__)
         super(test_weave_wdm_next_application_key_02, self).weave_wdm_next_test_base(wdm_next_args)
 
 

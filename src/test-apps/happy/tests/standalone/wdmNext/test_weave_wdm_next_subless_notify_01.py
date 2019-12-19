@@ -35,36 +35,13 @@ import WeaveUtilities
 
 
 gFaultOpts = WeaveUtilities.FaultInjectionOptions()
-gOptions = { 'enableFaults': False, 'mode': "local" }
+gOptions = {'enableFaults': False, 'mode': "local"}
+
 
 class test_weave_wdm_next_subless_notify_01(weave_wdm_next_test_base):
 
     def test_weave_wdm_next_subless_notify_01(self):
-        wdm_next_args = {}
-
-        wdm_next_args['wdm_option'] = "subless_notify"
-
-        wdm_next_args['total_client_count'] = 0
-        wdm_next_args['final_client_status'] = 0
-        wdm_next_args['timer_client_period'] = 0
-        wdm_next_args['test_client_iterations'] = 1
-        wdm_next_args['test_server_iterations'] = 1
-
-        wdm_next_args['total_server_count'] = 0
-        wdm_next_args['final_server_status'] = 4
-        wdm_next_args['timer_server_period'] = 0
-        wdm_next_args['enable_server_flip'] = 0
-
-        wdm_next_args['total_server_count'] = 0
-        wdm_next_args['test_server_delay'] = 1000
-        wdm_next_args['client_log_check'] = []
-        wdm_next_args['server_log_check'] = []
-
-        wdm_next_args['timeout'] = 10
-
-        wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
-        wdm_next_args['test_case_name'] = ['O01: Subscriptionless Notify: Publisher sends subscriptionless notify to receiver, and receiver notifies application after processing trait data'
-        ]
+        wdm_next_args = self.get_test_param_json(self.__class__.__name__)
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test O01"
         super(test_weave_wdm_next_subless_notify_01, self).weave_wdm_next_test_base(wdm_next_args)
@@ -72,40 +49,33 @@ class test_weave_wdm_next_subless_notify_01(weave_wdm_next_test_base):
         if not gOptions['enableFaults']:
             return
 
-        base_test_tag = "_SUBLESS_NOTIFY_FAULTS"
-        wdm_next_args['test_tag'] = base_test_tag
-        wdm_next_args['test_case_name'] = ['WDM Subscriptionless Notification for fault injection']
-
-        wdm_next_args['client_faults'] = None
-        wdm_next_args['server_faults'] = None
+        base_test_tag = wdm_next_args[wwno.TEST][wwno.TEST_TAG]
+        wdm_next_args[wwno.TEST][wwno.TEST_CASE_NAME] = [
+            'WDM Subscriptionless Notification for fault injection']
 
         output_logs = {}
         output_logs['client'] = self.result_data[0]['client_output']
         output_logs['server'] = self.result_data[0]['server_output']
 
-
-        wdm_next_args['test_client_iterations'] = 1
-        wdm_next_args['test_server_iterations'] = 1
-
-        # empty the arrays of strings to look for in the logs; rely on the default check for "Good Iteration"
-        wdm_next_args['client_log_check'] = []
-        wdm_next_args['server_log_check'] = []
         num_tests = 0
 
         for node in gFaultOpts.nodes:
             fault_configs = gFaultOpts.generate_fault_config_list(node, output_logs[node])
 
             for fault_config in fault_configs:
-                wdm_next_args['test_tag'] = base_test_tag + "_" + str(num_tests) + "_" + node + "_" + fault_config
-                print wdm_next_args['test_tag']
+                wwdm_next_args[wwno.TEST][wwno.TEST_TAG] = base_test_tag + "_" + \
+                    str(num_tests) + "_" + node + "_" + fault_config
+                print wdm_next_args[wwno.TEST][wwno.TEST_TAG]
                 if node == 'client':
-                    wdm_next_args['client_faults'] = fault_config
-                    wdm_next_args['server_faults'] = None
+                    wdm_next_args[wwno.CLIENT][wwno.FAULTS] = fault_config
+                    wdm_next_args[wwno.SERVER][wwno.FAULTS] = None
                 else:
-                    wdm_next_args['client_faults'] = None
-                    wdm_next_args['server_faults'] = fault_config
+                    wdm_next_args[wwno.CLIENT][wwno.FAULTS] = None
+                    wdm_next_args[wwno.SERVER][wwno.FAULTS] = fault_configt_config
 
-                super(test_weave_wdm_next_subless_notify_01, self).weave_wdm_next_test_base(wdm_next_args)
+                super(
+                    test_weave_wdm_next_subless_notify_01,
+                    self).weave_wdm_next_test_base(wdm_next_args)
                 num_tests += 1
 
 if __name__ == "__main__":

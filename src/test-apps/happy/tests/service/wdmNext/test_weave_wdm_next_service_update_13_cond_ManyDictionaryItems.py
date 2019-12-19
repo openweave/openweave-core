@@ -28,41 +28,15 @@ import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
 
-class test_weave_wdm_next_service_update_13_cond_ManyDictionaryItems(weave_wdm_next_test_service_base):
+class test_weave_wdm_next_service_update_13_cond_ManyDictionaryItems(
+        weave_wdm_next_test_service_base):
+
     def test_weave_wdm_next_service_update_13_cond_ManyDictionaryItems(self):
-        wdm_next_args = {}
-
-        wdm_next_args['wdm_option'] = "mutual_subscribe"
-        wdm_next_args['final_client_status'] = 0
-        wdm_next_args['enable_client_flip'] = 1
-        wdm_next_args['test_client_iterations'] = 1
-        wdm_next_args['test_client_delay'] = 4000
-        wdm_next_args['timer_client_period'] = 4000
-        wdm_next_args['client_clear_state_between_iterations'] = False
-        wdm_next_args['test_client_case'] = 10 # kTestCase_TestUpdatableTraits
-        wdm_next_args['total_client_count'] = 1 
-
-        wdm_next_args['enable_retry'] = True 
-
-        wdm_next_args['client_update_mutation'] = "ManyDictionaryItems" 
-        wdm_next_args['client_update_conditionality'] = "Conditional"
-        #wdm_next_args['client_update_timing'] = "BeforeSub"
-        wdm_next_args['client_update_num_traits'] = 4
-        wdm_next_args['client_update_num_mutations'] = 1
-
-        # 122 paths: 60 for TestATrait plus 1 for TestBTrait and  1 for Locale
-
-        wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
-                                             ('Update: path result: success', 122),
-                                             ('Update: no more pending updates', 1),
-                                             ('Update: path failed', 0),
-                                             ('Need to resubscribe', 0)]
-
-        wdm_next_args['test_tag'] = self.__class__.__name__
-        wdm_next_args['test_case_name'] = ['Wdm-NestService-O13: Client creates a mutual subscription, sends a conditional UpdateRequest to publisher with many dictionary items']
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test O13"
-        super(test_weave_wdm_next_service_update_13_cond_ManyDictionaryItems, self).weave_wdm_next_test_service_base(wdm_next_args)
+        wdm_next_args = self.get_test_param_json(self.__class__.__name__)
+        super(test_weave_wdm_next_service_update_13_cond_ManyDictionaryItems,
+              self).weave_wdm_next_test_service_base(wdm_next_args)
 
 
 if __name__ == "__main__":

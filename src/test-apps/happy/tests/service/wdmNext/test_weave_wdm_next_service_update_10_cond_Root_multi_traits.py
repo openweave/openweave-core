@@ -30,45 +30,15 @@ import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
 
-class test_weave_wdm_next_service_update_10_cond_Root_multi_traits(weave_wdm_next_test_service_base):
+class test_weave_wdm_next_service_update_10_cond_Root_multi_traits(
+        weave_wdm_next_test_service_base):
+
     def test_weave_wdm_next_service_update_10_cond_Root_multi_traits(self):
-        wdm_next_args = {}
-
-        wdm_next_args['wdm_option'] = "mutual_subscribe"
-        wdm_next_args['final_client_status'] = 0
-        wdm_next_args['enable_client_flip'] = 1
-        wdm_next_args['test_client_iterations'] = 1
-        wdm_next_args['test_client_delay'] = 4000
-        wdm_next_args['timer_client_period'] = 4000
-        wdm_next_args['client_clear_state_between_iterations'] = False
-        wdm_next_args['test_client_case'] = 10 # kTestCase_TestUpdatableTraits
-        wdm_next_args['total_client_count'] = 1 
-
-        wdm_next_args['enable_retry'] = True 
-
-        wdm_next_args['client_update_mutation'] = "Root" 
-        wdm_next_args['client_update_num_traits'] = 4
-        wdm_next_args['client_update_num_mutations'] = 1
-
-        wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
-                                             ('Update: path result: success', 4),
-                                             ('Update: no more pending updates', 1),
-                                             ('DataElement didn.*; will try again later', 1), # make sure to test failing to add a DataElement...
-                                             ('Msg sent 0000000B:44', 1),                       # ... which will cause PartialUpdateRequests to be sent
-                                             ('Msg sent 0000000B:34', 1),
-                                             ('Removed 2 private InProgress items after 3', 1), # when the second TestATrait fails to fit, we have to remove
-                                                                                                # the private paths it has generated
-                                             ('Path already present', 2),    # TestATrait's root mutation re-adds a path after adding root 
-                                                                             # (there are two instances of TestATrait)
-                                             ('replace dictionary', 0),      # All DataElements for dictionaries are "merge", not "replace" 
-                                             ('Update: path failed', 0),
-                                             ('Need to resubscribe', 0)]
-
-        wdm_next_args['test_tag'] = self.__class__.__name__
-        wdm_next_args['test_case_name'] = ['Wdm-NestService-O10: Client creates a mutual subscription, sends one UpdateRequest to the publisher with 4 full traits, and receives a StatusReport']
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test O10"
-        super(test_weave_wdm_next_service_update_10_cond_Root_multi_traits, self).weave_wdm_next_test_service_base(wdm_next_args)
+        wdm_next_args = self.get_test_param_json(self.__class__.__name__)
+        super(test_weave_wdm_next_service_update_10_cond_Root_multi_traits,
+              self).weave_wdm_next_test_service_base(wdm_next_args)
 
 
 if __name__ == "__main__":
