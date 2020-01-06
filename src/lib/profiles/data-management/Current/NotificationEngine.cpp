@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google, LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -1700,6 +1701,17 @@ exit:
 }
 
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
+void NotificationEngine::Run(System::Layer * aSystemLayer, void * aAppState, System::Error)
+{
+    NotificationEngine * const pEngine = reinterpret_cast<NotificationEngine *>(aAppState);
+    pEngine->Run();
+}
+
+void NotificationEngine::ScheduleRun()
+{
+    SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->ScheduleWork(Run, this);
+}
 
 void NotificationEngine::Run()
 {
