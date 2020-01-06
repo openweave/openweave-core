@@ -27,6 +27,8 @@
 """Tool for making unique pseudo-random global identifiers (Global IDs) for IPv6 unique local addresses (ULAs) according to Section 3.2.2 of RFC 4193.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
 import re
@@ -97,11 +99,11 @@ if __name__ == "__main__":
  """
 
         if len(sys.argv) < 2:
-                print usage
+                print(usage)
                 sys.exit(-1)
 
         if len(sys.argv) > 4:
-                print "Unexpected argument: %s" % (sys.argv[3])
+                print("Unexpected argument: %s" % (sys.argv[3]))
                 sys.exit(-1)
 
         macAddr = sys.argv[1]
@@ -117,4 +119,4 @@ if __name__ == "__main__":
         else:
                 timeStamp = datetime.utcnow()
 
-        print ("%s::/48") % MakeULAGlobalId(macAddr, timeStamp)
+        print(("%s::/48") % MakeULAGlobalId(macAddr, timeStamp))

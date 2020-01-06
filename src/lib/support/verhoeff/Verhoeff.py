@@ -25,7 +25,10 @@
 #      a given base.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
+from six.moves import range
 
 __all__ = [ 'ComputeCheckChar',   'VerifyCheckChar',
 			'ComputeCheckChar16', 'VerifyCheckChar16',
@@ -123,30 +126,30 @@ Commands:
 """ % (sys.argv[0])
 
 	if (len(sys.argv) < 2):
-		print usage
+		print(usage)
 	elif (sys.argv[1] == "generate"):
 		if (len(sys.argv) < 3):
-			print usage
+			print(usage)
 			sys.exit(-1)
 		ch = ComputeCheckChar(sys.argv[2])
-		print "%s%c" % (sys.argv[2], ch)
+		print("%s%c" % (sys.argv[2], ch))
 	elif (sys.argv[1] == "verify"):
 		if (len(sys.argv) < 3):
-			print usage
+			print(usage)
 			sys.exit(-1)
 		if (VerifyCheckChar(sys.argv[2])):
-			print "%s is VALID" % (sys.argv[2])
+			print("%s is VALID" % (sys.argv[2]))
 			sys.exit(0)
 		else:
-			print "%s is INVALID" % (sys.argv[2])
+			print("%s is INVALID" % (sys.argv[2]))
 			sys.exit(-1)
 	elif (sys.argv[1] == "gen-multiply-table"):
 		if (len(sys.argv) < 3):
-			print usage
+			print(usage)
 			sys.exit(-1)
 		base = int(sys.argv[2])
 		if (base % 2 != 0):
-			print "Base must be even"
+			print("Base must be even")
 			sys.exit(-1);
 		n = base / 2
 		for x in range(0, base):
@@ -156,7 +159,7 @@ Commands:
 				sys.stdout.write("%2d, " % o)
 			sys.stdout.write("\n")
 	else:
-		print usage
+		print(usage)
 		sys.exit(-1)
 	sys.exit(0)
  

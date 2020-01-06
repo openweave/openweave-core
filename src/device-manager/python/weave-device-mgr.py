@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 #
 #    Copyright (c) 2013-2018 Nest Labs, Inc.
@@ -22,6 +22,8 @@
 #      This file implements the Python-based Weave Device Manager Shell.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 from builtins import range
 import sys
 import os
@@ -38,10 +40,11 @@ import string
 import struct
 from copy import copy
 from cmd import Cmd
-from string import lower
 
 from Cryptodome.Hash import CMAC
 from Cryptodome.Cipher import AES
+from six.moves import range
+from six.moves import zip
 
 # Extend sys.path with one or more directories, relative to the location of the
 # running script, in which the openweave package might be found .  This makes it
@@ -206,8 +209,8 @@ class DeviceMgrCmd(Cmd):
         if (rendezvousAddr):
             try:
                 self.devMgr.SetRendezvousAddress(rendezvousAddr)
-            except WeaveDeviceMgr.DeviceManagerException, ex:
-                print str(ex)
+            except WeaveDeviceMgr.DeviceManagerException as ex:
+                print(str(ex))
                 return
 
         self.historyFileName = os.path.expanduser("~/.weave-device-mgr-history")
@@ -302,7 +305,7 @@ class DeviceMgrCmd(Cmd):
 
     def precmd(self, line):
         if (not self.use_rawinput and line != 'EOF' and line != ''):
-            print '>>> ' + line
+            print('>>> ' + line)
         return line
 
     def postcmd(self, stop, line):
@@ -394,7 +397,7 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) > 1):
-            print "Unexpected argument: " + remainingArgs[1]
+            print("Unexpected argument: " + remainingArgs[1])
             return
 
         try:
@@ -403,11 +406,11 @@ class DeviceMgrCmd(Cmd):
                                          targetVendorId=options.targetVendorId,
                                          targetProductId=options.targetProductId,
                                          targetDeviceId=options.targetDeviceId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Started device enumeration"
+        print("Started device enumeration")
 
     def do_stopdeviceenumeration(self, line):
         """
@@ -419,16 +422,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 0):
-            print "Unexpected argument: " + args[2]
+            print("Unexpected argument: " + args[2])
             return
 
         try:
             self.devMgr.StopDeviceEnumeration()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Stopped device enumeration"
+        print("Stopped device enumeration")
 
     def do_connect(self, line):
         """
@@ -466,12 +469,12 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) == 0 and not options.useBle):
-            print "Usage:"
+            print("Usage:")
             self.do_help('connect')
             return
 
         if (len(remainingArgs) > 2):
-            print "Unexpected argument: " + remainingArgs[2]
+            print("Unexpected argument: " + remainingArgs[2])
             return
 
         if not options.useBle:
@@ -487,7 +490,7 @@ class DeviceMgrCmd(Cmd):
         if (options.useDummyAccessToken and not options.accessToken):
             options.accessToken = base64.standard_b64decode(dummyAccessToken)
         if (options.pairingCode and options.accessToken):
-            print "Cannot specify both pairing code and access token"
+            print("Cannot specify both pairing code and access token")
             return
         try:
             if options.useBle:
@@ -498,11 +501,11 @@ class DeviceMgrCmd(Cmd):
                 self.devMgr.ConnectDevice(deviceId=nodeId, deviceAddr=addr,
                                           pairingCode=options.pairingCode,
                                           accessToken=options.accessToken)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Connected to device."
+        print("Connected to device.")
     def do_blediagtest(self, line):
         """
         ble-diag-test [ <options> ]
@@ -552,7 +555,7 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) > 0):
-            print "Unexpected argument: " + remainingArgs[0]
+            print("Unexpected argument: " + remainingArgs[0])
             return
 
         if options.packetCount:
@@ -563,7 +566,7 @@ class DeviceMgrCmd(Cmd):
         if options.duration:
             duration = int(options.duration)
             if (duration > 2000000):    # 2GB in ms
-                print "Invalid duration %d seconds" % duration
+                print("Invalid duration %d seconds" % duration)
                 return
             duration = duration * 1000
         else:
@@ -590,35 +593,35 @@ class DeviceMgrCmd(Cmd):
             rx = 0
 
         if (count == 0 and duration == 0):
-            print "Packet Count or Duration has to be specified"
+            print("Packet Count or Duration has to be specified")
             return
 
         if (size < 0 or size > 2048):
-            print "Invalid Payload Size (0~2048): %d" % size
+            print("Invalid Payload Size (0~2048): %d" % size)
             return
 
         if (delay < 1 or delay > 60000):
-            print "Invalid Tx Gap (1~60000ms): %d" % delay
+            print("Invalid Tx Gap (1~60000ms): %d" % delay)
             return
 
         if not self.bleMgr:
             self.bleMgr = BleManager(self.devMgr)
 
         if not self.bleMgr.isConnected():
-            print "BLE not connected"
+            print("BLE not connected")
             return
 
-        print "PacketCount = %d" % count
-        print "Duration = %d ms" % duration
-        print "Tx Gap = %d ms" % delay
-        print "Ack = %d" % ack
-        print "Payload Size = %d bytes" % size
-        print "Rx = %d" % rx
+        print("PacketCount = %d" % count)
+        print("Duration = %d ms" % duration)
+        print("Tx Gap = %d ms" % delay)
+        print("Ack = %d" % ack)
+        print("Payload Size = %d bytes" % size)
+        print("Rx = %d" % rx)
 
         try:
             self.devMgr.TestBle(FAKE_CONN_OBJ_VALUE, count, duration, delay, ack, size, rx)
-        except WoBleTestMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WoBleTestMgr.DeviceManagerException as ex:
+            print(str(ex))
         return
 
     def do_blediagtestresult(self, line):
@@ -645,7 +648,7 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) > 0):
-            print "Unexpected argument: " + remainingArgs[0]
+            print("Unexpected argument: " + remainingArgs[0])
             return
 
         if options.local:
@@ -657,13 +660,13 @@ class DeviceMgrCmd(Cmd):
             self.bleMgr = BleManager(self.devMgr)
 
         if not self.bleMgr.isConnected():
-            print "BLE not connected"
+            print("BLE not connected")
             return
 
         try:
             self.devMgr.TestResultBle(FAKE_CONN_OBJ_VALUE, local)
-        except WoBleTestMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WoBleTestMgr.DeviceManagerException as ex:
+            print(str(ex))
         return
 
     def do_blediagtestabort(self, line):
@@ -683,20 +686,20 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) > 0):
-            print "Unexpected argument: " + remainingArgs[0]
+            print("Unexpected argument: " + remainingArgs[0])
             return
 
         if not self.bleMgr:
             self.bleMgr = BleManager(self.devMgr)
 
         if not self.bleMgr.isConnected():
-            print "BLE not connected"
+            print("BLE not connected")
             return
 
         try:
             self.devMgr.TestAbortBle(FAKE_CONN_OBJ_VALUE)
-        except WoBleTestMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WoBleTestMgr.DeviceManagerException as ex:
+            print(str(ex))
         return
 
     def do_blediagtesttiming(self, line):
@@ -715,7 +718,7 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('ble-diag-test-timing')
             return
 
@@ -728,13 +731,13 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) > 1):
-            print "Usage:"
+            print("Usage:")
             self.do_help('ble-diag-test-timing')
             return
 
         enabled = self.parseBoolean(remainingArgs[0])
         if (enabled == None):
-            print "Invalid argument: " + remainingArgs[0]
+            print("Invalid argument: " + remainingArgs[0])
             return
 
         if options.remote:
@@ -746,13 +749,13 @@ class DeviceMgrCmd(Cmd):
             self.bleMgr = BleManager(self.devMgr)
 
         if not self.bleMgr.isConnected():
-            print "BLE not connected"
+            print("BLE not connected")
             return
 
         try:
             self.devMgr.TxTimingBle(FAKE_CONN_OBJ_VALUE, enabled, remote)
-        except WoBleTestMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WoBleTestMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
     def do_rendezvous(self, line):
@@ -826,7 +829,7 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) > 1):
-            print "Unexpected argument: " + remainingArgs[1]
+            print("Unexpected argument: " + remainingArgs[1])
             return
 
         if (len(remainingArgs) == 1):
@@ -834,7 +837,7 @@ class DeviceMgrCmd(Cmd):
         if (options.useDummyAccessToken and not options.accessToken):
             options.accessToken = base64.standard_b64decode(dummyAccessToken)
         if (options.pairingCode and options.accessToken):
-            print "Cannot specify both pairing code and access token"
+            print("Cannot specify both pairing code and access token")
             return
 
         try:
@@ -845,11 +848,11 @@ class DeviceMgrCmd(Cmd):
                                          targetVendorId=options.targetVendorId,
                                          targetProductId=options.targetProductId,
                                          targetDeviceId=options.targetDeviceId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Connected to device %X at %s" % (self.devMgr.DeviceId(), self.devMgr.DeviceAddress())
+        print("Connected to device %X at %s" % (self.devMgr.DeviceId(), self.devMgr.DeviceAddress()))
 
     def do_passiverendezvous(self, line):
         """
@@ -885,7 +888,7 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) > 1):
-            print "Unexpected argument: " + remainingArgs[1]
+            print("Unexpected argument: " + remainingArgs[1])
             return
 
         if (len(remainingArgs) == 1):
@@ -893,18 +896,18 @@ class DeviceMgrCmd(Cmd):
         if (options.useDummyAccessToken and not options.accessToken):
             options.accessToken = base64.standard_b64decode(dummyAccessToken)
         if (options.pairingCode and options.accessToken):
-            print "Cannot specify both pairing code and access token"
+            print("Cannot specify both pairing code and access token")
             return
 
         try:
             self.devMgr.PassiveRendezvousDevice(pairingCode=options.pairingCode,
                                                 accessToken=options.accessToken)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Connected to device %X at %s" % (self.devMgr.DeviceId(), self.devMgr.DeviceAddress())
-        print "done"
+        print("Connected to device %X at %s" % (self.devMgr.DeviceId(), self.devMgr.DeviceAddress()))
+        print("done")
 
     def do_remotepassiverendezvous(self, line):
         """
@@ -959,7 +962,7 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) > 1):
-            print "Unexpected argument: " + remainingArgs[1]
+            print("Unexpected argument: " + remainingArgs[1])
             return
 
         if (len(remainingArgs) == 1):
@@ -967,18 +970,18 @@ class DeviceMgrCmd(Cmd):
         if (options.useDummyAccessToken and not options.accessToken):
             options.accessToken = base64.standard_b64decode(dummyAccessToken)
         if (options.pairingCode and options.accessToken):
-            print "Cannot specify both pairing code and access token"
+            print("Cannot specify both pairing code and access token")
             return
 
         try:
             self.devMgr.RemotePassiveRendezvous(rendezvousDeviceAddr=options.joinerAddr,
                     pairingCode=options.pairingCode, accessToken=options.accessToken,
                     rendezvousTimeout=options.rendezvousTimeout, inactivityTimeout=options.inactivityTimeout)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Successfully connected to remote device %X" % (self.devMgr.DeviceId())
+        print("Successfully connected to remote device %X" % (self.devMgr.DeviceId()))
 
     def do_reconnect(self, line):
         """
@@ -990,14 +993,14 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) != 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('reconnect')
             return
 
         try:
             self.devMgr.ReconnectDevice()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
     def do_close(self, line):
@@ -1010,15 +1013,15 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) != 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('close')
             return
 
         try:
             self.devMgr.Close()
             self.devMgr.CloseEndpoints()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
 
     def do_enableconnectionmonitor(self, line):
         """
@@ -1040,7 +1043,7 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 2):
-            print "Unexpected argument: " + args[2]
+            print("Unexpected argument: " + args[2])
             return
 
         if (len(args) == 0):
@@ -1049,24 +1052,24 @@ class DeviceMgrCmd(Cmd):
         elif (len(args) == 2):
             interval = int(args[0])
             if (interval < 0 or interval > 65535):
-                print "Invalid value specified for interval: " + args[0]
+                print("Invalid value specified for interval: " + args[0])
                 return
             timeout = int(args[1])
             if (timeout < 0 or timeout > 65535):
-                print "Invalid value specified for interval: " + args[1]
+                print("Invalid value specified for interval: " + args[1])
                 return
         else:
-            print "Usage:"
+            print("Usage:")
             self.do_help('rendezvous')
             return
 
         try:
             self.devMgr.EnableConnectionMonitor(interval, timeout)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Connection monitor enabled"
+        print("Connection monitor enabled")
 
     def do_disableconnectionmonitor(self, line):
         """
@@ -1078,16 +1081,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 0):
-            print "Unexpected argument: " + args[2]
+            print("Unexpected argument: " + args[2])
             return
 
         try:
             self.devMgr.DisableConnectionMonitor()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Connection monitor disabled"
+        print("Connection monitor disabled")
 
     def do_scannetworks(self, line):
         """
@@ -1101,26 +1104,26 @@ class DeviceMgrCmd(Cmd):
         networkType = WeaveDeviceMgr.NetworkType_WiFi
 
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         if (len(args) == 1):
             try:
                 networkType = WeaveDeviceMgr.ParseNetworkType(args[0])
-            except Exception, ex:
-                print "Invalid network type: " + args[0]
+            except Exception as ex:
+                print("Invalid network type: " + args[0])
                 return
 
         try:
             scanResult = self.devMgr.ScanNetworks(networkType)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "ScanNetworks complete, %d network(s) found" % (len(scanResult))
+        print("ScanNetworks complete, %d network(s) found" % (len(scanResult)))
         i = 1
         for net in scanResult:
-            print "  Network %d" % (i)
+            print("  Network %d" % (i))
             net.Print("    ")
             i = i + 1
 
@@ -1147,17 +1150,17 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('add-wifi-network')
             return
 
         if (len(args) < 2):
-            print "Please specify WiFI security type"
+            print("Please specify WiFI security type")
             return
 
         securityType = WeaveDeviceMgr.ParseSecurityType(args[1])
         if (securityType == None):
-            print "Unrecognized security type: " + args[1]
+            print("Unrecognized security type: " + args[1])
             return
 
         networkInfo = WeaveDeviceMgr.NetworkInfo(
@@ -1169,25 +1172,25 @@ class DeviceMgrCmd(Cmd):
 
         if (securityType != WeaveDeviceMgr.WiFiSecurityType_None):
             if (len(args) < 3):
-                print "Must supply WiFi key"
+                print("Must supply WiFi key")
                 return
             if (len(args) > 3):
-                print "Unexpected argument: " + args[3]
+                print("Unexpected argument: " + args[3])
                 return
             networkInfo.WiFiKey = args[2]
         elif (len(args) > 2):
-            print "Unexpected argument: " + args[2]
+            print("Unexpected argument: " + args[2])
             return
 
         try:
             addResult = self.devMgr.AddNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
         self.lastNetworkId = addResult
 
-        print "Add wifi network complete (network id = " + str(addResult) + ")"
+        print("Add wifi network complete (network id = " + str(addResult) + ")")
 
     def do_addthreadnetwork(self, line):
         """
@@ -1211,11 +1214,11 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('add-thread-network')
             return
         if (len(args) < 2):
-            print "Please specify the Network Name and Extended PAN Identifier"
+            print("Please specify the Network Name and Extended PAN Identifier")
             return
 
         networkInfo = WeaveDeviceMgr.NetworkInfo()
@@ -1225,10 +1228,10 @@ class DeviceMgrCmd(Cmd):
         try:
             networkInfo.ThreadExtendedPANId = bytearray(binascii.unhexlify(args[1]))
             if len(networkInfo.ThreadExtendedPANId) != 8:
-                print "Thread extended PAN id must be 8 bytes in hex"
+                print("Thread extended PAN id must be 8 bytes in hex")
                 return
         except ValueError:
-            print "Invalid value specified for thread extended PAN id: " + args[1]
+            print("Invalid value specified for thread extended PAN id: " + args[1])
             return
 
         kvstart = 3 if (len(args) > 2 and len(args[2].split('=', 1)) == 1) else 2
@@ -1237,7 +1240,7 @@ class DeviceMgrCmd(Cmd):
             try:
                 networkInfo.ThreadNetworkKey = bytearray(binascii.unhexlify(args[2]))
             except ValueError:
-                print "Invalid value for Thread Network Key"
+                print("Invalid value for Thread Network Key")
                 return
 
         passphrase = None
@@ -1245,7 +1248,7 @@ class DeviceMgrCmd(Cmd):
         for addedVal in args[kvstart:]:
             pair = addedVal.split('=', 1)
             if (len(pair) < 2):
-                print "Invalid argument: must be key=value format <" + addedVal + ">"
+                print("Invalid argument: must be key=value format <" + addedVal + ">")
                 return
 
             name = pair[0]
@@ -1274,14 +1277,14 @@ class DeviceMgrCmd(Cmd):
                 elif (name == 'passphrase'):
                     passphrase = val
             except ValueError:
-                print "Invalid value specified for <" + name + "> field"
+                print("Invalid value specified for <" + name + "> field")
                 return
 
             try:
                 if name != 'passphrase':
                     networkInfo.SetField(name, val)
-            except Exception, ex:
-                print str(ex)
+            except Exception as ex:
+                print(str(ex))
                 return
 
         if passphrase != None:
@@ -1300,18 +1303,18 @@ class DeviceMgrCmd(Cmd):
         if networkInfo.ThreadPANId != None:
             panId=networkInfo.ThreadPANId
             if panId < 1 or panId > 0xffff:
-                print "Thread PAN Id must be non-zero and 2 bytes in hex"
+                print("Thread PAN Id must be non-zero and 2 bytes in hex")
                 return
 
         try:
             addResult = self.devMgr.AddNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
         self.lastNetworkId = addResult
 
-        print "Add thread network complete (network id = " + str(addResult) + ")"
+        print("Add thread network complete (network id = " + str(addResult) + ")")
 
     def do_createthreadnetwork(self, line):
         """
@@ -1355,7 +1358,7 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) > 0):
-            print "Unexpected argument: " + remainingArgs[0]
+            print("Unexpected argument: " + remainingArgs[0])
             return
 
         networkInfo = WeaveDeviceMgr.NetworkInfo()
@@ -1370,23 +1373,23 @@ class DeviceMgrCmd(Cmd):
         if (options.threadPANId):
             networkInfo.ThreadPANId = options.threadPANId
             if (networkInfo.ThreadPANId > 0xffff):
-                print "Thread PAN Id must be 16-bit hex value."
+                print("Thread PAN Id must be 16-bit hex value.")
                 return
         if (options.threadChannel):
             networkInfo.ThreadChannel = options.threadChannel
             if (networkInfo.ThreadChannel < 11 or networkInfo.ThreadChannel > 26):
-                print "Thread Channel value must be in a range [11 - 26]."
+                print("Thread Channel value must be in a range [11 - 26].")
                 return
 
         try:
             addResult = self.devMgr.AddNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
         self.lastNetworkId = addResult
 
-        print "Create Thread network complete (network id = " + str(addResult) + ")"
+        print("Create Thread network complete (network id = " + str(addResult) + ")")
 
     def do_updatenetwork(self, line):
         """
@@ -1408,15 +1411,15 @@ class DeviceMgrCmd(Cmd):
 
         args = shlex.split(line)
 
-        print args
+        print(args)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('update-network')
             return
 
         if (len(args) < 1):
-            print "Please specify the network id"
+            print("Please specify the network id")
             return
 
         networkId = self.parseNetworkId(args[0])
@@ -1429,21 +1432,21 @@ class DeviceMgrCmd(Cmd):
         for updatedVal in args[1:]:
             nameVal = updatedVal.split('=', 1)
             if (len(nameVal) < 2):
-                print "Invalid argument: updatedVal"
+                print("Invalid argument: updatedVal")
                 return
             try:
                 networkInfo.SetField(nameVal[0], nameVal[1])
-            except Exception, ex:
-                print str(ex)
+            except Exception as ex:
+                print(str(ex))
                 return
 
         try:
             self.devMgr.UpdateNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Update network complete"
+        print("Update network complete")
 
     def do_removenetwork(self, line):
         """
@@ -1455,16 +1458,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('remove-network')
             return
 
         if (len(args) < 1):
-            print "Please specify a network id"
+            print("Please specify a network id")
             return
 
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         networkId = self.parseNetworkId(args[0])
@@ -1475,11 +1478,11 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.RemoveNetwork(networkId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Remove network complete"
+        print("Remove network complete")
 
     def do_getnetworks(self, line):
         """
@@ -1499,19 +1502,19 @@ class DeviceMgrCmd(Cmd):
             flags = int(args[0])
 
         elif (len(args) > 1):
-            print "Unexpected argument: " + args[2]
+            print("Unexpected argument: " + args[2])
             return
 
         try:
             getResult = self.devMgr.GetNetworks(flags)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Get networks complete, %d network(s) returned" % (len(getResult))
+        print("Get networks complete, %d network(s) returned" % (len(getResult)))
         i = 1
         for net in getResult:
-            print "  Network %d" % (i)
+            print("  Network %d" % (i))
             net.Print("    ")
             i = i + 1
 
@@ -1525,22 +1528,22 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         if (len(args) < 1):
-            print "Please specify a nonce"
+            print("Please specify a nonce")
             return
 
         try:
             getResult = self.devMgr.GetCameraAuthData(args[0])
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Get camera auth data returned:"
-        print "     camera MAC address  = %s" % getResult[0]
-        print "     camera auth_data    = %s" % getResult[1]
+        print("Get camera auth data returned:")
+        print("     camera MAC address  = %s" % getResult[0])
+        print("     camera auth_data    = %s" % getResult[1])
 
     def do_enablenetwork(self, line):
         """
@@ -1552,16 +1555,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('enable-network')
             return
 
         if (len(args) < 1):
-            print "Please specify a network id"
+            print("Please specify a network id")
             return
 
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         networkId = self.parseNetworkId(args[0])
@@ -1572,11 +1575,11 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.EnableNetwork(networkId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Enable network complete"
+        print("Enable network complete")
 
     def do_disablenetwork(self, line):
         """
@@ -1588,16 +1591,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('disable-network')
             return
 
         if (len(args) < 1):
-            print "Please specify a network id"
+            print("Please specify a network id")
             return
 
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         networkId = self.parseNetworkId(args[0])
@@ -1608,11 +1611,11 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.DisableNetwork(networkId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Disable network complete"
+        print("Disable network complete")
 
     def do_testnetwork(self, line):
         """
@@ -1624,16 +1627,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('test-network')
             return
 
         if (len(args) < 1):
-            print "Please specify a network id"
+            print("Please specify a network id")
             return
 
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         networkId = self.parseNetworkId(args[0])
@@ -1644,11 +1647,11 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.TestNetworkConnectivity(networkId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Network test complete"
+        print("Network test complete")
 
     def do_setrendezvousmode(self, line):
         """
@@ -1660,20 +1663,20 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) < 1):
-            print "Please specify the rendezvous mode flags"
+            print("Please specify the rendezvous mode flags")
             return
 
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         try:
             self.devMgr.SetRendezvousMode(int(args[0]))
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Set rendezvous mode complete"
+        print("Set rendezvous mode complete")
 
     def do_getlastnetworkprovisioningresult(self, line):
         """
@@ -1685,16 +1688,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 0):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         try:
             self.devMgr.GetLastNetworkProvisioningResult()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Last network provisioning request was successful"
+        print("Last network provisioning request was successful")
 
     def do_ping(self, line):
         """
@@ -1706,16 +1709,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 0):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         try:
             self.devMgr.Ping()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Ping complete"
+        print("Ping complete")
 
     def do_identify(self, line):
         """
@@ -1727,16 +1730,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 0):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         try:
             deviceDesc = self.devMgr.IdentifyDevice()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Identify device complete"
+        print("Identify device complete")
         deviceDesc.Print("  ")
 
     def do_pairtoken(self, line):
@@ -1749,22 +1752,22 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('pair-token')
             return
 
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         try:
             tokenPairingBundle = self.devMgr.PairToken(args[0])
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Pair token complete"
-        print "TokenPairingBundle: " + base64.b64encode(buffer(tokenPairingBundle))
+        print("Pair token complete")
+        print("TokenPairingBundle: " + base64.b64encode(buffer(tokenPairingBundle)))
 
     def do_unpairtoken(self, line):
         """
@@ -1776,17 +1779,17 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('unpair-token')
             return
 
         try:
             result = self.devMgr.UnpairToken()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Unpair token complete"
+        print("Unpair token complete")
 
     def do_createfabric(self, line):
         """
@@ -1798,16 +1801,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 0):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         try:
             self.devMgr.CreateFabric()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Create fabric complete"
+        print("Create fabric complete")
 
     def do_leavefabric(self, line):
         """
@@ -1819,16 +1822,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 0):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         try:
             self.devMgr.LeaveFabric()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Leave fabric complete"
+        print("Leave fabric complete")
 
     def do_getfabricconfig(self, line):
         """
@@ -1840,17 +1843,17 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 0):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         try:
             fabricConfig = self.devMgr.GetFabricConfig()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Get fabric config complete"
-        print "Fabric configuration: " + base64.b64encode(buffer(fabricConfig))
+        print("Get fabric config complete")
+        print("Fabric configuration: " + base64.b64encode(buffer(fabricConfig)))
 
     def do_joinexistingfabric(self, line):
         """
@@ -1865,26 +1868,26 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) < 1):
-            print "Please specify the fabric configuration value"
+            print("Please specify the fabric configuration value")
             return
 
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         try:
             fabricConfig = base64.b64decode(args[0])
-        except TypeError, ex:
-            print "Invalid fabric configuration value: " + str(ex)
+        except TypeError as ex:
+            print("Invalid fabric configuration value: " + str(ex))
             return
 
         try:
             self.devMgr.JoinExistingFabric(fabricConfig)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Join existing fabric complete"
+        print("Join existing fabric complete")
 
     def do_registerservice(self, line):
         """
@@ -1922,16 +1925,16 @@ class DeviceMgrCmd(Cmd):
             return
 
         if (len(remainingArgs) > 0):
-            print "Unexpected argument: " + remainingArgs[0]
+            print("Unexpected argument: " + remainingArgs[0])
             return
 
         try:
             self.devMgr.RegisterServicePairAccount(options.serviceId, options.accountId, options.serviceConfig, options.pairingToken, options.pairingInitData)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Register service complete"
+        print("Register service complete")
 
     def do_updateservice(self, line):
         """
@@ -1961,11 +1964,11 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.UpdateService(options.serviceId, options.serviceConfig)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Update service complete"
+        print("Update service complete")
 
     def do_unregisterservice(self, line):
         """
@@ -1992,11 +1995,11 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.UnregisterService(options.serviceId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Unregister service complete"
+        print("Unregister service complete")
 
     def do_armfailsafe(self, line):
         """
@@ -2032,22 +2035,22 @@ class DeviceMgrCmd(Cmd):
             elif (armMode == "resume"):
                 armMode = 3
             else:
-                print "Invalid fail-safe arm mode: " + args[0]
+                print("Invalid fail-safe arm mode: " + args[0])
                 return
             if (len(args) == 2):
                 failSafeToken = int(args[1])
 
         if (len(args) > 2):
-            print "Unexpected argument: " + args[2]
+            print("Unexpected argument: " + args[2])
             return
 
         try:
             self.devMgr.ArmFailSafe(armMode, failSafeToken)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Arm fail-safe complete, fail-safe token = " + str(failSafeToken)
+        print("Arm fail-safe complete, fail-safe token = " + str(failSafeToken))
 
     def do_disarmfailsafe(self, line):
         """
@@ -2059,16 +2062,16 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) > 0):
-            print "Unexpected argument: " + args[0]
+            print("Unexpected argument: " + args[0])
             return
 
         try:
             self.devMgr.DisarmFailSafe()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Disarm fail-safe complete"
+        print("Disarm fail-safe complete")
 
     def do_resetconfig(self, line):
         """
@@ -2089,16 +2092,16 @@ class DeviceMgrCmd(Cmd):
                 raise OptionValueError(
                     "Invalid value specified for reset-flags: %r" % (args[0]))
         else:
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         try:
             self.devMgr.ResetConfig(resetFlags)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Reset config complete"
+        print("Reset config complete")
 
     def do_setrendezvousaddr(self, line):
         """
@@ -2116,7 +2119,7 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('set-rendezvous-addr')
             return
 
@@ -2128,11 +2131,11 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetRendezvousAddress(addr, intf)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Done."
+        print("Done.")
 
     def do_setautoreconnect(self, line):
         """
@@ -2144,11 +2147,11 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('set-auto-reconnect')
             return
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         autoReconnect = self.parseBoolean(args[0])
@@ -2157,11 +2160,11 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetAutoReconnect(autoReconnect)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Done."
+        print("Done.")
 
     def do_setlogoutput(self, line):
         """
@@ -2173,11 +2176,11 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('set-log-output')
             return
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         category = args[0].lower()
@@ -2190,16 +2193,16 @@ class DeviceMgrCmd(Cmd):
         elif (category == 'detail'):
             category = 3
         else:
-            print "Invalid argument: " + args[0]
+            print("Invalid argument: " + args[0])
             return
 
         try:
             self.devMgr.SetLogFilter(category)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Done."
+        print("Done.")
 
 
     def do_setrendezvouslinklocal(self, line):
@@ -2212,11 +2215,11 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('set-rendezvous-link-local')
             return
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         rendezvousLinkLocal = self.parseBoolean(args[0])
@@ -2225,11 +2228,11 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetRendezvousLinkLocal(rendezvousLinkLocal)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Done."
+        print("Done.")
 
 
     def do_setconnecttimeout(self, line):
@@ -2242,11 +2245,11 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) == 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('set-connect-timeout')
             return
         if (len(args) > 1):
-            print "Unexpected argument: " + args[1]
+            print("Unexpected argument: " + args[1])
             return
 
         timeoutMS = self.parseInt(args[0])
@@ -2255,11 +2258,11 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetConnectTimeout(timeoutMS)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Done."
+        print("Done.")
 
     def do_bleadapterselect(self, line):
         """
@@ -2273,7 +2276,7 @@ class DeviceMgrCmd(Cmd):
 
             self.bleMgr.ble_adapter_select(line)
         else:
-            print "ble-adapter-select only works in Linux, ble-adapter-select mac_address"
+            print("ble-adapter-select only works in Linux, ble-adapter-select mac_address")
 
         return
 
@@ -2289,7 +2292,7 @@ class DeviceMgrCmd(Cmd):
 
             self.bleMgr.ble_adapter_print()
         else:
-            print "ble-adapter-print only works in Linux"
+            print("ble-adapter-print only works in Linux")
 
         return
 
@@ -2386,26 +2389,26 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) != 2):
-            print "Usage:"
+            print("Usage:")
             self.do_help('start-system-test')
             return
 
         productName = args[0]
         testId = int(args[1])
 
-        if productName not in WeaveDeviceMgr.SystemTest_ProductList.keys():
-            print "Unknown product for system tests: %s" % productName
-            print "Usage:"
+        if productName not in list(WeaveDeviceMgr.SystemTest_ProductList.keys()):
+            print("Unknown product for system tests: %s" % productName)
+            print("Usage:")
             self.do_help('start-system-test')
             return
 
         try:
             self.devMgr.StartSystemTest(WeaveDeviceMgr.SystemTest_ProductList[productName], testId)
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Start system test complete"
+        print("Start system test complete")
 
     def do_stopsystemtest(self, line):
         """
@@ -2417,17 +2420,17 @@ class DeviceMgrCmd(Cmd):
         args = shlex.split(line)
 
         if (len(args) != 0):
-            print "Usage:"
+            print("Usage:")
             self.do_help('stop-system-test')
             return
 
         try:
             self.devMgr.StopSystemTest()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
+        except WeaveDeviceMgr.DeviceManagerException as ex:
+            print(str(ex))
             return
 
-        print "Stop system test complete"
+        print("Stop system test complete")
 
     def do_history(self, line):
         """
@@ -2440,7 +2443,7 @@ class DeviceMgrCmd(Cmd):
             import readline
             h = readline.get_current_history_length()
             for n in range(1,h+1):
-                print readline.get_history_item(n)
+                print(readline.get_history_item(n))
         except ImportError:
             pass
 
@@ -2457,7 +2460,7 @@ class DeviceMgrCmd(Cmd):
         return True
 
     def do_EOF(self, line):
-        print
+        print()
         return True
 
     def emptyline(self):
@@ -2469,13 +2472,13 @@ class DeviceMgrCmd(Cmd):
             if (self.lastNetworkId != None):
                 return self.lastNetworkId
             else:
-                print "No last network id"
+                print("No last network id")
                 return None
 
         try:
             return int(value)
         except ValueError:
-            print "Invalid network id"
+            print("Invalid network id")
             return None
 
     def parseBoolean(self, val):
@@ -2485,14 +2488,14 @@ class DeviceMgrCmd(Cmd):
         elif (val == 'off' or val == 'false' or val == 'no' or val == '0'):
             return False
         else:
-            print "Invalid argument: " + val
+            print("Invalid argument: " + val)
             return None
 
     def parseInt(self, val):
         try:
             return int(val)
         except ValueError:
-            print "Invalid argument: " + val
+            print("Invalid argument: " + val)
             return None
 
 def main():
@@ -2501,19 +2504,19 @@ def main():
     (options, remainingArgs) = optParser.parse_args(sys.argv[1:])
     
     if len(remainingArgs) != 0:
-        print 'Unexpected argument: %s' % remainingArgs[0]
+        print('Unexpected argument: %s' % remainingArgs[0])
         sys.exit(-1)
     
     devMgrCmd = DeviceMgrCmd(rendezvousAddr=options.rendezvousAddr)
-    print "Weave Device Manager Shell"
+    print("Weave Device Manager Shell")
     if options.rendezvousAddr:
-        print "Rendezvous address set to %s" % options.rendezvousAddr
-    print
+        print("Rendezvous address set to %s" % options.rendezvousAddr)
+    print()
     
     try:
         devMgrCmd.cmdloop()
     except KeyboardInterrupt:
-        print '\nQuitting'
+        print('\nQuitting')
     
     sys.exit(0)
 

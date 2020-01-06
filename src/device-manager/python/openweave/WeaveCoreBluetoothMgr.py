@@ -20,12 +20,14 @@
 #      BLE Central support for Weave Device Manager via OSX CoreBluetooth APIs.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import abc
 import logging
 import select
 import socket
 import sys
-import Queue
+import six.moves.queue
 import subprocess
 import threading
 import time
@@ -37,10 +39,10 @@ from Foundation import *
 import objc
 from PyObjCTools import AppHelper
 
-from WeaveBleUtility import *
-from WeaveBleUtility import _VoidPtrToByteArray
+from .WeaveBleUtility import *
+from .WeaveBleUtility import _VoidPtrToByteArray
 
-from WeaveBleBase import WeaveBleBase
+from .WeaveBleBase import WeaveBleBase
 
 
 objc.loadBundle("CoreBluetooth", globals(),
@@ -60,7 +62,7 @@ def _VoidPtrToCBUUID(ptr, len):
         ptr = ptr[:8] + '-' + ptr[8:12] + '-' + ptr[12:16] + '-' + ptr[16:20] + '-' + ptr[20:]
         ptr = CBUUID.UUIDWithString_(ptr)
     except:
-        print "ERROR: failed to convert void * to CBUUID"
+        print("ERROR: failed to convert void * to CBUUID")
         ptr = None
 
     return ptr
@@ -82,7 +84,7 @@ class CoreBluetoothManager(WeaveBleBase):
         self.characteristics = {}
         self.peripheral_list = []
         self.bg_peripheral_name = None
-        self.weave_queue = Queue.Queue()
+        self.weave_queue = six.moves.queue.Queue()
 
         self.manager = CBCentralManager.alloc()
         self.manager.initWithDelegate_queue_options_(self, None, None)
