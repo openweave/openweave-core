@@ -788,9 +788,12 @@ void MockWdmSubscriptionResponderImpl::PublisherEventCallback (void * const aApp
         break;
 
     case SubscriptionHandler::kEvent_OnSubscriptionTerminated:
-        WeaveLogDetail(DataManagement, "Publisher->kEvent_OnSubscriptionTerminated. Reason: %u, peer = 0x%" PRIX64 "\n",
-                aInParam.mSubscriptionTerminated.mReason,
-                aInParam.mSubscriptionTerminated.mHandler->GetPeerNodeId());
+        WeaveLogDetail(DataManagement, "Publisher->kEvent_OnSubscriptionTerminated. peer = 0x%" PRIX64 ", %s: %s",
+                aInParam.mSubscriptionTerminated.mHandler->GetPeerNodeId(),
+                (aInParam.mSubscriptionTerminated.mIsStatusCodeValid) ? "Status Report" : "Error",
+                (aInParam.mSubscriptionTerminated.mIsStatusCodeValid)
+                    ? ::nl::StatusReportStr(aInParam.mSubscriptionTerminated.mStatusProfileId, aInParam.mSubscriptionTerminated.mStatusCode)
+                    : ::nl::ErrorStr(aInParam.mSubscriptionTerminated.mReason));
         switch (gFinalStatus)
         {
         case kPublisherCancel:
@@ -810,7 +813,6 @@ void MockWdmSubscriptionResponderImpl::PublisherEventCallback (void * const aApp
         {
             //responder->mExchangeMgr->MessageLayer->SystemLayer->CancelTimer(HandleDataFlipTimeout, aAppState);
         }
-        HandleClientRelease(responder);
         HandlePublisherRelease();
         gResponderState.init();
         responder->onCompleteTest();
@@ -1025,7 +1027,9 @@ void MockWdmSubscriptionResponderImpl::HandleClientComplete(void *aAppState)
         }
         if (gFinalStatus == kClientAbort)
         {
-            (void)responder->mSubscriptionClient->AbortSubscription();
+            responder->mSubscriptionClient->AbortSubscription();
+            responder->mSubscriptionClient->Free();
+            responder->mSubscriptionClient = NULL;
         }
     }
 }

@@ -37,8 +37,6 @@
 #include <Weave/Support/WeaveFaultInjection.h>
 #include <SystemLayer/SystemStats.h>
 
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-
 namespace nl {
 namespace Weave {
 namespace Profiles {
@@ -301,9 +299,7 @@ WEAVE_ERROR SubscriptionEngine::SendStatusReport(nl::Weave::ExchangeContext * aE
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    err = nl::Weave::WeaveServerBase::SendStatusReport(aEC, aProfileId, aStatusCode, WEAVE_NO_ERROR,
-                                                       aEC->HasPeerRequestedAck() ? nl::Weave::ExchangeContext::kSendFlag_RequestAck
-                                                                                  : 0);
+    err = nl::Weave::WeaveServerBase::SendStatusReport(aEC, aProfileId, aStatusCode, WEAVE_NO_ERROR);
     WeaveLogFunctError(err);
 
     return err;
@@ -318,6 +314,13 @@ void SubscriptionEngine::UnsolicitedMessageHandler(nl::Weave::ExchangeContext * 
                                                    uint8_t aMsgType, PacketBuffer * aPayload)
 {
     nl::Weave::ExchangeContext::MessageReceiveFunct func = OnUnknownMsgType;
+
+    // If the message was received over UDP and the peer requested an ACK, arrange for
+    // any message sent as a response to also request an ACK.
+    if (aMsgInfo->InCon == NULL && GetFlag(aMsgInfo->Flags, kWeaveMessageFlag_PeerRequestedAck))
+    {
+        aEC->SetAutoRequestAck(true);
+    }
 
     switch (aMsgType)
     {
@@ -823,7 +826,7 @@ bool SubscriptionEngine::UpdateClientLiveness(const uint64_t aPeerNodeId, const 
             WeaveLogDetail(DataManagement, "Client[%d] [%5.5s] bound mutual subscription is going away", GetClientId(pClient),
                            pClient->GetStateStr());
 
-            pClient->HandleSubscriptionTerminated(pClient->IsRetryEnabled(), err, NULL);
+            pClient->TerminateSubscription(err, NULL, false);
         }
     }
 
@@ -878,7 +881,7 @@ bool SubscriptionEngine::UpdateHandlerLiveness(const uint64_t aPeerNodeId, const
             WeaveLogDetail(DataManagement, "Handler[%d] [%5.5s] bound mutual subscription is going away", GetHandlerId(pHandler),
                            pHandler->GetStateStr());
 
-            pHandler->HandleSubscriptionTerminated(err, NULL);
+            pHandler->TerminateSubscription(err, NULL, false);
         }
     }
 
@@ -1028,7 +1031,7 @@ void SubscriptionEngine::DisablePublisher()
         switch (mHandlers[i].mCurrentState)
         {
         case SubscriptionHandler::kState_Free:
-        case SubscriptionHandler::kState_Aborted:
+        case SubscriptionHandler::kState_Terminated:
             break;
         default:
             mHandlers[i].AbortSubscription();
@@ -1091,18 +1094,11 @@ void SubscriptionEngine::OnSubscribeRequest(nl::Weave::ExchangeContext * aEC, co
         ExitNow(err = WEAVE_ERROR_NO_MEMORY);
     }
 
+    // Configure the binding to communicate back to the sender of the Subscribe request. Later,
+    // after the subscription is established, this binding will be used to initiate unsolicited
+    // exchanges with the client, e.g. to deliver notifications.
     err = binding->BeginConfiguration().ConfigureFromMessage(aMsgInfo, aPktInfo).PrepareBinding();
     SuccessOrExit(err);
-
-    // If the peer requested an ACK, we need to ensure that the exchange context will automatically
-    // request an ACK when we send messages out on this exchange.
-    //
-    // In future exchanges that we initiate to this peer, the binding will automatically vend out exchange
-    // contexts with this auto-ack bit set due to the binding configuration that happens in the line above.
-    if (aMsgInfo->Flags & kWeaveMessageFlag_PeerRequestedAck)
-    {
-        aEC->SetAutoRequestAck(true);
-    }
 
     if (pEngine->mIsPublisherEnabled && (NULL != pEngine->mEventCallback))
     {
@@ -1151,7 +1147,7 @@ void SubscriptionEngine::OnSubscribeRequest(nl::Weave::ExchangeContext * aEC, co
 
                     if (nodeId == aEC->PeerNodeId)
                     {
-                        pEngine->mHandlers[i].HandleSubscriptionTerminated(err, NULL);
+                        pEngine->mHandlers[i].TerminateSubscription(err, NULL, false);
                     }
                 }
             }
@@ -1525,5 +1521,3 @@ exit:
 }; // namespace Profiles
 }; // namespace Weave
 }; // namespace nl
-
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING

@@ -49,13 +49,13 @@ class test_weave_wdm_next_one_way_subscribe_13(weave_wdm_next_test_base):
         wdm_next_args['timer_server_period'] = 4000
         wdm_next_args['enable_server_flip'] = 1
 
-        wdm_next_args['client_log_check'] = [('Client\[0\] \[(ALIVE|CONFM)\] _AbortSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
+        wdm_next_args['client_log_check'] = [('Client\[0\] \[(ALIVE|CONFM)\] TerminateSubscription ', wdm_next_args['test_client_iterations']),
                                              ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations'] * wdm_next_args['total_server_count'] + 1),
                                              ('0 ==> 100 ==> 101 ==> 102 ==> 103 ==> 104 ==> 105 ==> 106 ==> 107 ==> 108 ==> 109 ==> 110', 2),
                                              ('0 ==> 200 ==> 201 ==> 202 ==> 203 ==> 204 ==> 205 ==> 206 ==> 207 ==> 208 ==> 209 ==> 210', 1),
                                              ('0 ==> 300 ==> 301 ==> 302 ==> 303 ==> 304 ==> 305 ==> 306 ==> 307 ==> 308 ==> 309 ==> 310', 1)]
         wdm_next_args['server_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] TimerEventHandler Ref\(\d+\) Timeout', wdm_next_args['test_client_iterations']),
-                                             ('Handler\[0\] \[(ALIVE|CONFM)\] AbortSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
+                                             ('Handler\[0\] \[(ALIVE|CONFM)\] TerminateSubscription ', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
 
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()

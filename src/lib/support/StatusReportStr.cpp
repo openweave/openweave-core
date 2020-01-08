@@ -140,6 +140,7 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         switch (statusCode)
         {
         case nl::Weave::Profiles::Common::kStatus_Success                               : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Success"; break;
+        case nl::Weave::Profiles::Common::kStatus_Canceled                              : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Canceled"; break;
         case nl::Weave::Profiles::Common::kStatus_BadRequest                            : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Bad/malformed request"; break;
         case nl::Weave::Profiles::Common::kStatus_UnsupportedMessage                    : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Unrecognized/unsupported message"; break;
         case nl::Weave::Profiles::Common::kStatus_UnexpectedMessage                     : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Unexpected message"; break;

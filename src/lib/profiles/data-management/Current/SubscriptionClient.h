@@ -79,19 +79,16 @@ public:
          * ::nl::Weave::Profiles::DataManagement_Current::SubscriptionClient::EventCallback
          * will indicate whether a resubscribe will be automatically attempted.
          *
-         * If no retry will be attempted, the state of the client will be
-         * `Aborted`. No more downcalls into the application will be made.
-         * Otherwise, the state will not be aborted or freed. Downcalls will
-         * continue.
+         * During the event handler call, the state of the client will be `Terminated`.
+         * If no retry will be attempted, the state of the client will transition to
+         * `Initialized` when the event handler returns.  Otherwise, the state will
+         * transition to `ResubscribeHoldoff` and an attempt will be made to re-establish
+         * the subscription after the hold-off time.
          *
          * The application may call AbortSubscription() or Free() in this state.
          *
          * The parameters sent will also include an error code indicating the
-         * reason for ending the subscription. There are no guarantees for the
-         * state of
-         * ::nl::Weave::Profiles::DataManagement_Current::SubscriptionClient::mBinding
-         * or
-         * ::nl::Weave::Profiles::DataManagement_Current::SubscriptionClient::mEC.
+         * reason for ending the subscription.
          *
          * The subscription could have been terminated for a number of reasons
          * (WRM ACK missing, ExchangeContext allocation failure, response
@@ -380,7 +377,8 @@ public:
     bool IsEstablished() { return (mCurrentState >= kState_Established_Begin && mCurrentState <= kState_Established_End); }
     bool IsEstablishedIdle() { return (mCurrentState == kState_SubscriptionEstablished_Idle); }
     bool IsFree() { return (mCurrentState == kState_Free); }
-    bool IsAborting() { return (mCurrentState == kState_Aborting); }
+    bool IsCanceling() const { return (mCurrentState == kState_Canceling); }
+    bool IsTerminated() { return (mCurrentState == kState_Terminated); }
     bool IsInResubscribeHoldoff() { return (mCurrentState == kState_Resubscribe_Holdoff); }
 
     void IndicateActivity(void);
@@ -413,30 +411,27 @@ private:
 
     enum ClientState
     {
-        kState_Free        = 0,
-        kState_Initialized = 1,
+        kState_Free                                 = 0,
+        kState_Initialized                          = 1,
+        kState_Subscribing                          = 2,
+        kState_Subscribing_IdAssigned               = 3,
+        kState_SubscriptionEstablished_Idle         = 4,
+        kState_SubscriptionEstablished_Confirming   = 5,
+        kState_Canceling                            = 6,
+        kState_Resubscribe_Holdoff                  = 7,
+        kState_Terminated                           = 8,
 
-        kState_Subscribing                        = 2,
-        kState_Subscribing_IdAssigned             = 3,
-        kState_SubscriptionEstablished_Idle       = 4,
-        kState_SubscriptionEstablished_Confirming = 5,
-        kState_Canceling                          = 6,
-
-        kState_Resubscribe_Holdoff = 7,
-
-        kState_NotifyDataSinkOnAbort_Begin = kState_Subscribing,
-        kState_NotifyDataSinkOnAbort_End   = kState_Canceling,
-        kState_TimerTick_Begin             = kState_Subscribing,
-        kState_TimerTick_End               = kState_Resubscribe_Holdoff,
+        kState_NotifyDataSinkOnAbort_Begin          = kState_Subscribing,
+        kState_NotifyDataSinkOnAbort_End            = kState_Canceling,
+        kState_TimerTick_Begin                      = kState_Subscribing,
+        kState_TimerTick_End                        = kState_Resubscribe_Holdoff,
 
         // Note that these are the same as the allowed states in NotificationRequestHandler
-        kState_InProgressOrEstablished_Begin = kState_Subscribing,
-        kState_InProgressOrEstablished_End   = kState_SubscriptionEstablished_Confirming,
+        kState_InProgressOrEstablished_Begin        = kState_Subscribing,
+        kState_InProgressOrEstablished_End          = kState_SubscriptionEstablished_Confirming,
 
-        kState_Established_Begin = kState_SubscriptionEstablished_Idle,
-        kState_Established_End   = kState_SubscriptionEstablished_Confirming,
-
-        kState_Aborting = 8,
+        kState_Established_Begin                    = kState_SubscriptionEstablished_Idle,
+        kState_Established_End                      = kState_SubscriptionEstablished_Confirming,
     };
 
     ClientState mCurrentState;
@@ -501,7 +496,6 @@ private:
     void _InitiateSubscription(void);
     WEAVE_ERROR SendSubscribeRequest(void);
 
-    void _AbortSubscription();
     void _Cleanup();
 
     WEAVE_ERROR ProcessDataList(nl::Weave::TLV::TLVReader & aReader);
@@ -509,8 +503,7 @@ private:
     void _AddRef(void);
     void _Release(void);
 
-    void HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERROR aReason,
-                                      nl::Weave::Profiles::StatusReporting::StatusReport * aStatusReportPtr);
+    void TerminateSubscription(WEAVE_ERROR aReason, Profiles::StatusReporting::StatusReport * aStatusReport, bool suppressAppCallback);
     WEAVE_ERROR _PrepareBinding(void);
 
     WEAVE_ERROR ReplaceExchangeContext(void);
@@ -528,7 +521,8 @@ private:
     void TimerEventHandler(void);
     WEAVE_ERROR RefreshTimer(void);
 
-    void SetRetryTimer(WEAVE_ERROR aReason);
+    void SetRetryTimer(WEAVE_ERROR aReason); // TODO: rename to SetResubscribeTimer()
+    void CancelSubscriptionTimer(void);
 
     void MoveToState(const ClientState aTargetState);
 

@@ -265,6 +265,7 @@ int main(int argc, char *argv[])
 
     for (uint32_t iteration = 1; iteration <= gTestWdmNextOptions.mTestIterations; iteration++)
     {
+        Done = false;
 
 #ifdef ENABLE_WDMPERFDATA
 
@@ -355,10 +356,13 @@ int main(int argc, char *argv[])
             MockEventGenerator::GetInstance()->Init(&ExchangeMgr, gEventGenerator, gMockWdmNodeOptions.mTimeBetweenEvents, true);
         }
 
+        printf("Start service network loop\n");
         while (!Done)
         {
             ServiceNetwork(sleepTime);
         }
+        printf("End service network loop\n");
+
         MockEventGenerator::GetInstance()->SetEventGeneratorStop();
 
         if (gEventGenerator != NULL)
@@ -382,8 +386,6 @@ int main(int argc, char *argv[])
                 break;
         }
 
-
-        Done = false;
 
 #ifdef ENABLE_WDMPERFDATA
 
@@ -417,7 +419,6 @@ int main(int argc, char *argv[])
         }
 
         printf("Current completed test iteration is %d\n", iteration);
-
     }
 
     MockWdmSubscriptionInitiator::GetInstance()->PrintVersionsLog();
@@ -454,11 +455,13 @@ static void HandleWdmCompleteTest()
 {
     if (gMockWdmNodeOptions.mEnableStopTest)
     {
+        printf("HandleWdmCompleteTest: Done = true\n");
         Done = true;
     }
 }
 
 static void HandleError()
 {
+    printf("HandleError: Done = true\n");
     Done = true;
 }

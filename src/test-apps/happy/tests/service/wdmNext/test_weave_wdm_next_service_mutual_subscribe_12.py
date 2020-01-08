@@ -39,7 +39,7 @@ class test_weave_wdm_next_service_mutual_subscribe_12(weave_wdm_next_test_servic
         wdm_next_args['client_clear_state_between_iterations'] = True
         wdm_next_args['test_client_iterations'] = 10
         wdm_next_args['client_log_check'] = [('bound mutual subscription is going away', wdm_next_args['test_client_iterations']),
-                                             ('Client\[0\] \[(ALIVE|CONFM)\] AbortSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
+                                             ('Client\[0\] \[(ALIVE|CONFM)\] TerminateSubscription ', wdm_next_args['test_client_iterations']),
                                              ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations']),
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'] )]
