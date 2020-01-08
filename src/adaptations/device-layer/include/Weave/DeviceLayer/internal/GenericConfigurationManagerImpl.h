@@ -110,6 +110,7 @@ public:
     bool _IsFullyProvisioned();
     WEAVE_ERROR _ComputeProvisioningHash(uint8_t * hashBuf, size_t hashBufSize);
 #if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    WEAVE_ERROR _GenerateAndStoreOperationalDeviceCredentials(uint64_t deviceId);
     bool _OperationalDeviceCredentialsProvisioned();
     void _UseManufacturerCredentialsAsOperational(bool val);
 #endif

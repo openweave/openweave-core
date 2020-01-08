@@ -154,6 +154,7 @@ private:
     WEAVE_ERROR ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);
     WEAVE_ERROR WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value);
 #if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    WEAVE_ERROR GenerateAndStoreOperationalDeviceCredentials(uint64_t deviceId = kNodeIdNotSpecified);
     WEAVE_ERROR ClearOperationalDeviceCredentials(void);
     void UseManufacturerCredentialsAsOperational(bool val);
 #endif
@@ -523,6 +524,11 @@ inline WEAVE_ERROR ConfigurationManager::SetFailSafeArmed(bool val)
 inline bool ConfigurationManager::OperationalDeviceCredentialsProvisioned()
 {
     return static_cast<ImplClass*>(this)->_OperationalDeviceCredentialsProvisioned();
+}
+
+inline WEAVE_ERROR ConfigurationManager::GenerateAndStoreOperationalDeviceCredentials(uint64_t deviceId)
+{
+    return static_cast<ImplClass*>(this)->_GenerateAndStoreOperationalDeviceCredentials(deviceId);
 }
 
 inline WEAVE_ERROR ConfigurationManager::ClearOperationalDeviceCredentials(void)

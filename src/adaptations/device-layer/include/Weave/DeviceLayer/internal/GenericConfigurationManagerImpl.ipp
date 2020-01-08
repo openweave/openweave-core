@@ -30,6 +30,7 @@
 #include <Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h>
 #include <BleLayer/WeaveBleServiceData.h>
 #include <Weave/Support/Base64.h>
+#include <Weave/Profiles/security/WeavePrivateKey.h>
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 #include <Weave/DeviceLayer/ThreadStackManager.h>
@@ -530,6 +531,115 @@ template<class ImplClass>
 void GenericConfigurationManagerImpl<ImplClass>::_UseManufacturerCredentialsAsOperational(bool val)
 {
     SetFlag(mFlags, kFlag_UseManufacturerCredentialsAsOperational, val);
+}
+
+static WEAVE_ERROR GenerateOperationalECDSASignature(const uint8_t *hash, uint8_t hashLen, EncodedECDSASignature& ecdsaSig)
+{
+    WEAVE_ERROR err;
+    uint8_t * weavePrivKey = NULL;
+    size_t weavePrivKeyLen;
+    uint32_t weaveCurveId;
+    EncodedECPublicKey pubKey;
+    EncodedECPrivateKey privKey;
+
+    // Determine the length of the private key.
+    err = ConfigurationMgr().GetDevicePrivateKey((uint8_t *)NULL, 0, weavePrivKeyLen);
+    SuccessOrExit(err);
+
+    // Fail if no private key has been configured.
+    VerifyOrExit(weavePrivKeyLen != 0, err = WEAVE_ERROR_KEY_NOT_FOUND);
+
+    // Create a temporary buffer to hold the private key.
+    weavePrivKey = (uint8_t *)Platform::Security::MemoryAlloc(weavePrivKeyLen);
+    VerifyOrExit(weavePrivKey != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    // Read the private key.
+    err = ConfigurationMgr().GetDevicePrivateKey(weavePrivKey, weavePrivKeyLen, weavePrivKeyLen);
+    SuccessOrExit(err);
+
+    // Decode operational device private/public keys from private key TLV structure.
+    err = Profiles::Security::DecodeWeaveECPrivateKey(weavePrivKey, weavePrivKeyLen, weaveCurveId, pubKey, privKey);
+    SuccessOrExit(err);
+
+    // Generate operational device signature.
+    err = nl::Weave::Crypto::GenerateECDSASignature(Profiles::Security::WeaveCurveIdToOID(weaveCurveId),
+                                                    hash, hashLen, privKey, ecdsaSig);
+    SuccessOrExit(err);
+
+exit:
+    if (weavePrivKey != NULL)
+    {
+        Platform::Security::MemoryFree(weavePrivKey);
+    }
+    return err;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GenerateAndStoreOperationalDeviceCredentials(uint64_t deviceId)
+{
+    enum
+    {
+        kWeaveDeviceCertBufSize           = 300,    // Size of buffer needed to hold Weave device certificate.
+        kWeaveDevicePrivateKeyBufSize     = 128,    // Size of buffer needed to hold Weave device private key.
+    };
+
+    WEAVE_ERROR err;
+    uint8_t weavePrivKey[kWeaveDevicePrivateKeyBufSize];
+    uint32_t weavePrivKeyLen;
+    uint8_t weaveCert[kWeaveDeviceCertBufSize];
+    uint16_t weaveCertLen;
+    uint8_t privKeyBuf[EncodedECPrivateKey::kMaxValueLength];
+    uint8_t pubKeyBuf[EncodedECPublicKey::kMaxValueLength];
+    EncodedECPublicKey pubKey;
+    EncodedECPrivateKey privKey;
+
+    // If not specified, generate random device Id.
+    if (deviceId == kNodeIdNotSpecified)
+    {
+        err = GenerateWeaveNodeId(deviceId);
+        SuccessOrExit(err);
+    }
+
+    // Store generated device Id.
+    err = _StoreDeviceId(deviceId);
+    SuccessOrExit(err);
+
+    privKey.PrivKey = privKeyBuf;
+    privKey.PrivKeyLen = sizeof(privKeyBuf);
+
+    pubKey.ECPoint = pubKeyBuf;
+    pubKey.ECPointLen = sizeof(pubKeyBuf);
+
+    // Generate random EC private/public key pair.
+    err = GenerateECDHKey(Profiles::Security::WeaveCurveIdToOID(WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID), pubKey, privKey);
+    SuccessOrExit(err);
+
+    // Encode Weave device EC private/public key pair into EllipticCurvePrivateKey TLV structure.
+    err = EncodeWeaveECPrivateKey(WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID, &pubKey, privKey,
+                                  weavePrivKey, sizeof(weavePrivKey), weavePrivKeyLen);
+    SuccessOrExit(err);
+
+    // Store generated operational device private key.
+    err = _StoreDevicePrivateKey(weavePrivKey, weavePrivKeyLen);
+    SuccessOrExit(err);
+
+    // Generate self-signed operational device certificate.
+    err = Profiles::Security::GenerateOperationalDeviceCert(deviceId, pubKey, weaveCert, sizeof(weaveCert), weaveCertLen, GenerateOperationalECDSASignature);
+    SuccessOrExit(err);
+
+    // Store generated operational device certificate.
+    err = _StoreDeviceCertificate(weaveCert, weaveCertLen);
+    SuccessOrExit(err);
+
+    // Set flag indicating that the device has been provisioned with operational credentials.
+    SetFlag(mFlags, kFlag_OperationalDeviceCredentialsProvisioned, Impl()->ConfigValueExists(ImplClass::kConfigKey_OperationalDeviceCert));
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        _ClearOperationalDeviceCredentials();
+    }
+    return err;
 }
 
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
