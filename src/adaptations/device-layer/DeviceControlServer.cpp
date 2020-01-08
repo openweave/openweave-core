@@ -74,9 +74,11 @@ WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
         // service provisioning data, if present.
         if (((resetFlags & kResetConfigFlag_ServiceConfig) != 0)
 #if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
-          // Always reset service provisioning data, when requested to reset operational
-          // device credentials.
-          || ((resetFlags & kResetConfigFlag_OperationalCredentials) != 0)
+            // Service config and operational credentials are closely corelated:
+            // 1. Reset service config when requested to clear operational credentials.
+            // 2. Clear and generate new operational credentials when requested to reset
+            //    service config.
+            || ((resetFlags & kResetConfigFlag_OperationalCredentials) != 0)
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
         )
         {
@@ -116,21 +118,6 @@ WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
             ThreadStackMgr().ClearThreadProvision();
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
         }
-
-#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
-        // If the device operational credentials reset has been requested, clear
-        // the device operational credentials, if present.
-        if ((resetFlags & kResetConfigFlag_OperationalCredentials) != 0)
-        {
-            WeaveLogProgress(DeviceLayer, "Reset operational credentials");
-            tmpErr = ConfigurationMgr().ClearOperationalDeviceCredentials();
-            if (tmpErr != WEAVE_NO_ERROR)
-            {
-                WeaveLogProgress(DeviceLayer, "ConfigurationMgr().ClearOperationalDeviceCredentials() failed: %s", ErrorStr(tmpErr));
-                err = (err == WEAVE_NO_ERROR) ? tmpErr : err;
-            }
-        }
-#endif // WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
     }
 
     return err;

@@ -96,12 +96,6 @@ public:
     WEAVE_ERROR StoreManufacturingDate(const char * mfgDate, size_t mfgDateLen);
     WEAVE_ERROR StoreProductRevision(uint16_t productRev);
     WEAVE_ERROR StoreFabricId(uint64_t fabricId);
-#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
-    WEAVE_ERROR StoreDeviceId(uint64_t deviceId);
-    WEAVE_ERROR StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
-    WEAVE_ERROR StoreDeviceIntermediateCACerts(const uint8_t * certs, size_t certsLen);
-    WEAVE_ERROR StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
-#endif
     WEAVE_ERROR StoreManufacturerDeviceId(uint64_t deviceId);
     WEAVE_ERROR StoreManufacturerDeviceCertificate(const uint8_t * cert, size_t certLen);
     WEAVE_ERROR StoreManufacturerDeviceIntermediateCACerts(const uint8_t * certs, size_t certsLen);
@@ -124,9 +118,6 @@ public:
     bool IsPairedToAccount();
     bool IsMemberOfFabric();
     bool IsFullyProvisioned();
-#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
-    bool OperationalDeviceCredentialsProvisioned();
-#endif
 
     void InitiateFactoryReset();
 
@@ -155,7 +146,9 @@ private:
     WEAVE_ERROR ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);
     WEAVE_ERROR WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value);
 #if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
-    WEAVE_ERROR ClearOperationalDeviceCredentials(void);
+    WEAVE_ERROR GenerateOperationalDeviceCredentials(void);
+    WEAVE_ERROR StoreOperationalDeviceCertificates(const uint8_t * cert, size_t certLen, const uint8_t * icaCerts, size_t icaCertsLen);
+    bool AreOperationalDeviceCredentialsProvisioned(void);
     void UseManufacturerCredentialsAsOperational(bool val);
 #endif
 
@@ -355,30 +348,6 @@ inline WEAVE_ERROR ConfigurationManager::StoreFabricId(uint64_t fabricId)
     return static_cast<ImplClass*>(this)->_StoreFabricId(fabricId);
 }
 
-#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
-
-inline WEAVE_ERROR ConfigurationManager::StoreDeviceId(uint64_t deviceId)
-{
-    return static_cast<ImplClass*>(this)->_StoreDeviceId(deviceId);
-}
-
-inline WEAVE_ERROR ConfigurationManager::StoreDeviceCertificate(const uint8_t * cert, size_t certLen)
-{
-    return static_cast<ImplClass*>(this)->_StoreDeviceCertificate(cert, certLen);
-}
-
-inline WEAVE_ERROR ConfigurationManager::StoreDeviceIntermediateCACerts(const uint8_t * certs, size_t certsLen)
-{
-    return static_cast<ImplClass*>(this)->_StoreDeviceIntermediateCACerts(certs, certsLen);
-}
-
-inline WEAVE_ERROR ConfigurationManager::StoreDevicePrivateKey(const uint8_t * key, size_t keyLen)
-{
-    return static_cast<ImplClass*>(this)->_StoreDevicePrivateKey(key, keyLen);
-}
-
-#endif // WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
-
 inline WEAVE_ERROR ConfigurationManager::StoreManufacturerDeviceId(uint64_t deviceId)
 {
     return static_cast<ImplClass*>(this)->_StoreManufacturerDeviceId(deviceId);
@@ -521,14 +490,19 @@ inline WEAVE_ERROR ConfigurationManager::SetFailSafeArmed(bool val)
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
 
-inline bool ConfigurationManager::OperationalDeviceCredentialsProvisioned()
+inline WEAVE_ERROR ConfigurationManager::GenerateOperationalDeviceCredentials(void)
 {
-    return static_cast<ImplClass*>(this)->_OperationalDeviceCredentialsProvisioned();
+    return static_cast<ImplClass*>(this)->_GenerateOperationalDeviceCredentials();
 }
 
-inline WEAVE_ERROR ConfigurationManager::ClearOperationalDeviceCredentials(void)
+inline WEAVE_ERROR ConfigurationManager::StoreOperationalDeviceCertificates(const uint8_t * cert, size_t certLen, const uint8_t * icaCerts, size_t icaCertsLen)
 {
-    return static_cast<ImplClass*>(this)->_ClearOperationalDeviceCredentials();
+    return static_cast<ImplClass*>(this)->_StoreOperationalDeviceCertificates(cert, certLen, icaCerts, icaCertsLen);
+}
+
+inline bool ConfigurationManager::AreOperationalDeviceCredentialsProvisioned()
+{
+    return static_cast<ImplClass*>(this)->_AreOperationalDeviceCredentialsProvisioned();
 }
 
 inline void ConfigurationManager::UseManufacturerCredentialsAsOperational(bool val)

@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -82,6 +83,31 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
         WeaveLogError(DeviceLayer, "SystemLayer initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    if (!ConfigurationMgr().AreOperationalDeviceCredentialsProvisioned())
+    {
+        // If already provisioned keep using manufacturer device credentials as operational.
+        if (ConfigurationMgr().IsFullyProvisioned())
+        {
+            ConfigurationMgr().UseManufacturerCredentialsAsOperational(true);
+        }
+        // Otherwise, generate and store operational device credentials.
+        else
+        {
+            err = ConfigurationMgr().GenerateOperationalDeviceCredentials();
+            if (err != WEAVE_NO_ERROR)
+            {
+                WeaveLogError(DeviceLayer, "GenerateOperationalDeviceCredentials() failed: %s", ErrorStr(err));
+                ExitNow();
+            }
+            else
+            {
+                WeaveLogProgress(DeviceLayer, "Device operational credentials generated");
+            }
+        }
+    }
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
 
     // Initialize the Weave Inet layer.
     new (&InetLayer) Inet::InetLayer();
