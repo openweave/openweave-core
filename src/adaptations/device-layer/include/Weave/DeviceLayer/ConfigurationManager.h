@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -77,22 +78,34 @@ public:
             uint8_t & hour, uint8_t & minute, uint8_t & second);
     WEAVE_ERROR GetDeviceId(uint64_t & deviceId);
     WEAVE_ERROR GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
+    WEAVE_ERROR GetDeviceIntermediateCACerts(uint8_t * buf, size_t bufSize, size_t & certsLen);
     WEAVE_ERROR GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
+    WEAVE_ERROR GetManufacturerDeviceId(uint64_t & deviceId);
+    WEAVE_ERROR GetManufacturerDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
+    WEAVE_ERROR GetManufacturerDeviceIntermediateCACerts(uint8_t * buf, size_t bufSize, size_t & certsLen);
+    WEAVE_ERROR GetManufacturerDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
     WEAVE_ERROR GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen);
     WEAVE_ERROR GetServiceId(uint64_t & serviceId);
     WEAVE_ERROR GetFabricId(uint64_t & fabricId);
     WEAVE_ERROR GetServiceConfig(uint8_t * buf, size_t bufSize, size_t & serviceConfigLen);
     WEAVE_ERROR GetPairedAccountId(char * buf, size_t bufSize, size_t & accountIdLen);
 
-    WEAVE_ERROR StoreDeviceId(uint64_t deviceId);
     WEAVE_ERROR StoreSerialNumber(const char * serialNum, size_t serialNumLen);
     WEAVE_ERROR StorePrimaryWiFiMACAddress(const uint8_t * buf);
     WEAVE_ERROR StorePrimary802154MACAddress(const uint8_t * buf);
     WEAVE_ERROR StoreManufacturingDate(const char * mfgDate, size_t mfgDateLen);
     WEAVE_ERROR StoreProductRevision(uint16_t productRev);
     WEAVE_ERROR StoreFabricId(uint64_t fabricId);
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    WEAVE_ERROR StoreDeviceId(uint64_t deviceId);
     WEAVE_ERROR StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR StoreDeviceIntermediateCACerts(const uint8_t * certs, size_t certsLen);
     WEAVE_ERROR StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
+#endif
+    WEAVE_ERROR StoreManufacturerDeviceId(uint64_t deviceId);
+    WEAVE_ERROR StoreManufacturerDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR StoreManufacturerDeviceIntermediateCACerts(const uint8_t * certs, size_t certsLen);
+    WEAVE_ERROR StoreManufacturerDevicePrivateKey(const uint8_t * key, size_t keyLen);
     WEAVE_ERROR StorePairingCode(const char * pairingCode, size_t pairingCodeLen);
     WEAVE_ERROR StoreServiceProvisioningData(uint64_t serviceId, const uint8_t * serviceConfig, size_t serviceConfigLen, const char * accountId, size_t accountIdLen);
     WEAVE_ERROR ClearServiceProvisioningData();
@@ -111,6 +124,9 @@ public:
     bool IsPairedToAccount();
     bool IsMemberOfFabric();
     bool IsFullyProvisioned();
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    bool OperationalDeviceCredentialsProvisioned();
+#endif
 
     void InitiateFactoryReset();
 
@@ -137,6 +153,10 @@ private:
     WEAVE_ERROR SetFailSafeArmed(bool val);
     WEAVE_ERROR ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);
     WEAVE_ERROR WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value);
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+    WEAVE_ERROR ClearOperationalDeviceCredentials(void);
+    void UseManufacturerCredentialsAsOperational(bool val);
+#endif
 
 protected:
 
@@ -249,9 +269,34 @@ inline WEAVE_ERROR ConfigurationManager::GetDeviceCertificate(uint8_t * buf, siz
     return static_cast<ImplClass*>(this)->_GetDeviceCertificate(buf, bufSize, certLen);
 }
 
+inline WEAVE_ERROR ConfigurationManager::GetDeviceIntermediateCACerts(uint8_t * buf, size_t bufSize, size_t & certsLen)
+{
+    return static_cast<ImplClass*>(this)->_GetDeviceIntermediateCACerts(buf, bufSize, certsLen);
+}
+
 inline WEAVE_ERROR ConfigurationManager::GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen)
 {
     return static_cast<ImplClass*>(this)->_GetDevicePrivateKey(buf, bufSize, keyLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetManufacturerDeviceId(uint64_t & deviceId)
+{
+    return static_cast<ImplClass*>(this)->_GetManufacturerDeviceId(deviceId);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetManufacturerDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen)
+{
+    return static_cast<ImplClass*>(this)->_GetManufacturerDeviceCertificate(buf, bufSize, certLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetManufacturerDeviceIntermediateCACerts(uint8_t * buf, size_t bufSize, size_t & certsLen)
+{
+    return static_cast<ImplClass*>(this)->_GetManufacturerDeviceIntermediateCACerts(buf, bufSize, certsLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetManufacturerDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen)
+{
+    return static_cast<ImplClass*>(this)->_GetManufacturerDevicePrivateKey(buf, bufSize, keyLen);
 }
 
 inline WEAVE_ERROR ConfigurationManager::GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen)
@@ -277,11 +322,6 @@ inline WEAVE_ERROR ConfigurationManager::GetServiceConfig(uint8_t * buf, size_t 
 inline WEAVE_ERROR ConfigurationManager::GetPairedAccountId(char * buf, size_t bufSize, size_t & accountIdLen)
 {
     return static_cast<ImplClass*>(this)->_GetPairedAccountId(buf, bufSize, accountIdLen);
-}
-
-inline WEAVE_ERROR ConfigurationManager::StoreDeviceId(uint64_t deviceId)
-{
-    return static_cast<ImplClass*>(this)->_StoreDeviceId(deviceId);
 }
 
 inline WEAVE_ERROR ConfigurationManager::StoreSerialNumber(const char * serialNum, size_t serialNumLen)
@@ -314,14 +354,48 @@ inline WEAVE_ERROR ConfigurationManager::StoreFabricId(uint64_t fabricId)
     return static_cast<ImplClass*>(this)->_StoreFabricId(fabricId);
 }
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+
+inline WEAVE_ERROR ConfigurationManager::StoreDeviceId(uint64_t deviceId)
+{
+    return static_cast<ImplClass*>(this)->_StoreDeviceId(deviceId);
+}
+
 inline WEAVE_ERROR ConfigurationManager::StoreDeviceCertificate(const uint8_t * cert, size_t certLen)
 {
     return static_cast<ImplClass*>(this)->_StoreDeviceCertificate(cert, certLen);
 }
 
+inline WEAVE_ERROR ConfigurationManager::StoreDeviceIntermediateCACerts(const uint8_t * certs, size_t certsLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreDeviceIntermediateCACerts(certs, certsLen);
+}
+
 inline WEAVE_ERROR ConfigurationManager::StoreDevicePrivateKey(const uint8_t * key, size_t keyLen)
 {
     return static_cast<ImplClass*>(this)->_StoreDevicePrivateKey(key, keyLen);
+}
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+
+inline WEAVE_ERROR ConfigurationManager::StoreManufacturerDeviceId(uint64_t deviceId)
+{
+    return static_cast<ImplClass*>(this)->_StoreManufacturerDeviceId(deviceId);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreManufacturerDeviceCertificate(const uint8_t * cert, size_t certLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreManufacturerDeviceCertificate(cert, certLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreManufacturerDeviceIntermediateCACerts(const uint8_t * certs, size_t certsLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreManufacturerDeviceIntermediateCACerts(certs, certsLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreManufacturerDevicePrivateKey(const uint8_t * key, size_t keyLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreManufacturerDevicePrivateKey(key, keyLen);
 }
 
 inline WEAVE_ERROR ConfigurationManager::StorePairingCode(const char * pairingCode, size_t pairingCodeLen)
@@ -443,6 +517,25 @@ inline WEAVE_ERROR ConfigurationManager::SetFailSafeArmed(bool val)
 {
     return static_cast<ImplClass*>(this)->_SetFailSafeArmed(val);
 }
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+
+inline bool ConfigurationManager::OperationalDeviceCredentialsProvisioned()
+{
+    return static_cast<ImplClass*>(this)->_OperationalDeviceCredentialsProvisioned();
+}
+
+inline WEAVE_ERROR ConfigurationManager::ClearOperationalDeviceCredentials(void)
+{
+    return static_cast<ImplClass*>(this)->_ClearOperationalDeviceCredentials();
+}
+
+inline void ConfigurationManager::UseManufacturerCredentialsAsOperational(bool val)
+{
+    static_cast<ImplClass*>(this)->_UseManufacturerCredentialsAsOperational(val);
+}
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
 
 } // namespace DeviceLayer
 } // namespace Weave
