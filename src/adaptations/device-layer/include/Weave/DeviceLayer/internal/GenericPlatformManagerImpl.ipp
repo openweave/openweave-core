@@ -421,9 +421,6 @@ void GenericPlatformManagerImpl<ImplClass>::DispatchEventToDeviceLayer(const Wea
     NetworkProvisioningSvr().OnPlatformEvent(event);
     FabricProvisioningSvr().OnPlatformEvent(event);
     ServiceProvisioningSvr().OnPlatformEvent(event);
-#if WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER
-    SoftwareUpdateMgr().OnPlatformEvent(event);
-#endif
 #if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
     TraitMgr().OnPlatformEvent(event);
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
