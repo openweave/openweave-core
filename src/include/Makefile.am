@@ -642,6 +642,8 @@ $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/MessageDef.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ResourceIdentifier.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ViewClient.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitData.h \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SingleResourceTraitCatalog.ipp \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SingleResourceTraitCatalog.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitCatalog.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitPathStore.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SubscriptionEngine.h \
@@ -818,6 +820,9 @@ $(filter %.h,$(nl_public_WeaveProfiles_header_destinations)): $(nl_public_WeaveP
 	$(call create-link)
 
 $(filter %.hpp,$(nl_public_WeaveProfiles_header_destinations)): $(nl_public_WeaveProfiles_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveProfiles_source_dirstem)/%.hpp | $(nl_public_WeaveProfiles_header_dirs)
+	$(call create-link)
+
+$(filter %.ipp,$(nl_public_WeaveProfiles_header_destinations)): $(nl_public_WeaveProfiles_destination_dirstem)/%.ipp: $(abs_srcdir)/../$(nl_public_WeaveProfiles_source_dirstem)/%.ipp | $(nl_public_WeaveProfiles_header_dirs)
 	$(call create-link)
 
 weave_profiles_basedir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)
