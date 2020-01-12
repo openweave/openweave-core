@@ -88,6 +88,75 @@ WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath (PropertyPathHandle aPathhandl
     return err;
 }
 
+WEAVE_ERROR TraitSchemaEngine::ParseTagString(const char *apTagString, char **apEndptr, uint8_t& aParseRes) const
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(apTagString != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(*apTagString == '/', err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    apTagString ++;
+
+    aParseRes = strtoul(apTagString, apEndptr, 0);
+    VerifyOrExit(!(*apEndptr == apTagString || (**apEndptr != '\0' && **apEndptr != '/')), err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(aParseRes < kContextTagMaxNum, err = WEAVE_ERROR_INVALID_TLV_TAG);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR TraitSchemaEngine::MapPathToHandle(const char * aPathString, PropertyPathHandle & aHandle) const
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    PropertyPathHandle childProperty, curProperty;
+    char *parseEnd;
+    uint8_t parseRes = 0;
+    uint64_t tag = 0;
+
+    VerifyOrExit(aPathString != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    // initialize the out argument to NULL
+    aHandle = kNullPropertyPathHandle;
+
+    // Set our starting point for traversal to the root node.
+    curProperty = kRootPropertyPathHandle;
+
+    if (aPathString[0] == '/' && aPathString[1] == '\0')
+    {
+        ExitNow();
+    }
+
+    // Descend into our schema tree using the tags encountered to help navigate through the various branches.
+    while (*aPathString != '\0')
+    {
+        err = ParseTagString(aPathString, &parseEnd, parseRes);
+        SuccessOrExit(err);
+
+        // Todo: add dictionary support, not yet supported
+        tag = ContextTag(parseRes);
+
+        childProperty = GetChildHandle(curProperty, TagNumFromTag(tag));
+        if (IsNullPropertyPathHandle(childProperty))
+        {
+            err = WEAVE_ERROR_TLV_TAG_NOT_FOUND;
+            SuccessOrExit(err);
+        }
+
+        // Set the current node.
+        curProperty = childProperty;
+
+        aPathString = parseEnd;
+    }
+
+exit:
+    if (err == WEAVE_NO_ERROR)
+    {
+        aHandle = curProperty;
+    }
+
+    return err;
+}
+
 WEAVE_ERROR TraitSchemaEngine::MapPathToHandle(TLVReader & aPathReader, PropertyPathHandle & aHandle) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
