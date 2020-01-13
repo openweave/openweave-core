@@ -26,6 +26,8 @@
 #       The command is executed by instantiating and running ServiceAccountManager class.
 #
 
+from __future__ import print_function
+
 import getopt
 import logging
 import logging.handlers
@@ -62,13 +64,13 @@ if __name__ == "__main__":
         opts, args = getopt.getopt(sys.argv[1:], "h:t:u:p:",
                                    ["help", "tier=", "username=", "password=" "quiet"])
     except getopt.GetoptError as err:
-        print ServiceAccountManager.ServiceAccountManager.__doc__
-        print str(err)
+        print(ServiceAccountManager.ServiceAccountManager.__doc__)
+        print(str(err))
         sys.exit("%s: Failed server parse arguments." % (__file__))
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print ServiceAccountManager.ServiceAccountManager.__doc__
+            print(ServiceAccountManager.ServiceAccountManager.__doc__)
             sys.exit(0)
 
         elif o in ("-q", "--quiet"):
