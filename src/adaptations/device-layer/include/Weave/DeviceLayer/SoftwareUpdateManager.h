@@ -320,7 +320,6 @@ private:
     template<class> friend class Internal::GenericPlatformManagerImpl;
 
     WEAVE_ERROR Init(void);
-    void OnPlatformEvent(const WeaveDeviceEvent * event);
 
 protected:
 
@@ -480,11 +479,6 @@ inline WEAVE_ERROR SoftwareUpdateManager::ImageInstallComplete(WEAVE_ERROR aErro
 inline WEAVE_ERROR SoftwareUpdateManager::PrepareImageStorageComplete(WEAVE_ERROR aError)
 {
     return static_cast<ImplClass*>(this)->_PrepareImageStorageComplete(aError);
-}
-
-inline void SoftwareUpdateManager::OnPlatformEvent(const WeaveDeviceEvent * event)
-{
-    static_cast<ImplClass*>(this)->_OnPlatformEvent(event);
 }
 
 inline SoftwareUpdateManager::State SoftwareUpdateManager::GetState(void)

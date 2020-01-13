@@ -62,7 +62,6 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::DoInit()
 {
     mShouldRetry = false;
     mScheduledCheckEnabled = false;
-    mHaveServiceConnectivity = false;
     mIgnorePartialImage = false;
 
     mEventHandlerCallback = NULL;
@@ -121,6 +120,12 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::PrepareBinding(intptr_t arg)
     GenericSoftwareUpdateManagerImpl<ImplClass> * self = &SoftwareUpdateMgrImpl();
 
     self->Cleanup();
+
+    if (!ConnectivityMgr().HaveServiceConnectivity())
+    {
+        WeaveLogProgress(DeviceLayer, "Software Update Check: No service connectivity");
+        ExitNow(err = WEAVE_ERROR_NOT_CONNECTED);
+    }
 
     self->mBinding = ExchangeMgr.NewBinding(HandleServiceBindingEvent, NULL);
     VerifyOrExit(self->mBinding != NULL, err = WEAVE_ERROR_NO_MEMORY);
@@ -437,27 +442,6 @@ bool GenericSoftwareUpdateManagerImpl<ImplClass>::_IsInProgress(void)
 }
 
 template<class ImplClass>
-void GenericSoftwareUpdateManagerImpl<ImplClass>::_OnPlatformEvent(const WeaveDeviceEvent * event)
-{
-    GenericSoftwareUpdateManagerImpl<ImplClass> * self = &SoftwareUpdateMgrImpl();
-
-     if (event->Type == DeviceEventType::kServiceConnectivityChange)
-     {
-        if (event->ServiceConnectivityChange.Overall.Result == kConnectivity_Established)
-        {
-            self->mHaveServiceConnectivity = true;
-        }
-        else if (event->ServiceConnectivityChange.Overall.Result == kConnectivity_Lost)
-        {
-            self->mHaveServiceConnectivity = false;
-            SystemLayer.CancelTimer(HandleHoldOffTimerExpired, NULL);
-        }
-
-        self->DriveState(SoftwareUpdateManager::kState_Idle);
-     }
-}
-
-template<class ImplClass>
 void GenericSoftwareUpdateManagerImpl<ImplClass>::SendQuery(void)
 {
     WEAVE_ERROR err;
@@ -729,7 +713,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::DriveState(SoftwareUpdateManag
              * will trigger on expiration of the timer unless service connectivity was lost or
              * the application requested a manual software update check.
              */
-            if ((mScheduledCheckEnabled || mShouldRetry) && mHaveServiceConnectivity)
+            if (mScheduledCheckEnabled || mShouldRetry)
             {
                 uint32_t timeToNextQueryMS = GetNextWaitTimeInterval();
 
@@ -739,10 +723,6 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::DriveState(SoftwareUpdateManag
                     mState = SoftwareUpdateManager::kState_ScheduledHoldoff;
                     SystemLayer.StartTimer(timeToNextQueryMS, HandleHoldOffTimerExpired, NULL);
                 }
-            }
-            else if (!mHaveServiceConnectivity)
-            {
-                WeaveLogProgress(DeviceLayer, "Software Update Check Suspended - no service connectivity");
             }
         }
         break;
