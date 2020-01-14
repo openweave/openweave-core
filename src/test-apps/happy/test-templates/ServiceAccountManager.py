@@ -22,13 +22,20 @@
 #    Note: "openweave-core/src/test-apps/happy/test-templates/generated"
 #    needs to be added to PYTHONPATH
 
+
+from __future__ import print_function
+
+import future
+
 import json
-from httplib import HTTPSConnection
 import grpc
 from grpc.framework.interfaces.face.face import ExpirationError
 import time
 import nestlabs.gateway.v2.gateway_api_pb2 as gateway_api_pb2
 import nestlabs.gateway.v2.gateway_api_pb2_grpc as gateway_api_pb2_grpc
+
+from http.client import HTTPSConnection
+from future.moves.urllib.parse import unquote
 
 options = {}
 options["tier"] = None
@@ -243,7 +250,7 @@ class ServiceAccountManager(object):
         where_id = '00000000-0000-0000-0000-000100000010'
         spoken_where_id = '00000000-0000-0000-0000-000100000010'
         initialDataJSON = {
-            'structure_id': self.structureids[0],
+            'structure_id': self.structureids[0].decode("UTF-8"),
             'where_id': where_id,
             'spoken_where_id': spoken_where_id}
         return initialDataJSON
@@ -256,13 +263,13 @@ class ServiceAccountManager(object):
         self.cmd = ' --account-id %s --pairing-token %s --service-config %s --init-data \'%s\'' % (self.accountid, self.sessionJSON[
                                                                                                    'weave']['pairing_token'], self.sessionJSON['weave']['service_config'], json.dumps(self.initial_data).encode("UTF-8"))
 
-        print "Weave Access Token:"
+        print("Weave Access Token:")
 
-        print self.sessionJSON['weave']['access_token']
+        print(self.sessionJSON['weave']['access_token'])
 
-        print "weave-register-service generated the service registration command:"
+        print("weave-register-service generated the service registration command:")
 
-        print "register-service %s\n" % self.cmd
+        print("register-service %s\n" % self.cmd)
 
         self.logger.debug("[localhost] ServiceAccountManager: Done.")
 
