@@ -58,7 +58,7 @@ chromecast_setup_service_short = CBUUID.UUIDWithString_(u'FEA0')
 def _VoidPtrToCBUUID(ptr, len):
     try:
         ptr = _VoidPtrToByteArray(ptr, len)
-        ptr = binascii.hexlify(ptr)
+        ptr = binascii.hexlify(ptr).decode()
         ptr = ptr[:8] + '-' + ptr[8:12] + '-' + ptr[12:16] + '-' + ptr[16:20] + '-' + ptr[20:]
         ptr = CBUUID.UUIDWithString_(ptr)
     except:
