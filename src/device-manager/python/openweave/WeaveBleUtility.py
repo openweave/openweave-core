@@ -53,7 +53,7 @@ CBCharacteristicWriteWithoutResponse = 1
 def _VoidPtrToUUIDString(ptr, len):
     try:
         ptr = _VoidPtrToByteArray(ptr, len)
-        ptr = binascii.hexlify(ptr)
+        ptr = binascii.hexlify(ptr).decode()
         ptr = ptr[:8] + '-' + ptr[8:12] + '-' + ptr[12:16] + '-' + ptr[16:20] + '-' + ptr[20:]
         ptr = str(ptr)
     except:
@@ -100,11 +100,11 @@ class BleTxEvent:
 
         if self.SvcId:
             print("%sSvcId:" % (prefix))
-            print(binascii.hexlify(self.SvcId))
+            print(binascii.hexlify(self.SvcId).decode())
 
         if self.CharId:
             print("%sCharId:" % (prefix))
-            print(binascii.hexlify(self.CharId))
+            print(binascii.hexlify(self.CharId).decode())
 
     def SetField(self, name, val):
         name = name.lower()
@@ -150,15 +150,15 @@ class BleRxEvent:
         print("%sBleEvent Type: %s" % (prefix, ("RX" if self.EventType == BleEventType_Rx else "ERROR")))
         if self.Buffer:
             print("%sBuffer:" % (prefix))
-            print(binascii.hexlify(self.Buffer))
+            print(binascii.hexlify(self.Buffer).decode())
 
         if self.SvcId:
             print("%sSvcId:" % (prefix))
-            print(binascii.hexlify(self.SvcId))
+            print(binascii.hexlify(self.SvcId).decode())
 
         if self.CharId:
             print("%sCharId:" % (prefix))
-            print(binascii.hexlify(self.CharId))
+            print(binascii.hexlify(self.CharId).decode())
 
     def SetField(self, name, val):
         name = name.lower()
@@ -189,11 +189,11 @@ class BleSubscribeEvent:
 
         if self.SvcId:
             print("%sSvcId:" % (prefix))
-            print(binascii.hexlify(self.SvcId))
+            print(binascii.hexlify(self.SvcId).decode())
 
         if self.CharId:
             print("%sCharId:" % (prefix))
-            print(binascii.hexlify(self.CharId))
+            print(binascii.hexlify(self.CharId).decode())
 
     def SetField(self, name, val):
         name = name.lower()

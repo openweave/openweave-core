@@ -279,7 +279,10 @@ class BluezDbusDevice():
         self.path = self.device.object_path
         self.device_event = threading.Event()
         if self.Name:
-            self.device_id = uuid.uuid3(uuid.NAMESPACE_DNS, self.Name.encode('utf-8'))
+            try:
+                self.device_id = uuid.uuid3(uuid.NAMESPACE_DNS, self.Name)
+            except UnicodeDecodeError:
+                self.device_id = uuid.uuid3(uuid.NAMESPACE_DNS, self.Name.encode('utf-8'))
         else:
             self.device_id = uuid.uuid4()
         self.bluez = bluez
@@ -987,10 +990,10 @@ class BluezManager(WeaveBleBase):
         self.logger.debug("write start")
         result = False
         if self.target and self.target.Connected:
-            converted_data = str(_VoidPtrToByteArray(buffer, length))
+            converted_data = _VoidPtrToByteArray(buffer, length)
             self.charId_tx = bytearray(uuid.UUID(str(_VoidPtrToUUIDString(charId, 16))).bytes)
             self.svcId_tx = bytearray(uuid.UUID(str(_VoidPtrToUUIDString(svcId, 16))).bytes)
-            self.tx.WriteValue(dbus.Array([dbus.Byte(ord(i)) for i in converted_data], 'y'),
+            self.tx.WriteValue(dbus.Array([dbus.Byte(i) for i in converted_data], 'y'),
                                options="",
                                reply_handler=self.WriteCharactertisticSuccessCB,
                                error_handler=self.WriteCharactertisticErrorCB,
