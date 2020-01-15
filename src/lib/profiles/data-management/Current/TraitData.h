@@ -337,6 +337,21 @@ public:
     WEAVE_ERROR MapPathToHandle(nl::Weave::TLV::TLVReader & aPathReader, PropertyPathHandle & aHandle) const;
 
     /**
+     * Given the a string representation of a WDM path read out the relevant tags and provide
+     * the equivalent path handle.  The WDM path is represented as a string using the following rules:
+     * - tags are separated with `/`
+     * - the path MUST begin with a leading `/` and MUST NOT contain a trailing slash
+     * - numerical tags in the WDM path MUST be encoded using the standard C library for integer to string encoding,
+     * i.e. decimal encoding (default) MUST NOT contain a leading 0, a hexadecimal  encoding MUST begin with `0x`,
+     * and octal encoding MUST contain a leading `0`.
+     *
+     * @retval #WEAVE_NO_ERROR                  On success.
+     * @retval #WEAVE_ERROR_TLV_TAG_NOT_FOUND   If a matching handle could not be found.
+     * @retval #WEAVE_ERROR_INVALID_ARGUMENT    If a path string is malformed
+     */
+    WEAVE_ERROR MapPathToHandle(const char * aPathString, PropertyPathHandle & aHandle) const;
+
+    /**
      * Convert the path handle to a TLV path.
      *
      * @retval #WEAVE_NO_ERROR On success.
@@ -523,6 +538,13 @@ private:
     PropertyPathHandle _GetChildHandle(PropertyPathHandle aParentHandle, uint8_t aContextTag) const;
     bool GetBitFromPathHandleBitfield(uint8_t * aBitfield, PropertyPathHandle aPathHandle) const;
 
+    /*
+     * the path MUST begin with a leading `/` and MUST NOT contain a trailing slash
+     * numerical tags in the WDM path MUST be encoded using the standard C library for integer to string encoding,
+     * aParseRes must be less than kContextTagMaxNum. If apEndptr is not NULL,
+     * it stores the address of the first "/" in *apEndptr.
+     */
+    WEAVE_ERROR ParseTagString(const char *apTagString, char **apEndptr, uint8_t& aParseRes) const;
 public:
     const Schema mSchema;
 };
