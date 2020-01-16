@@ -41,6 +41,7 @@ nl_WeaveProfiles_sources                                                        
     @top_builddir@/src/lib/profiles/data-management/Current/SubscriptionHandler.cpp     \
     @top_builddir@/src/lib/profiles/data-management/Current/TraitData.cpp               \
     @top_builddir@/src/lib/profiles/data-management/Current/SingleResourceTraitCatalog.cpp \
+    @top_builddir@/src/lib/profiles/data-management/Current/GenericTraitCatalogImpl.cpp \
     @top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp          \
     @top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp              \
     @top_builddir@/src/lib/profiles/data-management/Current/Command.cpp                 \

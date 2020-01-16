@@ -644,6 +644,8 @@ $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ViewClient.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitData.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SingleResourceTraitCatalog.ipp \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SingleResourceTraitCatalog.h \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/GenericTraitCatalogImpl.ipp \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/GenericTraitCatalogImpl.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitCatalog.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitPathStore.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SubscriptionEngine.h \
