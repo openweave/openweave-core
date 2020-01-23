@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -3178,7 +3179,7 @@ WEAVE_ERROR WeaveSecurityManager::SendStatusReport(WEAVE_ERROR localErr, Exchang
         break;
     case WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_REQUEST:
         profileId = kWeaveProfile_Security;
-        statusCode = kStatusCode_UnathorizedKeyExportRequest;
+        statusCode = kStatusCode_UnauthorizedKeyExportRequest;
         break;
 #endif // WEAVE_CONFIG_ENABLE_KEY_EXPORT_RESPONDER
     default:
