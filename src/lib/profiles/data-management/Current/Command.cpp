@@ -37,13 +37,14 @@
 
 #include <SystemLayer/SystemStats.h>
 
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WDM_PUBLISHER_ENABLE_CUSTOM_COMMAND_HANDLER
 
 namespace nl {
 namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
+using namespace nl::Weave;
 using namespace nl::Weave::TLV;
 
 Command::Command(void)
@@ -308,18 +309,21 @@ WEAVE_ERROR Command::SendResponse(uint32_t traitInstanceVersion, nl::Weave::Syst
     TLVType containerType;
     bool res;
 
+    static const uint8_t encoding[] =
+    {
+        nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_ANONYMOUS),                                                         // {
+            nlWeaveTLV_UINT64(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(CustomCommand::kCsTag_MustBeVersion), 0),         //      MustBeVersion = 64-
+            nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(CustomCommand::kCsTag_Argument))               //      Args = {
+    };
+
     enum
     {
         // The maximum number of bytes between the beginning of a WDM Command Response message
         // and the point within the message at which the application response data begins.
-
-        kMaxCommandResponseHeaderSize = 1 + // Anonymous Structure
-            1 + 1 + 4 +                     // Version field (1 control byte + 1 context tag + 4 value bytes)
-            1 + 1,                          // App Response Data Structure (1 control byte + 1 context tag)
+        kMaxCommandResponseHeaderSize = sizeof(encoding)
     };
 
     // Drop the response if the Command was OneWay.
-
     VerifyOrExit(!IsOneWay(), err = WEAVE_NO_ERROR);
 
     VerifyOrExit(NULL != mEC, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -445,4 +449,4 @@ exit:
 }; // namespace Weave
 }; // namespace nl
 
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WDM_PUBLISHER_ENABLE_CUSTOM_COMMAND_HANDLER

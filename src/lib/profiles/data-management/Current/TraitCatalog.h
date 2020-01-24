@@ -118,11 +118,11 @@ public:
 
     virtual void Iterate(IteratorCallback aCallback, void * aContext) = 0;
 
-#if    WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE || WEAVE_CONFIG_ENABLE_WDM_CUSTOM_COMMAND_SENDER
     virtual WEAVE_ERROR GetInstanceId(TraitDataHandle aHandle, uint64_t &aInstanceId) const = 0;
 
     virtual WEAVE_ERROR GetResourceId(TraitDataHandle aHandle, ResourceIdentifier &aResourceId) const = 0;
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE || WEAVE_CONFIG_ENABLE_WDM_CUSTOM_COMMAND_SENDER
 };
 
 /*
@@ -179,10 +179,10 @@ public: // TraitCatalogBase
     WEAVE_ERROR DispatchEvent(uint16_t aEvent, void * aContext) const;
     void Iterate(IteratorCallback aCallback, void * aContext);
 
-#if    WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE || WEAVE_CONFIG_ENABLE_WDM_CUSTOM_COMMAND_SENDER
     WEAVE_ERROR GetInstanceId(TraitDataHandle aHandle, uint64_t &aInstanceId) const;
     WEAVE_ERROR GetResourceId(TraitDataHandle aHandle, ResourceIdentifier &aResourceId) const;
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE || WEAVE_CONFIG_ENABLE_WDM_CUSTOM_COMMAND_SENDER
 
 private:
     CatalogItem * mCatalogStore;
@@ -459,7 +459,7 @@ uint32_t SingleResourceTraitCatalog<T>::Count() const
     return count;
 }
 
-#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE || WEAVE_CONFIG_ENABLE_WDM_CUSTOM_COMMAND_SENDER
 template <typename T>
 WEAVE_ERROR SingleResourceTraitCatalog<T>::GetInstanceId(TraitDataHandle aHandle, uint64_t &aInstanceId) const
 {
@@ -482,7 +482,7 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::GetResourceId(TraitDataHandle aHandle
     return err;
 }
 
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE || WEAVE_CONFIG_ENABLE_WDM_CUSTOM_COMMAND_SENDER
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles

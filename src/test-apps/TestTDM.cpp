@@ -162,6 +162,7 @@ static void TestRandomizedDataVersions(nlTestSuite *inSuite, void *inContext);
 
 static void TestTdmStatic_MultiInstance(nlTestSuite *inSuite, void *inContext);
 static void CheckAllocateRightSizedBufferForNotifications(nlTestSuite *inSuite, void *inContext);
+static void CheckSynchronizedTraitState(nlTestSuite *inSuite, void *inContext);
 
 // Test Suite
 
@@ -228,6 +229,8 @@ static const nlTest sTests[] = {
     // Updates.
     NL_TEST_DEF("Test Allocate Right Sized Buffer", CheckAllocateRightSizedBufferForNotifications),
 
+    // Test command + data synchronizer
+    NL_TEST_DEF("Test Command + State Synchronization Logic", CheckSynchronizedTraitState),
 
     NL_TEST_SENTINEL()
 };
@@ -739,6 +742,8 @@ public:
     void TestTdmStatic_MultiInstance(nlTestSuite *inSuite);
 
     void CheckAllocateRightSizedBufferForNotifications(nlTestSuite *inSuite);
+
+    void CheckSynchronizedTraitState(nlTestSuite *inSuite);
 
 private:
     SubscriptionHandler *mSubHandler;
@@ -2042,6 +2047,149 @@ void TestTdm::CheckAllocateRightSizedBufferForNotifications(nlTestSuite *inSuite
     NL_TEST_ASSERT(inSuite, err != WEAVE_NO_ERROR);
 }
 
+void TestTdm::CheckSynchronizedTraitState(nlTestSuite *inSuite)
+{
+    CommandSender::SynchronizedTraitState synchronizedState;
+    bool hasCaughtUp;
+    TestEmptyDataSink dataSink(&gEmptyTraitSchema);
+
+    synchronizedState.Init();
+
+    // If we have not connected it to data sink, it definitely has not caught up.
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == false);
+
+    // Connect it to a data sink that does not have valid data yet (not yet subscribed). This also has not caught up yet.
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == false);
+
+    // Data sink now has a valid version, but we still have yet to receive the command repsonse.
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    dataSink.SetVersion(2);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == false);
+
+    // Received a command response. Data sink however has no valid version
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 4;
+    dataSink.ClearVersion();
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == false);
+
+    // Received a command response, and data sink has valid version. However, pre-command-version is empty, likely because
+    // the sink had not been filled with valid data at the time the command was dispatched. This could be either because the subscription
+    // and the command were setup/sent at the same time and the command response raced the notify, or because the application setup the subscription
+    // after the command response was received.
+    //
+    // Let's test the first variant, with the data version being within a stale window size lower than the command response version.
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = CommandSender::SynchronizedTraitState::kCommandSideEffectWindowSize + 100;
+    synchronizedState.mPreCommandVersion = 0;
+    dataSink.SetVersion(synchronizedState.mPostCommandVersion - CommandSender::SynchronizedTraitState::kCommandSideEffectWindowSize + 1);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == false);
+
+    // Test the second variant, with the data sink having caught up, but being just equal to the command response version.
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 1000;
+    synchronizedState.mPreCommandVersion = 0;
+    dataSink.SetVersion(1000);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == true);
+
+    // Test the second variant, with the data sink being 1 more than the command response version.
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 1001;
+    synchronizedState.mPreCommandVersion = 0;
+    dataSink.SetVersion(1001);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == true);
+
+    //
+    // Test the canonical cases now (both pre and post are filled + trait has sensible data version).
+    //
+
+    // Responder didn't reboot, so post version is > than pre version. Test the case where the
+    // data sink didn't catch up.
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 1000;
+    synchronizedState.mPreCommandVersion = 900;
+    dataSink.SetVersion(900);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == false);
+
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 1000;
+    synchronizedState.mPreCommandVersion = 900;
+    dataSink.SetVersion(950);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == false);
+
+    // Responder didn't reboot, so post version is > than pre version. Test the case where the
+    // data sink did catch up.
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 1000;
+    synchronizedState.mPreCommandVersion = 900;
+    dataSink.SetVersion(1000);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == true);
+
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 1000;
+    synchronizedState.mPreCommandVersion = 900;
+    dataSink.SetVersion(1001);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == true);
+
+    // Responder rebooted after we received the data associated with the pre version, but before
+    // the command was received. In this case, post is going to be < than pre.
+    // Test the case where the data sink didn't catch up.
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 900;
+    synchronizedState.mPreCommandVersion = 1000;
+    dataSink.SetVersion(1000);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == false);
+
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 900;
+    synchronizedState.mPreCommandVersion = 1000;
+    dataSink.SetVersion(1001);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == false);
+
+    // Now test the case where it did catch up.
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 900;
+    synchronizedState.mPreCommandVersion = 1000;
+    dataSink.SetVersion(900);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == true);
+
+    // Now test the case where it did catch up.
+    synchronizedState.Init();
+    synchronizedState.mDataSink = &dataSink;
+    synchronizedState.mPostCommandVersion = 900;
+    synchronizedState.mPreCommandVersion = 1000;
+    dataSink.SetVersion(901);
+    hasCaughtUp = synchronizedState.HasDataCaughtUp();
+    NL_TEST_ASSERT(inSuite, hasCaughtUp == true);
+}
+
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }
 }
@@ -2255,6 +2403,11 @@ static void TestTdmStatic_MultiInstance(nlTestSuite *inSuite, void *inContext)
 static void CheckAllocateRightSizedBufferForNotifications(nlTestSuite *inSuite, void *inContext)
 {
     gTestTdm->CheckAllocateRightSizedBufferForNotifications(inSuite);
+}
+
+static void CheckSynchronizedTraitState(nlTestSuite *inSuite, void *inContext)
+{
+    gTestTdm->CheckSynchronizedTraitState(inSuite);
 }
 
 /**
