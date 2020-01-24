@@ -1245,37 +1245,37 @@ void MockWdmSubscriptionResponderImpl::Command_Send(void)
 
     {
         uint64_t nowMicroSecs, deadline;
-        CommandSender::Args args;
+        CommandSender::SendParams sendParams;
 
-        memset(&args, 0, sizeof(args));
+        memset(&sendParams, 0, sizeof(sendParams));
 
         if (mTestCaseId == kTestCase_ForwardCompatibleVersionedRequest) {
-            args.mVersionRange.mMaxVersion = 4;
-            args.mVersionRange.mMinVersion = 1;
+            sendParams.VersionRange.mMaxVersion = 4;
+            sendParams.VersionRange.mMinVersion = 1;
         }
         else if (mTestCaseId == kTestCase_IncompatibleVersionedCommandRequest) {
-            args.mVersionRange.mMaxVersion = 4;
-            args.mVersionRange.mMinVersion = 2;
+            sendParams.VersionRange.mMaxVersion = 4;
+            sendParams.VersionRange.mMinVersion = 2;
         }
         else {
-            args.mVersionRange.mMaxVersion = 4;
-            args.mVersionRange.mMinVersion = 1;
+            sendParams.VersionRange.mMaxVersion = 4;
+            sendParams.VersionRange.mMinVersion = 1;
         }
 
         commandType = (1 == commandType) ? 2 : 1;
 
-        err = args.PopulateTraitPath(&mSinkCatalog, &mTestADataSink0, commandType);
+        err = sendParams.PopulateTraitPath(&mSinkCatalog, &mTestADataSink0, commandType);
         SuccessOrExit(err);
 
-        args.mMustBeVersion = mTestADataSink1.GetVersion();
-        nl::SetFlag(args.mFlags, CommandFlags::kCommandFlag_MustBeVersionValid);
+        sendParams.MustBeVersion = mTestADataSink1.GetVersion();
+        nl::SetFlag(sendParams.Flags, CommandFlags::kCommandFlag_MustBeVersionValid);
 
         err = System::Layer::GetClock_RealTime(nowMicroSecs);
         SuccessOrExit(err);
 
         deadline = nowMicroSecs + kCommandTimeoutMicroSecs;
-        args.mExpiryTimeMicroSecond = deadline;
-        nl::SetFlag(args.mFlags, CommandFlags::kCommandFlag_ExpiryTimeValid);
+        sendParams.ExpiryTimeMicroSecond = deadline;
+        nl::SetFlag(sendParams.Flags, CommandFlags::kCommandFlag_ExpiryTimeValid);
 
         {
             uint32_t dummyUInt = 7;
@@ -1302,7 +1302,7 @@ void MockWdmSubscriptionResponderImpl::Command_Send(void)
             SuccessOrExit(err);
         }
 
-        err = mCommandSender.SendCommand(reqBuf, NULL, args);
+        err = mCommandSender.SendCommand(reqBuf, NULL, sendParams);
         SuccessOrExit(err);
 
         reqBuf = NULL;

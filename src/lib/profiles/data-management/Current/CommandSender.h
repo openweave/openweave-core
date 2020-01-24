@@ -51,6 +51,43 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  *        This class also helps applications infer if the data within an associated TraitDataSink has caught up to the side-effects
  *        of the commmand (based on the version provided in the command response). The application is responsible for managing the
  *        storage of that object.
+ *
+ * ## Weave Binding
+ *
+ * TODO
+ *
+ * ## EventHandler
+ *
+ * TODO - Default vs user-defined
+ *
+ * ## API Events
+ *
+ * The following events are the possible outcomes after sending a Command:
+ *
+ * ### CommunicationError
+ *
+ * An error occurred while forming or sending the Command, or while waiting for a response.
+ * Examples of errors that can occur while waiting for a response are key errors or unexpected close
+ * of a connection. The error reason will be contained in the InEventParam argument to the
+ * EventCallback handler.
+ *
+ * ### InProgressReceived
+ *
+ * The recipient can send an 'in progress' message which signifies that the Command has been
+ * receieved, but not yet completed. Once completed, the recipient will send a Response or
+ * StatusReport. Sending an 'in progress' message is not required.
+ *
+ * ### StatusReportReceived
+ *
+ * Receipt of a StatusReport implies that there was an error in processing the Command. The
+ * StatusReport can be accessed through the InEventParam.
+ *
+ * ### ResponseReceived
+ *
+ * Receiving a Response implies that the Command recipient handled the Command successfully. The
+ * Response may contain a payload or it may not. If the applcation desires to keep the packet
+ * buffer, it may call ExchangeContext::AddRef() to increment the ref count.
+ *
  */
 class CommandSender
 {
@@ -86,7 +123,7 @@ public:
 
             /* On receipt of a command response, both a reader positioned at the
              * payload as well as a pointer to the packet buffer is provided. If the applicaton
-             * desires to hold on to the buffer, it can do so my incrementing the ref count on the buffer
+             * desires to hold on to the buffer, it can do so by incrementing the ref count on the buffer
              */
             struct
             {
@@ -105,25 +142,25 @@ public:
 
     typedef void (*EventCallback)(void * const aAppState, EventType aEvent, const InEventParam &aInParam, OutEventParam &aOutEventParam);
 
-    struct Args {
+    struct SendParams {
         WEAVE_ERROR PopulateTraitPath(TraitCatalogBase<TraitDataSink> *aCatalog, TraitDataSink *aSink, uint32_t aCommandType);
 
-        TraitDataSink *mSink;
+        TraitDataSink *Sink;
 
-        ResourceIdentifier mResourceId;
-        uint32_t mProfileId;
-        SchemaVersionRange mVersionRange;
-        uint64_t mInstanceId;
-        uint32_t mCommandType;
+        ResourceIdentifier ResourceId;
+        uint32_t ProfileId;
+        SchemaVersionRange VersionRange;
+        uint64_t InstanceId;
+        uint32_t CommandType;
 
-        uint8_t mFlags;
-        uint64_t mMustBeVersion;
-        uint64_t mInitiationTimeMicroSecond;
-        uint64_t mActionTimeMicroSecond;
-        uint64_t mExpiryTimeMicroSecond;
+        uint8_t Flags;
+        uint64_t MustBeVersion;
+        uint64_t InitiationTimeMicroSecond;
+        uint64_t ActionTimeMicroSecond;
+        uint64_t ExpiryTimeMicroSecond;
 
         // Set to non-zero number to specify command timeout that's different than the one specified in the binding
-        uint32_t mResponseTimeoutMsOverride;
+        uint32_t ResponseTimeoutMsOverride;
     };
 
 public:
@@ -132,7 +169,7 @@ public:
     static void DefaultEventHandler(void *aAppState, EventType aEvent, const InEventParam& aInParam, OutEventParam& aOutParam);
     WEAVE_ERROR Init(nl::Weave::Binding *aBinding, const EventCallback aEventCallback, void * const aAppState);
     WEAVE_ERROR SendCommand(nl::Weave::PacketBuffer *aPayload, nl::Weave::Binding *aBinding, ResourceIdentifier &aResourceId, uint32_t aProfileId, uint32_t aCommandType);
-    WEAVE_ERROR SendCommand(nl::Weave::PacketBuffer *aPayload, nl::Weave::Binding *aBinding, Args &aArgs);
+    WEAVE_ERROR SendCommand(nl::Weave::PacketBuffer *aPayload, nl::Weave::Binding *aBinding, SendParams &aSendParams);
     void Close(bool aAbortNow = false);
     void SetSynchronizedTraitState(SynchronizedTraitState *aTraitState);
 
@@ -168,8 +205,6 @@ private:
  *         In the latter case, the absence of a prior version results in the logic to infer synchronization reverting
  *         to a window-based heuristic. This is due to the presence of randomized data versions that can result in the
  *         received data version from the publisher jumping to a lower number post command reception.
- *
- *         For more details, see https://docs.google.com/document/d/1r9AKKUKqzAzyBUoS2A4iNgUmb4loWdt7k7u7E-spxFo/edit#heading=h.o7axznd49f5n
  *
  */
 

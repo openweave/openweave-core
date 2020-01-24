@@ -162,7 +162,7 @@ WEAVE_ERROR TestWdmOneWayCommandSender::SendOneWayCommand(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     PacketBuffer *msgBuf = NULL;
-    static CommandSender::Args args = {
+    static CommandSender::SendParams sendParams = {
         NULL,
         ResourceIdentifier(ResourceIdentifier::RESOURCE_TYPE_RESERVED, ResourceIdentifier::SELF_NODE_ID),
         Schema::Nest::Test::Trait::TestATrait::kWeaveProfileId,
@@ -185,9 +185,9 @@ WEAVE_ERROR TestWdmOneWayCommandSender::SendOneWayCommand(void)
 
         deadline = nowMicroSecs + kCommandTimeoutMicroSecs;
 
-        args.mInitiationTimeMicroSecond = nowMicroSecs;
-        args.mActionTimeMicroSecond = nowMicroSecs + kCommandTimeoutMicroSecs / 2;
-        args.mExpiryTimeMicroSecond = deadline;
+        sendParams.InitiationTimeMicroSecond = nowMicroSecs;
+        sendParams.ActionTimeMicroSecond = nowMicroSecs + kCommandTimeoutMicroSecs / 2;
+        sendParams.ExpiryTimeMicroSecond = deadline;
 
         // Add arguments here
         {
@@ -217,7 +217,7 @@ WEAVE_ERROR TestWdmOneWayCommandSender::SendOneWayCommand(void)
         }
     }
 
-    err = mCommandSender.SendCommand(msgBuf, NULL, args);
+    err = mCommandSender.SendCommand(msgBuf, NULL, sendParams);
     SuccessOrExit(err);
 
     msgBuf = NULL;

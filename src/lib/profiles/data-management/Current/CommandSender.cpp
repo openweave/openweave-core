@@ -78,7 +78,6 @@ const bool CommandSender::SynchronizedTraitState::HasDataCaughtUp(void)
         bool newerThanPost = (dataSinkVersion >= mPostCommandVersion);
         bool olderThanPre = (dataSinkVersion < mPreCommandVersion);
 
-        // See https://docs.google.com/document/d/1r9AKKUKqzAzyBUoS2A4iNgUmb4loWdt7k7u7E-spxFo/edit#heading=h.o7axznd49f5n for more details on this logic.
         if (mPostCommandVersion > mPreCommandVersion)
         {
             if (newerThanPost || olderThanPre)
@@ -113,7 +112,7 @@ const bool CommandSender::SynchronizedTraitState::HasDataCaughtUp(void)
  *
  * @retval WEAVE_ERROR          WEAVE_NO_ERROR if success, error otherwise.
  */
-WEAVE_ERROR CommandSender::Args::PopulateTraitPath(TraitCatalogBase<TraitDataSink> *aCatalog, TraitDataSink *aSink, uint32_t aCommandType)
+WEAVE_ERROR CommandSender::SendParams::PopulateTraitPath(TraitCatalogBase<TraitDataSink> *aCatalog, TraitDataSink *aSink, uint32_t aCommandType)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitDataHandle handle;
@@ -121,16 +120,16 @@ WEAVE_ERROR CommandSender::Args::PopulateTraitPath(TraitCatalogBase<TraitDataSin
     err = aCatalog->Locate(aSink, handle);
     SuccessOrExit(err);
 
-    err = aCatalog->GetInstanceId(handle, mInstanceId);
+    err = aCatalog->GetInstanceId(handle, InstanceId);
     SuccessOrExit(err);
 
-    err = aCatalog->GetResourceId(handle, mResourceId);
+    err = aCatalog->GetResourceId(handle, ResourceId);
     SuccessOrExit(err);
 
-    mProfileId = aSink->GetSchemaEngine()->GetProfileId();
-    mVersionRange.mMaxVersion = aSink->GetSchemaEngine()->GetMaxVersion();
-    mVersionRange.mMinVersion = aSink->GetSchemaEngine()->GetMinVersion();
-    mCommandType = aCommandType;
+    ProfileId = aSink->GetSchemaEngine()->GetProfileId();
+    VersionRange.mMaxVersion = aSink->GetSchemaEngine()->GetMaxVersion();
+    VersionRange.mMinVersion = aSink->GetSchemaEngine()->GetMinVersion();
+    CommandType = aCommandType;
 
 exit:
     WeaveLogFunctError(err);
@@ -151,7 +150,10 @@ WEAVE_ERROR CommandSender::Init(Binding *aBinding, const EventCallback aEventCal
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    VerifyOrExit(aBinding != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
     mBinding = aBinding;
+    mBinding->AddRef();
 
     if (aEventCallback)
     {
@@ -190,21 +192,27 @@ void CommandSender::Close(bool aAbortNow)
 
         mEC = NULL;
     }
+
+    if (mBinding)
+    {
+        mBinding->Release();
+        mBinding = NULL;
+    }
 }
 
 WEAVE_ERROR CommandSender::SendCommand(nl::Weave::PacketBuffer *aPayload, nl::Weave::Binding *aBinding, ResourceIdentifier &aResourceId, uint32_t aProfileId, uint32_t aCommandType)
 {
-    Args args;
+    SendParams sendParams;
 
-    memset(&args, 0, sizeof(args));
+    memset(&sendParams, 0, sizeof(sendParams));
 
-    args.mResourceId = aResourceId;
-    args.mProfileId = aProfileId;
-    args.mCommandType = aCommandType;
-    args.mVersionRange.mMaxVersion = 1;
-    args.mVersionRange.mMinVersion = 1;
+    sendParams.ResourceId = aResourceId;
+    sendParams.ProfileId = aProfileId;
+    sendParams.CommandType = aCommandType;
+    sendParams.VersionRange.mMaxVersion = 1;
+    sendParams.VersionRange.mMinVersion = 1;
 
-    return SendCommand(aPayload, aBinding, args);
+    return SendCommand(aPayload, aBinding, sendParams);
 }
 
 /**
@@ -217,12 +225,13 @@ WEAVE_ERROR CommandSender::SendCommand(nl::Weave::PacketBuffer *aPayload, nl::We
  *
  * @retval WEAVE_ERROR                      Error in sending out command
  */
-WEAVE_ERROR CommandSender::SendCommand(PacketBuffer *aRequestBuf, Binding *aBinding, Args &aArgs)
+WEAVE_ERROR CommandSender::SendCommand(PacketBuffer *aRequestBuf, Binding *aBinding, SendParams &aSendParams)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     Binding *binding = mBinding ? mBinding : aBinding;
     const uint8_t *appReqData;
     uint16_t appReqDataLen;
+    uint16_t sendFlags = 0;
     TLVWriter reqWriter;
     uint8_t msgType = kMsgType_CustomCommandRequest;
 
@@ -252,7 +261,7 @@ WEAVE_ERROR CommandSender::SendCommand(PacketBuffer *aRequestBuf, Binding *aBind
     };
 
     VerifyOrExit(mBinding != NULL || aBinding != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
-    VerifyOrExit(aArgs.mProfileId != 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(aSendParams.ProfileId != 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // If the user didn't pass in a request buffer that we can re-use to blit the header, allocate our own.
     if (aRequestBuf == NULL)
@@ -296,25 +305,25 @@ WEAVE_ERROR CommandSender::SendCommand(PacketBuffer *aRequestBuf, Binding *aBind
         SuccessOrExit(err);
 
         Path::Builder &path = request.CreatePathBuilder();
-        path.ResourceID(aArgs.mResourceId).ProfileID(aArgs.mProfileId, aArgs.mVersionRange).InstanceID(aArgs.mInstanceId).EndOfPath();
+        path.ResourceID(aSendParams.ResourceId).ProfileID(aSendParams.ProfileId, aSendParams.VersionRange).InstanceID(aSendParams.InstanceId).EndOfPath();
         err = path.GetError();
         SuccessOrExit(err);
 
-        request.CommandType(aArgs.mCommandType);
+        request.CommandType(aSendParams.CommandType);
 
-        if (aArgs.mFlags & kCommandFlag_MustBeVersionValid)
+        if (aSendParams.Flags & kCommandFlag_MustBeVersionValid)
         {
-            request.MustBeVersion(aArgs.mMustBeVersion);
+            request.MustBeVersion(aSendParams.MustBeVersion);
         }
 
-        if (aArgs.mFlags & kCommandFlag_ExpiryTimeValid)
+        if (aSendParams.Flags & kCommandFlag_ExpiryTimeValid)
         {
-            request.ExpiryTimeMicroSecond(aArgs.mExpiryTimeMicroSecond);
+            request.ExpiryTimeMicroSecond(aSendParams.ExpiryTimeMicroSecond);
         }
 
-        if (aArgs.mFlags & kCommandFlag_ActionTimeValid)
+        if (aSendParams.Flags & kCommandFlag_ActionTimeValid)
         {
-            request.ActionTimeMicroSecond(aArgs.mActionTimeMicroSecond);
+            request.ActionTimeMicroSecond(aSendParams.ActionTimeMicroSecond);
         }
 
         err = request.GetError();
@@ -340,7 +349,7 @@ WEAVE_ERROR CommandSender::SendCommand(PacketBuffer *aRequestBuf, Binding *aBind
     // If the app has setup the synchronized trait state struct, fill the pre-command version field appropriately.
     if (mSyncronizedTraitState)
     {
-        mSyncronizedTraitState->mDataSink = aArgs.mSink;
+        mSyncronizedTraitState->mDataSink = aSendParams.Sink;
         mSyncronizedTraitState->mPreCommandVersion = mSyncronizedTraitState->mDataSink->GetVersion();
     }
 
@@ -356,20 +365,23 @@ WEAVE_ERROR CommandSender::SendCommand(PacketBuffer *aRequestBuf, Binding *aBind
     mEC->OnSendError = OnSendError;
     mEC->OnAckRcvd = NULL;
 
-    if (aArgs.mResponseTimeoutMsOverride > 0)
+    if (aSendParams.ResponseTimeoutMsOverride > 0)
     {
-        mEC->ResponseTimeout = aArgs.mResponseTimeoutMsOverride;
+        mEC->ResponseTimeout = aSendParams.ResponseTimeoutMsOverride;
     }
 
-    if (aArgs.mFlags & kCommandFlag_IsOneWay)
+    if (aSendParams.Flags & kCommandFlag_IsOneWay)
     {
-        mEC->ResponseTimeout = 0;
         msgType = kMsgType_OneWayCommand;
     }
+    else
+    {
+        sendFlags |= ExchangeContext::kSendFlag_ExpectResponse;
+    }
 
-    mFlags = aArgs.mFlags;
+    mFlags = aSendParams.Flags;
 
-    err = mEC->SendMessage(kWeaveProfile_WDM, msgType, aRequestBuf);
+    err = mEC->SendMessage(kWeaveProfile_WDM, msgType, aRequestBuf, sendFlags);
     aRequestBuf = NULL;
 
 exit:
