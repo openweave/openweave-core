@@ -270,7 +270,7 @@ static OptionDef gToolOptionDefs[] =
     { "ts-server-node-addr",        kArgumentRequired,  kToolOpt_TimeSyncServerNodeAddr },
     { "ts-server-subnet-id",        kArgumentRequired,  kToolOpt_TimeSyncServerSubnetId },
 #endif // WEAVE_CONFIG_TIME
-    { NULL }
+    { }
 };
 
 static const char *const gToolOptionHelp =

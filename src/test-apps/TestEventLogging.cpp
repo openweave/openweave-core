@@ -227,7 +227,7 @@ static OptionDef gToolOptionDefs[] = { { "start-event-id", kArgumentRequired, 's
                                        { "debug", kNoArgument, 'd' },
                                        { "tcp", kNoArgument, 't' },
                                        { "udp", kNoArgument, 'u' },
-                                       { NULL } };
+                                       { } };
 
 static const char * const gToolOptionHelp = "  -p <num>, --parent-node-id <num> \n"
                                             "       Parent node id; the ID of the node that will receive the event\n"

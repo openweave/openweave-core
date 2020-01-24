@@ -131,7 +131,7 @@ static OptionDef         sToolOptionDefs[] =
     { "raw",                       kNoArgument,        kToolOptRawIP                  },
     { "send-size",                 kArgumentRequired,  kToolOptSendSize               },
     { "udp",                       kNoArgument,        kToolOptUDPIP                  },
-    { NULL }
+    { }
 };
 
 static const char *      sToolOptionHelp =

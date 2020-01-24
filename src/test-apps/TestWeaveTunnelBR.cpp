@@ -150,7 +150,7 @@ static OptionDef gToolOptionDefs[] =
     { "service-dir",         kNoArgument,       kToolOpt_UseServiceDir },
 #endif
     { "case",                kNoArgument,       kToolOpt_UseCASE },
-    { NULL }
+    { }
 };
 
 static const char *const gToolOptionHelp =

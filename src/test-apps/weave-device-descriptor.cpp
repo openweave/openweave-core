@@ -100,7 +100,7 @@ static OptionDef gEncodeOptionDefs[] =
     { "pairing-code",       kArgumentRequired, 'P' },
     { "software-version",   kArgumentRequired, 'n' },
     { "tlv",                kNoArgument,       'T' },
-    { NULL }
+    { }
 };
 
 static const char *const gEncodeOptionHelp =

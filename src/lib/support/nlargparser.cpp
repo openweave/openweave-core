@@ -1082,7 +1082,7 @@ HelpOptions::HelpOptions(const char *appName, const char *appUsage, const char *
     {
         { "help",      kNoArgument, 'h' },
         { "version",   kNoArgument, 'v' },
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 

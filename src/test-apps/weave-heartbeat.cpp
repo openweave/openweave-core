@@ -75,7 +75,7 @@ static OptionDef gToolOptionDefs[] =
     { "interval",     kArgumentRequired, 'i' },
     { "window",       kArgumentRequired, 'W' },
     { "request-ack",  kNoArgument,       'r' },
-    { NULL }
+    { }
 };
 
 static const char *const gToolOptionHelp =

@@ -55,7 +55,7 @@ static OptionDef gCmdOptionDefs[] =
     { "lifetime",   kArgumentRequired, 'l' },
     { "sha1",       kNoArgument,       '1'  },
     { "sha256",     kNoArgument,       '2'  },
-    { NULL }
+    { }
 };
 
 static const char *const gCmdOptionHelp =

@@ -121,7 +121,7 @@ static OptionDef sOptionSetA_Defs[] =
     { "foo",  kNoArgument, '1'  },
     { "bar",  kNoArgument, 1001 },
     { "baz",  kArgumentRequired, 'Z'  },
-    { NULL }
+    { }
 };
 
 static OptionSet sOptionSetA =
@@ -140,7 +140,7 @@ static OptionDef sOptionSetB_Defs[] =
     { "stop", kNoArgument, 's'  },
     { "run",  kArgumentRequired, 1000  },
     { "walk", kNoArgument, 1001 },
-    { NULL }
+    { }
 };
 
 static OptionSet sOptionSetB =

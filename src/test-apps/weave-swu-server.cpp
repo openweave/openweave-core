@@ -96,7 +96,7 @@ static OptionDef gToolOptionDefs[] =
     { "dest-node-id",    kArgumentRequired, kToolOpt_DestNodeId       },
     { "tcp",             kNoArgument,       kToolOpt_UseTCP           },
     { "udp",             kNoArgument,       kToolOpt_UseUDP           },
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =

@@ -140,7 +140,7 @@ KeyExportOptions::KeyExportOptions()
         { "allowed-key-export-configs", kArgumentRequired,      kToolCommonOpt_AllowedKeyExportConfigs },
         { "access-token",               kArgumentRequired,      kToolCommonOpt_AccessToken             },
 #endif
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 

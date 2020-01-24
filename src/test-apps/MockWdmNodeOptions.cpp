@@ -93,7 +93,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         { "wdm-update-timing",                              kArgumentRequired,  kToolOpt_WdmUpdateTiming },
         { "wdm-update-discard-on-error",                    kNoArgument,        kToolOpt_WdmUpdateDiscardOnError },
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-        { NULL }
+        { }
     };
 
     OptionDefs = optionDefs;
@@ -593,7 +593,7 @@ TestWdmNextOptions::TestWdmNextOptions(void) :
         { "test-delay",                                     kArgumentRequired,  kToolOpt_TestDelayBetweenIterationMsec },
         { "save-perf",                                      kNoArgument,        kToolOpt_SavePerfData },
         { "clear-state-between-iterations",                 kNoArgument,        kToolOpt_ClearDataSinkStateBetweenTests },
-        { NULL }
+        { }
     };
 
     OptionDefs = optionDefs;

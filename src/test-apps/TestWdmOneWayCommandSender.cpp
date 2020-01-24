@@ -231,7 +231,7 @@ exit:
 static OptionDef gToolOptionDefs[] =
 {
     { "dest-addr",    kArgumentRequired, 'D' },
-    { NULL }
+    { }
 };
 
 static const char *const gToolOptionHelp =

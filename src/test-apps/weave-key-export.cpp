@@ -146,7 +146,7 @@ static OptionDef gToolOptionDefs[] =
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     { "service-dir",       kNoArgument,       kToolOpt_UseServiceDir },
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-    { NULL }
+    { }
 };
 
 static const char *const gToolOptionHelp =
