@@ -54,11 +54,17 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  *
  * ## Weave Binding
  *
- * TODO
+ * An object of this class can be intialized with a Weave Binding, which will serve as the default
+ * Binding to use to send Commands. The user may also provide a Binding to each call of
+ * SendCommand(), which will override the default Binding. It is not necessary to provide a default
+ * Binding, however any binding provided to CommandSender must already be initialized.
  *
  * ## EventHandler
  *
- * TODO - Default vs user-defined
+ * The user must define a function of this type if they wish to be updated about
+ * events that happen after the sending of the command (see "API Events" below).
+ * This can be NULL if the user does not care what happens after the command is
+ * sent.
  *
  * ## API Events
  *
@@ -102,6 +108,7 @@ public:
         kEvent_DefaultCheck                         = 100,    //< Used to verify correct default event handling in the application.
     };
 
+    // Data returned to the sender by the recipient of the custom command.
     struct InEventParam
     {
         void Clear(void) { memset(this, 0, sizeof(*this)); }
@@ -134,6 +141,8 @@ public:
         };
     };
 
+    // Data returned back to a CommandSender object from an EventCallback
+    // function.
     struct OutEventParam
     {
         void Clear(void) { memset(this, 0, sizeof(*this)); }
@@ -173,8 +182,8 @@ public:
     void Close(bool aAbortNow = false);
     void SetSynchronizedTraitState(SynchronizedTraitState *aTraitState);
 
-    SynchronizedTraitState *mSyncronizedTraitState;
-    void *mAppState;
+    SynchronizedTraitState *mSyncronizedTraitState = NULL;
+    void *mAppState = NULL;
 
 private:
     static void OnMessageReceived(nl::Weave::ExchangeContext *aEC, const nl::Weave::IPPacketInfo *aPktInfo, const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId, uint8_t aMsgType, nl::Weave::PacketBuffer *aPayload);
@@ -182,10 +191,10 @@ private:
     static void OnSendError(nl::Weave::ExchangeContext *aEC, WEAVE_ERROR err, void *aMsgCtxt);
 
     EventCallback mEventCallback;
-    nl::Weave::Binding *mBinding;
-    nl::Weave::PacketBuffer *mPacketBuf;
-    nl::Weave::ExchangeContext *mEC;
-    uint8_t mFlags;
+    nl::Weave::Binding *mBinding = NULL;
+    nl::Weave::PacketBuffer *mPacketBuf = NULL;
+    nl::Weave::ExchangeContext *mEC = NULL;
+    uint8_t mFlags = 0;
 };
 
 /**

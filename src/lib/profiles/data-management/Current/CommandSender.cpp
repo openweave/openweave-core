@@ -139,8 +139,10 @@ exit:
 /**
  * Initializes some of the appropriate fields in the CommandSender object.
  *
- * @param[in] aBinding          Binding that should be used with this command for all future sends.
- * @param[in] aEventCallback    Callback for the application register interest in notable events. Can be NULL
+ * @param[in] aBinding          Binding that should be used with this command for all future sends. Should be
+ *                              initialized already.
+ * @param[in] aEventCallback    Callback for the application to register interest in notable events. If NULL,
+ *                              the DefaultEventHandler is used.
  * @param[in] aAppState         App context to be passed into the event callback
  *
  * @retval WEAVE_ERROR          WEAVE_ERROR_DEFAULT_EVENT_HANDLER_NOT_CALLED if the default handler isn't setup.
@@ -150,10 +152,11 @@ WEAVE_ERROR CommandSender::Init(Binding *aBinding, const EventCallback aEventCal
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit(aBinding != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-    mBinding = aBinding;
-    mBinding->AddRef();
+    if (aBinding)
+    {
+        mBinding = aBinding;
+        mBinding->AddRef();
+    }
 
     if (aEventCallback)
     {
@@ -169,6 +172,10 @@ WEAVE_ERROR CommandSender::Init(Binding *aBinding, const EventCallback aEventCal
         // Test the application to ensure it's calling the default handler appropriately.
         aEventCallback(aAppState, kEvent_DefaultCheck, inParam, outParam);
         VerifyOrExit(outParam.defaultHandlerCalled, err = WEAVE_ERROR_DEFAULT_EVENT_HANDLER_NOT_CALLED);
+    }
+    else
+    {
+        mEventCallback = DefaultEventHandler;
     }
 
 exit:
@@ -420,7 +427,7 @@ exit:
 
 void CommandSender::OnResponseTimeout(ExchangeContext *aEC)
 {
-    WEAVE_ERROR err;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     CommandSender *_this = static_cast<CommandSender *>(aEC->AppState);
     InEventParam inEventParam;
     OutEventParam outEventParam;
