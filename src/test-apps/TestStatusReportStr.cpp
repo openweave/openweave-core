@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -223,7 +224,7 @@ static struct Profile_Status sContext[] = {
             Security::kStatusCode_InvalidUseOfSessionKey,
             Security::kStatusCode_InternalKeyError,
             Security::kStatusCode_NoCommonKeyExportConfiguration,
-            Security::kStatusCode_UnathorizedKeyExportRequest,
+            Security::kStatusCode_UnauthorizedKeyExportRequest,
          }
     },
     {

@@ -108,9 +108,9 @@ enum
     kStatusCode_InvalidUseOfSessionKey          = 15, // The specified key is used incorrectly.
     kStatusCode_InternalKeyError                = 16, // The receiver of the Weave message encountered key error.
     kStatusCode_NoCommonKeyExportConfiguration  = 17, // No common key export protocol configuration supported.
-    kStatusCode_UnathorizedKeyExportRequest     = 18, // An unauthorized key export request.
+    kStatusCode_UnauthorizedKeyExportRequest    = 18, // An unauthorized key export request.
     kStatusCode_ServiceCommunicationError       = 19, /**< The device could not complete certificate provisioning because it encountered an error when communicating with the service. */
-    kStatusCode_UnathorizedGetCertRequest       = 20, /**< An unauthorized get certificate request. */
+    kStatusCode_UnauthorizedGetCertRequest      = 20, /**< An unauthorized get certificate request. */
     kStatusCode_NoNewCertRequired               = 21, /**< No new certificate required. */
 };
 
