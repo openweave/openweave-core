@@ -103,7 +103,7 @@ static OptionDef gToolOptionDefs[] =
 #if WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
     { "tunnel-log",          kNoArgument,       'l' },
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
-    { NULL }
+    { }
 };
 
 static const char *const gToolOptionHelp =

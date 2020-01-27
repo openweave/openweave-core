@@ -47,7 +47,7 @@ static OptionDef gCmdOptionDefs[] =
     { "x509-der",   kNoArgument, 'x' },
     { "weave",      kNoArgument, 'w' },
     { "weave-b64",  kNoArgument, 'b' },
-    { NULL }
+    { }
 };
 
 static const char *const gCmdOptionHelp =

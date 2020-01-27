@@ -147,7 +147,7 @@ static OptionDef gToolOptionDefs[] =
 #if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     { "dns-options",            kArgumentRequired, kToolOpt_DNSOptions          },
 #endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
-    { NULL }
+    { }
 };
 
 static const char *const gToolOptionHelp =

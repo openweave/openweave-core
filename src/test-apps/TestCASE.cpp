@@ -1031,7 +1031,7 @@ void CASEEngineTests_FuzzTests()
 static OptionDef gToolOptionDefs[] =
 {
     { "fuzz-duration", kArgumentRequired, 'f' },
-    { NULL }
+    { }
 };
 
 static const char *const gToolOptionHelp =

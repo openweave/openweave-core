@@ -68,7 +68,7 @@ static OptionDef gToolOptionDefs[] =
     { "debug",      kArgumentRequired, 'd' },
     { "tcp",        kNoArgument,       't' },
     { "udp",        kNoArgument,       'u' },
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =

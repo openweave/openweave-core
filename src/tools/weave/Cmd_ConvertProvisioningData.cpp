@@ -72,7 +72,7 @@ static OptionDef gCmdOptionDefs[] =
     { "weave-key",         kNoArgument,       kToolOpt_WeaveKey     },
     { "der-key",           kNoArgument,       kToolOpt_DERKey       },
     { "pkcs8-key",         kNoArgument,       kToolOpt_PKCS8Key     },
-    { NULL }
+    { }
 };
 
 static const char *const gCmdOptionHelp =

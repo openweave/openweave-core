@@ -51,7 +51,7 @@ static OptionDef gToolOptionDefs[] =
 {
     { "requested-file", kArgumentRequired, 'r' },
     { "received-loc",   kArgumentRequired, 'R' },
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =

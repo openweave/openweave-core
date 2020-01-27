@@ -90,7 +90,7 @@ static OptionDef gToolOptionDefs[] =
     { "block-size",     kArgumentRequired, 'b' },
     { "upload",         kNoArgument,       'p' },
     { "pretest",        kNoArgument,       'T' },
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =

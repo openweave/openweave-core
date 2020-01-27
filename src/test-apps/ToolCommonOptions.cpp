@@ -69,7 +69,7 @@ NetworkOptions::NetworkOptions()
         { "event-delay",    kArgumentRequired, kToolCommonOpt_EventDelay },
         { "tap-system-config", kNoArgument,    kToolCommonOpt_TapInterfaceConfig },
 #endif
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 
@@ -218,7 +218,7 @@ WeaveNodeOptions::WeaveNodeOptions()
 #if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
         { "use-ephemeral-udp-port", kNoArgument,       kToolCommonOpt_UseEphemeralUDPPort },
 #endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 
@@ -343,7 +343,7 @@ WeaveSecurityMode::WeaveSecurityMode()
         { "pase",          kNoArgument,       kToolCommonOpt_SecurityPASE       },
         { "group-enc",     kNoArgument,       kToolCommonOpt_SecurityGroupEnc   },
         { "take",          kNoArgument,       kToolCommonOpt_SecurityTAKE       },
-        { NULL }
+        { }
     };
 
     OptionDefs = optionDefs;
@@ -428,7 +428,7 @@ WRMPOptions::WRMPOptions()
         { "wrmp-retrans-interval", kArgumentRequired, kToolCommonOpt_WRMPRetransInterval },
         { "wrmp-retrans-count",    kArgumentRequired, kToolCommonOpt_WRMPRetransCount    },
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 
@@ -511,7 +511,7 @@ GroupKeyEncOptions::GroupKeyEncOptions()
         { "group-enc-epoch-key-num",    kArgumentRequired, kToolCommonOpt_GroupEncEpochKeyNum          },
         { "group-enc-app-key-num",      kArgumentRequired, kToolCommonOpt_GroupEncAppGroupMasterKeyNum },
 #endif
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 
@@ -680,7 +680,7 @@ GeneralSecurityOptions::GeneralSecurityOptions()
         { "idle-session-timeout",           kArgumentRequired, kToolCommonOpt_GeneralSecurityIdleSessionTimeout                },
         { "session-establishment-timeout",  kArgumentRequired, kToolCommonOpt_GeneralSecuritySessionEstablishmentTimeout       },
 #endif
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 
@@ -748,7 +748,7 @@ ServiceDirClientOptions::ServiceDirClientOptions()
         { "service-dir-target-dns-options", kArgumentRequired, kToolCommonOpt_ServiceDirTargetDNSOptions },
 #endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 
@@ -909,7 +909,7 @@ FaultInjectionOptions::FaultInjectionOptions()
         { "print-fault-counters",  kNoArgument,       kToolCommonOpt_PrintFaultCounters  },
         { "extra-cleanup-time",    kArgumentRequired, kToolCommonOpt_ExtraCleanupTime },
 #endif
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 

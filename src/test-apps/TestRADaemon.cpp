@@ -48,7 +48,7 @@ bool Listen = false;
 static OptionDef gToolOptionDefs[] =
 {
     { "listen", kNoArgument, 'L' },
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =

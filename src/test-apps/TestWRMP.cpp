@@ -149,7 +149,7 @@ static OptionDef gToolOptionDefs[] =
 #if WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
     { "group-enc",  kNoArgument,        'G'                  },
 #endif // WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =

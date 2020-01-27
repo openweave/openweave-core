@@ -39,7 +39,7 @@ TAKEOptions::TAKEOptions()
 #if WEAVE_CONFIG_ENABLE_TAKE_INITIATOR || WEAVE_CONFIG_ENABLE_TAKE_RESPONDER
         { "take-reauth", kNoArgument, kToolCommonOpt_TAKEReauth           },
 #endif
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 

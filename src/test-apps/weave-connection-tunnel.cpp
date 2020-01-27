@@ -64,7 +64,7 @@ static OptionDef gToolOptionDefs[] =
     { "tunnel-source",          kNoArgument, 'S' },
     { "tunnel-destination",     kNoArgument, 'D' },
     { "tunnel-agent",           kNoArgument, 'A' },
-    { NULL }
+    { }
 };
 
 static const char *const gToolOptionHelp =

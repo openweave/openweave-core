@@ -78,7 +78,7 @@ static OptionDef gToolOptionDefs[] =
 {
     { "received-loc", kArgumentRequired, 'R' },
     { "temp-loc",     kArgumentRequired, 'T' },
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =
