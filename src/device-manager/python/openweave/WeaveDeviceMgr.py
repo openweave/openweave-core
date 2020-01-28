@@ -100,7 +100,7 @@ def _VoidPtrToByteArray(ptr, len):
 
 def _ByteArrayToVoidPtr(array):
     if array != None:
-        if not (isinstance(array, str) or isinstance(array, bytearray)):
+        if not (isinstance(array, bytes) or isinstance(array, bytearray)):
             raise TypeError("Array must be an str or a bytearray")
         return cast( (c_byte * len(array)) .from_buffer_copy(array), c_void_p)
     else:
@@ -853,6 +853,9 @@ class WeaveDeviceManager(object):
 
         cbHandlePairTokenComplete = _PairTokenCompleteFunct(HandlePairTokenComplete)
 
+        if pairingToken is not None and isinstance(pairingToken, str):
+            pairingToken = _StringToCString(pairingToken)
+
         return self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_PairToken(self.devMgr, _ByteArrayToVoidPtr(pairingToken), len(pairingToken), cbHandlePairTokenComplete, self.cbHandleError)
         )
@@ -1016,6 +1019,12 @@ class WeaveDeviceManager(object):
     def RegisterServicePairAccount(self, serviceId, accountId, serviceConfig, pairingToken, pairingInitData):
         if accountId is not None and '\x00' in accountId:
             raise ValueError("Unexpected NUL character in accountId")
+
+        if pairingToken is not None and isinstance(pairingToken, str):
+            pairingToken = _StringToCString(pairingToken)
+
+        if pairingInitData is not None and isinstance(pairingInitData, str):
+            pairingInitData = _StringToCString(pairingInitData)
 
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_RegisterServicePairAccount(self.devMgr, serviceId, _StringToCString(accountId),
