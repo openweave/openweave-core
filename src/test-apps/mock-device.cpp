@@ -104,6 +104,7 @@ static void HandleConnectionClosed(WeaveConnection *con, WEAVE_ERROR conErr);
 static void InitiateConnection(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
 static void HandleConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr);
 static void HandleWdmCompleteTest();
+static void HandleError();
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
 bool EnableWeaveBluezPeripheral = false;
@@ -766,6 +767,111 @@ int main(int argc, char *argv[])
 
 #endif // CONFIG_BLE_PLATFORM_BLUEZ
 
+    InitializeEventLogging(&ExchangeMgr);
+
+    switch (gMockWdmNodeOptions.mWdmRoleInTest)
+    {
+        case 0:
+            break;
+        case kToolOpt_WdmInitMutualSubscription:
+        case kToolOpt_WdmSubscriptionClient:
+
+            if (gMockWdmNodeOptions.mWdmPublisherNodeId != kAnyNodeId)
+            {
+                err = MockWdmSubscriptionInitiator::GetInstance()->Init(&ExchangeMgr,
+                                                                        gGroupKeyEncOptions.GetEncKeyId(),
+                                                                        gWeaveSecurityMode.SecurityMode,
+                                                                        gMockWdmNodeOptions);
+                FAIL_ERROR(err, "MockWdmSubscriptionInitiator.Init failed");
+                MockWdmSubscriptionInitiator::GetInstance()->onCompleteTest = HandleWdmCompleteTest;
+                MockWdmSubscriptionInitiator::GetInstance()->onError = HandleError;
+
+            }
+            else
+            {
+                err = WEAVE_ERROR_INVALID_ARGUMENT;
+                FAIL_ERROR(err, "MockWdmSubscriptionInitiator requires node ID to some publisher");
+            }
+
+            break;
+        case kToolOpt_WdmRespMutualSubscription:
+        case kToolOpt_WdmSubscriptionPublisher:
+            if (gMockWdmNodeOptions.mEnableRetry)
+            {
+                err = WEAVE_ERROR_INVALID_ARGUMENT;
+                FAIL_ERROR(err, "MockWdmSubcriptionResponder is incompatible with --enable-retry");
+            }
+
+            err = MockWdmSubscriptionResponder::GetInstance()->Init(&ExchangeMgr,
+                                                                    gMockWdmNodeOptions
+                                                                    );
+            FAIL_ERROR(err, "MockWdmSubscriptionResponder.Init failed");
+            MockWdmSubscriptionResponder::GetInstance()->onCompleteTest = HandleWdmCompleteTest;
+            MockWdmSubscriptionResponder::GetInstance()->onError = HandleError;
+            if (gTestWdmNextOptions.mClearDataSinkState)
+            {
+                MockWdmSubscriptionResponder::GetInstance()->ClearDataSinkState();
+            }
+            break;
+        default:
+            err = WEAVE_ERROR_INVALID_ARGUMENT;
+            FAIL_ERROR(err, "WdmRoleInTest is invalid");
+    };
+
+    for (uint32_t iteration = 1; iteration <= gTestWdmNextOptions.mTestIterations; iteration++) {
+
+        switch (gMockWdmNodeOptions.mWdmRoleInTest) {
+            case 0:
+                break;
+            case kToolOpt_WdmInitMutualSubscription:
+            case kToolOpt_WdmSubscriptionClient:
+                if (gTestWdmNextOptions.mClearDataSinkState) {
+                    MockWdmSubscriptionInitiator::GetInstance()->ClearDataSinkState();
+                }
+                err = MockWdmSubscriptionInitiator::GetInstance()->StartTesting(gMockWdmNodeOptions.mWdmPublisherNodeId,
+                                                                                gMockWdmNodeOptions.mWdmUseSubnetId);
+                if (err != WEAVE_NO_ERROR) {
+                    printf("\nMockWdmSubscriptionInitiator.StartTesting failed: %s\n", ErrorStr(err));
+                    Done = true;
+                }
+                //FAIL_ERROR(err, "MockWdmSubscriptionInitiator.StartTesting failed");
+                break;
+            default:
+                printf("TestWdmNext server is ready\n");
+        };
+
+        switch (gMockWdmNodeOptions.mEventGeneratorType) {
+            case MockWdmNodeOptions::kGenerator_None:
+                gEventGenerator = NULL;
+                break;
+            case MockWdmNodeOptions::kGenerator_TestDebug:
+                gEventGenerator = GetTestDebugGenerator();
+                break;
+            case MockWdmNodeOptions::kGenerator_TestLiveness:
+                gEventGenerator = GetTestLivenessGenerator();
+                break;
+            case MockWdmNodeOptions::kGenerator_TestSecurity:
+                gEventGenerator = GetTestSecurityGenerator();
+                break;
+            case MockWdmNodeOptions::kGenerator_TestTelemetry:
+                gEventGenerator = GetTestTelemetryGenerator();
+                break;
+            case MockWdmNodeOptions::kGenerator_TestTrait:
+                gEventGenerator = GetTestTraitGenerator();
+                break;
+            case MockWdmNodeOptions::kGenerator_NumItems:
+            default:
+                gEventGenerator = NULL;
+                break;
+        }
+
+        if (gEventGenerator != NULL) {
+            printf("Starting Event Generator\n");
+            MockEventGenerator::GetInstance()->Init(&ExchangeMgr, gEventGenerator,
+                                                    gMockWdmNodeOptions.mTimeBetweenEvents, true);
+        }
+
+    }
     while (!Done)
     {
         struct timeval sleepTime;
@@ -1068,4 +1174,9 @@ static void HandleWdmCompleteTest()
     {
         Done = true;
     }
+}
+
+static void HandleError()
+{
+    Done = true;
 }

@@ -1142,7 +1142,7 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
         break;
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     case SubscriptionClient::kEvent_OnUpdateComplete:
-        if ((aInParam.mUpdateComplete.mReason == WEAVE_NO_ERROR) && (nl::Weave::Profiles::Common::kStatus_Success == aInParam.mUpdateComplete.mStatusCode))
+        if ((aInParam.mUpdateComplete.mReason == WEAVE_NO_ERROR) && (nl::Weave::Profiles::kWeaveProfile_Common == aInParam.mUpdateComplete.mStatusProfileId) && (nl::Weave::Profiles::Common::kStatus_Success == aInParam.mUpdateComplete.mStatusCode))
         {
             WeaveLogDetail(DataManagement, "Update: path result: success");
         }
@@ -1156,8 +1156,6 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
 
             if (initiator->mUpdateDiscardOnError)
             {
-                TraitDataSink *sink = NULL;
-                initiator->mSinkCatalog.Locate(aInParam.mUpdateComplete.mTraitDataHandle, &sink);
                 initiator->mSubscriptionClient->DiscardUpdates();
             }
         }

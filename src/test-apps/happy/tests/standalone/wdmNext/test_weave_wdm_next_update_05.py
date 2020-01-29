@@ -22,8 +22,7 @@
 #
 #    @file
 #       Calls Weave WDM Update between nodes.
-#       Update 02: Client creates mutual subscription, sends unconditional update request to publisher,
-#       and receives notification and status report
+#       Update 05: Client sends standalone unconditional update request to publisher, and receives status report
 #
 
 import unittest
@@ -32,9 +31,9 @@ from weave_wdm_next_test_base import weave_wdm_next_test_base
 import WeaveUtilities
 
 
-class test_weave_wdm_next_update_02(weave_wdm_next_test_base):
+class test_weave_wdm_next_update_05(weave_wdm_next_test_base):
 
-    def test_weave_wdm_next_mutual_subscribe_02(self):
+    def test_weave_wdm_next_mutual_subscribe_05(self):
         wdm_next_args = {}
         wdm_next_args['wdm_option'] = "mutual_subscribe"
 
@@ -58,7 +57,7 @@ class test_weave_wdm_next_update_02(weave_wdm_next_test_base):
         wdm_next_args['server_clear_state_between_iterations'] = False
 
         wdm_next_args['client_update_mutation'] = "SameLevelLeaves"
-        wdm_next_args['client_update_conditionality'] = "Unconditional"
+        wdm_next_args['client_update_conditionality'] = "Mixed"
         wdm_next_args['client_update_num_mutations'] = 2
         wdm_next_args['client_update_num_traits'] = 2
         wdm_next_args['client_update_timing'] = "AfterSub"
@@ -66,10 +65,10 @@ class test_weave_wdm_next_update_02(weave_wdm_next_test_base):
         wdm_next_args['client_log_check'] = [('UpdateComplete event: 1', wdm_next_args['test_client_iterations'] * wdm_next_args['client_update_num_mutations'])]
         wdm_next_args['server_log_check'] = [('Send Update Response with profileId 0x0 statusCode 0x0', wdm_next_args['test_client_iterations'] * wdm_next_args['client_update_num_mutations'])]
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
-        wdm_next_args['test_case_name'] = ['Update 02: Client creates mutual subscription, sends unconditional update request to publisher, and receives notification and status report']
+        wdm_next_args['test_case_name'] = ['Update 05: Client sends standalone unconditional update request to publisher, and receives status report']
         print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next update test 02"
-        super(test_weave_wdm_next_update_02, self).weave_wdm_next_test_base(wdm_next_args)
+        print "weave-wdm-next update test 05"
+        super(test_weave_wdm_next_update_05, self).weave_wdm_next_test_base(wdm_next_args)
 
 
 if __name__ == "__main__":
