@@ -28,6 +28,19 @@
 
 namespace nl {
 namespace Weave {
+namespace System {
+namespace Platform {
+namespace Layer {
+
+System::Error PostEvent(System::Layer&, void*, System::Object&, System::EventType, uintptr_t);
+System::Error DispatchEvents(System::Layer&, void*);
+System::Error DispatchEvent(System::Layer&, void*, System::Event);
+System::Error StartTimer(System::Layer&, void*, uint32_t);
+
+} // namespace Layer
+} // namespace Platform
+} // namespace System
+
 namespace DeviceLayer {
 
 class PlatformManagerImpl;
