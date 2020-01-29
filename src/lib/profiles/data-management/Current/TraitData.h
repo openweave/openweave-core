@@ -1058,18 +1058,6 @@ public:
         } mDictionaryItemDelete;
     };
 
-    /**
-     * Given a reader that points to a data element conformant to a schema bound to this object, this method processes that data and
-     * invokes the relevant SetLeafData call below for all leaf items in the buffer.
-     *
-     * A change rejection function can be passed in as well that will be invoked if the updatable source chooses to reject this data
-     * for any reason.
-     *
-     * @retval #WEAVE_NO_ERROR On success.
-     * @retval other           Encountered errors writing out the data.
-     */
-    WEAVE_ERROR StoreDataElement(PropertyPathHandle aHandle, TLV::TLVReader & aReader, uint8_t aFlags, OnChangeRejection aFunc,
-                                 void * aContext);
     virtual bool IsUpdatableDataSource(void) __OVERRIDE { return true; }
 
 protected: // ISetDataDelegate
@@ -1090,6 +1078,19 @@ protected: // ISetDataDelegate
 
 private:
     friend class SubscriptionEngine;
+
+    /**
+     * Given a reader that points to a data element conformant to a schema bound to this object, this method processes that data and
+     * invokes the relevant SetLeafData call below for all leaf items in the buffer.
+     *
+     * A change rejection function can be passed in as well that will be invoked if the updatable source chooses to reject this data
+     * for any reason.
+     *
+     * @retval #WEAVE_NO_ERROR On success.
+     * @retval other           Encountered errors writing out the data.
+     */
+    WEAVE_ERROR StoreDataElement(PropertyPathHandle aHandle, TLV::TLVReader & aReader, uint8_t aFlags, OnChangeRejection aFunc,
+                                 void * aContext);
 
     void OnSetDataEvent(SetDataEventType aType, PropertyPathHandle aHandle) __OVERRIDE;
 
