@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019-2020 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -252,6 +253,7 @@ public:
     WEAVE_ERROR SetWiFiRendezvousAddress(IPAddress addr); // DEPRECATED -- Use SetRendezvousAddress()
     WEAVE_ERROR RendezvousDevice(const char *pairingCode, void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
 
+    WEAVE_ERROR ConfigureBinding(Binding * const apBinding);
 private:
     enum OpState
     {

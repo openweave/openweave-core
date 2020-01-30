@@ -68,6 +68,7 @@ for relInstallDir in relWeavePackageInstallDirs:
         sys.path.insert(0, absInstallDir)
 
 from openweave import WeaveDeviceMgr
+from openweave import WeaveStack
 if platform.system() == 'Darwin':
     from openweave.WeaveCoreBluetoothMgr import CoreBluetoothManager as BleManager
 elif sys.platform.startswith('linux'):
@@ -209,7 +210,7 @@ class DeviceMgrCmd(Cmd):
         if (rendezvousAddr):
             try:
                 self.devMgr.SetRendezvousAddress(rendezvousAddr)
-            except WeaveDeviceMgr.DeviceManagerException as ex:
+            except WeaveStack.WeaveStackException as ex:
                 print(str(ex))
                 return
 
@@ -406,7 +407,7 @@ class DeviceMgrCmd(Cmd):
                                          targetVendorId=options.targetVendorId,
                                          targetProductId=options.targetProductId,
                                          targetDeviceId=options.targetDeviceId)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -427,7 +428,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.StopDeviceEnumeration()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -501,7 +502,7 @@ class DeviceMgrCmd(Cmd):
                 self.devMgr.ConnectDevice(deviceId=nodeId, deviceAddr=addr,
                                           pairingCode=options.pairingCode,
                                           accessToken=options.accessToken)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -848,7 +849,7 @@ class DeviceMgrCmd(Cmd):
                                          targetVendorId=options.targetVendorId,
                                          targetProductId=options.targetProductId,
                                          targetDeviceId=options.targetDeviceId)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -902,7 +903,7 @@ class DeviceMgrCmd(Cmd):
         try:
             self.devMgr.PassiveRendezvousDevice(pairingCode=options.pairingCode,
                                                 accessToken=options.accessToken)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -977,7 +978,7 @@ class DeviceMgrCmd(Cmd):
             self.devMgr.RemotePassiveRendezvous(rendezvousDeviceAddr=options.joinerAddr,
                     pairingCode=options.pairingCode, accessToken=options.accessToken,
                     rendezvousTimeout=options.rendezvousTimeout, inactivityTimeout=options.inactivityTimeout)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -999,7 +1000,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.ReconnectDevice()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1020,7 +1021,7 @@ class DeviceMgrCmd(Cmd):
         try:
             self.devMgr.Close()
             self.devMgr.CloseEndpoints()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
 
     def do_enableconnectionmonitor(self, line):
@@ -1065,7 +1066,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.EnableConnectionMonitor(interval, timeout)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1086,7 +1087,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.DisableConnectionMonitor()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1116,7 +1117,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             scanResult = self.devMgr.ScanNetworks(networkType)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1184,7 +1185,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             addResult = self.devMgr.AddNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1308,7 +1309,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             addResult = self.devMgr.AddNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1383,7 +1384,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             addResult = self.devMgr.AddNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1442,7 +1443,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.UpdateNetwork(networkInfo)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1478,7 +1479,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.RemoveNetwork(networkId)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1507,7 +1508,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             getResult = self.devMgr.GetNetworks(flags)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1537,7 +1538,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             getResult = self.devMgr.GetCameraAuthData(args[0])
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1575,7 +1576,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.EnableNetwork(networkId)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1611,7 +1612,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.DisableNetwork(networkId)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1647,7 +1648,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.TestNetworkConnectivity(networkId)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1672,7 +1673,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetRendezvousMode(int(args[0]))
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1693,7 +1694,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.GetLastNetworkProvisioningResult()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1714,7 +1715,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.Ping()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1735,7 +1736,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             deviceDesc = self.devMgr.IdentifyDevice()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1762,7 +1763,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             tokenPairingBundle = self.devMgr.PairToken(args[0])
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1785,7 +1786,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             result = self.devMgr.UnpairToken()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1806,7 +1807,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.CreateFabric()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1827,7 +1828,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.LeaveFabric()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1848,7 +1849,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             fabricConfig = self.devMgr.GetFabricConfig()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1883,7 +1884,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.JoinExistingFabric(fabricConfig)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1930,7 +1931,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.RegisterServicePairAccount(options.serviceId, options.accountId, options.serviceConfig, options.pairingToken, options.pairingInitData)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1964,7 +1965,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.UpdateService(options.serviceId, options.serviceConfig)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -1995,7 +1996,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.UnregisterService(options.serviceId)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -2046,7 +2047,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.ArmFailSafe(armMode, failSafeToken)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -2067,7 +2068,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.DisarmFailSafe()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -2097,7 +2098,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.ResetConfig(resetFlags)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -2131,7 +2132,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetRendezvousAddress(addr, intf)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -2160,7 +2161,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetAutoReconnect(autoReconnect)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -2198,7 +2199,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetLogFilter(category)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -2228,7 +2229,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetRendezvousLinkLocal(rendezvousLinkLocal)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -2258,7 +2259,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.SetConnectTimeout(timeoutMS)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -2404,7 +2405,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.StartSystemTest(WeaveDeviceMgr.SystemTest_ProductList[productName], testId)
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 
@@ -2426,7 +2427,7 @@ class DeviceMgrCmd(Cmd):
 
         try:
             self.devMgr.StopSystemTest()
-        except WeaveDeviceMgr.DeviceManagerException as ex:
+        except WeaveStack.WeaveStackException as ex:
             print(str(ex))
             return
 

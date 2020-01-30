@@ -233,6 +233,12 @@ else
 configure_OPTIONS              +=
 endif
 
+ifdef SCHEMA
+configure_OPTIONS              += --with-schema=$(SCHEMA)
+else
+configure_OPTIONS              +=
+endif
+
 # If the user has asserted USE_LWIP, alter the configuration and
 # target tuple to use LwIP rather than the expected BSD sockets.
 

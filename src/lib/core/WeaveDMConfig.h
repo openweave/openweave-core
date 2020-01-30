@@ -712,6 +712,19 @@
 #define WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMPL 0
 #endif
 
+/**
+ *  @def WEAVE_CONFIG_DATAMANAGEMENT_CLIENT_EXPERIMENTAL
+ *
+ *  @brief
+ *    Enable (1) or disable (0) Experimental DataManagement Client
+ *    in Weave Data Management Next profile. This feature is
+ *    optional and could be disabled.
+ *
+ */
+#ifndef WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
+#define WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL 0
+#endif
+
 // clang-format on
 
 #endif // _WEAVE_DATA_MANAGEMENT_CONFIG_H
