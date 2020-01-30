@@ -23,7 +23,7 @@
 #
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
-
+if WEAVE_WITH_PYTHON
 # ------------------------------------------------------------
 # "openweave" Python Package
 # ------------------------------------------------------------
@@ -31,6 +31,12 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 openweave_PYTHON                                  = \
     openweave/__init__.py                           \
     openweave/WeaveDeviceMgr.py                     \
+    openweave/WdmClient.py                          \
+    openweave/GenericTraitUpdatableDataSink.py      \
+    openweave/ResourceIdentifier.py                 \
+    openweave/WeaveStack.py		            \
+    openweave/WeaveUtility.py                       \
+    openweave/WeaveTLV.py		            \
     openweave/WeaveBleBase.py                       \
     openweave/WeaveCoreBluetoothMgr.py              \
     openweave/WeaveBluezMgr.py                      \
@@ -141,4 +147,5 @@ clean-local:
 
 endif # WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE
 
+endif # WEAVE_WITH_PYTHON
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

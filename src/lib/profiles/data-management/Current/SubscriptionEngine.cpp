@@ -1655,6 +1655,12 @@ void SubscriptionEngine::BuildStatusDataHandleElement(PacketBuffer * pBuf, Trait
         statusCode = kStatus_VersionMismatch;
         err        = WEAVE_NO_ERROR;
     }
+    else if (WEAVE_ERROR_WRONG_TLV_TYPE == err)
+    {
+        profileId  = Weave::Profiles::kWeaveProfile_WDM;
+        statusCode = kStatus_InvalidValueInUpdate;
+        err        = WEAVE_NO_ERROR;
+    }
     else if (WEAVE_NO_ERROR == err)
     {
         profileId  = Weave::Profiles::kWeaveProfile_Common;

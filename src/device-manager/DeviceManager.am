@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2019-2020 Google LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +27,8 @@
 # such it depends on the presense of a generalized heap (malloc el al).
 # In contexts where this isn't available, simply skip building the Device
 # Manager code altogether.
- 
+
+if WEAVE_BUILD_DEVICE_MANAGER
 nl_DeviceManager_sources                                       = \
     $(NULL)
 
@@ -34,6 +36,8 @@ if CONFIG_HAVE_HEAP
 
 nl_DeviceManager_sources                                      += \
     @top_builddir@/src/device-manager/WeaveDeviceManager.cpp     \
+    @top_builddir@/src/device-manager/WeaveDataManagementClient.cpp     \
+    @top_builddir@/src/device-manager/BuiltInTraitSchemaDirectory.cpp     \
     $(NULL)
 
 if CONFIG_NETWORK_LAYER_BLE
@@ -47,3 +51,5 @@ endif # WEAVE_ENABLE_WOBLE_TEST
 endif # CONFIG_NETWORK_LAYER_BLE
 
 endif # CONFIG_HAVE_HEAP
+
+endif # WEAVE_BUILD_DEVICE_MANAGER

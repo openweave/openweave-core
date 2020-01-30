@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2015-2017 Nest Labs, Inc.
+#    Copyright (c) 2015-2018 Nest Labs, Inc.
+#    Copyright (c) 2019-2020 Google LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,8 +50,8 @@ except:
     from pgi.repository import GObject
 
 from .WeaveBleUtility import *
-from .WeaveBleUtility import _VoidPtrToUUIDString
-from .WeaveBleUtility import _VoidPtrToByteArray
+from .WeaveUtility import WeaveUtility
+from .WeaveBleUtility import VoidPtrToUUIDString
 
 from .WeaveBleBase import WeaveBleBase
 
@@ -226,7 +227,7 @@ class BluezDbusAdapter():
         except:
             self.logger.debug(traceback.format_exc())
             return False
-        
+
     def DiscoverableTimeout(self, timeoutSec):
         try:
             result = self.adapter_properties.Set(ADAPTER_INTERFACE, 'DiscoverableTimeout', timeoutSec)
@@ -990,9 +991,9 @@ class BluezManager(WeaveBleBase):
         self.logger.debug("write start")
         result = False
         if self.target and self.target.Connected:
-            converted_data = _VoidPtrToByteArray(buffer, length)
-            self.charId_tx = bytearray(uuid.UUID(str(_VoidPtrToUUIDString(charId, 16))).bytes)
-            self.svcId_tx = bytearray(uuid.UUID(str(_VoidPtrToUUIDString(svcId, 16))).bytes)
+            converted_data = WeaveUtility.VoidPtrToByteArray(buffer, length)
+            self.charId_tx = bytearray(uuid.UUID(str(VoidPtrToUUIDString(charId, 16))).bytes)
+            self.svcId_tx = bytearray(uuid.UUID(str(VoidPtrToUUIDString(svcId, 16))).bytes)
             self.tx.WriteValue(dbus.Array([dbus.Byte(i) for i in converted_data], 'y'),
                                options="",
                                reply_handler=self.WriteCharactertisticSuccessCB,
@@ -1064,8 +1065,8 @@ class BluezManager(WeaveBleBase):
 
     def SubscribeBleCharacteristic(self, connObj, svcId, charId, subscribe):
         result = False
-        self.charId_rx = bytearray(uuid.UUID(_VoidPtrToUUIDString(charId, 16)).bytes)
-        self.svcId_rx = bytearray(uuid.UUID(str(_VoidPtrToUUIDString(svcId, 16))).bytes)
+        self.charId_rx = bytearray(uuid.UUID(VoidPtrToUUIDString(charId, 16)).bytes)
+        self.svcId_rx = bytearray(uuid.UUID(str(VoidPtrToUUIDString(svcId, 16))).bytes)
 
         if self.target and self.target.Connected:
             try:

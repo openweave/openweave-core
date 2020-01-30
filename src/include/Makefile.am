@@ -962,12 +962,14 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 #
 # Weave Device Manager
 #
-
+if WEAVE_BUILD_DEVICE_MANAGER
 nl_public_WeaveDeviceManager_source_dirstem = device-manager
 nl_public_WeaveDeviceManager_destination_dirstem = Weave/DeviceManager
 
 nl_public_WeaveDeviceManager_header_sources = \
 $(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDeviceManager.h \
+$(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDataManagementClient.h \
+$(nl_public_WeaveDeviceManager_source_dirstem)/TraitSchemaDirectory.h \
 $(NULL)
 
 nl_public_WeaveDeviceManager_header_paths = $(subst $(nl_public_WeaveDeviceManager_source_dirstem)/,,$(nl_public_WeaveDeviceManager_header_sources))
@@ -987,6 +989,7 @@ $(filter %.hpp,$(nl_public_WeaveDeviceManager_header_destinations)): $(nl_public
 
 device_managerdir = $(includedir)/$(nl_public_WeaveDeviceManager_destination_dirstem)
 dist_device_manager_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceManager_header_sources))
+endif # WEAVE_BUILD_DEVICE_MANAGER
 
 #
 # Weave Device Layer Headers

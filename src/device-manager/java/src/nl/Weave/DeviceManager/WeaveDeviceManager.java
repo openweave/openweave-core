@@ -1,6 +1,7 @@
 /*
 
-    Copyright (c) 013-2017 Nest Labs, Inc.
+    Copyright (c) 2013-2018 Nest Labs, Inc.
+    Copyright (c) 2019 Google, LLC.
     All rights reserved.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -637,6 +638,11 @@ public class WeaveDeviceManager
         mCompHandler.onDeviceEnumerationResponse(deviceDesc, deviceAddr);
     }
 
+    public long getDeviceMgrPtr()
+    {
+        return mDeviceMgrPtr;
+    }
+
     public interface CompletionHandler
     {
         void onConnectDeviceComplete();
@@ -688,7 +694,7 @@ public class WeaveDeviceManager
 
     // ----- Protected Members -----
 
-    protected CompletionHandler mCompHandler;
+    private CompletionHandler mCompHandler;
 
     protected void finalize() throws Throwable
     {

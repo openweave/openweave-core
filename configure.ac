@@ -596,6 +596,30 @@ AC_MSG_RESULT(${enable_stdio_logging_timestamps})
 AC_DEFINE_UNQUOTED([WEAVE_LOGGING_STYLE_STDIO_WITH_TIMESTAMPS],[${WEAVE_LOGGING_STYLE_STDIO_WITH_TIMESTAMPS}],[Define to 1 if you want to use Weave with a C Standard I/O Library-based logging system with timestamped log entries])
 
 #
+# Python support
+#
+AC_MSG_CHECKING([whether to build Python support])
+AC_ARG_ENABLE(python,
+    [AS_HELP_STRING([--enable-python],[Enable Python support, required for the python device manager @<:@default=no@:>@.])],
+    [
+        case "${enableval}" in
+
+        no|yes)
+            enable_python=${enableval}
+            ;;
+
+        *)
+            AC_MSG_ERROR([Invalid value ${enableval} for --enable-python])
+            ;;
+
+        esac
+    ],
+    [enable_python=no])
+AC_MSG_RESULT(${enable_python})
+
+AM_CONDITIONAL([WEAVE_WITH_PYTHON], [test "${enable_python}" = "yes"])
+
+#
 # Cocoa support
 #
 AC_MSG_CHECKING([whether to build Cocoa support])
@@ -916,6 +940,36 @@ AC_ARG_WITH(happy-dns,
 AC_MSG_RESULT(${use_happy_dns})
 AM_CONDITIONAL([WEAVE_RUN_HAPPY_DNS], [test "${use_happy_dns}" = "yes"])
 AC_SUBST(HAPPY_DNS,[${with_happy_dns}])
+
+AC_MSG_CHECKING([checking whether to use specific schema while running data management in mobile client])
+AC_ARG_WITH(schema,
+    [AS_HELP_STRING([--with-schema=SCHEMA],
+        [Add custom schema directory for weave data management client support, where the directory needs to include
+         pre-generated schema cpp and header file and CustomBuiltInTraitSchemaDirectory.cpp file. [default=none].])],
+    [
+        case "${with_schema}" in
+
+        no)
+            ;;
+
+        yes)
+            AC_MSG_ERROR([Invalid value ${with_schema} for --with-schema])
+            ;;
+
+        *)
+            use_schema=yes
+            ;;
+        esac
+    ],
+    [use_schema=no])
+
+AC_MSG_RESULT(${use_schema})
+
+AM_CONDITIONAL([WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE], [test "${use_schema}" = "yes"])
+AC_SUBST(WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE,[${with_schema}])
+if test "${use_schema}" = "yes"; then
+    AC_DEFINE_UNQUOTED([WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE],[${WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE}/CustomBuiltInTraitSchemaDirectory.cpp],[Define custom schema directory])
+fi
 
 #
 # Happy Service Test Suite
@@ -2777,6 +2831,7 @@ AC_MSG_NOTICE([
   Happy Services                                   : ${with_happy_service}
   Happy Services Test Suites                       : ${with_happy_test_suite}
   Happy DNS Servers                                : ${with_happy_dns}
+  Schema                                           : ${with_schema}
   Treat warnings as errors                         : ${nl_cv_warnings_as_errors}
   Build tests                                      : ${nl_cv_build_tests}
   Build long running tests                         : ${nl_cv_build_long_tests}
@@ -2787,6 +2842,7 @@ AC_MSG_NOTICE([
   Build legacy WDM profile                         : ${build_legacy_wdm}
   Prefix                                           : ${prefix}
   Shadow directory program                         : ${LNDIR}
+  Python support                                   : ${enable_python}
   Cocoa support                                    : ${enable_cocoa}
   Java support                                     : ${enable_java}
   Java home                                        : ${JAVA_HOME:--}
