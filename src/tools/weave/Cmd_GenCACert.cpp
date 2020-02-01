@@ -65,8 +65,9 @@ static const char *const gCmdOptionHelp =
     "\n"
     "   -k, --key <file>\n"
     "\n"
-    "       File containing the public and private keys for the new CA certificate.\n"
-    "       (File must be in PEM format).\n"
+    "       File containing the public key for the new CA certificate. The file may\n"
+    "       contain only a public key, or a private key (from which the public key\n"
+    "       can be obtained). The file must be in PEM or DER format.\n"
     "\n"
     "   -C, --ca-cert <file>\n"
     "\n"
@@ -76,7 +77,7 @@ static const char *const gCmdOptionHelp =
     "   -K, --ca-key <file>\n"
     "\n"
     "       File containing CA private key to be used to sign the new CA certificate.\n"
-    "       This file must be in PEM format.\n"
+    "       This file may be in PEM or DER format.\n"
     "\n"
     "   -o, --out <file>\n"
     "\n"
@@ -245,7 +246,7 @@ bool Cmd_GenCACert(int argc, char *argv[])
     else
         newCertFile = stdout;
 
-    if (!ReadPrivateKey(gNewCertKeyFileName, "Enter password for private key:", newCertKey))
+    if (!ReadPublicKey(gNewCertKeyFileName, "Enter password for private key:", newCertKey))
         ExitNow(res = false);
 
     if (!gSelfSign)
