@@ -700,19 +700,6 @@
 #endif
 
 /**
- *  @def WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMPL
- *
- *  @brief
- *    Enable (1) or disable (0) GenericTraitCatalogImpl
- *    in Weave Data Management Next profile. This feature is
- *    optional and could be disabled.
- *
- */
-#ifndef WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMPL
-#define WEAVE_CONFIG_ENABLE_GENERIC_TRAIT_CATALOG_IMPL 0
-#endif
-
-/**
  *  @def WEAVE_CONFIG_DATAMANAGEMENT_CLIENT_EXPERIMENTAL
  *
  *  @brief
