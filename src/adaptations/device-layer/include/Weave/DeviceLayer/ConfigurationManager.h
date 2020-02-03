@@ -140,8 +140,9 @@ private:
     template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericPlatformManagerImpl;
     friend class ::nl::Weave::DeviceLayer::TraitManager;
     friend class ::nl::Weave::DeviceLayer::Internal::DeviceControlServer;
-    friend WEAVE_ERROR ::nl::Weave::Platform::PersistedStorage::Read(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);
-    friend WEAVE_ERROR ::nl::Weave::Platform::PersistedStorage::Write(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value);
+    // Parentheses used to fix clang parsing issue with these declarations
+    friend WEAVE_ERROR (::nl::Weave::Platform::PersistedStorage::Read(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value));
+    friend WEAVE_ERROR (::nl::Weave::Platform::PersistedStorage::Write(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value));
 
     using ImplClass = ConfigurationManagerImpl;
 
