@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2019-2020 Google, LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,6 +45,16 @@ libWeave_a_CPPFLAGS                  =                        \
     $(LWIP_CPPFLAGS)                                          \
     $(SOCKETS_CPPFLAGS)                                       \
     $(NULL)
+
+if WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE
+libWeave_a_CPPFLAGS                 += \
+    -I$(WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE)              \
+    $(NULL)
+else
+libWeave_a_CPPFLAGS                 += \
+    -I$(top_srcdir)/src/test-apps/schema                      \
+    $(NULL)
+endif # WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE
 
 if WEAVE_ENABLE_WOBLE_TEST
 libWeave_a_CPPFLAGS                 += \

@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019-2020 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,6 +73,8 @@ using namespace nl::Weave::Profiles::Vendor::Nestlabs::DeviceDescription;
 using namespace nl::Weave::Profiles::Vendor::Nestlabs::DropcamLegacyPairing;
 using namespace nl::Weave::Profiles::Vendor::Nestlabs::Thermostat;
 using namespace nl::Weave::TLV;
+
+const nl::Weave::ExchangeContext::Timeout kResponseTimeoutMsec = 15000;
 
 static bool IsProductWildcard(uint16_t productId);
 
@@ -5088,6 +5091,40 @@ WEAVE_ERROR WeaveDeviceManager::EndCertValidation(WeaveCertificateSet& certSet, 
 {
     // Nothing to do
     return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR WeaveDeviceManager::ConfigureBinding(Binding * const apBinding)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    nl::Weave::Binding::Configuration bindingConfig = apBinding->BeginConfiguration();
+
+    if (mDeviceCon != NULL)
+    {
+        bindingConfig
+                .Target_NodeId(mDeviceId)
+                .Transport_ExistingConnection(mDeviceCon)
+                .Exchange_ResponseTimeoutMsec(kResponseTimeoutMsec);
+
+        if (mSessionKeyId == WeaveKeyId::kNone)
+        {
+            bindingConfig.Security_None();
+        }
+        else
+        {
+            bindingConfig.Security_Key(mSessionKeyId);
+            bindingConfig.Security_EncryptionType(mEncType);
+        }
+
+        err = bindingConfig.PrepareBinding();
+    }
+    else
+    {
+        WeaveLogDetail(DeviceManager, "apDeviceCon is NULL");
+        err = WEAVE_ERROR_INCORRECT_STATE;
+    }
+
+    return err;
 }
 
 bool IsProductWildcard(uint16_t productId)

@@ -917,6 +917,36 @@ AC_MSG_RESULT(${use_happy_dns})
 AM_CONDITIONAL([WEAVE_RUN_HAPPY_DNS], [test "${use_happy_dns}" = "yes"])
 AC_SUBST(HAPPY_DNS,[${with_happy_dns}])
 
+AC_MSG_CHECKING([checking whether to use specific schema while running data management in mobile client])
+AC_ARG_WITH(schema,
+    [AS_HELP_STRING([--with-schema=SCHEMA],
+        [Add custom schema directory for weave data management client support, where the directory needs to include
+         pre-generated schema cpp and header files and CustomBuiltInTraitSchemaDirectory.cpp file. [default=none].])],
+    [
+        case "${with_schema}" in
+
+        no)
+            ;;
+
+        yes)
+            AC_MSG_ERROR([Invalid value ${with_schema} for --with-schema])
+            ;;
+
+        *)
+            use_schema=yes
+            ;;
+        esac
+    ],
+    [use_schema=no])
+
+AC_MSG_RESULT(${use_schema})
+
+AM_CONDITIONAL([WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE], [test "${use_schema}" = "yes"])
+AC_SUBST(WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE,[${with_schema}])
+if test "${use_schema}" = "yes"; then
+    AC_DEFINE_UNQUOTED([WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE],[${WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE}/CustomBuiltInTraitSchemaDirectory.cpp],[Define custom schema directory])
+fi
+
 #
 # Happy Service Test Suite
 #
@@ -2777,6 +2807,7 @@ AC_MSG_NOTICE([
   Happy Services                                   : ${with_happy_service}
   Happy Services Test Suites                       : ${with_happy_test_suite}
   Happy DNS Servers                                : ${with_happy_dns}
+  Schema                                           : ${with_schema}
   Treat warnings as errors                         : ${nl_cv_warnings_as_errors}
   Build tests                                      : ${nl_cv_build_tests}
   Build long running tests                         : ${nl_cv_build_long_tests}
