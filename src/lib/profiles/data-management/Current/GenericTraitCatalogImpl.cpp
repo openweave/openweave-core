@@ -16,6 +16,7 @@
  *    limitations under the License.
  */
 
+#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 #include <map>
 #include <limits>
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
@@ -32,3 +33,4 @@ template class GenericTraitCatalogImpl<TraitDataSource>;
 }; // namespace Profiles
 }; // namespace Weave
 }; // namespace nl
+#endif
