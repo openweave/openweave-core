@@ -99,7 +99,6 @@ WEAVE_ERROR TraitSchemaEngine::ParseTagString(const char * apTagString, char ** 
 
     aParseRes = strtoul(apTagString, apEndptr, 0);
     VerifyOrExit(!(*apEndptr == apTagString || (**apEndptr != '\0' && **apEndptr != '/')), err = WEAVE_ERROR_INVALID_ARGUMENT);
-    VerifyOrExit(aParseRes < kContextTagMaxNum, err = WEAVE_ERROR_INVALID_TLV_TAG);
 
 exit:
     return err;
