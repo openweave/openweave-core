@@ -336,6 +336,7 @@ WEAVE_ERROR WeaveCertProvEngine::ProcessGetCertificateResponse(PacketBuffer * ms
         relatedCertsLen = writer.GetLengthWritten() - certLen;
 
         err = reader.Next();
+        VerifyOrExit(err == WEAVE_END_OF_TLV, err = WEAVE_ERROR_UNEXPECTED_TLV_ELEMENT);
     }
 
     err = reader.VerifyEndOfContainer();
