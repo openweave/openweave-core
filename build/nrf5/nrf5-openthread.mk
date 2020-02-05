@@ -161,7 +161,9 @@ OPENTHREAD_CONFIGURE_OPTIONS = \
     --srcdir="$(OPENTHREAD_ROOT)" \
     --enable-ftd \
     --enable-mtd \
+    --enable-child-supervision \
     --enable-diag \
+    --enable-jam-detector \
     --enable-linker-map \
     --with-examples=nrf52840 \
     --disable-tools \
