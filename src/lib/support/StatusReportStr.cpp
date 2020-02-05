@@ -267,9 +267,10 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         case Security::kStatusCode_InternalKeyError                                     : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Internal key error"; break;
         case Security::kStatusCode_NoCommonKeyExportConfiguration                       : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] No common key export configuration"; break;
         case Security::kStatusCode_UnauthorizedKeyExportRequest                         : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Unauthorized key export request"; break;
-        case Security::kStatusCode_ServiceCommunicationError                            : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Service communication error"; break;
-        case Security::kStatusCode_UnauthorizedGetCertRequest                           : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Unauthorized get certificate request"; break;
-        case Security::kStatusCode_NoNewCertRequired                                    : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] No new certificate required"; break;
+        case Security::kStatusCode_NoNewOperationalCertRequired                         : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] No new operational certificate required"; break;
+        case Security::kStatusCode_OperationalNodeIdInUse                               : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Operational node Id collision"; break;
+        case Security::kStatusCode_InvalidOperationalNodeId                             : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Invalid operational node Id"; break;
+        case Security::kStatusCode_InvalidOperationalCertificate                        : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Invalid operational certificate"; break;
         default                                                                         : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
         break;

@@ -580,7 +580,7 @@ void WeaveCertProvEngine::HandleResponse(ExchangeContext * ec, const IPPacketInf
         outParam.Clear();
         inParam.Source = client;
 
-        if (statusReport.mStatusCode == Security::kStatusCode_NoNewCertRequired)
+        if (statusReport.mStatusCode == Security::kStatusCode_NoNewOperationalCertRequired)
         {
             inParam.ResponseReceived.ReplaceCert = false;
 
