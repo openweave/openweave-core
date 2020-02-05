@@ -21,33 +21,39 @@ package nl.Weave.DeviceManager;
 /**
  * Container for wireless regulatory configuration information.
  */
-public class WirelessRegulatoryConfig
+public final class WirelessRegulatoryConfig
 {
     /** Active wireless regulatory domain.
      */
-    public String RegDomain;
+    public final String RegDomain;
 
     /** Active operating location.
      */
-    public WirelessOperatingLocation OpLocation;
+    public final WirelessOperatingLocation OpLocation;
     
     /** Supported regulatory domains
      */
-    public String[] SupportedRegDomains;
+    public final String[] SupportedRegDomains;
     
-    public WirelessRegulatoryConfig()
+    public WirelessRegulatoryConfig(String regDomain, WirelessOperatingLocation opLocation)
     {
-        RegDomain = null;
-        OpLocation = WirelessOperatingLocation.NotSpecified;
-        SupportedRegDomains = null;
+		this.RegDomain = regDomain;
+		this.OpLocation = opLocation;
+		this.SupportedRegDomains = new String[0];
+    }
+
+    public WirelessRegulatoryConfig(String regDomain, WirelessOperatingLocation opLocation, String[] supportedRegDomains)
+    {
+        this.RegDomain = regDomain;
+        this.OpLocation = opLocation;
+        this.SupportedRegDomains = supportedRegDomains.clone();
     }
     
-    public static WirelessRegulatoryConfig Make(String regDomain, int opLocation, String[] supportedRegDomains)
+    // Convenience constructor for JNI code
+    WirelessRegulatoryConfig(String regDomain, int opLocation, String[] supportedRegDomains)
     {
-        WirelessRegulatoryConfig regConfig = new WirelessRegulatoryConfig();
-        regConfig.RegDomain = regDomain;
-        regConfig.OpLocation = WirelessOperatingLocation.fromVal(opLocation);
-        regConfig.SupportedRegDomains = supportedRegDomains;
-        return regConfig;
+        this.RegDomain = regDomain;
+        this.OpLocation = WirelessOperatingLocation.fromVal(opLocation);
+        this.SupportedRegDomains = supportedRegDomains;
     }
 };

@@ -3519,7 +3519,7 @@ WEAVE_ERROR J2N_WirelessRegulatoryConfig(JNIEnv *env, jobject inRegConfig, Wirel
         memcpy(outRegConfig.RegDomain.Code, strVal, sizeof(outRegConfig.RegDomain.Code));
     }
 
-    err = J2N_EnumFieldVal(env, inRegConfig, "OpLocation", "Lnl/Weave/DeviceManager/OperatingLocation;", enumVal);
+    err = J2N_EnumFieldVal(env, inRegConfig, "OpLocation", "Lnl/Weave/DeviceManager/WirelessOperatingLocation;", enumVal);
     SuccessOrExit(err);
     outRegConfig.OpLocation = (uint8_t)enumVal;
 
@@ -3536,7 +3536,7 @@ exit:
 WEAVE_ERROR N2J_WirelessRegulatoryConfig(JNIEnv *env, const WirelessRegConfig& inRegConfig, jobject& outRegConfig)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    jmethodID makeMethod;
+    jmethodID constructor;
     jstring regDomain = NULL;
     jobjectArray supportedRegDomains = NULL;
     jclass java_lang_String = NULL;
@@ -3560,11 +3560,11 @@ WEAVE_ERROR N2J_WirelessRegulatoryConfig(JNIEnv *env, const WirelessRegConfig& i
         });
     SuccessOrExit(err);
 
-    makeMethod = env->GetStaticMethodID(sWirelessRegulatoryConfigCls, "Make", "(Ljava/lang/String;I[Ljava/lang/String;)Lnl/Weave/DeviceManager/WirelessRegulatoryConfig;");
-    VerifyOrExit(makeMethod != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
+    constructor = env->GetMethodID(sWirelessRegulatoryConfigCls, "<init>", "(Ljava/lang/String;I[Ljava/lang/String;)V");
+    VerifyOrExit(constructor != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
 
     env->ExceptionClear();
-    outRegConfig = env->CallStaticObjectMethod(sWirelessRegulatoryConfigCls, makeMethod,
+    outRegConfig = (jthrowable)env->NewObject(sWirelessRegulatoryConfigCls, constructor,
             regDomain, (jint)inRegConfig.OpLocation, supportedRegDomains);
     VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
 

@@ -834,7 +834,7 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WdmClient
         TestResult = null;
         System.out.println("SetWirelessRegulatoryConfig Test");
         System.out.println("    Setting wireless regulatory configuration...");
-        WirelessRegulatoryConfig regConfig = WirelessRegulatoryConfig.Make("CA", WirelessOperatingLocation.Indoors.val, null);
+        WirelessRegulatoryConfig regConfig = new WirelessRegulatoryConfig("CA", WirelessOperatingLocation.Indoors);
         DeviceMgr.beginSetWirelessRegulatoryConfig(regConfig);
         ExpectSuccess("SetWirelessRegulatoryConfig");
         System.out.println("SetWirelessRegulatoryConfig Test Succeeded");
