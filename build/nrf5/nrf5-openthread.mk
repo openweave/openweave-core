@@ -163,7 +163,7 @@ OPENTHREAD_CONFIGURE_OPTIONS = \
     --enable-mtd \
     --enable-child-supervision \
     --enable-diag \
-    --enable-jam-detector \
+    --enable-jam-detection \
     --enable-linker-map \
     --with-examples=nrf52840 \
     --disable-tools \
