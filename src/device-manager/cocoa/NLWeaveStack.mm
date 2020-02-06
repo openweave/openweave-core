@@ -1,7 +1,7 @@
 /*
  *
  *    Copyright (c) 2015-2018 Nest Labs, Inc.
- *    Copyright (c) 2019 Google, LLC.
+ *    Copyright (c) 2019-2020 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,6 @@
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
-#include <WeaveDataManagementClient.h>
 
 using namespace nl::Weave::Profiles;
 using namespace nl::Weave::Profiles::DataManagement;
@@ -488,21 +487,24 @@ exit:
     return _mDeviceMgr;
 }
 
+#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 - (NLWdmClient *)createWdmClient:(NSString *)name appCallbackQueue:(dispatch_queue_t)appCallbackQueue
 {
     WDM_LOG_METHOD_SIG();
 
     NLWdmClient * _mWdmClient = [[NLWdmClient alloc] init:name
-                                         weaveWorkQueue:_mWorkQueue
+                                           weaveWorkQueue:_mWorkQueue
                                          appCallbackQueue:appCallbackQueue
-                                         exchangeMgr:&_mExchangeMgr
-                                         messageLayer:&_mMessageLayer
-                                         nlWeaveDeviceManager:_mDeviceMgr];
+                                              exchangeMgr:&_mExchangeMgr
+                                             messageLayer:&_mMessageLayer
+                                     nlWeaveDeviceManager:_mDeviceMgr];
     if (nil == _mWdmClient) {
         WDM_LOG_ERROR(@"Cannot create new NLWdmClient\n");
     }
     return _mWdmClient;
 }
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
+
 @end
 
 namespace nl {

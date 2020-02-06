@@ -51,18 +51,40 @@ typedef void (^WdmClientFailureBlock)(id owner, NSError * error);
 // ----- Error Logging -----
 - (NSString *)toErrorString:(WEAVE_ERROR)err;
 
+/**
+ * set weave node id in trait catalog in WdmClient
+ *
+ * @param nodeId weave node id
+ *
+ */
 - (void *)setNodeId:(uint64_t)nodeId;
 
+/**
+ * Create the new data newDataSink
+ *
+ * @param nlResourceIdentifier resource id is a globally-unique identifier for a Weave/phoenix resource
+ * @param profileId trait profile id
+ * @param instanceId trait instance id
+ * @param path trait path
+ *
+ */
 - (NLGenericTraitUpdatableDataSink *)newDataSink:(NLResourceIdentifier *)nlResourceIdentifier
                                        profileId: (uint32_t)profileId
                                       instanceId: (uint64_t)instanceId
                                             path: (NSString *)path;
 
+/**
+ * Begins a flush of all trait data. The result of this operation can be observed through the CompletionHandler and
+ * failureHandler
+ */
 - (void)flushUpdate:(WdmClientCompletionBlock)completionHandler
             failure:(WdmClientFailureBlock)failureHandler;
 
+/**
+ * Begins a sync of all trait data. The result of this operation can be observed through the CompletionHandler and
+ * failureHandler
+ */
 - (void)refreshData:(WdmClientCompletionBlock)completionHandler failure:(WdmClientFailureBlock)failureHandler;
 
-- (void)removeDataSinkRef:(long long)traitInstancePtr;
-
 @end
+

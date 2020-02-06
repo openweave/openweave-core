@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2019 Google, LLC.
+ *    Copyright (c) 2020 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,8 @@
 #import <Foundation/Foundation.h>
 
 #import "NLResourceIdentifier.h"
-#include "WeaveDataManagementClient.h"
+#include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
+#include <Weave/Profiles/data-management/DataManagement.h>
 
 using namespace nl::Weave::Profiles::DataManagement;
 

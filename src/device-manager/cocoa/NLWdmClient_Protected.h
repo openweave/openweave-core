@@ -23,7 +23,6 @@
  */
 
 #include <Weave/Core/WeaveCore.h>
-#include <WeaveDataManagementClient.h>
 #import "NLWeaveDeviceManager.h"
 #import "NLWdmClient.h"
 
@@ -36,5 +35,7 @@
          nlWeaveDeviceManager:(NLWeaveDeviceManager *)deviceMgr NS_DESIGNATED_INITIALIZER;
 
 - (NSString *)statusReportToString:(NSUInteger)profileId statusCode:(NSInteger)statusCode;
+
+- (void)removeDataSinkRef:(long long)traitInstancePtr;
 
 @end

@@ -26,24 +26,21 @@
 #import "NLWeaveStack.h"
 #import "NLLogging.h"
 
+#include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveError.h>
 #include <Weave/Support/CodeUtils.h>
+#include <Weave/Support/NLDLLUtil.h>
+#include <Weave/Profiles/WeaveProfiles.h>
+#include <Weave/Profiles/common/CommonProfile.h>
+#include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
+#include <Weave/Profiles/data-management/DataManagement.h>
+#include <Weave/Profiles/data-management/SubscriptionClient.h>
 #include <WeaveDeviceManager.h>
+#include <WeaveDataManagementClient.h>
 
 #import "NLWeaveDeviceManager_Protected.h"
 #import "NLProfileStatusError.h"
 #import "NLWeaveError_Protected.h"
-
-#include <Weave/Core/WeaveCore.h>
-#include <Weave/Profiles/WeaveProfiles.h>
-#include <Weave/Profiles/common/CommonProfile.h>
-#include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
-#include <WeaveDataManagementClient.h>
-#include <Weave/Support/NLDLLUtil.h>
-#include <Weave/Core/WeaveCore.h>
-#include <Weave/Profiles/data-management/DataManagement.h>
-#include <Weave/Profiles/data-management/SubscriptionClient.h>
-
 #import "NLWdmClient_Protected.h"
 #import "NLGenericTraitUpdatableDataSink.h"
 #import "NLGenericTraitUpdatableDataSink_Protected.h"
@@ -53,6 +50,7 @@
 using namespace nl::Weave::Profiles;
 using namespace nl::Weave::Profiles::DataManagement;
 
+#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 static void bindingEventCallback (void * const apAppState, const nl::Weave::Binding::EventType aEvent,
                                   const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam);
 
@@ -495,3 +493,4 @@ static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERR
 }
 
 @end
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL

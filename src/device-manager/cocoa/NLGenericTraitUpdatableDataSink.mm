@@ -25,24 +25,21 @@
 #import <Foundation/Foundation.h>
 #import "NLWeaveStack.h"
 #import "NLLogging.h"
-#import "NLProfileStatusError.h"
-#import "NLWeaveError_Protected.h"
 
+#include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveError.h>
 #include <Weave/Support/CodeUtils.h>
-#include <WeaveDeviceManager.h>
-#include <Weave/Core/WeaveCore.h>
+#include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
-#include <WeaveDataManagementClient.h>
-#include <Weave/Support/NLDLLUtil.h>
-#include <Weave/Core/WeaveCore.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
-#include <Weave/Profiles/status-report/StatusReportProfile.h>
-#include <SystemLayer/SystemPacketBuffer.h>
 #include <Weave/Profiles/data-management/SubscriptionClient.h>
+#include <WeaveDeviceManager.h>
+#include <WeaveDataManagementClient.h>
 
+#import "NLProfileStatusError.h"
+#import "NLWeaveError_Protected.h"
 #import "NLWdmClient_Protected.h"
 #import "NLGenericTraitUpdatableDataSink_Protected.h"
 #include <iostream>
@@ -50,15 +47,15 @@
 
 using namespace nl::Weave::Profiles;
 using namespace nl::Weave::Profiles::DataManagement;
-
+#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 @interface NLGenericTraitUpdatableDataSink () {
     nl::Weave::DeviceManager::GenericTraitUpdatableDataSink * _mWeaveCppGenericTraitUpdatableDataSink;
     NLWdmClient * _mNLWdmClient;
     dispatch_queue_t _mWeaveWorkQueue;
     dispatch_queue_t _mAppCallbackQueue;
 
-    // Note that these context variables are independent from context variables in the C++ Weave Device Manager,
-    // for the C++ Weave Device Manager only takes one pointer as the app context, which is not enough to hold all
+    // Note that these context variables are independent from context variables in the C++ Weave Data Management,
+    // for the C++ Weave Data Management only takes one pointer as the app context, which is not enough to hold all
     // context information we need.
     GenericTraitUpdatableDataSinkCompletionBlock _mCompletionHandler;
     GenericTraitUpdatableDataSinkFailureBlock _mFailureHandler;
@@ -352,7 +349,7 @@ exit:
              conditional:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalBool = isConditional == YES ? true : false;
+    __block bool isConditionalBool = isConditional;
 
     WDM_LOG_METHOD_SIG();
 
@@ -380,7 +377,7 @@ exit:
                conditional:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalBool = isConditional == YES ? true : false;
+    __block bool isConditionalBool = isConditional;
 
     WDM_LOG_METHOD_SIG();
 
@@ -409,7 +406,7 @@ exit:
              conditional:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalBool = isConditional == YES ? true : false;
+    __block bool isConditionalBool = isConditional;
 
     WDM_LOG_METHOD_SIG();
 
@@ -437,8 +434,8 @@ exit:
               conditional:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalBool = isConditional == YES ? true : false;
-    __block bool valBool= val == YES ? true : false;
+    __block bool isConditionalBool = isConditional;
+    __block bool valBool= val;
     WDM_LOG_METHOD_SIG();
 
     VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -464,7 +461,7 @@ exit:
              conditional:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalBool = (isConditional == YES ? true : false);
+    __block bool isConditionalBool = isConditional;
     WDM_LOG_METHOD_SIG();
 
     VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -490,7 +487,7 @@ exit:
            conditional:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalBool = isConditional == YES ? true : false;
+    __block bool isConditionalBool = isConditional;
 
     WDM_LOG_METHOD_SIG();
 
@@ -518,7 +515,7 @@ exit:
             conditional:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalBool= isConditional == YES ? true : false;
+    __block bool isConditionalBool= isConditional;
 
     WDM_LOG_METHOD_SIG();
 
@@ -549,7 +546,7 @@ exit:
                   conditional:(BOOL) isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalBool= isConditional == YES ? true : false;
+    __block bool isConditionalBool= isConditional;
 
     std::vector<std::string> stringVector;
 
@@ -644,7 +641,7 @@ exit:
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetData([path UTF8String], result);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetInt, ignore");
+                WDM_LOG_DEBUG(@"Got incorrect state error from GetSigned, ignore");
 
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
                 result = 0;
@@ -678,7 +675,7 @@ exit:
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetData([path UTF8String], result);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetInt, ignore");
+                WDM_LOG_DEBUG(@"Got incorrect state error from GetUnsigned, ignore");
 
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
                 result = 0;
@@ -712,7 +709,7 @@ exit:
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetData([path UTF8String], result);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetInt, ignore");
+                WDM_LOG_DEBUG(@"Got incorrect state error from GetDouble, ignore");
 
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
                 result = 0;
@@ -732,7 +729,7 @@ exit:
                      path:(NSString *)path
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool resultConverted = false;
+    __block bool result = false;
 
     WDM_LOG_METHOD_SIG();
 
@@ -743,10 +740,10 @@ exit:
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
-            err = _mWeaveCppGenericTraitUpdatableDataSink->GetBoolean([path UTF8String], resultConverted);
+            err = _mWeaveCppGenericTraitUpdatableDataSink->GetBoolean([path UTF8String], result);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetInt, ignore");
+                WDM_LOG_DEBUG(@"Got incorrect state error from GetBoolean, ignore");
 
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
             }
@@ -755,7 +752,7 @@ exit:
 
 exit:
     if ((WEAVE_NO_ERROR == err) && (NULL != val)) {
-        *val = (resultConverted == true ? YES: NO);
+        *val = result;
     }
 
     return err;
@@ -788,6 +785,39 @@ exit:
 
 exit:
     return result;
+}
+
+- (WEAVE_ERROR)isNull:(BOOL *)val
+                 path:(NSString *)path;
+{
+    __block WEAVE_ERROR err = WEAVE_NO_ERROR;
+    __block bool result = false;
+    
+    WDM_LOG_METHOD_SIG();
+    
+    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != val, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    
+    // need this bracket to use Verify macros
+    {
+        // we use sync so the result is immediately available to the caller upon return
+        dispatch_sync(_mWeaveWorkQueue, ^() {
+            err = _mWeaveCppGenericTraitUpdatableDataSink->IsNull([path UTF8String], result);
+            
+            if (err == WEAVE_ERROR_INCORRECT_STATE) {
+                WDM_LOG_DEBUG(@"Got incorrect state error from isNull, ignore");
+                
+                err = WEAVE_NO_ERROR; // No exception, just return 0.
+            }
+        });
+    }
+    
+exit:
+    if ((WEAVE_NO_ERROR == err) && (NULL != val)) {
+        *val = result;
+    }
+    
+    return err;
 }
 
 - (NSData *)getBytes:(NSString *)path
@@ -869,7 +899,7 @@ exit:
             result = _mWeaveCppGenericTraitUpdatableDataSink->GetVersion();
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetInt, ignore");
+                WDM_LOG_DEBUG(@"Got incorrect state error from GetVersion, ignore");
 
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
                 result = 0;
@@ -886,3 +916,4 @@ exit:
 }
 
 @end
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL

@@ -18,14 +18,14 @@
 
 /**
  *    @file
- *      This file provides defines non-public portion of NLWeaveDeviceManager interface
+ *      This file provides defines non-public portion of NLGenericUpdatableDataSink interface
  *
  */
 
 #include <Weave/Core/WeaveCore.h>
 #include <WeaveDataManagementClient.h>
 #import "NLGenericTraitUpdatableDataSink.h"
-
+#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 @interface NLGenericTraitUpdatableDataSink ()
 - (instancetype)init:(NSString *)name
       weaveWorkQueue:(dispatch_queue_t)weaveWorkQueue
@@ -41,3 +41,4 @@
 - (void)close;
 
 @end
+#endif WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
