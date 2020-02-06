@@ -1879,7 +1879,7 @@ WEAVE_ERROR SubscriptionEngine::ProcessUpdateRequestDataElement(Weave::TLV::TLVR
     if (err == WEAVE_ERROR_TLV_TAG_NOT_FOUND)
     {
         WeaveLogDetail(DataManagement, "Ignoring un-mappable path!");
-        err = WEAVE_NO_ERROR;
+        // no need to reset the value of err, it is set unconditionally below
     }
 #endif
 

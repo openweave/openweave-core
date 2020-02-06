@@ -91,16 +91,15 @@ WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath(PropertyPathHandle aPathhandle
 WEAVE_ERROR TraitSchemaEngine::ParseTagString(const char * apTagString, char ** apEndptr, uint8_t & aParseRes) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-
+    unsigned long int tag;
     VerifyOrExit(apTagString != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
     VerifyOrExit(*apTagString == '/', err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     apTagString++;
-
-    aParseRes = strtoul(apTagString, apEndptr, 0);
+    tag = strtoul(apTagString, apEndptr, 0);
     VerifyOrExit(!(*apEndptr == apTagString || (**apEndptr != '\0' && **apEndptr != '/')), err = WEAVE_ERROR_INVALID_ARGUMENT);
-    VerifyOrExit(aParseRes < kContextTagMaxNum, err = WEAVE_ERROR_INVALID_TLV_TAG);
-
+    VerifyOrExit(tag < kContextTagMaxNum, err = WEAVE_ERROR_INVALID_TLV_TAG);
+    aParseRes = tag;
 exit:
     return err;
 }
