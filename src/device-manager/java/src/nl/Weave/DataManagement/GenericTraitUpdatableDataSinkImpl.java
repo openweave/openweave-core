@@ -36,6 +36,7 @@ import java.util.Objects;
 
 public class GenericTraitUpdatableDataSinkImpl implements GenericTraitUpdatableDataSink
 {
+    @Override
     public void clear()
     {
         if (mTraitInstancePtr != 0)

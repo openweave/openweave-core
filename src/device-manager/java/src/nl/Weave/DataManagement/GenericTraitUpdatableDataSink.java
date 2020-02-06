@@ -36,6 +36,11 @@ import java.util.Iterator;
 public interface GenericTraitUpdatableDataSink
 {
     /**
+     * clear trait data
+     */
+    public void clear();
+
+    /**
      * Assigns the provided value to the given path as a signed integer value.
      *
      * @param path the proto path to the property to modify
