@@ -109,9 +109,10 @@ enum
     kStatusCode_InternalKeyError                = 16, // The receiver of the Weave message encountered key error.
     kStatusCode_NoCommonKeyExportConfiguration  = 17, // No common key export protocol configuration supported.
     kStatusCode_UnauthorizedKeyExportRequest    = 18, // An unauthorized key export request.
-    kStatusCode_ServiceCommunicationError       = 19, /**< The device could not complete certificate provisioning because it encountered an error when communicating with the service. */
-    kStatusCode_UnauthorizedGetCertRequest      = 20, /**< An unauthorized get certificate request. */
-    kStatusCode_NoNewCertRequired               = 21, /**< No new certificate required. */
+    kStatusCode_NoNewOperationalCertRequired    = 19, // No new operational certificate required.
+    kStatusCode_OperationalNodeIdInUse          = 20, // The specified operational node Id is already used by another Weave node (indication of node id collision).
+    kStatusCode_InvalidOperationalNodeId        = 21, // The specified operational node Id is invalid.
+    kStatusCode_InvalidOperationalCertificate   = 22, // The specified operational certificate is invalid.
 };
 
 // Weave Key Error Message Size

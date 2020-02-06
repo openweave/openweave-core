@@ -69,7 +69,7 @@ struct Profile_Status {
     WeaveProfileId id;
     const char *fmt;
     uint8_t statusCount;
-    uint16_t statusCodes[21];
+    uint16_t statusCodes[23];
 };
 
 static struct Profile_Status sContext[] = {
@@ -204,7 +204,7 @@ static struct Profile_Status sContext[] = {
     {
         kWeaveProfile_Security,
         "[ Security(%08" PRIX32 "):%" PRIu16 " ]",
-        19,
+        23,
         {
             Security::kStatusCode_SessionAborted,
             Security::kStatusCode_PASESupportsOnlyConfig1,
@@ -225,6 +225,10 @@ static struct Profile_Status sContext[] = {
             Security::kStatusCode_InternalKeyError,
             Security::kStatusCode_NoCommonKeyExportConfiguration,
             Security::kStatusCode_UnauthorizedKeyExportRequest,
+            Security::kStatusCode_NoNewOperationalCertRequired,
+            Security::kStatusCode_OperationalNodeIdInUse,
+            Security::kStatusCode_InvalidOperationalNodeId,
+            Security::kStatusCode_InvalidOperationalCertificate,
          }
     },
     {
