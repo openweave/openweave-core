@@ -39,8 +39,7 @@
 #include <SystemLayer/SystemStats.h>
 
 #ifndef WEAVE_WDM_ALIGNED_TYPE
-#define WEAVE_WDM_ALIGNED_TYPE(address, type) \
-  reinterpret_cast<type *> WEAVE_SYSTEM_ALIGN_SIZE((size_t)(address), 4)
+#define WEAVE_WDM_ALIGNED_TYPE(address, type) reinterpret_cast<type *> WEAVE_SYSTEM_ALIGN_SIZE((size_t)(address), 4)
 #endif
 
 namespace nl {
@@ -1561,6 +1560,36 @@ exit:
     return err;
 }
 
+/**
+ * Initialize StatusDataHandleList
+ */
+WEAVE_ERROR SubscriptionEngine::InitializeStatusDataHandleList(Weave::TLV::TLVReader & aReader,
+                                                               StatusDataHandleElement * apStatusDataHandleList,
+                                                               uint32_t & aNumDataElements, uint8_t * apBufEndAddr)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    Weave::TLV::TLVReader dataReader;
+    dataReader.Init(aReader);
+
+    for (aNumDataElements = 0; WEAVE_NO_ERROR == (err = dataReader.Next()); aNumDataElements++)
+    {
+        // Check if apStatusDataHandleList[aNumDataElements] overflow the end of the buffer.
+        VerifyOrExit((uint8_t *) (apStatusDataHandleList + aNumDataElements + 1) <= apBufEndAddr, err = WEAVE_ERROR_NO_MEMORY);
+        apStatusDataHandleList[aNumDataElements].mProfileId       = Weave::Profiles::kWeaveProfile_Common;
+        apStatusDataHandleList[aNumDataElements].mStatusCode      = Weave::Profiles::Common::kStatus_InternalError;
+        apStatusDataHandleList[aNumDataElements].mTraitDataHandle = 0;
+    }
+
+    // if we have exhausted this container
+    if (WEAVE_END_OF_TLV == err)
+    {
+        err = WEAVE_NO_ERROR;
+    }
+
+exit:
+    return err;
+}
+
 void SubscriptionEngine::ConstructStatusListVersionList(nl::Weave::TLV::TLVWriter & aWriter, void * apContext)
 {
     WEAVE_ERROR err                                 = WEAVE_NO_ERROR;
@@ -1631,8 +1660,8 @@ exit:
     }
 }
 
-void SubscriptionEngine::BuildStatusDataHandleElement(PacketBuffer * pBuf, TraitDataHandle aTraitDataHandle, WEAVE_ERROR & err,
-                                                      uint32_t aCurrentIndex)
+void SubscriptionEngine::UpdateStatusDataHandleElement(StatusDataHandleElement * apStatusDataHandleList,
+                                                       TraitDataHandle aTraitDataHandle, WEAVE_ERROR & err, uint32_t aCurrentIndex)
 {
     uint32_t profileId  = 0;
     uint16_t statusCode = 0;
@@ -1655,6 +1684,12 @@ void SubscriptionEngine::BuildStatusDataHandleElement(PacketBuffer * pBuf, Trait
         statusCode = kStatus_VersionMismatch;
         err        = WEAVE_NO_ERROR;
     }
+    else if (WEAVE_ERROR_WRONG_TLV_TYPE == err || WEAVE_ERROR_TLV_TAG_NOT_FOUND == err)
+    {
+        profileId  = Weave::Profiles::kWeaveProfile_WDM;
+        statusCode = kStatus_InvalidTLVInUpdate;
+        err        = WEAVE_NO_ERROR;
+    }
     else if (WEAVE_NO_ERROR == err)
     {
         profileId  = Weave::Profiles::kWeaveProfile_Common;
@@ -1664,13 +1699,11 @@ void SubscriptionEngine::BuildStatusDataHandleElement(PacketBuffer * pBuf, Trait
     {
         profileId  = Weave::Profiles::kWeaveProfile_Common;
         statusCode = Weave::Profiles::Common::kStatus_InternalError;
-        WeaveLogError(DataManagement, "fail to process UpdateRequest with error %s at %s:%d", nl::ErrorStr(err), __FILE__, __LINE__);
     }
 
-    StatusDataHandleElement * statusDataHandleList = WEAVE_WDM_ALIGNED_TYPE(pBuf->Start(), StatusDataHandleElement);
-    statusDataHandleList[aCurrentIndex].mProfileId       = profileId;
-    statusDataHandleList[aCurrentIndex].mStatusCode      = statusCode;
-    statusDataHandleList[aCurrentIndex].mTraitDataHandle = aTraitDataHandle;
+    apStatusDataHandleList[aCurrentIndex].mProfileId       = profileId;
+    apStatusDataHandleList[aCurrentIndex].mStatusCode      = statusCode;
+    apStatusDataHandleList[aCurrentIndex].mTraitDataHandle = aTraitDataHandle;
 }
 
 /**
@@ -1697,30 +1730,31 @@ bool SubscriptionEngine::IsStartingPath(StatusDataHandleElement * apStatusDataHa
  * Update version for all traits according to temporary statusDataHandleList, and bump version once at starting path
  * for each trait
  */
-WEAVE_ERROR SubscriptionEngine::UpdateTraitVersions(PacketBuffer * apBuf, const TraitCatalogBase<TraitDataSource> * apCatalog,
-                                                    uint32_t aNumDataElements)
+WEAVE_ERROR SubscriptionEngine::UpdateTraitVersions(StatusDataHandleElement * apStatusDataHandleList,
+                                                    const TraitCatalogBase<TraitDataSource> * apCatalog, uint32_t aNumDataElements)
 {
     WEAVE_ERROR err                            = WEAVE_NO_ERROR;
     TraitDataSource * dataSource               = NULL;
     TraitUpdatableDataSource * updatableSource = NULL;
-    StatusDataHandleElement * statusDataHandleList = WEAVE_WDM_ALIGNED_TYPE(apBuf->Start(), StatusDataHandleElement);
 
     for (uint32_t index = 0; index < aNumDataElements; index++)
     {
-        if ((nl::Weave::Profiles::kWeaveProfile_Common == statusDataHandleList[index].mProfileId) &&
-            (nl::Weave::Profiles::Common::kStatus_Success == statusDataHandleList[index].mStatusCode))
+        if ((nl::Weave::Profiles::kWeaveProfile_Common == apStatusDataHandleList[index].mProfileId) &&
+            (nl::Weave::Profiles::Common::kStatus_Success == apStatusDataHandleList[index].mStatusCode))
         {
 
-            err = apCatalog->Locate(statusDataHandleList[index].mTraitDataHandle, &dataSource);
+            err = apCatalog->Locate(apStatusDataHandleList[index].mTraitDataHandle, &dataSource);
             SuccessOrExit(err);
 
             updatableSource = static_cast<TraitUpdatableDataSource *>(dataSource);
 
-            if (IsStartingPath(statusDataHandleList, statusDataHandleList[index].mTraitDataHandle, index))
+            if (IsStartingPath(apStatusDataHandleList, apStatusDataHandleList[index].mTraitDataHandle, index))
             {
                 updatableSource->IncrementVersion();
                 WeaveLogDetail(DataManagement, "<UpdateTraitVersions> [Trait %08x] bumped version: 0x%" PRIx64 " ",
                                updatableSource->GetSchemaEngine()->GetProfileId(), updatableSource->GetVersion());
+
+                updatableSource->OnEvent(TraitUpdatableDataSource::kEventUpdateProcessingComplete, NULL);
             }
             else
             {
@@ -1747,7 +1781,7 @@ WEAVE_ERROR SubscriptionEngine::SendFaultyUpdateResponse(Weave::ExchangeContext 
 
     p = msgBuf->Start();
     nl::Weave::Encoding::LittleEndian::Write32(p, Weave::Profiles::kWeaveProfile_Common);
-    nl::Weave::Encoding::LittleEndian::Write16(p, Weave::Profiles::Common::kStatus_InternalError);
+    nl::Weave::Encoding::LittleEndian::Write16(p, Weave::Profiles::Common::kStatus_BadRequest);
     msgBuf->SetDataLength(statusReportLen);
 
     err    = apEC->SendMessage(Profiles::kWeaveProfile_Common, Profiles::Common::kMsgType_StatusReport, msgBuf);
@@ -1840,7 +1874,7 @@ WEAVE_ERROR SubscriptionEngine::ProcessUpdateRequestDataElement(Weave::TLV::TLVR
                                                                 const TraitCatalogBase<TraitDataSource> * apCatalog,
                                                                 IUpdateRequestDataElementAccessControlDelegate & acDelegate,
                                                                 bool aConditionalLoop, uint32_t aCurrentIndex, bool & aExistFailure,
-                                                                PacketBuffer * apBuf)
+                                                                StatusDataHandleElement * apStatusDataHandleList)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     Weave::TLV::TLVReader pathReader;
@@ -1879,9 +1913,10 @@ WEAVE_ERROR SubscriptionEngine::ProcessUpdateRequestDataElement(Weave::TLV::TLVR
     if (err == WEAVE_ERROR_TLV_TAG_NOT_FOUND)
     {
         WeaveLogDetail(DataManagement, "Ignoring un-mappable path!");
-        // no need to reset the value of err, it is set unconditionally below
+        err = WEAVE_NO_ERROR;
     }
 #endif
+    SuccessOrExit(err);
 
     traitPath.mTraitDataHandle    = aHandle;
     traitPath.mPropertyPathHandle = aPathHandle;
@@ -1936,7 +1971,7 @@ exit:
 
     if (!needSkip)
     {
-        BuildStatusDataHandleElement(apBuf, aHandle, err, aCurrentIndex);
+        UpdateStatusDataHandleElement(apStatusDataHandleList, aHandle, err, aCurrentIndex);
     }
 
     return err;
@@ -1946,24 +1981,23 @@ exit:
  * Loop through all data elements in list and process either conditional data elements or unconditional data elements in
  * one loop, and build temporary statusDataHandleList. Later it would use this list to construct update response.
  */
-WEAVE_ERROR SubscriptionEngine::ProcessUpdateRequestDataList(Weave::TLV::TLVReader & aReader, PacketBuffer * apBuf,
-                                                             const TraitCatalogBase<TraitDataSource> * apCatalog,
-                                                             IUpdateRequestDataElementAccessControlDelegate & acDelegate,
-                                                             bool & aExistFailure, uint32_t & aNumDataElements,
-                                                             bool aConditionalLoop)
+WEAVE_ERROR SubscriptionEngine::ProcessUpdateRequestDataListWithConditionality(
+    Weave::TLV::TLVReader & aReader, StatusDataHandleElement * apStatusDataHandleList,
+    const TraitCatalogBase<TraitDataSource> * apCatalog, IUpdateRequestDataElementAccessControlDelegate & acDelegate,
+    bool & aExistFailure, bool aConditionalLoop)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     Weave::TLV::TLVReader dataReader;
     dataReader.Init(aReader);
 
-    for (aNumDataElements = 0; WEAVE_NO_ERROR == (err = dataReader.Next()); aNumDataElements++)
+    for (uint32_t index = 0; WEAVE_NO_ERROR == (err = dataReader.Next()); index++)
     {
         TraitDataHandle handle;
         PropertyPathHandle pathHandle;
 
         // if it is running conditional loop, needs to skip unconditional elements, vice versa.
-        err = ProcessUpdateRequestDataElement(dataReader, handle, pathHandle, apCatalog, acDelegate, aConditionalLoop,
-                                              aNumDataElements, aExistFailure, apBuf);
+        err = ProcessUpdateRequestDataElement(dataReader, handle, pathHandle, apCatalog, acDelegate, aConditionalLoop, index,
+                                              aExistFailure, apStatusDataHandleList);
         SuccessOrExit(err);
     }
 
@@ -1978,6 +2012,32 @@ exit:
 }
 
 /**
+ * Process Data list in Update requests and update trait version for processed data elements
+ */
+WEAVE_ERROR SubscriptionEngine::ProcessUpdateRequestDataList(Weave::TLV::TLVReader & aReader,
+                                                             StatusDataHandleElement * apStatusDataHandleList,
+                                                             const TraitCatalogBase<TraitDataSource> * apCatalog,
+                                                             IUpdateRequestDataElementAccessControlDelegate & acDelegate,
+                                                             bool & aExistFailure, uint32_t aNumDataElements)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // process conditional DEs
+    err =
+        ProcessUpdateRequestDataListWithConditionality(aReader, apStatusDataHandleList, apCatalog, acDelegate, aExistFailure, true);
+    SuccessOrExit(err);
+
+    // process unconditional DEs
+    err = ProcessUpdateRequestDataListWithConditionality(aReader, apStatusDataHandleList, apCatalog, acDelegate, aExistFailure,
+                                                         false);
+    SuccessOrExit(err);
+
+exit:
+    UpdateTraitVersions(apStatusDataHandleList, apCatalog, aNumDataElements);
+    return err;
+}
+
+/**
  * Apply all conditional DEs first, then apply all unconditional DEs second, during loop, add status and dataHandle to
  * temporary result list. Then update starting version for traits and generate update response.
  */
@@ -1985,34 +2045,30 @@ WEAVE_ERROR SubscriptionEngine::ProcessUpdateRequest(Weave::ExchangeContext * ap
                                                      const TraitCatalogBase<TraitDataSource> * apCatalog,
                                                      IUpdateRequestDataElementAccessControlDelegate & acDelegate)
 {
-    WEAVE_ERROR err          = WEAVE_NO_ERROR;
-    PacketBuffer * pBuf      = NULL;
-    bool existFailure        = false;
-    uint32_t numDataElements = 0;
-    uint32_t maxPayloadSize  = 0;
-
+    WEAVE_ERROR err                                = WEAVE_NO_ERROR;
+    PacketBuffer * pBuf                            = NULL;
+    bool existFailure                              = false;
+    uint32_t numDataElements                       = 0;
+    uint32_t maxPayloadSize                        = 0;
+    StatusDataHandleElement * statusDataHandleList = NULL;
+    uint8_t * pBufEndAddr                          = NULL;
     VerifyOrExit(apCatalog != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     err = AllocateRightSizedBuffer(pBuf, WDM_MAX_UPDATE_RESPONSE_SIZE, WDM_MIN_UPDATE_RESPONSE_SIZE, maxPayloadSize);
     SuccessOrExit(err);
 
-    // process conditional DEs
-    err = ProcessUpdateRequestDataList(aReader, pBuf, apCatalog, acDelegate, existFailure, numDataElements, true);
+    statusDataHandleList = WEAVE_WDM_ALIGNED_TYPE(pBuf->Start(), StatusDataHandleElement);
+    pBufEndAddr          = pBuf->Start() + maxPayloadSize;
+    err                  = InitializeStatusDataHandleList(aReader, statusDataHandleList, numDataElements, pBufEndAddr);
     SuccessOrExit(err);
 
-    // process unconditional DEs
-    err = ProcessUpdateRequestDataList(aReader, pBuf, apCatalog, acDelegate, existFailure, numDataElements, false);
-    SuccessOrExit(err);
-
-    // update trait versions
-    err = UpdateTraitVersions(pBuf, apCatalog, numDataElements);
+    err = ProcessUpdateRequestDataList(aReader, statusDataHandleList, apCatalog, acDelegate, existFailure, numDataElements);
     SuccessOrExit(err);
 
     err  = SendUpdateResponse(apEC, numDataElements, apCatalog, pBuf, existFailure, maxPayloadSize);
     pBuf = NULL;
 
 exit:
-
     if (pBuf != NULL)
     {
         PacketBuffer::Free(pBuf);

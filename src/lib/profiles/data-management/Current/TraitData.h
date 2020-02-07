@@ -897,7 +897,7 @@ public:
 
     enum EventType
     {
-        kEvent_DataSourceMax
+        kEventDataSourceMax
     };
     /*
      * Invoked either by the base class or by an external agent (like the subscription engine) to signal the occurrence of an event
@@ -985,21 +985,14 @@ public:
 
     enum EventType
     {
-        kEventChangeFirst = kEvent_DataSourceMax,
-
-        /* Signals the beginning of a change record which in certain scenarios can span multiple data elements over multiple
-         * update requests (the latter only a possibility if the data being transmitted is unable to fit within a single packet)
-         */
-        kEventChangeBegin,
-
         /* Start of a data element */
-        kEventDataElementBegin,
+        kEventDataElementBegin = kEventDataSourceMax + 1,
 
         /* End of a data element */
         kEventDataElementEnd,
 
-        /* End of a change record */
-        kEventChangeEnd,
+        /* Signal complete of update processing */
+        kEventUpdateProcessingComplete,
 
         /* Start of replacement of an entire dictionary */
         kEventDictionaryReplaceBegin,
@@ -1027,7 +1020,7 @@ public:
         /* Signals the termination of a subscription either due to an error, or the subscription was cancelled */
         kEventSubscriptionTerminated,
 
-        kEvent_UpdatableDataSourceMax
+        kEventUpdatableDataSourceMax
     };
 
     union InEventParam

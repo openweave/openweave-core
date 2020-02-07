@@ -131,6 +131,7 @@ enum
     kStatus_IncompatibleDataSchemaVersion = 0x2B,
     kStatus_MultipleFailures              = 0x2C,
     kStatus_UpdateOutOfSequence           = 0x2D,
+    kStatus_InvalidTLVInUpdate            = 0x2E,
 };
 
 // TODO: The type is only used in a few places. We should use it everywhere.

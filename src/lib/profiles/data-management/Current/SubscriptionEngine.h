@@ -447,13 +447,16 @@ private:
 
     static WEAVE_ERROR AllocateRightSizedBuffer(PacketBuffer *& buf, const uint32_t desiredSize, const uint32_t minSize,
                                                 uint32_t & outMaxPayloadSize);
+    static WEAVE_ERROR InitializeStatusDataHandleList(Weave::TLV::TLVReader & aReader,
+                                                      StatusDataHandleElement * apStatusDataHandleList, uint32_t & aNumDataElements,
+                                                      uint8_t * apBufEndAddr);
     static void ConstructStatusListVersionList(Weave::TLV::TLVWriter & aWriter, void * apContext);
-    static void BuildStatusDataHandleElement(PacketBuffer * pBuf, TraitDataHandle aTraitDataHandle, WEAVE_ERROR & err,
-                                             uint32_t aCurrentIndex);
+    static void UpdateStatusDataHandleElement(StatusDataHandleElement * apStatusDataHandleList, TraitDataHandle aTraitDataHandle,
+                                              WEAVE_ERROR & err, uint32_t aCurrentIndex);
     static bool IsStartingPath(StatusDataHandleElement * apStatusDataHandleList, TraitDataHandle aTraitDataHandle,
                                uint32_t aCurrentIndex);
-    static WEAVE_ERROR UpdateTraitVersions(PacketBuffer * apBuf, const TraitCatalogBase<TraitDataSource> * apCatalog,
-                                           uint32_t aNumDataElements);
+    static WEAVE_ERROR UpdateTraitVersions(StatusDataHandleElement * apStatusDataHandleList,
+                                           const TraitCatalogBase<TraitDataSource> * apCatalog, uint32_t aNumDataElements);
     static WEAVE_ERROR SendFaultyUpdateResponse(Weave::ExchangeContext * apEC);
     static WEAVE_ERROR SendUpdateResponse(Weave::ExchangeContext * apEC, uint32_t aNumDataElements,
                                           const TraitCatalogBase<TraitDataSource> * apCatalog, PacketBuffer * apBuf,
@@ -463,12 +466,17 @@ private:
                                                        const TraitCatalogBase<TraitDataSource> * apCatalog,
                                                        IUpdateRequestDataElementAccessControlDelegate & acDelegate,
                                                        bool aConditionalLoop, uint32_t aCurrentIndex, bool & aExistFailure,
-                                                       PacketBuffer * apBuf);
-    static WEAVE_ERROR ProcessUpdateRequestDataList(Weave::TLV::TLVReader & aReader, PacketBuffer * apBuf,
+                                                       StatusDataHandleElement * apStatusDataHandleList);
+    static WEAVE_ERROR ProcessUpdateRequestDataListWithConditionality(Weave::TLV::TLVReader & aReader,
+                                                                      StatusDataHandleElement * apStatusDataHandleList,
+                                                                      const TraitCatalogBase<TraitDataSource> * apCatalog,
+                                                                      IUpdateRequestDataElementAccessControlDelegate & acDelegate,
+                                                                      bool & aExistFailure, bool aConditionalLoop);
+    static WEAVE_ERROR ProcessUpdateRequestDataList(Weave::TLV::TLVReader & aReader,
+                                                    StatusDataHandleElement * apStatusDataHandleList,
                                                     const TraitCatalogBase<TraitDataSource> * apCatalog,
                                                     IUpdateRequestDataElementAccessControlDelegate & acDelegate,
-                                                    bool & aExistFailure, uint32_t & aNumDataElements, bool aConditionalLoop);
-
+                                                    bool & aExistFailure, uint32_t aNumDataElements);
     static WEAVE_ERROR ProcessUpdateRequest(Weave::ExchangeContext * apEC, Weave::TLV::TLVReader & aReader,
                                             const TraitCatalogBase<TraitDataSource> * apCatalog,
                                             IUpdateRequestDataElementAccessControlDelegate & acDelegate);
