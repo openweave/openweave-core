@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2014-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -295,7 +296,7 @@ int main(int argc, char *argv[])
     SetSignalHandler(DoneOnHandleSIGUSR1);
 
     // Configure some alternate defaults for the device descriptor values.
-    gDeviceDescOptions.BaseDeviceDesc.ProductId = nl::Weave::Profiles::Vendor::Nestlabs::DeviceDescription::kNestWeaveProduct_Topaz2;
+    gDeviceDescOptions.BaseDeviceDesc.ProductId = nl::Weave::Profiles::Vendor::Nestlabs::DeviceDescription::kNestWeaveProduct_Onyx;
     strcpy(gDeviceDescOptions.BaseDeviceDesc.SerialNumber, "mock-weave-bg");
     strcpy(gDeviceDescOptions.BaseDeviceDesc.SoftwareVersion, "mock-weave-bg/1.0");
     gDeviceDescOptions.BaseDeviceDesc.DeviceFeatures = WeaveDeviceDescriptor::kFeature_LinePowered;
