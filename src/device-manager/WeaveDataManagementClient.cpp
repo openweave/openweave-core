@@ -500,7 +500,7 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::GetBoolean(const char * apPath, bool 
     SuccessOrExit(err);
 
     it = mPathTlvDataMap.find(propertyPathHandle);
-    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INVALID_TLV_TAG);
 
     pMsgBuf = mPathTlvDataMap[propertyPathHandle];
 
@@ -539,7 +539,7 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::GetBytes(const char * apPath, BytesDa
     SuccessOrExit(err);
 
     it = mPathTlvDataMap.find(propertyPathHandle);
-    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INVALID_TLV_TAG);
 
     pMsgBuf = mPathTlvDataMap[propertyPathHandle];
 
@@ -572,7 +572,7 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::GetTLVBytes(const char * apPath, Byte
     PacketBuffer * pMsgBuf = PacketBuffer::New();
     VerifyOrExit(NULL != pMsgBuf, err = WEAVE_ERROR_NO_MEMORY);
 
-    VerifyOrExit(NULL != apBytesData, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != apBytesData, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     err = GetSchemaEngine()->MapPathToHandle(apPath, propertyPathHandle);
     SuccessOrExit(err);
@@ -620,7 +620,7 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::IsNull(const char * apPath, bool & aI
     SuccessOrExit(err);
 
     it = mPathTlvDataMap.find(propertyPathHandle);
-    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INVALID_TLV_TAG);
 
     pMsgBuf = mPathTlvDataMap[propertyPathHandle];
 
@@ -661,7 +661,7 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::GetStringArray(const char * apPath, s
     SuccessOrExit(err);
 
     it = mPathTlvDataMap.find(propertyPathHandle);
-    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INVALID_TLV_TAG);
 
     pMsgBuf = mPathTlvDataMap[propertyPathHandle];
 
@@ -714,7 +714,7 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::Get(const char * apPath, T & aValue)
     SuccessOrExit(err);
 
     it = mPathTlvDataMap.find(propertyPathHandle);
-    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INVALID_TLV_TAG);
 
     pMsgBuf = mPathTlvDataMap[propertyPathHandle];
 
@@ -779,7 +779,7 @@ GenericTraitUpdatableDataSink::GetLeafData(PropertyPathHandle aLeafHandle, uint6
 
     std::map<PropertyPathHandle, PacketBuffer *>::iterator it = mPathTlvDataMap.find(aLeafHandle);
 
-    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(it != mPathTlvDataMap.end(), err = WEAVE_ERROR_INVALID_TLV_TAG);
 
     pMsgBuf = mPathTlvDataMap[aLeafHandle];
 
@@ -927,7 +927,7 @@ void WdmClient::ClientEventCallback(void * const aAppState, SubscriptionClient::
             else
             {
                 traitListLen = pWdmClient->mSinkCatalog.Size();
-                VerifyOrExit(traitListLen != 0, err = WEAVE_ERROR_INCORRECT_STATE);
+                VerifyOrExit(traitListLen != 0, err = WEAVE_ERROR_INVALID_LIST_LENGTH);
             }
             WeaveLogDetail(DataManagement, "prepare to subscribe %d trait data sink", traitListLen);
 
