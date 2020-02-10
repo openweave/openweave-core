@@ -88,10 +88,6 @@ private:
     static void *AsyncDNSThreadRun(void *args);
 
     static void NotifyWeaveThread(DNSResolver *resolver);
-
-    void AsyncMutexLock(void);
-
-    void AsyncMutexUnlock(void);
 };
 
 } // namespace Inet
