@@ -36,11 +36,11 @@
 
 namespace nl {
 namespace Inet {
-    
+
 class LockHolder {
  public:
-    LockHolder(pthread_mutex_t ayncDNSMutex)
-        :mAsyncDNSMutex(ayncDNSMutex)
+    LockHolder(pthread_mutex_t asyncDNSMutex)
+        :mAsyncDNSMutex(asyncDNSMutex)
     {
         int pthreadErr;
 
@@ -55,10 +55,10 @@ class LockHolder {
         pthreadErr = pthread_mutex_unlock(&mAsyncDNSMutex);
         VerifyOrDie(pthreadErr == 0);
     }
-    
+
  private:
     pthread_mutex_t         mAsyncDNSMutex;
-}
+};
 
 /**
  *  The explicit initializer for the AsynchronousDNSResolverSockets class.
@@ -196,7 +196,7 @@ INET_ERROR AsyncDNSResolverSockets::EnqueueRequest(DNSResolver &resolver)
     INET_ERROR err = INET_NO_ERROR;
     int pthreadErr;
     LockHolder asyncMutexLock(mAsyncDNSMutex);
-    
+
     // Add the DNSResolver object to the queue.
     if (mAsyncDNSQueueHead == NULL)
     {
@@ -269,8 +269,6 @@ INET_ERROR AsyncDNSResolverSockets::Cancel(DNSResolver &resolver)
     LockHolder asyncMutexLock(mAsyncDNSMutex);
 
     resolver.mState = DNSResolver::kState_Canceled;
-
-    AsyncMutexUnlock();
 
     return err;
 }
