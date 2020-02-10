@@ -36,6 +36,29 @@
 
 namespace nl {
 namespace Inet {
+    
+class LockHolder {
+ public:
+    LockHolder(pthread_mutex_t ayncDNSMutex)
+        :mAsyncDNSMutex(ayncDNSMutex)
+    {
+        int pthreadErr;
+
+        pthreadErr = pthread_mutex_lock(&mAsyncDNSMutex);
+        VerifyOrDie(pthreadErr == 0);
+    }
+
+    ~LockHolder()
+    {
+        int pthreadErr;
+
+        pthreadErr = pthread_mutex_unlock(&mAsyncDNSMutex);
+        VerifyOrDie(pthreadErr == 0);
+    }
+    
+ private:
+    pthread_mutex_t         mAsyncDNSMutex;
+}
 
 /**
  *  The explicit initializer for the AsynchronousDNSResolverSockets class.
@@ -87,14 +110,14 @@ INET_ERROR AsyncDNSResolverSockets::Shutdown(void)
     INET_ERROR err = INET_NO_ERROR;
     int pthreadErr;
 
-    AsyncMutexLock();
+    {
+        LockHolder asyncMutexLock(mAsyncDNSMutex);
 
-    mInet->State = InetLayer::kState_ShutdownInProgress;
+        mInet->State = InetLayer::kState_ShutdownInProgress;
 
-    pthreadErr = pthread_cond_broadcast(&mAsyncDNSCondVar);
-    VerifyOrDie(pthreadErr == 0);
-
-    AsyncMutexUnlock();
+        pthreadErr = pthread_cond_broadcast(&mAsyncDNSCondVar);
+        VerifyOrDie(pthreadErr == 0);
+    }
 
     // Have the Weave thread join the thread pool for asynchronous DNS resolution.
     for (int i = 0; i < INET_CONFIG_DNS_ASYNC_MAX_THREAD_COUNT; i++)
@@ -172,9 +195,8 @@ INET_ERROR AsyncDNSResolverSockets::EnqueueRequest(DNSResolver &resolver)
 {
     INET_ERROR err = INET_NO_ERROR;
     int pthreadErr;
-
-    AsyncMutexLock();
-
+    LockHolder asyncMutexLock(mAsyncDNSMutex);
+    
     // Add the DNSResolver object to the queue.
     if (mAsyncDNSQueueHead == NULL)
     {
@@ -191,8 +213,6 @@ INET_ERROR AsyncDNSResolverSockets::EnqueueRequest(DNSResolver &resolver)
     pthreadErr = pthread_cond_signal(&mAsyncDNSCondVar);
     VerifyOrDie(pthreadErr == 0);
 
-    AsyncMutexUnlock();
-
     return err;
 }
 
@@ -205,8 +225,7 @@ INET_ERROR AsyncDNSResolverSockets::DequeueRequest(DNSResolver **outResolver)
 {
     INET_ERROR err = INET_NO_ERROR;
     int pthreadErr;
-
-    AsyncMutexLock();
+    LockHolder asyncMutexLock(mAsyncDNSMutex);
 
     // block until there is work to do or we detect a shutdown
     while ( (mAsyncDNSQueueHead == NULL) &&
@@ -236,8 +255,6 @@ INET_ERROR AsyncDNSResolverSockets::DequeueRequest(DNSResolver **outResolver)
         }
     }
 
-    AsyncMutexUnlock();
-
     return err;
 }
 
@@ -249,8 +266,7 @@ INET_ERROR AsyncDNSResolverSockets::DequeueRequest(DNSResolver **outResolver)
 INET_ERROR AsyncDNSResolverSockets::Cancel(DNSResolver &resolver)
 {
     INET_ERROR err = INET_NO_ERROR;
-
-    AsyncMutexLock();
+    LockHolder asyncMutexLock(mAsyncDNSMutex);
 
     resolver.mState = DNSResolver::kState_Canceled;
 
@@ -282,7 +298,7 @@ void AsyncDNSResolverSockets::Resolve(DNSResolver &resolver)
     gaiReturnCode = getaddrinfo(resolver.asyncHostNameBuf, NULL, &gaiHints, &gaiResults);
 
     // Mutex protects the read and write operation on resolver->mState
-    AsyncMutexLock();
+    LockHolder asyncMutexLock(mAsyncDNSMutex);
 
     // Process the return code and results list returned by getaddrinfo(). If the call
     // was successful this will copy the resultant addresses into the caller's array.
@@ -290,9 +306,6 @@ void AsyncDNSResolverSockets::Resolve(DNSResolver &resolver)
 
     // Set the DNS resolver state.
     resolver.mState = DNSResolver::kState_Complete;
-
-    // Release lock.
-    AsyncMutexUnlock();
 
     return;
 }
@@ -346,22 +359,6 @@ void *AsyncDNSResolverSockets::AsyncDNSThreadRun(void *args)
 exit:
     WeaveLogDetail(Inet, "Async DNS worker thread exiting.");
     return NULL;
-}
-
-void AsyncDNSResolverSockets::AsyncMutexLock(void)
-{
-    int pthreadErr;
-
-    pthreadErr = pthread_mutex_lock(&mAsyncDNSMutex);
-    VerifyOrDie(pthreadErr == 0);
-}
-
-void AsyncDNSResolverSockets::AsyncMutexUnlock(void)
-{
-    int pthreadErr;
-
-    pthreadErr = pthread_mutex_unlock(&mAsyncDNSMutex);
-    VerifyOrDie(pthreadErr == 0);
 }
 
 } // namespace Inet
