@@ -39,12 +39,12 @@ namespace Inet {
 
 class LockHolder {
  public:
-    LockHolder(pthread_mutex_t& asyncDNSMutex)
-        :mAsyncDNSMutex(asyncDNSMutex)
+    LockHolder(AsyncDNSResolverSockets& resolver)
+        :mResolver(resolver)
     {
         int pthreadErr;
 
-        pthreadErr = pthread_mutex_lock(&mAsyncDNSMutex);
+        pthreadErr = pthread_mutex_lock(&resolver.mAsyncDNSMutex);
         VerifyOrDie(pthreadErr == 0);
     }
 
@@ -52,12 +52,12 @@ class LockHolder {
     {
         int pthreadErr;
 
-        pthreadErr = pthread_mutex_unlock(&mAsyncDNSMutex);
+        pthreadErr = pthread_mutex_unlock(&resolver.mAsyncDNSMutex);
         VerifyOrDie(pthreadErr == 0);
     }
 
  private:
-    pthread_mutex_t&         mAsyncDNSMutex;
+    AsyncDNSResolverSockets&         mResolver;
 };
 
 /**
@@ -111,7 +111,7 @@ INET_ERROR AsyncDNSResolverSockets::Shutdown(void)
     int pthreadErr;
 
     {
-        LockHolder asyncMutexLock(mAsyncDNSMutex);
+        LockHolder asyncMutexLock(*this);
 
         mInet->State = InetLayer::kState_ShutdownInProgress;
 
@@ -195,7 +195,7 @@ INET_ERROR AsyncDNSResolverSockets::EnqueueRequest(DNSResolver &resolver)
 {
     INET_ERROR err = INET_NO_ERROR;
     int pthreadErr;
-    LockHolder asyncMutexLock(mAsyncDNSMutex);
+    LockHolder asyncMutexLock(*this);
 
     // Add the DNSResolver object to the queue.
     if (mAsyncDNSQueueHead == NULL)
@@ -225,7 +225,7 @@ INET_ERROR AsyncDNSResolverSockets::DequeueRequest(DNSResolver **outResolver)
 {
     INET_ERROR err = INET_NO_ERROR;
     int pthreadErr;
-    LockHolder asyncMutexLock(mAsyncDNSMutex);
+    LockHolder asyncMutexLock(*this);
 
     // block until there is work to do or we detect a shutdown
     while ( (mAsyncDNSQueueHead == NULL) &&
@@ -266,7 +266,7 @@ INET_ERROR AsyncDNSResolverSockets::DequeueRequest(DNSResolver **outResolver)
 INET_ERROR AsyncDNSResolverSockets::Cancel(DNSResolver &resolver)
 {
     INET_ERROR err = INET_NO_ERROR;
-    LockHolder asyncMutexLock(mAsyncDNSMutex);
+    LockHolder asyncMutexLock(*this);
 
     resolver.mState = DNSResolver::kState_Canceled;
 
@@ -296,7 +296,7 @@ void AsyncDNSResolverSockets::Resolve(DNSResolver &resolver)
     gaiReturnCode = getaddrinfo(resolver.asyncHostNameBuf, NULL, &gaiHints, &gaiResults);
 
     // Mutex protects the read and write operation on resolver->mState
-    LockHolder asyncMutexLock(mAsyncDNSMutex);
+    LockHolder asyncMutexLock(*this);
 
     // Process the return code and results list returned by getaddrinfo(). If the call
     // was successful this will copy the resultant addresses into the caller's array.
