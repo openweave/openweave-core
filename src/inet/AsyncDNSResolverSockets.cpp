@@ -44,7 +44,7 @@ class LockHolder {
     {
         int pthreadErr;
 
-        pthreadErr = pthread_mutex_lock(&resolver.mAsyncDNSMutex);
+        pthreadErr = pthread_mutex_lock(&mResolver.mAsyncDNSMutex);
         VerifyOrDie(pthreadErr == 0);
     }
 
@@ -52,7 +52,7 @@ class LockHolder {
     {
         int pthreadErr;
 
-        pthreadErr = pthread_mutex_unlock(&resolver.mAsyncDNSMutex);
+        pthreadErr = pthread_mutex_unlock(&mResolver.mAsyncDNSMutex);
         VerifyOrDie(pthreadErr == 0);
     }
 
