@@ -39,7 +39,7 @@ namespace Inet {
 
 class LockHolder {
  public:
-    LockHolder(pthread_mutex_t asyncDNSMutex)
+    LockHolder(pthread_mutex_t& asyncDNSMutex)
         :mAsyncDNSMutex(asyncDNSMutex)
     {
         int pthreadErr;
