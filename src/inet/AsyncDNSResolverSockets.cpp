@@ -57,7 +57,7 @@ class LockHolder {
     }
 
  private:
-    pthread_mutex_t         mAsyncDNSMutex;
+    pthread_mutex_t&         mAsyncDNSMutex;
 };
 
 /**
