@@ -81,6 +81,17 @@ public:
     void Retain(void);
     void Release(void);
     Layer& SystemLayer(void) const;
+    
+    class AutoRelease {
+    public:
+        AutoRelease(Object& owner) : mOwner(owner) {}
+        ~AutoRelease(void) {
+            owner.Release();
+        }
+        
+    private:
+        Object& mOwner;
+    }
 
 protected:
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
