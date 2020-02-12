@@ -86,12 +86,12 @@ public:
     public:
         AutoRelease(Object& owner) : mOwner(owner) {}
         ~AutoRelease(void) {
-            owner.Release();
+            mOwner.Release();
         }
         
     private:
         Object& mOwner;
-    }
+    };
 
 protected:
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
