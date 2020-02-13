@@ -35,6 +35,7 @@
 #include <Weave/Profiles/device-description/DeviceDescription.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/network-provisioning/NetworkInfo.h>
+#include <Weave/Profiles/network-provisioning/WirelessRegConfig.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/security/WeaveCASE.h>
 #include <Weave/Profiles/security/WeaveSig.h>
@@ -89,6 +90,7 @@ typedef void (*ConnectionClosedFunc)(WeaveDeviceManager *deviceMgr, void *appReq
 typedef void (*PairTokenCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, const uint8_t *tokenPairingBundle, uint32_t tokenPairingBunldeLen);
 typedef void (*UnpairTokenCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState);
 typedef void (*GetCameraAuthDataCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, const char *macAddress, const char *authData);
+typedef void (*GetWirelessRegulatoryConfigCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, const WirelessRegConfig *regConfig);
 };
 
 class NL_DLL_EXPORT WeaveDeviceManager : private Security::CASE::WeaveCASEAuthDelegate
@@ -209,6 +211,8 @@ public:
             ErrorFunct onError);
     WEAVE_ERROR GetRendezvousMode(void* appReqState, GetRendezvousModeCompleteFunct onComplete, ErrorFunct onError);
     WEAVE_ERROR SetRendezvousMode(uint16_t modeFlags, void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
+    WEAVE_ERROR GetWirelessRegulatoryConfig(void* appReqState, GetWirelessRegulatoryConfigCompleteFunct onComplete, ErrorFunct onError);
+    WEAVE_ERROR SetWirelessRegulatoryConfig(const WirelessRegConfig *regConfig, void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
     WEAVE_ERROR GetLastNetworkProvisioningResult(void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
 
     // ----- Fabric Provisioning -----
@@ -300,36 +304,38 @@ private:
         kOpState_UnpairToken                            = 41,
         kOpState_GetCameraAuthData                      = 42,
         kOpState_EnumerateDevices                       = 43,
-        kOpState_RemotePassiveRendezvousTimedOut        = 44
+        kOpState_RemotePassiveRendezvousTimedOut        = 44,
+        kOpState_GetWirelessRegulatoryConfig            = 45,
+        kOpState_SetWirelessRegulatoryConfig            = 46,
     };
 
     enum ConnectionState
     {
-        kConnectionState_NotConnected                             = 0,
-        kConnectionState_WaitDeviceConnect                        = 1,
-        kConnectionState_IdentifyDevice                           = 2,
-        kConnectionState_ConnectDevice                            = 3,
-        kConnectionState_StartSession                             = 4,
-        kConnectionState_ReenableConnectionMonitor                = 5,
-        kConnectionState_Connected                                = 6,
-        kConnectionState_IdentifyRemoteDevice                     = 7
+        kConnectionState_NotConnected                    = 0,
+        kConnectionState_WaitDeviceConnect               = 1,
+        kConnectionState_IdentifyDevice                  = 2,
+        kConnectionState_ConnectDevice                   = 3,
+        kConnectionState_StartSession                    = 4,
+        kConnectionState_ReenableConnectionMonitor       = 5,
+        kConnectionState_Connected                       = 6,
+        kConnectionState_IdentifyRemoteDevice            = 7
     };
 
     enum
     {
-        kMaxPairingCodeLength                   = 16,
+        kMaxPairingCodeLength                            = 16,
 
-        kConRetryInterval                       = 500,  // ms
-        kEnumerateDevicesRetryInterval          = 500, // ms
-        kSessionRetryInterval                   = 1000, // ms
-        kMaxSessionRetryCount                   = 20,
+        kConRetryInterval                                = 500,  // ms
+        kEnumerateDevicesRetryInterval                   = 500, // ms
+        kSessionRetryInterval                            = 1000, // ms
+        kMaxSessionRetryCount                            = 20,
     };
 
     enum
     {
-        kAuthType_None                          = 0,
-        kAuthType_PASEWithPairingCode           = 1,
-        kAuthType_CASEWithAccessToken           = 2
+        kAuthType_None                                   = 0,
+        kAuthType_PASEWithPairingCode                    = 1,
+        kAuthType_CASEWithAccessToken                    = 2
     };
 
     enum
@@ -370,6 +376,7 @@ private:
         UnpairTokenCompleteFunct UnpairToken;
         GetCameraAuthDataCompleteFunct GetCameraAuthData;
         DeviceEnumerationResponseFunct DeviceEnumeration;
+        GetWirelessRegulatoryConfigCompleteFunct GetWirelessRegulatoryConfig;
     } mOnComplete;
     CompleteFunct mOnRemotePassiveRendezvousComplete;
     ErrorFunct mOnError;

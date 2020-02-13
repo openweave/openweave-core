@@ -67,6 +67,8 @@ namespace NetworkProvisioning {
 using nl::Weave::TLV::TLVReader;
 using nl::Weave::TLV::TLVWriter;
 
+class NetworkProvisioningServer;
+
 /**
  *  Network Provisioning Status Codes.
  */
@@ -84,6 +86,8 @@ enum
                                                                 // XXX Placeholder for more detailed errors to come
     kStatusCode_NetworkConnectFailed            = 10,           /**< An attempt to connect to the specified network failed. */
     kStatusCode_NoRouterAvailable               = 11,           /**< An appropriate network router was not found. */
+    kStatusCode_UnsupportedRegulatoryDomain     = 12,           /**< The specified wireless regulatory domain is unsupported. */
+    kStatusCode_UnsupportedOperatingLocation    = 13,           /**< The specified wireless operating location is unsupported. */
 };
 
 /**
@@ -91,20 +95,23 @@ enum
  */
 enum
 {
-    kMsgType_ScanNetworks                       = 1,
-    kMsgType_NetworkScanComplete                = 2,
-    kMsgType_AddNetwork                         = 3,
-    kMsgType_AddNetworkComplete                 = 4,
-    kMsgType_UpdateNetwork                      = 5,
-    kMsgType_RemoveNetwork                      = 6,
-    kMsgType_EnableNetwork                      = 7,
-    kMsgType_DisableNetwork                     = 8,
-    kMsgType_TestConnectivity                   = 9,
-    kMsgType_SetRendezvousMode                  = 10,
-    kMsgType_GetNetworks                        = 11,
-    kMsgType_GetNetworksComplete                = 12,
-    kMsgType_GetLastResult                      = 13,
-    kMsgType_AddNetworkV2                       = 14
+    kMsgType_ScanNetworks                           = 1,
+    kMsgType_NetworkScanComplete                    = 2,
+    kMsgType_AddNetwork                             = 3,
+    kMsgType_AddNetworkComplete                     = 4,
+    kMsgType_UpdateNetwork                          = 5,
+    kMsgType_RemoveNetwork                          = 6,
+    kMsgType_EnableNetwork                          = 7,
+    kMsgType_DisableNetwork                         = 8,
+    kMsgType_TestConnectivity                       = 9,
+    kMsgType_SetRendezvousMode                      = 10,
+    kMsgType_GetNetworks                            = 11,
+    kMsgType_GetNetworksComplete                    = 12,
+    kMsgType_GetLastResult                          = 13,
+    kMsgType_AddNetworkV2                           = 14,
+    kMsgType_SetWirelessRegulatoryConfig            = 15,
+    kMsgType_GetWirelessRegulatoryConfig            = 16,
+    kMgrType_GetWirelessRegulatoryConfigComplete    = 17,
 };
 
 /**
@@ -139,6 +146,12 @@ enum
     kTag_ThreadChannel                          = 84,   /**< [ uint, 8-bit max ] Thread channel number (optional). */
     kTag_ThreadPANId                            = 85,   /**< [ uint, 16-bit max ] Thread PAN ID (optional). */
     kTag_ThreadPSKc                             = 86,   /**< [ uint, 16-bit max ] Thread PSKc (optional). */
+
+    // Wireless Regulatory Config Tags (context-specific)
+    kTag_WirelessRegConfig_RegulatoryDomain     = 1,    /**< [ UTF-8 string, len 2 ] Wireless regulatory domain. */
+    kTag_WirelessRegConfig_OperatingLocation    = 2,    /**< [ uint enum, 8-bit max ] Operating location relevant to wireless regulatory rules. */
+    kTag_WirelessRegConfig_SupportedRegulatoryDomains
+                                                = 3,    /**< [ array of string len 2 ] List of support regulatory domains. */
 };
 
 /**
@@ -234,7 +247,9 @@ enum GetNetworkFlags
 class NetworkProvisioningDelegate : public WeaveServerDelegateBase
 {
 public:
-    /**
+    NetworkProvisioningServer * Server;         /**< [READ ONLY] The server object to which this delegate is attached. */
+
+   /**
      * Perform a network scan.
      *
      * @param[in] networkType   The technology (for example, WiFi or Thread) to scan.  @sa #NetworkType for valid types.
@@ -334,6 +349,27 @@ public:
     virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode) = 0;
 
     /**
+     * Get wireless regulatory configuration information.
+     *
+     * @retval #WEAVE_NO_ERROR  On success.
+     * @retval other            Other Weave or platform-specific error codes indicating that an error
+     *                          occurred preventing the device from fetching the requested information.
+     */
+    virtual WEAVE_ERROR HandleGetWirelessRegulatoryConfig(void);
+
+    /**
+     * Set wireless regulatory configuration information.
+     *
+     * @param[in] regConfigTLV  A packet buffer containing the new wireless regulatory configuration
+     *                          information encoded in TLV format.
+     *
+     * @retval #WEAVE_NO_ERROR  On success.
+     * @retval other            Other Weave or platform-specific error codes indicating that an error
+     *                          occurred preventing the device from setting the requested information.
+     */
+    virtual WEAVE_ERROR HandleSetWirelessRegulatoryConfig(PacketBuffer * regConfigTLV);
+
+    /**
      * Enforce message-level access control for an incoming Network Provisioning request message.
      *
      * @param[in] ec            The ExchangeContext over which the message was received.
@@ -373,6 +409,7 @@ public:
     virtual WEAVE_ERROR SendNetworkScanComplete(uint8_t resultCount, PacketBuffer *scanResultsTLV);
     virtual WEAVE_ERROR SendAddNetworkComplete(uint32_t networkId);
     virtual WEAVE_ERROR SendGetNetworksComplete(uint8_t resultCount, PacketBuffer *resultsTLV);
+    virtual WEAVE_ERROR SendGetWirelessRegulatoryConfigComplete(PacketBuffer *resultsTLV);
     virtual WEAVE_ERROR SendSuccessResponse(void);
     virtual WEAVE_ERROR SendStatusReport(uint32_t statusProfileId, uint16_t statusCode, WEAVE_ERROR sysError = WEAVE_NO_ERROR);
 

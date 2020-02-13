@@ -65,6 +65,7 @@ nl_WeaveProfiles_sources                                                        
     @top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatReceiver.cpp                \
     @top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatSender.cpp                  \
     @top_builddir@/src/lib/profiles/network-provisioning/NetworkProvisioning.cpp        \
+    @top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp          \
     @top_builddir@/src/lib/profiles/security/ApplicationKeysTrait.cpp                   \
     @top_builddir@/src/lib/profiles/security/ApplicationKeysTraitDataSink.cpp           \
     @top_builddir@/src/lib/profiles/security/WeaveAccessToken.cpp                       \

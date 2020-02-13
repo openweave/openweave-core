@@ -412,6 +412,16 @@ public class WeaveDeviceManager
         beginUnpairToken(mDeviceMgrPtr);
     }
 
+    public void beginGetWirelessRegulatoryConfig()
+    {
+        beginGetWirelessRegulatoryConfig(mDeviceMgrPtr);
+    }
+
+    public void beginSetWirelessRegulatoryConfig(WirelessRegulatoryConfig regConfig)
+    {
+        beginSetWirelessRegulatoryConfig(mDeviceMgrPtr, regConfig);
+    }
+
     public void setRendezvousAddress(String rendezvousAddr)
     {
         setRendezvousAddress(mDeviceMgrPtr, rendezvousAddr);
@@ -628,6 +638,16 @@ public class WeaveDeviceManager
         }
     }
 
+    public void onGetWirelessRegulatoryConfigComplete(WirelessRegulatoryConfig regConfig)
+    {
+        mCompHandler.onGetWirelessRegulatoryConfigComplete(regConfig);
+    }
+    
+    public void onSetWirelessRegulatoryConfigComplete()
+    {
+        mCompHandler.onSetWirelessRegulatoryConfigComplete();
+    }
+
     public void onError(Throwable err)
     {
         mCompHandler.onError(err);
@@ -683,6 +703,8 @@ public class WeaveDeviceManager
         void onStopSystemTestComplete();
         void onError(Throwable err);
         void onDeviceEnumerationResponse(WeaveDeviceDescriptor deviceDesc, String deviceAddr);
+        void onGetWirelessRegulatoryConfigComplete(WirelessRegulatoryConfig regConfig);
+        void onSetWirelessRegulatoryConfigComplete();
     }
 
     public static native boolean isValidPairingCode(String pairingCode);
@@ -782,6 +804,8 @@ public class WeaveDeviceManager
     private native void beginDisableConnectionMonitor(long deviceMgrPtr);
     private native void beginPairToken(long deviceMgrPtr, byte[] pairingToken);
     private native void beginUnpairToken(long deviceMgrPtr);
+    private native void beginGetWirelessRegulatoryConfig(long deviceMgrPtr);
+    private native void beginSetWirelessRegulatoryConfig(long deviceMgrPtr, WirelessRegulatoryConfig regConfig);
     private native void close(long deviceMgrPtr);
     private native boolean isConnected(long deviceMgrPtr);
     private native long deviceId(long deviceMgrPtr);

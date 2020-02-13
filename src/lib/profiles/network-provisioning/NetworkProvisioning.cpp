@@ -104,6 +104,7 @@ WEAVE_ERROR NetworkProvisioningServer::Shutdown()
 void NetworkProvisioningServer::SetDelegate(NetworkProvisioningDelegate *delegate)
 {
     mDelegate = delegate;
+    mDelegate->Server = this;
 }
 
 /**
@@ -217,6 +218,42 @@ exit:
     }
     if (respBuf != NULL)
         PacketBuffer::Free(respBuf);
+    return err;
+}
+
+/**
+ * Send a GetWirelessRegulatoryConfigComplete message to the peer.
+ *
+ * @param[in]   resultsTLV   A packet buffer containing the wireless regulatory configuration information
+ *                           to be returned.
+ *
+ * @retval #WEAVE_ERROR_INCORRECT_STATE     If the Network Provisioning Server is not initialized correctly.
+ * @retval #WEAVE_ERROR_NO_MEMORY           On failure to allocate an PacketBuffer.
+ * @retval #WEAVE_NO_ERROR                  On success.
+ * @retval other                            Other Weave or platform-specific error codes indicating that an error
+ *                                          occurred preventing the device from sending the Add Network Complete message.
+ */
+WEAVE_ERROR NetworkProvisioningServer::SendGetWirelessRegulatoryConfigComplete(PacketBuffer *resultsTLV)
+{
+    WEAVE_ERROR err;
+
+    VerifyOrExit(mDelegate != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(mCurOp != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    err = mCurOp->SendMessage(kWeaveProfile_NetworkProvisioning, kMgrType_GetWirelessRegulatoryConfigComplete, resultsTLV, 0);
+    resultsTLV = NULL;
+
+    mLastOpResult.StatusProfileId = kWeaveProfile_Common;
+    mLastOpResult.StatusCode = Common::kStatus_Success;
+    mLastOpResult.SysError = WEAVE_NO_ERROR;
+
+exit:
+    if (mCurOp != NULL)
+    {
+        mCurOp->Close();
+        mCurOp = NULL;
+    }
+    PacketBuffer::Free(resultsTLV);
     return err;
 }
 
@@ -408,8 +445,18 @@ void NetworkProvisioningServer::HandleRequest(ExchangeContext *ec, const IPPacke
         err = server->SendStatusReport(server->mLastOpResult.StatusProfileId, server->mLastOpResult.StatusCode, server->mLastOpResult.SysError);
         break;
 
+    case kMsgType_GetWirelessRegulatoryConfig:
+        err = delegate->HandleGetWirelessRegulatoryConfig();
+        break;
+
+    case kMsgType_SetWirelessRegulatoryConfig:
+        VerifyOrExit(dataLen >= 1, err = WEAVE_ERROR_INVALID_MESSAGE_LENGTH);
+        err = delegate->HandleSetWirelessRegulatoryConfig(payload);
+        payload = NULL;
+        break;
+
     default:
-        server->SendStatusReport(kWeaveProfile_Common, Common::kStatus_BadRequest);
+        server->SendStatusReport(kWeaveProfile_Common, Common::kStatus_UnsupportedMessage);
         break;
     }
 
@@ -424,6 +471,19 @@ exit:
 
     if (payload != NULL)
         PacketBuffer::Free(payload);
+}
+
+WEAVE_ERROR NetworkProvisioningDelegate::HandleGetWirelessRegulatoryConfig(void)
+{
+    Server->SendStatusReport(kWeaveProfile_Common, Common::kStatus_UnsupportedMessage);
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR NetworkProvisioningDelegate::HandleSetWirelessRegulatoryConfig(PacketBuffer * regConfigTLV)
+{
+    PacketBuffer::Free(regConfigTLV);
+    Server->SendStatusReport(kWeaveProfile_Common, Common::kStatus_UnsupportedMessage);
+    return WEAVE_NO_ERROR;
 }
 
 void NetworkProvisioningDelegate::EnforceAccessControl(ExchangeContext *ec, uint32_t msgProfileId, uint8_t msgType,
@@ -445,6 +505,8 @@ void NetworkProvisioningDelegate::EnforceAccessControl(ExchangeContext *ec, uint
         case kMsgType_DisableNetwork:
         case kMsgType_TestConnectivity:
         case kMsgType_GetNetworks:
+        case kMsgType_GetWirelessRegulatoryConfig:
+        case kMsgType_SetWirelessRegulatoryConfig:
         case kMsgType_GetLastResult:
 #if WEAVE_CONFIG_REQUIRE_AUTH_NETWORK_PROV
             if (msgInfo->PeerAuthMode == kWeaveAuthMode_CASE_AccessToken ||

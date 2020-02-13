@@ -794,7 +794,7 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WdmClient
         System.out.println("    Adding new Thread network...");
         networkInfo = NetworkInfo.MakeThread("Thread-Test",
                                         parseHexBinary("0102030405060708"),
-                                        "akey".getBytes(),
+                                        parseHexBinary("0102030405060708090A0B0C0D0E0F10"),
                                         0x1234,
                                         (byte)21);
         DeviceMgr.beginAddNetwork(networkInfo);
@@ -823,6 +823,21 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WdmClient
         DeviceMgr.beginGetNetworks(GetNetworkFlags.None);
         ExpectSuccess("GetNetworks");
         System.out.println("GetNetworks Test Succeeded");
+
+        TestResult = null;
+        System.out.println("GetWirelessRegulatoryConfig Test");
+        System.out.println("    Getting wireless regulatory configuration...");
+        DeviceMgr.beginGetWirelessRegulatoryConfig();
+        ExpectSuccess("GetWirelessRegulatoryConfig");
+        System.out.println("GetWirelessRegulatoryConfig Test Succeeded");
+
+        TestResult = null;
+        System.out.println("SetWirelessRegulatoryConfig Test");
+        System.out.println("    Setting wireless regulatory configuration...");
+        WirelessRegulatoryConfig regConfig = new WirelessRegulatoryConfig("CA", WirelessOperatingLocation.Indoors);
+        DeviceMgr.beginSetWirelessRegulatoryConfig(regConfig);
+        ExpectSuccess("SetWirelessRegulatoryConfig");
+        System.out.println("SetWirelessRegulatoryConfig Test Succeeded");
 
         TestResult = null;
         System.out.println("GetCameraAuthData Test");
@@ -914,8 +929,8 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WdmClient
             try { Thread.sleep(100); }
             catch (Exception ex) { }
 
-        if (TestResult != expectedResult) {
-            if (expectedResult != "Success")
+        if (!TestResult.equals(expectedResult)) {
+            if (!expectedResult.equals("Success"))
                 System.out.format("%s test failed:%n    Expected: %s%n    Got: %s%n", testName, expectedResult, TestResult);
             else
                 System.out.format("%s test failed: %s%n", testName, TestResult);
@@ -1090,6 +1105,27 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler, WdmClient
     public void onUnpairTokenComplete()
     {
         System.out.println("    Unpair token complete");
+        TestResult = "Success";
+    }
+
+    public void onGetWirelessRegulatoryConfigComplete(WirelessRegulatoryConfig regConfig)
+    {
+        System.out.println("    Get wireless regulatory config complete");
+        System.out.format("        RegDomain = %s%n", regConfig.RegDomain);
+        System.out.format("        OpLocation = %d%n", regConfig.OpLocation.val);
+        System.out.format("        SupportedRegDomains = ");
+        for (String regDomain : regConfig.SupportedRegDomains)
+            System.out.format("%s ", regDomain);
+        System.out.format("%n");
+        if (regConfig.RegDomain.equals("US"))
+            TestResult = "Success";
+        else
+            TestResult = "Incorrect regulatory domain";
+    }
+    
+    public void onSetWirelessRegulatoryConfigComplete()
+    {
+        System.out.format("    Set wireless regulatory config complete:%n");
         TestResult = "Success";
     }
 

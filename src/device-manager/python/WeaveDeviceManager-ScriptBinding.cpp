@@ -219,6 +219,8 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_TestNetworkConnectivity(WeaveDeviceManager *devMgr, uint32_t networkId, CompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_GetRendezvousMode(WeaveDeviceManager *devMgr, GetRendezvousModeCompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_SetRendezvousMode(WeaveDeviceManager *devMgr, uint16_t modeFlags, CompleteFunct onComplete, ErrorFunct onError);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_GetWirelessRegulatoryConfig(WeaveDeviceManager *devMgr, GetWirelessRegulatoryConfigCompleteFunct onComplete, ErrorFunct onError);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_SetWirelessRegulatoryConfig(WeaveDeviceManager *devMgr, const WirelessRegConfig *regConfig, CompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_GetLastNetworkProvisioningResult(WeaveDeviceManager *devMgr, CompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_CreateFabric(WeaveDeviceManager *devMgr, CompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_LeaveFabric(WeaveDeviceManager *devMgr, CompleteFunct onComplete, ErrorFunct onError);
@@ -898,6 +900,16 @@ WEAVE_ERROR nl_Weave_DeviceManager_GetRendezvousMode(WeaveDeviceManager *devMgr,
 WEAVE_ERROR nl_Weave_DeviceManager_SetRendezvousMode(WeaveDeviceManager *devMgr, uint16_t modeFlags, CompleteFunct onComplete, ErrorFunct onError)
 {
     return devMgr->SetRendezvousMode(modeFlags, NULL, onComplete, onError);
+}
+
+WEAVE_ERROR nl_Weave_DeviceManager_GetWirelessRegulatoryConfig(WeaveDeviceManager *devMgr, GetWirelessRegulatoryConfigCompleteFunct onComplete, ErrorFunct onError)
+{
+    return devMgr->GetWirelessRegulatoryConfig(NULL, onComplete, onError);
+}
+
+WEAVE_ERROR nl_Weave_DeviceManager_SetWirelessRegulatoryConfig(WeaveDeviceManager *devMgr, const WirelessRegConfig *regConfig, CompleteFunct onComplete, ErrorFunct onError)
+{
+    return devMgr->SetWirelessRegulatoryConfig(regConfig, NULL, onComplete, onError);
 }
 
 WEAVE_ERROR nl_Weave_DeviceManager_GetLastNetworkProvisioningResult(WeaveDeviceManager *devMgr, CompleteFunct onComplete, ErrorFunct onError)

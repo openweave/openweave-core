@@ -1842,6 +1842,77 @@ exit:
     return err;
 }
 
+WEAVE_ERROR WeaveDeviceManager::GetWirelessRegulatoryConfig(void* appReqState, GetWirelessRegulatoryConfigCompleteFunct onComplete,
+        ErrorFunct onError)
+{
+    WEAVE_ERROR     err     = WEAVE_NO_ERROR;
+    PacketBuffer*   msgBuf  = NULL;
+
+    if (mOpState != kOpState_Idle)
+        return WEAVE_ERROR_INCORRECT_STATE;
+
+    VerifyOrExit(onComplete != NULL && onError != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    msgBuf = PacketBuffer::New();
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    mAppReqState = appReqState;
+    mOnComplete.GetWirelessRegulatoryConfig = onComplete;
+    mOnError = onError;
+    mOpState = kOpState_GetWirelessRegulatoryConfig;
+
+    err = SendRequest(kWeaveProfile_NetworkProvisioning, NetworkProvisioning::kMsgType_GetWirelessRegulatoryConfig, msgBuf,
+            HandleNetworkProvisioningResponse);
+    msgBuf = NULL;
+
+exit:
+    if (msgBuf != NULL)
+        PacketBuffer::Free(msgBuf);
+    if (err != WEAVE_NO_ERROR)
+        ClearOpState();
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::SetWirelessRegulatoryConfig(const WirelessRegConfig *regConfig, void* appReqState,
+        CompleteFunct onComplete, ErrorFunct onError)
+{
+    WEAVE_ERROR     err     = WEAVE_NO_ERROR;
+    PacketBuffer*   msgBuf  = NULL;
+    TLVWriter       writer;
+
+    if (mOpState != kOpState_Idle)
+        return WEAVE_ERROR_INCORRECT_STATE;
+
+    VerifyOrExit(onComplete != NULL && onError != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    msgBuf = PacketBuffer::New();
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    writer.Init(msgBuf);
+
+    err = regConfig->Encode(writer);
+    SuccessOrExit(err);
+
+    err = writer.Finalize();
+    SuccessOrExit(err);
+
+    mAppReqState = appReqState;
+    mOnComplete.General = onComplete;
+    mOnError = onError;
+    mOpState = kOpState_SetWirelessRegulatoryConfig;
+
+    err = SendRequest(kWeaveProfile_NetworkProvisioning, NetworkProvisioning::kMsgType_SetWirelessRegulatoryConfig, msgBuf,
+            HandleNetworkProvisioningResponse);
+    msgBuf = NULL;
+
+exit:
+    if (msgBuf != NULL)
+        PacketBuffer::Free(msgBuf);
+    if (err != WEAVE_NO_ERROR)
+        ClearOpState();
+    return err;
+}
+
 WEAVE_ERROR WeaveDeviceManager::GetLastNetworkProvisioningResult(void* appReqState, CompleteFunct onComplete, ErrorFunct onError)
 {
     WEAVE_ERROR     err     = WEAVE_NO_ERROR;
@@ -3966,6 +4037,20 @@ void WeaveDeviceManager::HandleNetworkProvisioningResponse(ExchangeContext *ec, 
         devMgr->mOnComplete.GetNetworks(devMgr, devMgr->mAppReqState, resultCount, netInfoList);
 
         delete[] netInfoList;
+    }
+
+    else if (profileId == kWeaveProfile_NetworkProvisioning && msgType == NetworkProvisioning::kMgrType_GetWirelessRegulatoryConfigComplete)
+    {
+        VerifyOrExit(opState == kOpState_GetWirelessRegulatoryConfig, err = WEAVE_ERROR_INVALID_MESSAGE_TYPE);
+
+        WirelessRegConfig regConfig;
+
+        regConfig.Init();
+
+        err = regConfig.DecodeInPlace(payload);
+        SuccessOrExit(err);
+
+        devMgr->mOnComplete.GetWirelessRegulatoryConfig(devMgr, devMgr->mAppReqState, &regConfig);
     }
 
     else if (profileId == kWeaveProfile_Common && msgType == nl::Weave::Profiles::Common::kMsgType_StatusReport)
