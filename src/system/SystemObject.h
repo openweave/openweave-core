@@ -87,12 +87,12 @@ public:
         AutoRelease(Object& owner) : mOwner(owner)
         {
         }
-        
+
         ~AutoRelease(void)
         {
             mOwner.Release();
         }
-        
+
     private:
         Object& mOwner;
     };
