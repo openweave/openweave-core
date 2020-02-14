@@ -81,11 +81,15 @@ public:
     void Retain(void);
     void Release(void);
     Layer& SystemLayer(void) const;
-    
+
     class AutoRelease {
     public:
-        AutoRelease(Object& owner) : mOwner(owner) {}
-        ~AutoRelease(void) {
+        AutoRelease(Object& owner) : mOwner(owner)
+        {
+        }
+        
+        ~AutoRelease(void)
+        {
             mOwner.Release();
         }
         
