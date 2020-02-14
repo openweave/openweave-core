@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2019 Google LLC.
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -2610,6 +2610,8 @@ NL_DLL_EXPORT WEAVE_ERROR GenerateWeaveNodeId(uint64_t & nodeId)
     {
         err = nl::Weave::Platform::Security::GetSecureRandomData(reinterpret_cast<uint8_t*>(&id), sizeof(id));
         SuccessOrExit(err);
+
+        id &= ~kEUI64_UL_Local;
     }
 
     nodeId = id | kEUI64_UL_Local;
