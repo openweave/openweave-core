@@ -1,5 +1,5 @@
 #
-#    Copyright (c) 2019 Google LLC.
+#    Copyright (c) 2020 Google LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,28 +65,28 @@ STD_INC_DIRS += \
     $(FREERTOS_ROOT)/Source/include/
     
 $(FREERTOS_OUTPUT_DIR)/croutine.c.o : $(FREERTOS_ROOT)/Source/croutine.c $(FREERTOSCONFIG_DIR)/FreeRTOSConfig.h
-	$(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/croutine.c -o $(FREERTOS_OUTPUT_DIR)/croutine.c.o
+	$(NO_ECHO) $(CCACHE) $(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/croutine.c -o $(FREERTOS_OUTPUT_DIR)/croutine.c.o
 
 $(FREERTOS_OUTPUT_DIR)/list.c.o     : $(FREERTOS_ROOT)/Source/list.c $(FREERTOSCONFIG_DIR)/FreeRTOSConfig.h
-	$(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/list.c -o $(FREERTOS_OUTPUT_DIR)/list.c.o
+	$(NO_ECHO) $(CCACHE) $(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/list.c -o $(FREERTOS_OUTPUT_DIR)/list.c.o
 
 $(FREERTOS_OUTPUT_DIR)/queue.c.o    : $(FREERTOS_ROOT)/Source/queue.c $(FREERTOSCONFIG_DIR)/FreeRTOSConfig.h
-	$(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/queue.c -o $(FREERTOS_OUTPUT_DIR)/queue.c.o
+	$(NO_ECHO) $(CCACHE) $(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/queue.c -o $(FREERTOS_OUTPUT_DIR)/queue.c.o
 	
 $(FREERTOS_OUTPUT_DIR)/event_groups.c.o    : $(FREERTOS_ROOT)/Source/event_groups.c $(FREERTOSCONFIG_DIR)/FreeRTOSConfig.h
-	$(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/event_groups.c -o $(FREERTOS_OUTPUT_DIR)/event_groups.c.o
+	$(NO_ECHO) $(CCACHE) $(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/event_groups.c -o $(FREERTOS_OUTPUT_DIR)/event_groups.c.o
 
 $(FREERTOS_OUTPUT_DIR)/tasks.c.o    : $(FREERTOS_ROOT)/Source/tasks.c $(FREERTOSCONFIG_DIR)/FreeRTOSConfig.h
-	$(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/tasks.c -o $(FREERTOS_OUTPUT_DIR)/tasks.c.o
+	$(NO_ECHO) $(CCACHE) $(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/tasks.c -o $(FREERTOS_OUTPUT_DIR)/tasks.c.o
 
 $(FREERTOS_OUTPUT_DIR)/timers.c.o   : $(FREERTOS_ROOT)/Source/timers.c $(FREERTOSCONFIG_DIR)/FreeRTOSConfig.h
-	$(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/timers.c -o $(FREERTOS_OUTPUT_DIR)/timers.c.o
+	$(NO_ECHO) $(CCACHE) $(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/timers.c -o $(FREERTOS_OUTPUT_DIR)/timers.c.o
 
 $(FREERTOS_OUTPUT_DIR)/port.c.o     : $(FREERTOS_ROOT)/Source/portable/GCC/$(FREERTOS_TARGET)/port.c $(FREERTOSCONFIG_DIR)/FreeRTOSConfig.h
-	$(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/portable/GCC/$(FREERTOS_TARGET)/port.c -o $(FREERTOS_OUTPUT_DIR)/port.c.o
+	$(NO_ECHO) $(CCACHE) $(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/portable/GCC/$(FREERTOS_TARGET)/port.c -o $(FREERTOS_OUTPUT_DIR)/port.c.o
 
 $(FREERTOS_OUTPUT_DIR)/heap_3.c.o     : $(FREERTOS_ROOT)/Source/portable/MemMang/heap_3.c $(FREERTOSCONFIG_DIR)/FreeRTOSConfig.h
-	$(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/portable/MemMang/heap_3.c -o $(FREERTOS_OUTPUT_DIR)/heap_3.c.o
+	$(NO_ECHO) $(CCACHE) $(CC) -c  $(STD_CFLAGS) $(CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) $(DEFINE_FLAGS) $(INC_FLAGS) $(FREERTOS_ROOT)/Source/portable/MemMang/heap_3.c -o $(FREERTOS_OUTPUT_DIR)/heap_3.c.o
 
 FREERTOS_OBJECTS := \
     $(FREERTOS_OUTPUT_DIR)/croutine.c.o \
@@ -107,26 +107,26 @@ LATE_BOUND_RULES += FreeRTOSBuildRules
 define FreeRTOSBuildRules
 
 $(FREERTOS_LIB_DIR)/libfreertos.a : $(FREERTOS_OUTPUT_DIR) $(FREERTOS_LIB_DIR) $(FREERTOS_OBJECTS)
-	arm-none-eabi-ar rcs $(FREERTOS_LIB_DIR)/libfreertos.a $(FREERTOS_OBJECTS)
+	@echo "$(HDR_PREFIX)AR $(FREERTOS_LIB_DIR)/libfreertos.a"
+	$(NO_ECHO)$(AR) rcs $(FREERTOS_LIB_DIR)/libfreertos.a $(FREERTOS_OBJECTS)
 
 .phony: $(FREERTOS_OUTPUT_DIR)
 $(FREERTOS_OUTPUT_DIR) :
-	-mkdir -p $(FREERTOS_OUTPUT_DIR)
-
-.phony: $(FREERTOS_LIB_DIR)
-$(FREERTOS_LIB_DIR) :
-	-mkdir -p $(FREERTOS_LIB_DIR)
+	@echo "$(HDR_PREFIX)MKDIR $@"
+	$(NO_ECHO)mkdir -p $(FREERTOS_OUTPUT_DIR)
 
 .phony: build-freertos
 build-freertos : $(FREERTOS_LIB_DIR)/libfreertos.a
 
 .phony: install-freertos
-install-freertos: $(FREERTOS_OUTPUT_DIR)
-	cp -r $(FREERTOS_ROOT)/Source/include $(FREERTOS_OUTPUT_DIR)/ 
+install-freertos : $(FREERTOS_OUTPUT_DIR)
+	@echo "$(HDR_PREFIX)CP $(FREERTOS_OUTPUT_DIR)"
+	$(NO_ECHO)cp -r $(FREERTOS_ROOT)/Source/include $(FREERTOS_OUTPUT_DIR)/ 
 
 .phony: clean-freertos
-clean-freertos:
-	-rm -rf $(FREERTOS_OUTPUT_DIR)
+clean-freertos :
+	@echo "$(HDR_PREFIX)RM $(FREERTOS_OUTPUT_DIR)"
+	$(NO_ECHO)rm -rf $(FREERTOS_OUTPUT_DIR)
 
 endef
 
@@ -137,9 +137,9 @@ endef
 
 define TargetHelp +=
 
-  build-freertos        Build the OpenWeave libraries.
+  build-freertos        Build the FreeRTOS library.
   
-  install-freertos      Install FreeRTOS libraries and headers in 
+  install-freertos      Install FreeRTOS library and headers in 
                         build output directory for use by application.
   
   clean-freertos        Clean all build outputs produced by the FreeRTOS

@@ -409,7 +409,7 @@ endef
 	$(NO_ECHO)$(OBJCOPY) -O srec $< $@
 
 # Clean build output
-clean :
+clean ::
 	@echo "RM $(OUTPUT_DIR)"
 	$(NO_ECHO)rm -rf $(OUTPUT_DIR)
 
