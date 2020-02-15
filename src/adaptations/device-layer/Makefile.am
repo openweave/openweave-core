@@ -53,6 +53,19 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/nRF5/SoftwareUpdateManagerImpl.h \
     include/Weave/DeviceLayer/nRF5/WeaveDevicePlatformConfig.h \
     include/Weave/DeviceLayer/nRF5/WeaveDevicePlatformEvent.h \
+    include/Weave/DeviceLayer/EFR32/WeaveDevicePlatformConfig.h \
+    include/Weave/DeviceLayer/EFR32/GroupKeyStoreImpl.h \
+    include/Weave/DeviceLayer/EFR32/efr32-weave-mbedtls-config.h \
+    include/Weave/DeviceLayer/EFR32/EFR32Config.h \
+    include/Weave/DeviceLayer/EFR32/gatt_db.h \
+    include/Weave/DeviceLayer/EFR32/freertos_bluetooth.h \
+    include/Weave/DeviceLayer/EFR32/ConnectivityManagerImpl.h \
+    include/Weave/DeviceLayer/EFR32/BLEManagerImpl.h \
+    include/Weave/DeviceLayer/EFR32/ConfigurationManagerImpl.h \
+    include/Weave/DeviceLayer/EFR32/PlatformManagerImpl.h \
+    include/Weave/DeviceLayer/EFR32/SoftwareUpdateManagerImpl.h \
+    include/Weave/DeviceLayer/EFR32/WeaveDevicePlatformEvent.h \
+    include/Weave/DeviceLayer/EFR32/NetworkProvisioningServerImpl.h \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp \
     include/Weave/DeviceLayer/GeneralUtils.h \
@@ -182,6 +195,29 @@ libDeviceLayer_a_SOURCES               +=       \
     $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_NRF5
+
+if WEAVE_DEVICE_LAYER_TARGET_EFR32
+
+libDeviceLayer_a_SOURCES               +=       \
+    EFR32/BLEManagerImpl.cpp                    \
+    EFR32/freertos_bluetooth.c                  \
+    EFR32/gatt_db.c                             \
+    EFR32/ConfigurationManagerImpl.cpp          \
+    EFR32/PlatformManagerImpl.cpp               \
+    EFR32/ConnectivityManagerImpl.cpp           \
+    EFR32/NetworkProvisioningServerImpl.cpp     \
+    EFR32/ThreadStackManagerImpl.cpp            \
+    EFR32/GroupKeyStoreImpl.cpp                 \
+    EFR32/EFR32Config.cpp                       \
+    EFR32/Entropy.cpp                           \
+    EFR32/Logging.cpp                           \
+    EFR32/SoftwareUpdateManagerImpl.cpp         \
+    FreeRTOS/SystemTimeSupport.cpp              \
+    OpenThread/OpenThreadUtils.cpp              \
+    LwIP/WarmSupport.cpp                        \
+    $(NULL)
+
+endif # WEAVE_DEVICE_LAYER_TARGET_EFR32
 
 endif # CONFIG_DEVICE_LAYER
 

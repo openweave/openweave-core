@@ -1041,6 +1041,32 @@ $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_NRF5
 
+if WEAVE_DEVICE_LAYER_TARGET_EFR32
+
+nl_public_WeaveDeviceLayer_target_header_sources =                                                   \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/BLEManagerImpl.h                                  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/gatt_db.h                                         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/freertos_bluetooth.h                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/BlePlatformConfig.h                               \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/ConfigurationManagerImpl.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/ConnectivityManagerImpl.h                         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/efr32-weave-mbedtls-config.h                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/EFR32Config.h                                     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/GroupKeyStoreImpl.h                               \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/InetPlatformConfig.h                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/NetworkProvisioningServerImpl.h                   \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/PlatformManagerImpl.h                             \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/SoftwareUpdateManagerImpl.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/SystemPlatformConfig.h                            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/ThreadStackManagerImpl.h                          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/WarmPlatformConfig.h                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/WeaveDevicePlatformConfig.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/WeaveDevicePlatformEvent.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/WeavePlatformConfig.h                             \
+$(NULL)
+
+endif # WEAVE_DEVICE_LAYER_TARGET_EFR32
+
 if CONFIG_DEVICE_LAYER
 
 nl_public_WeaveDeviceLayer_source_dirstem = adaptations/device-layer/include/Weave/DeviceLayer
