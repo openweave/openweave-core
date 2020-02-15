@@ -284,7 +284,7 @@ erase :
 	$(NO_ECHO)$(NRFJPROG) -f nrf52 --eraseall
 
 # Clean build output
-clean :
+clean ::
 	@echo "RM $(OUTPUT_DIR)"
 	$(NO_ECHO)rm -rf $(OUTPUT_DIR)
 
