@@ -73,6 +73,8 @@ GenericTraitUpdatableDataSink::GenericTraitUpdatableDataSink(
     const nl::Weave::Profiles::DataManagement::TraitSchemaEngine * apEngine, WdmClient * apWdmClient) :
     TraitUpdatableDataSink(apEngine)
 {
+    mpAppState  = NULL;
+    mOnError    = NULL;
     mpWdmClient = apWdmClient;
 }
 
@@ -255,8 +257,11 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::SetBytes(const char * apPath, const u
     writer.Init(pMsgBuf);
 
     reader.Init(dataBuf, dataLen);
-    reader.Next();
-    writer.CopyElement(AnonymousTag, reader);
+    err = reader.Next();
+    SuccessOrExit(err);
+
+    err = writer.CopyElement(AnonymousTag, reader);
+    SuccessOrExit(err);
 
     err = writer.Finalize();
     SuccessOrExit(err);
@@ -633,7 +638,7 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::IsNull(const char * apPath, bool & aI
     err = reader.Next();
     SuccessOrExit(err);
 
-    if (reader.GetType() == kTLVElementType_Null)
+    if (reader.GetType() == kTLVType_Null)
     {
         aIsNull = true;
     }
@@ -839,10 +844,9 @@ exit:
 const nl::Weave::ExchangeContext::Timeout kResponseTimeoutMsec = 15000;
 
 WdmClient::WdmClient() :
-    mpAppState(NULL), mpPublisherPathList(NULL), mpSubscriptionClient(NULL), mpMsgLayer(NULL), mpContext(NULL), mpAppReqState(NULL)
-{
-    State = kState_NotInitialized;
-}
+    State(kState_NotInitialized), mpAppState(NULL), mOnError(NULL), mGetDataHandle(NULL), mpPublisherPathList(NULL),
+    mpSubscriptionClient(NULL), mpMsgLayer(NULL), mpContext(NULL), mpAppReqState(NULL), mOpState(kOpState_Idle)
+{ }
 
 void WdmClient::Close(void)
 {
@@ -1000,7 +1004,7 @@ void WdmClient::ClientEventCallback(void * const aAppState, SubscriptionClient::
 
         break;
     case SubscriptionClient::kEvent_OnNoMorePendingUpdates:
-        //TODO: notify application with all status for updated paths
+        // TODO: notify application with all status for updated paths
         WeaveLogDetail(DataManagement, "Update: no more pending updates");
         VerifyOrExit(kOpState_FlushUpdate == savedOpState, err = WEAVE_ERROR_INCORRECT_STATE);
         pWdmClient->mpSubscriptionClient->DiscardUpdates();
@@ -1079,7 +1083,8 @@ WEAVE_ERROR WdmClient::NewDataSink(const ResourceIdentifier & aResourceId, uint3
     }
     else
     {
-        apGenericTraitUpdatableDataSink->GetSchemaEngine()->MapPathToHandle(apPath, handle);
+        err = apGenericTraitUpdatableDataSink->GetSchemaEngine()->MapPathToHandle(apPath, handle);
+        SuccessOrExit(err);
     }
 
     err = SubscribePublisherTrait(aResourceId, aInstanceId, handle, apGenericTraitUpdatableDataSink);
