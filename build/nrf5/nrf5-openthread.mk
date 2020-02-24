@@ -125,12 +125,15 @@ OPENTHREAD_DEFINES = \
     OPENTHREAD_PROJECT_CORE_CONFIG_FILE='"$(OPENTHREAD_PROJECT_CONFIG)"'
 
 OPENTHREAD_INC_DIRS = \
-	$(PROJECT_ROOT) \
-    $(OPENTHREAD_ROOT)/examples/platforms \
     $(OPENTHREAD_ROOT)/examples/platforms/$(OPENTHREAD_TARGET) \
     $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/crypto \
     $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/nrf_cc310/include \
-    $(NRF5_SDK_ROOT)/modules/nrfx/mdk
+    $(NRF5_SDK_ROOT)/modules/nrfx/mdk \
+    $(NRF5_SDK_ROOT)/external/freertos/config \
+    $(NRF5_SDK_ROOT)/external/freertos/portable/CMSIS/nrf52 \
+    $(NRF5_SDK_ROOT)/external/freertos/portable/GCC/nrf52 \
+    $(NRF5_SDK_ROOT)/external/freertos/source/include
+
 
 
 # ==================================================
