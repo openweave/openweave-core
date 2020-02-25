@@ -28,6 +28,7 @@
 
 @class NLWeaveBleDelegate;
 @class NLWeaveDeviceManager;
+@class NLWdmClient;
 
 typedef NS_ENUM(NSInteger, EWeaveStackState) {
     kWeaveStack_NotInitialized = 0,
@@ -60,4 +61,5 @@ typedef void (^ShutdownCompletionBlock)(WEAVE_ERROR result);
 
 - (NLWeaveDeviceManager *)createDeviceManager:(NSString *)name appCallbackQueue:(dispatch_queue_t)appCallbackQueue;
 
+- (NLWdmClient *)createWdmClient:(NSString *)name appCallbackQueue:(dispatch_queue_t)appCallbackQueue;
 @end

@@ -26,8 +26,11 @@
 #include <stdio.h>
 
 #import <Foundation/Foundation.h>
+
+#if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
 #import <os/log.h>
+#endif
 
 #include <Weave/Support/logging/WeaveLogging.h>
 
@@ -91,11 +94,15 @@ namespace Weave {
                 // So for the logs to always show up in device console, we need to use os_log
                 // with OS_LOG_DEFAULT which always gets logged in accordance with system's
                 // standard behavior
+#if TARGET_OS_IPHONE
                 if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"10.0")) {
                     os_log(OS_LOG_DEFAULT, "%s", formattedMsg);
                 } else {
                     NSLog(@"%s", formattedMsg);
                 }
+#else
+                NSLog(@"%s", formattedMsg);
+#endif
             }
 
             va_end(v);
