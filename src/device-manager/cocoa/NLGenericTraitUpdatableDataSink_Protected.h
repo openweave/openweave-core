@@ -18,7 +18,8 @@
 
 /**
  *    @file
- *      This file provides defines non-public portion of NLGenericUpdatableDataSink interface
+ *      This file provides defines non-public portion of NLGenericUpdatableDataSink interface.
+ *      This is WEAVE_CONFIG_DATA_MANAGEMENT_EXPERIMENTAL feature.
  *
  */
 
@@ -28,10 +29,10 @@
 #if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 @interface NLGenericTraitUpdatableDataSink ()
 - (instancetype)init:(NSString *)name
-      weaveWorkQueue:(dispatch_queue_t)weaveWorkQueue
-    appCallbackQueue:(dispatch_queue_t)appCallbackQueue
-    genericTraitUpdatableDataSinkPtr: (nl::Weave::DeviceManager::GenericTraitUpdatableDataSink *)dataSinkPtr
-         nlWdmClient:(NLWdmClient *)nlWdmClient NS_DESIGNATED_INITIALIZER;
+                      weaveWorkQueue:(dispatch_queue_t)weaveWorkQueue
+                    appCallbackQueue:(dispatch_queue_t)appCallbackQueue
+    genericTraitUpdatableDataSinkPtr:(nl::Weave::DeviceManager::GenericTraitUpdatableDataSink *)dataSinkPtr
+                         nlWdmClient:(NLWdmClient *)nlWdmClient NS_DESIGNATED_INITIALIZER;
 - (NSString *)statusReportToString:(NSUInteger)profileId statusCode:(NSInteger)statusCode;
 
 /**

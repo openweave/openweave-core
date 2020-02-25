@@ -34,8 +34,7 @@ const uint64_t SELF_NODE_ID = 0xfffffffffffffffe;
     return self = [self initWithType:RESOURCE_TYPE_RESERVED id:SELF_NODE_ID];
 }
 
-- (instancetype)initWithType:(int32_t)type
-                          id:(uint64_t)idValue
+- (instancetype)initWithType:(int32_t)type id:(uint64_t)idValue
 {
 
     if (self = [super init]) {

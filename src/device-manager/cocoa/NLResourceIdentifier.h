@@ -30,6 +30,5 @@
 @property (nonatomic) uint64_t ResourceId;
 
 - (instancetype)init NS_DESIGNATED_INITIALIZER;
-- (instancetype)initWithType:(int32_t)type
-                          id:(uint64_t)idValue;
+- (instancetype)initWithType:(int32_t)type id:(uint64_t)idValue;
 @end

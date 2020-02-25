@@ -18,7 +18,8 @@
 
 /**
  *    @file
- *      This file implements NLGenericTraitUpdatableDataSink interface
+ *      This file implements NLGenericTraitUpdatableDataSink interface.
+ *      This is WEAVE_CONFIG_DATA_MANAGEMENT_EXPERIMENTAL feature.
  *
  */
 
@@ -91,10 +92,10 @@ using namespace nl::Weave::Profiles::DataManagement;
 }
 
 - (instancetype)init:(NSString *)name
-      weaveWorkQueue:(dispatch_queue_t)weaveWorkQueue
-    appCallbackQueue:(dispatch_queue_t)appCallbackQueue
-    genericTraitUpdatableDataSinkPtr: (nl::Weave::DeviceManager::GenericTraitUpdatableDataSink *)dataSinkPtr
-         nlWdmClient:(NLWdmClient *)nlWdmClient
+                      weaveWorkQueue:(dispatch_queue_t)weaveWorkQueue
+                    appCallbackQueue:(dispatch_queue_t)appCallbackQueue
+    genericTraitUpdatableDataSinkPtr:(nl::Weave::DeviceManager::GenericTraitUpdatableDataSink *)dataSinkPtr
+                         nlWdmClient:(NLWdmClient *)nlWdmClient
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -135,8 +136,8 @@ static void handleGenericUpdatableDataSinkComplete(void * dataSink, void * reqSt
     [sink DispatchAsyncCompletionBlock:nil];
 }
 
-static void handleGenericUpdatableDataSinkError(void * dataSink, void * appReqState, WEAVE_ERROR code,
-    nl::Weave::DeviceManager::DeviceStatus * devStatus)
+static void handleGenericUpdatableDataSinkError(
+    void * dataSink, void * appReqState, WEAVE_ERROR code, nl::Weave::DeviceManager::DeviceStatus * devStatus)
 {
     WDM_LOG_DEBUG(@"handleGenericUpdatableDataSinkError");
 
@@ -144,7 +145,7 @@ static void handleGenericUpdatableDataSinkError(void * dataSink, void * appReqSt
     NSDictionary * userInfo = nil;
 
     NLGenericTraitUpdatableDataSink * nlDataSink = (__bridge NLGenericTraitUpdatableDataSink *) appReqState;
-    // ignore the pointer to C++ device manager
+    // ignore the pointer to C++ GenericTraitUpdatableDataSink
     (void) dataSink;
 
     WDM_LOG_DEBUG(@"%@: Received error response to request %@, wdmClientErr = %d, devStatus = %p\n", nlDataSink.name,
@@ -158,14 +159,14 @@ static void handleGenericUpdatableDataSinkError(void * dataSink, void * appReqSt
                     errorCode:devStatus->SystemErrorCode
                  statusReport:[nlDataSink statusReportToString:devStatus->StatusProfileId statusCode:devStatus->StatusCode]];
         requestError = NLWeaveRequestError_ProfileStatusError;
-        userInfo = @{ @"WeaveRequestErrorType" : @(requestError), @"errorInfo" : statusError };
+        userInfo = @{@"WeaveRequestErrorType" : @(requestError), @"errorInfo" : statusError};
 
         WDM_LOG_DEBUG(@"%@: status error: %@", nlDataSink.name, userInfo);
     } else {
         NLWeaveError * weaveError = [[NLWeaveError alloc] initWithWeaveError:code
                                                                       report:[NSString stringWithUTF8String:nl::ErrorStr(code)]];
         requestError = NLWeaveRequestError_WeaveError;
-        userInfo = @{ @"WeaveRequestErrorType" : @(requestError), @"errorInfo" : weaveError };
+        userInfo = @{@"WeaveRequestErrorType" : @(requestError), @"errorInfo" : weaveError};
     }
 
     error = [NSError errorWithDomain:@"com.nest.error" code:code userInfo:userInfo];
@@ -185,7 +186,9 @@ static void handleGenericUpdatableDataSinkError(void * dataSink, void * appReqSt
     return _mRequestName;
 }
 
-- (void)DispatchAsyncFailureBlock:(WEAVE_ERROR)code taskName:(NSString *)taskName handler:(GenericTraitUpdatableDataSinkFailureBlock)handler
+- (void)DispatchAsyncFailureBlock:(WEAVE_ERROR)code
+                         taskName:(NSString *)taskName
+                          handler:(GenericTraitUpdatableDataSinkFailureBlock)handler
 {
     NSError * error =
         [NSError errorWithDomain:@"com.nest.error"
@@ -195,7 +198,9 @@ static void handleGenericUpdatableDataSinkError(void * dataSink, void * appReqSt
     [self DispatchAsyncFailureBlockWithError:error taskName:taskName handler:handler];
 }
 
-- (void)DispatchAsyncFailureBlockWithError:(NSError *)error taskName:(NSString *)taskName handler:(GenericTraitUpdatableDataSinkFailureBlock)handler
+- (void)DispatchAsyncFailureBlockWithError:(NSError *)error
+                                  taskName:(NSString *)taskName
+                                   handler:(GenericTraitUpdatableDataSinkFailureBlock)handler
 {
     if (NULL != handler) {
         // we use async because we don't need to wait for completion of this final completion report
@@ -279,14 +284,12 @@ static void handleGenericUpdatableDataSinkError(void * dataSink, void * appReqSt
 {
     WDM_LOG_METHOD_SIG();
 
-    if (_mNLWdmClient != nil)
-    {
-        [_mNLWdmClient removeDataSinkRef:(long long)_mWeaveCppGenericTraitUpdatableDataSink ];
+    if (_mNLWdmClient != nil) {
+        [_mNLWdmClient removeDataSinkRef:(long long) _mWeaveCppGenericTraitUpdatableDataSink];
         _mNLWdmClient = nil;
     }
 
-    if (_mWeaveCppGenericTraitUpdatableDataSink != nil)
-    {
+    if (_mWeaveCppGenericTraitUpdatableDataSink != nil) {
         _mWeaveCppGenericTraitUpdatableDataSink->Clear();
     }
 }
@@ -301,11 +304,11 @@ static void handleGenericUpdatableDataSinkError(void * dataSink, void * appReqSt
 - (void)clear
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    
+
     WDM_LOG_METHOD_SIG();
-    
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
-    
+
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+
     // need this bracket to use Verify macros
     {
         // we use sync so the result is immediately available to the caller upon return
@@ -317,7 +320,8 @@ exit:
     return;
 }
 
-- (void)refreshData:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler      failure:(GenericTraitUpdatableDataSinkFailureBlock)failureHandler
+- (void)refreshData:(GenericTraitUpdatableDataSinkCompletionBlock)completionHandler
+            failure:(GenericTraitUpdatableDataSinkFailureBlock)failureHandler
 {
     WDM_LOG_METHOD_SIG();
 
@@ -330,7 +334,8 @@ exit:
             _mCompletionHandler = [completionHandler copy];
             _mFailureHandler = [failureHandler copy];
 
-            WEAVE_ERROR err = _mWeaveCppGenericTraitUpdatableDataSink->RefreshData((__bridge void *) self, handleGenericUpdatableDataSinkComplete, handleGenericUpdatableDataSinkError);
+            WEAVE_ERROR err = _mWeaveCppGenericTraitUpdatableDataSink->RefreshData(
+                (__bridge void *) self, handleGenericUpdatableDataSinkComplete, handleGenericUpdatableDataSinkError);
 
             if (WEAVE_NO_ERROR != err) {
                 [self DispatchAsyncDefaultFailureBlockWithCode:err];
@@ -344,16 +349,14 @@ exit:
     });
 }
 
-- (WEAVE_ERROR)setSigned:(int64_t)val
-                    path:(NSString *)path
-             conditional:(BOOL) isConditional
+- (WEAVE_ERROR)setSigned:(int64_t)val path:(NSString *)path conditional:(BOOL)isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block bool isConditionalBool = isConditional;
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // need this bracket to use Verify macros
     {
@@ -372,16 +375,14 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)setUnsigned:(uint64_t)val
-                      path:(NSString *)path
-               conditional:(BOOL) isConditional
+- (WEAVE_ERROR)setUnsigned:(uint64_t)val path:(NSString *)path conditional:(BOOL)isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block bool isConditionalBool = isConditional;
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // need this bracket to use Verify macros
     {
@@ -401,16 +402,14 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)setDouble:(double)val
-                    path:(NSString *)path
-             conditional:(BOOL) isConditional
+- (WEAVE_ERROR)setDouble:(double)val path:(NSString *)path conditional:(BOOL)isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block bool isConditionalBool = isConditional;
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // need this bracket to use Verify macros
     {
@@ -429,16 +428,14 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)setBoolean:(BOOL) val
-                     path:(NSString *)path
-              conditional:(BOOL) isConditional
+- (WEAVE_ERROR)setBoolean:(BOOL)val path:(NSString *)path conditional:(BOOL)isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block bool isConditionalBool = isConditional;
-    __block bool valBool= val;
+    __block bool valBool = val;
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // need this bracket to use Verify macros
     {
@@ -456,9 +453,7 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)setString:(NSString *) val
-                    path:(NSString *) path
-             conditional:(BOOL) isConditional
+- (WEAVE_ERROR)setString:(NSString *)val path:(NSString *)path conditional:(BOOL)isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block bool isConditionalBool = isConditional;
@@ -483,15 +478,14 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)setNull:(NSString *)path
-           conditional:(BOOL) isConditional
+- (WEAVE_ERROR)setNull:(NSString *)path conditional:(BOOL)isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block bool isConditionalBool = isConditional;
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // need this bracket to use Verify macros
     {
@@ -510,22 +504,19 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)setBytes:(NSData *) val
-                   path:(NSString *) path
-            conditional:(BOOL) isConditional
+- (WEAVE_ERROR)setBytes:(NSData *)val path:(NSString *)path conditional:(BOOL)isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalBool= isConditional;
+    __block bool isConditionalBool = isConditional;
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // need this bracket to use Verify macros
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
-
             uint32_t valLen = (uint32_t)[val length];
             uint8_t * pVal = (uint8_t *) [val bytes];
             err = _mWeaveCppGenericTraitUpdatableDataSink->SetBytes([path UTF8String], pVal, valLen, isConditionalBool);
@@ -541,21 +532,18 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)setStringArray:(NSArray*)stringArray
-                         path:(NSString *) path
-                  conditional:(BOOL) isConditional
+- (WEAVE_ERROR)setStringArray:(NSArray *)stringArray path:(NSString *)path conditional:(BOOL)isConditional
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block bool isConditionalBool= isConditional;
+    __block bool isConditionalBool = isConditional;
 
     std::vector<std::string> stringVector;
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    for (id object in stringArray)
-    {
+    for (id object in stringArray) {
         stringVector.push_back(std::string([object UTF8String]));
     }
     // need this bracket to use Verify macros
@@ -574,64 +562,56 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)setSigned:(int64_t)val
-                    path:(NSString *)path
+- (WEAVE_ERROR)setSigned:(int64_t)val path:(NSString *)path
 {
-    return [self setSigned:val path:path conditional: NO];
+    return [self setSigned:val path:path conditional:NO];
 }
 
-- (WEAVE_ERROR)setUnsigned:(uint64_t)val
-                      path:(NSString *)path
+- (WEAVE_ERROR)setUnsigned:(uint64_t)val path:(NSString *)path
 
 {
-    return [self setUnsigned:val path:path conditional: NO];
+    return [self setUnsigned:val path:path conditional:NO];
 }
 
-- (WEAVE_ERROR)setDouble:(double)val
-                    path:(NSString *)path
+- (WEAVE_ERROR)setDouble:(double)val path:(NSString *)path
 
 {
-    return [self setDouble:val path:path conditional: NO];
+    return [self setDouble:val path:path conditional:NO];
 }
 
-- (WEAVE_ERROR)setBoolean:(BOOL) val
-                     path:(NSString *)path
+- (WEAVE_ERROR)setBoolean:(BOOL)val path:(NSString *)path
 {
-    return [self setBoolean:val path:path conditional: NO];
+    return [self setBoolean:val path:path conditional:NO];
 }
 
-- (WEAVE_ERROR)setString:(NSString *) val
-                    path:(NSString *) path
+- (WEAVE_ERROR)setString:(NSString *)val path:(NSString *)path
 {
-    return [self setString:val path:path conditional: NO];
+    return [self setString:val path:path conditional:NO];
 }
 
 - (WEAVE_ERROR)setNull:(NSString *)path
 {
-    return [self setNull:path conditional: NO];
+    return [self setNull:path conditional:NO];
 }
 
-- (WEAVE_ERROR)setBytes:(NSData *) val
-                   path:(NSString *) path
+- (WEAVE_ERROR)setBytes:(NSData *)val path:(NSString *)path
 {
-    return [self setBytes:val path:path conditional: NO];
+    return [self setBytes:val path:path conditional:NO];
 }
 
-- (WEAVE_ERROR)setStringArray:(NSArray*)stringArray
-                         path:(NSString *) path
+- (WEAVE_ERROR)setStringArray:(NSArray *)stringArray path:(NSString *)path
 {
-    return [self setStringArray:stringArray path:path conditional: NO];
+    return [self setStringArray:stringArray path:path conditional:NO];
 }
 
-- (WEAVE_ERROR)getSigned:(int64_t *)val
-                    path:(NSString *)path
+- (WEAVE_ERROR)getSigned:(int64_t *)val path:(NSString *)path
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block int64_t result = 0;
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(NULL != val, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // need this bracket to use Verify macros
@@ -657,15 +637,14 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)getUnsigned:(uint64_t *)val
-                      path:(NSString *)path
+- (WEAVE_ERROR)getUnsigned:(uint64_t *)val path:(NSString *)path
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block uint64_t result = 0;
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(NULL != val, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // need this bracket to use Verify macros
@@ -691,15 +670,14 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)getDouble:(double *)val
-                    path:(NSString *)path
+- (WEAVE_ERROR)getDouble:(double *)val path:(NSString *)path
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block double result = 0;
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(NULL != val, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // need this bracket to use Verify macros
@@ -725,15 +703,14 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)getBoolean:(BOOL *)val
-                     path:(NSString *)path
+- (WEAVE_ERROR)getBoolean:(BOOL *)val path:(NSString *)path
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block bool result = false;
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(NULL != val, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // need this bracket to use Verify macros
@@ -761,17 +738,16 @@ exit:
 - (NSString *)getString:(NSString *)path
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block  nl::Weave::DeviceManager::BytesData bytesData;
+    __block nl::Weave::DeviceManager::BytesData bytesData;
     NSString * result = nil;
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // need this bracket to use Verify macros
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
-
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetBytes([path UTF8String], &bytesData);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
@@ -781,59 +757,57 @@ exit:
             }
         });
     }
-    result = [[NSString alloc]initWithBytes:bytesData.mpDataBuf length:bytesData.mDataLen encoding:NSUTF8StringEncoding];
+    result = [[NSString alloc] initWithBytes:bytesData.mpDataBuf length:bytesData.mDataLen encoding:NSUTF8StringEncoding];
 
 exit:
     return result;
 }
 
-- (WEAVE_ERROR)isNull:(BOOL *)val
-                 path:(NSString *)path;
+- (WEAVE_ERROR)isNull:(BOOL *)val path:(NSString *)path;
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block bool result = false;
-    
+
     WDM_LOG_METHOD_SIG();
-    
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(NULL != val, err = WEAVE_ERROR_INVALID_ARGUMENT);
-    
+
     // need this bracket to use Verify macros
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->IsNull([path UTF8String], result);
-            
+
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
                 WDM_LOG_DEBUG(@"Got incorrect state error from isNull, ignore");
-                
+
                 err = WEAVE_NO_ERROR; // No exception, just return 0.
             }
         });
     }
-    
+
 exit:
     if ((WEAVE_NO_ERROR == err) && (NULL != val)) {
         *val = result;
     }
-    
+
     return err;
 }
 
 - (NSData *)getBytes:(NSString *)path
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
-    __block  nl::Weave::DeviceManager::BytesData bytesData;
+    __block nl::Weave::DeviceManager::BytesData bytesData;
     NSData * result = nil;
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // need this bracket to use Verify macros
     {
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
-
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetBytes([path UTF8String], &bytesData);
 
             if (err == WEAVE_ERROR_INCORRECT_STATE) {
@@ -853,11 +827,11 @@ exit:
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block std::vector<std::string> stringVector;
-    NSMutableArray *arrayOut = [[NSMutableArray alloc] init];
+    NSMutableArray * arrayOut = [[NSMutableArray alloc] init];
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // need this bracket to use Verify macros
     {
@@ -873,8 +847,7 @@ exit:
         });
     }
 
-    for (auto iter = stringVector.begin(); iter < stringVector.end(); iter++)
-    {
+    for (auto iter = stringVector.begin(); iter < stringVector.end(); iter++) {
         [arrayOut addObject:[NSString stringWithCString:iter->c_str() encoding:[NSString defaultCStringEncoding]]];
     }
 
@@ -889,7 +862,7 @@ exit:
 
     WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(NULL !=_mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(NULL != val, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // need this bracket to use Verify macros

@@ -18,7 +18,8 @@
 
 /**
  *    @file
- *      This file provides defines non-public portion of NLWdmClient interface
+ *      This file provides defines non-public portion of NLWdmClient interface.
+ *      This is WEAVE_CONFIG_DATA_MANAGEMENT_EXPERIMENTAL feature.
  *
  */
 
@@ -28,11 +29,11 @@
 
 @interface NLWdmClient ()
 - (instancetype)init:(NSString *)name
-      weaveWorkQueue:(dispatch_queue_t)weaveWorkQueue
-    appCallbackQueue:(dispatch_queue_t)appCallbackQueue
-         exchangeMgr:(nl::Weave::WeaveExchangeManager *)exchangeMgr
-         messageLayer:(nl::Weave::WeaveMessageLayer *)messageLayer
-         nlWeaveDeviceManager:(NLWeaveDeviceManager *)deviceMgr NS_DESIGNATED_INITIALIZER;
+          weaveWorkQueue:(dispatch_queue_t)weaveWorkQueue
+        appCallbackQueue:(dispatch_queue_t)appCallbackQueue
+             exchangeMgr:(nl::Weave::WeaveExchangeManager *)exchangeMgr
+            messageLayer:(nl::Weave::WeaveMessageLayer *)messageLayer
+    nlWeaveDeviceManager:(NLWeaveDeviceManager *)deviceMgr NS_DESIGNATED_INITIALIZER;
 
 - (NSString *)statusReportToString:(NSUInteger)profileId statusCode:(NSInteger)statusCode;
 

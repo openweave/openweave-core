@@ -31,7 +31,6 @@
 #include <Weave/Support/CodeUtils.h>
 
 #include <WeaveDeviceManager.h>
-#include <WeaveDataManagementClient.h>
 
 #include <net/if.h>
 

@@ -18,7 +18,8 @@
 
 /**
  *    @file
- *      This file defines NLWdmClient interface
+ *      This file defines NLWdmClient interface.
+ *      This is WEAVE_CONFIG_DATA_MANAGEMENT_EXPERIMENTAL feature.
  *
  */
 
@@ -41,20 +42,19 @@ typedef void (^WdmClientFailureBlock)(id owner, NSError * error);
 - (instancetype)init NS_UNAVAILABLE;
 
 /**
- *  @brief Forcifully release all resources and destroy all references.
+ *  @brief Forcefully release all resources and destroy all references.
  *
- *  There is no way to revive this device manager after this call.
+ *  There is no way to revive this WDMClient after this call.
  */
 - (void)close:(WdmClientCompletionBlock)completionHandler;
-
 
 // ----- Error Logging -----
 - (NSString *)toErrorString:(WEAVE_ERROR)err;
 
 /**
- * set weave node id in trait catalog in WdmClient
+ * set Weave node ID in trait catalog in WdmClient
  *
- * @param nodeId weave node id
+ * @param nodeId Weave node ID
  *
  */
 - (void *)setNodeId:(uint64_t)nodeId;
@@ -62,23 +62,22 @@ typedef void (^WdmClientFailureBlock)(id owner, NSError * error);
 /**
  * Create the new data newDataSink
  *
- * @param nlResourceIdentifier resource id is a globally-unique identifier for a Weave/phoenix resource
+ * @param nlResourceIdentifier resource id is a globally-unique identifier for a Weave resource
  * @param profileId trait profile id
  * @param instanceId trait instance id
  * @param path trait path
  *
  */
 - (NLGenericTraitUpdatableDataSink *)newDataSink:(NLResourceIdentifier *)nlResourceIdentifier
-                                       profileId: (uint32_t)profileId
-                                      instanceId: (uint64_t)instanceId
-                                            path: (NSString *)path;
+                                       profileId:(uint32_t)profileId
+                                      instanceId:(uint64_t)instanceId
+                                            path:(NSString *)path;
 
 /**
  * Begins a flush of all trait data. The result of this operation can be observed through the CompletionHandler and
  * failureHandler
  */
-- (void)flushUpdate:(WdmClientCompletionBlock)completionHandler
-            failure:(WdmClientFailureBlock)failureHandler;
+- (void)flushUpdate:(WdmClientCompletionBlock)completionHandler failure:(WdmClientFailureBlock)failureHandler;
 
 /**
  * Begins a sync of all trait data. The result of this operation can be observed through the CompletionHandler and
@@ -87,4 +86,3 @@ typedef void (^WdmClientFailureBlock)(id owner, NSError * error);
 - (void)refreshData:(WdmClientCompletionBlock)completionHandler failure:(WdmClientFailureBlock)failureHandler;
 
 @end
-

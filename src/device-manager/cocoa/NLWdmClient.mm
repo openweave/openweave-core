@@ -18,7 +18,8 @@
 
 /**
  *    @file
- *      This file implements NLWdmClient interface
+ *      This file implements NLWdmClient interface.
+ *      This is WEAVE_CONFIG_DATA_MANAGEMENT_EXPERIMENTAL feature.
  *
  */
 
@@ -51,37 +52,36 @@ using namespace nl::Weave::Profiles;
 using namespace nl::Weave::Profiles::DataManagement;
 
 #if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
-static void bindingEventCallback (void * const apAppState, const nl::Weave::Binding::EventType aEvent,
-                                  const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam);
+static void bindingEventCallback(void * const apAppState, const nl::Weave::Binding::EventType aEvent,
+    const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam);
 
-void bindingEventCallback (void * const apAppState, const nl::Weave::Binding::EventType aEvent,
-                                  const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam)
+void bindingEventCallback(void * const apAppState, const nl::Weave::Binding::EventType aEvent,
+    const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam)
 {
     WDM_LOG_DEBUG(@"%s: Event(%d)", __func__, aEvent);
 
-    switch (aEvent)
-    {
-        case nl::Weave::Binding::kEvent_PrepareRequested:
-            WDM_LOG_DEBUG(@"kEvent_PrepareRequested");
-            break;
+    switch (aEvent) {
+    case nl::Weave::Binding::kEvent_PrepareRequested:
+        WDM_LOG_DEBUG(@"kEvent_PrepareRequested");
+        break;
 
-        case nl::Weave::Binding::kEvent_PrepareFailed:
-            WDM_LOG_DEBUG(@"kEvent_PrepareFailed: reason %s", ::nl::ErrorStr(aInParam.PrepareFailed.Reason));
-            break;
+    case nl::Weave::Binding::kEvent_PrepareFailed:
+        WDM_LOG_DEBUG(@"kEvent_PrepareFailed: reason %s", ::nl::ErrorStr(aInParam.PrepareFailed.Reason));
+        break;
 
-        case nl::Weave::Binding::kEvent_BindingFailed:
-            WDM_LOG_DEBUG(@"kEvent_BindingFailed: reason %s", ::nl::ErrorStr(aInParam.PrepareFailed.Reason));
-            break;
+    case nl::Weave::Binding::kEvent_BindingFailed:
+        WDM_LOG_DEBUG(@"kEvent_BindingFailed: reason %s", ::nl::ErrorStr(aInParam.PrepareFailed.Reason));
+        break;
 
-        case nl::Weave::Binding::kEvent_BindingReady:
-            WDM_LOG_DEBUG(@"kEvent_BindingReady");
-            break;
+    case nl::Weave::Binding::kEvent_BindingReady:
+        WDM_LOG_DEBUG(@"kEvent_BindingReady");
+        break;
 
-        case nl::Weave::Binding::kEvent_DefaultCheck:
-            WDM_LOG_DEBUG(@"kEvent_DefaultCheck");
-            // fall through
-        default:
-            nl::Weave::Binding::DefaultEventHandler(apAppState, aEvent, aInParam, aOutParam);
+    case nl::Weave::Binding::kEvent_DefaultCheck:
+        WDM_LOG_DEBUG(@"kEvent_DefaultCheck");
+        // fall through
+    default:
+        nl::Weave::Binding::DefaultEventHandler(apAppState, aEvent, aInParam, aOutParam);
     }
 }
 
@@ -126,11 +126,11 @@ void bindingEventCallback (void * const apAppState, const nl::Weave::Binding::Ev
 }
 
 - (instancetype)init:(NSString *)name
-      weaveWorkQueue:(dispatch_queue_t)weaveWorkQueue
-    appCallbackQueue:(dispatch_queue_t)appCallbackQueue
-         exchangeMgr:(nl::Weave::WeaveExchangeManager *)exchangeMgr
-         messageLayer:(nl::Weave::WeaveMessageLayer *)messageLayer
-         nlWeaveDeviceManager:(NLWeaveDeviceManager *)deviceMgr
+          weaveWorkQueue:(dispatch_queue_t)weaveWorkQueue
+        appCallbackQueue:(dispatch_queue_t)appCallbackQueue
+             exchangeMgr:(nl::Weave::WeaveExchangeManager *)exchangeMgr
+            messageLayer:(nl::Weave::WeaveMessageLayer *)messageLayer
+    nlWeaveDeviceManager:(NLWeaveDeviceManager *)deviceMgr
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     long long deviceMgrCppPtr = 0;
@@ -149,10 +149,10 @@ void bindingEventCallback (void * const apAppState, const nl::Weave::Binding::Ev
     WDM_LOG_DEBUG(@"NewWdmClient() called");
 
     [deviceMgr GetDeviceMgrPtr:&deviceMgrCppPtr];
-    pBinding = exchangeMgr->NewBinding(bindingEventCallback, (nl::Weave::DeviceManager::WeaveDeviceManager*)deviceMgrCppPtr);
+    pBinding = exchangeMgr->NewBinding(bindingEventCallback, (nl::Weave::DeviceManager::WeaveDeviceManager *) deviceMgrCppPtr);
     VerifyOrExit(NULL != pBinding, err = WEAVE_ERROR_NO_MEMORY);
 
-    err = ((nl::Weave::DeviceManager::WeaveDeviceManager*)deviceMgrCppPtr)->ConfigureBinding(pBinding);
+    err = ((nl::Weave::DeviceManager::WeaveDeviceManager *) deviceMgrCppPtr)->ConfigureBinding(pBinding);
     SuccessOrExit(err);
 
     _mWeaveCppWdmClient = new nl::Weave::DeviceManager::WdmClient();
@@ -172,8 +172,7 @@ exit:
     } else {
         WDM_LOG_ERROR(@"Error in init : (%d) %@\n", err, [NSString stringWithUTF8String:nl::ErrorStr(err)]);
         [self shutdown_Internal];
-        if (NULL != pBinding)
-        {
+        if (NULL != pBinding) {
             pBinding->Release();
         }
     }
@@ -189,8 +188,8 @@ static void handleWdmClientComplete(void * wdmClient, void * reqState)
     [client dispatchAsyncCompletionBlock:nil];
 }
 
-static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERROR code,
-    nl::Weave::DeviceManager::DeviceStatus * devStatus)
+static void handleWdmClientError(
+    void * wdmClient, void * appReqState, WEAVE_ERROR code, nl::Weave::DeviceManager::DeviceStatus * devStatus)
 {
     WDM_LOG_DEBUG(@"handleWdmClientError");
 
@@ -210,14 +209,14 @@ static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERR
                     errorCode:devStatus->SystemErrorCode
                  statusReport:[client statusReportToString:devStatus->StatusProfileId statusCode:devStatus->StatusCode]];
         requestError = NLWeaveRequestError_ProfileStatusError;
-        userInfo = @{ @"WeaveRequestErrorType" : @(requestError), @"errorInfo" : statusError };
+        userInfo = @{@"WeaveRequestErrorType" : @(requestError), @"errorInfo" : statusError};
 
         WDM_LOG_DEBUG(@"%@: status error: %@", client.name, userInfo);
     } else {
         NLWeaveError * weaveError = [[NLWeaveError alloc] initWithWeaveError:code
                                                                       report:[NSString stringWithUTF8String:nl::ErrorStr(code)]];
         requestError = NLWeaveRequestError_WeaveError;
-        userInfo = @{ @"WeaveRequestErrorType" : @(requestError), @"errorInfo" : weaveError };
+        userInfo = @{@"WeaveRequestErrorType" : @(requestError), @"errorInfo" : weaveError};
     }
 
     error = [NSError errorWithDomain:@"com.nest.error" code:code userInfo:userInfo];
@@ -285,7 +284,6 @@ static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERR
         dispatch_async(_mAppCallbackQueue, ^() {
             completionHandler(_owner, data);
         });
-
     }
 }
 
@@ -332,16 +330,14 @@ static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERR
 {
     WDM_LOG_METHOD_SIG();
 
-    NSArray * keys =[_mTraitMap allKeys];
- 
-    for(NSString * key in keys)
-    {
-       NLGenericTraitUpdatableDataSink * pDataSink =[_mTraitMap objectForKey:key];
-       NSLog(@"key=%@, pDataSink=%@",key, pDataSink);
-       if ((NSNull *)pDataSink != [NSNull null])
-       {
-           [pDataSink close];
-       }
+    NSArray * keys = [_mTraitMap allKeys];
+
+    for (NSString * key in keys) {
+        NLGenericTraitUpdatableDataSink * pDataSink = [_mTraitMap objectForKey:key];
+        NSLog(@"key=%@, pDataSink=%@", key, pDataSink);
+        if ((NSNull *) pDataSink != [NSNull null]) {
+            [pDataSink close];
+        }
     }
     [_mTraitMap removeAllObjects];
     _mTraitMap = nil;
@@ -376,12 +372,11 @@ static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERR
     });
 }
 
-- (void) removeDataSinkRef:(long long)traitInstancePtr;
+- (void)removeDataSinkRef:(long long)traitInstancePtr;
 {
-    NSString *address = [NSString stringWithFormat:@"%lld", traitInstancePtr];
+    NSString * address = [NSString stringWithFormat:@"%lld", traitInstancePtr];
 
-    if ([_mTraitMap objectForKey:address] != nil) 
-    {
+    if ([_mTraitMap objectForKey:address] != nil) {
         _mTraitMap[address] = [NSNull null];
     }
 }
@@ -390,7 +385,7 @@ static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERR
 {
     WDM_LOG_METHOD_SIG();
 
-    //VerifyOrExit(NULL != _mWeaveCppWdmClient, err = WEAVE_ERROR_INCORRECT_STATE);
+    // VerifyOrExit(NULL != _mWeaveCppWdmClient, err = WEAVE_ERROR_INCORRECT_STATE);
 
     dispatch_sync(_mWeaveWorkQueue, ^() {
         _mWeaveCppWdmClient->SetNodeId(nodeId);
@@ -398,46 +393,43 @@ static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERR
 }
 
 - (NLGenericTraitUpdatableDataSink *)newDataSink:(NLResourceIdentifier *)nlResourceIdentifier
-                                       profileId: (uint32_t)profileId
-                                      instanceId: (uint64_t)instanceId
-                                            path: (NSString *)path;
+                                       profileId:(uint32_t)profileId
+                                      instanceId:(uint64_t)instanceId
+                                            path:(NSString *)path;
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     __block nl::Weave::DeviceManager::GenericTraitUpdatableDataSink * pDataSink = NULL;
     WDM_LOG_METHOD_SIG();
 
-    //VerifyOrExit(NULL != _mWeaveCppWdmClient, err = WEAVE_ERROR_INCORRECT_STATE);
+    // VerifyOrExit(NULL != _mWeaveCppWdmClient, err = WEAVE_ERROR_INCORRECT_STATE);
 
     dispatch_sync(_mWeaveWorkQueue, ^() {
         ResourceIdentifier resId = [nlResourceIdentifier toResourceIdentifier];
         err = _mWeaveCppWdmClient->NewDataSink(resId, profileId, instanceId, [path UTF8String], pDataSink);
     });
- 
-     if (err != WEAVE_NO_ERROR || pDataSink == NULL)
-    {
+
+    if (err != WEAVE_NO_ERROR || pDataSink == NULL) {
         WDM_LOG_ERROR(@"pDataSink is not ready");
         return nil;
     }
 
-    NSString *address = [NSString stringWithFormat:@"%lld", (long long)pDataSink];
+    NSString * address = [NSString stringWithFormat:@"%lld", (long long) pDataSink];
 
-    if ([_mTraitMap objectForKey:address] == nil) 
-    {
+    if ([_mTraitMap objectForKey:address] == nil) {
         WDM_LOG_DEBUG(@"creating new NLGenericTraitUpdatableDataSink with profild id %d", profileId);
         NLGenericTraitUpdatableDataSink * pTrait = [[NLGenericTraitUpdatableDataSink alloc] init:_name
-                                                                                            weaveWorkQueue:_mWeaveWorkQueue
-                                                                                            appCallbackQueue:_mAppCallbackQueue
-                                                                                            genericTraitUpdatableDataSinkPtr: pDataSink
-                                                                                            nlWdmClient:self];
+                                                                                  weaveWorkQueue:_mWeaveWorkQueue
+                                                                                appCallbackQueue:_mAppCallbackQueue
+                                                                genericTraitUpdatableDataSinkPtr:pDataSink
+                                                                                     nlWdmClient:self];
         [_mTraitMap setObject:pTrait forKey:address];
     }
 
     return [_mTraitMap objectForKey:address];
 }
 
-- (void)flushUpdate:(WdmClientCompletionBlock)completionHandler
-            failure:(WdmClientFailureBlock)failureHandler
+- (void)flushUpdate:(WdmClientCompletionBlock)completionHandler failure:(WdmClientFailureBlock)failureHandler
 {
     WDM_LOG_METHOD_SIG();
 
@@ -450,7 +442,8 @@ static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERR
             _mCompletionHandler = [completionHandler copy];
             _mFailureHandler = [failureHandler copy];
 
-            WEAVE_ERROR err = _mWeaveCppWdmClient->FlushUpdate((__bridge void *) self, handleWdmClientComplete, handleWdmClientError);
+            WEAVE_ERROR err
+                = _mWeaveCppWdmClient->FlushUpdate((__bridge void *) self, handleWdmClientComplete, handleWdmClientError);
 
             if (WEAVE_NO_ERROR != err) {
                 [self dispatchAsyncDefaultFailureBlockWithCode:err];
@@ -464,8 +457,7 @@ static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERR
     });
 }
 
-- (void)refreshData:(WdmClientCompletionBlock)completionHandler
-            failure:(WdmClientFailureBlock)failureHandler
+- (void)refreshData:(WdmClientCompletionBlock)completionHandler failure:(WdmClientFailureBlock)failureHandler
 {
     WDM_LOG_METHOD_SIG();
 
@@ -478,7 +470,8 @@ static void handleWdmClientError(void * wdmClient, void * appReqState, WEAVE_ERR
             _mCompletionHandler = [completionHandler copy];
             _mFailureHandler = [failureHandler copy];
 
-            WEAVE_ERROR err = _mWeaveCppWdmClient->RefreshData((__bridge void *) self, handleWdmClientComplete, handleWdmClientError, NULL);
+            WEAVE_ERROR err
+                = _mWeaveCppWdmClient->RefreshData((__bridge void *) self, handleWdmClientComplete, handleWdmClientError, NULL);
 
             if (WEAVE_NO_ERROR != err) {
                 [self dispatchAsyncDefaultFailureBlockWithCode:err];
