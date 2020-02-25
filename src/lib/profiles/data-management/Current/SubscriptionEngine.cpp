@@ -1649,7 +1649,8 @@ void SubscriptionEngine::ConstructStatusListVersionList(nl::Weave::TLV::TLVWrite
     updateResponseBuilder.EndOfResponse();
     SuccessOrExit(updateResponseBuilder.GetError());
 
-    aWriter.Finalize();
+    err = aWriter.Finalize();
+    SuccessOrExit(err);
 
     WeaveLogDetail(DataManagement, "ConstructStatusListVersionList success with number of elements %d", context->mNumDataElements);
 
