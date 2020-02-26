@@ -27,12 +27,13 @@
 #define GENERIC_PLATFORM_MANAGER_IMPL_IPP
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
+#include <Weave/DeviceLayer/NetworkTelemetryManager.h>
 #include <Weave/DeviceLayer/PlatformManager.h>
 #include <Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h>
 #include <Weave/DeviceLayer/internal/DeviceControlServer.h>
 #include <Weave/DeviceLayer/internal/DeviceDescriptionServer.h>
-#include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/FabricProvisioningServer.h>
+#include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/ServiceProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/ServiceDirectoryManager.h>
 #include <Weave/DeviceLayer/internal/EchoServer.h>
@@ -277,6 +278,15 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     }
     SuccessOrExit(err);
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_NETWORK_TELEMETRY
+    err = NetworkTelemetryMgr().Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DeviceLayer, "Network Telemetry Manager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_NETWORK_TELEMETRY
 
 exit:
     return err;
