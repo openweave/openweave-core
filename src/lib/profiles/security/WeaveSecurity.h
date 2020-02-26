@@ -145,6 +145,8 @@ enum
                                                         //    Presently this has the same internal structure as an ECDSASignature.
     kTag_WeaveAccessToken                       = 9,    // [ structure ] A Weave Access Token object
     kTag_GroupKeySignature                      = 10,   // [ structure ] A Weave group Key signature object
+    kTag_SerializedSession                      = 11,   // [ structure ] A serialized representation of Weave session
+                                                        //    suitable for persisting.
 
     // ---- Context-specific Tags for WeaveCertificate Structure ----
     kTag_SerialNumber                           = 1,    // [ byte string ] Certificate serial number, in BER integer encoding.
@@ -322,7 +324,25 @@ enum
     kTag_DNAttrType_WeaveDeviceId               = 17,   // [ unsigned int ]
     kTag_DNAttrType_WeaveServiceEndpointId      = 18,   // [ unsigned int ]
     kTag_DNAttrType_WeaveCAId                   = 19,   // [ unsigned int ]
-    kTag_DNAttrType_WeaveSoftwarePublisherId    = 20    // [ unsigned int ]
+    kTag_DNAttrType_WeaveSoftwarePublisherId    = 20,   // [ unsigned int ]
+
+    // ---- Context-specific Tags for Serialized Session structure ----
+    kTag_SerializedSession_KeyId                        = 1,  // [ UNSIGNED INT, range 16bits ] Assigned session key id
+    kTag_SerializedSession_PeerNodeId                   = 2,  // [ UNSIGNED INT, range 64bits ] Node id of session peer
+    kTag_SerializedSession_NextMessageId                = 3,  // [ UNSIGNED INT, range 32bits ] Next message id
+    kTag_SerializedSession_MaxRcvdMessageId             = 4,  // [ UNSIGNED INT, range 32bits ] Max received message id
+    kTag_SerializedSession_MessageRcvdFlags             = 5,  // [ UNSIGNED INT, range 64bits ] Message received flags
+    kTag_SerializedSession_IsLocallyInitiated           = 6,  // [ BOOLEAN ] Is session locally initiated
+    kTag_SerializedSession_IsShared                     = 7,  // [ BOOLEAN ] Is session shared
+    kTag_SerializedSession_SharedSessionAltNodeIds      = 8,  // [ ARRAY OF UNSIGNED INT, range 64bits ] For a shared session,
+                                                              //    list of alternate peer node ids.
+    kTag_SerializedSession_CASE_PeerCertType            = 9,  // [ UNSIGNED INT, range 8bits ] For CASE sessions, the type
+                                                              //    of certificate presented by the peer.
+    kTag_SerializedSession_EncryptionType               = 10, // [ UNSIGNED INT, range 8bits ] Message encryption type
+    kTag_SerializedSession_AES128CTRSHA1_DataKey        = 11, // [ BYTE STRING, len 16 ] For sessions supporting AES128CTRSHA1
+                                                              //    message encryption, the data encryption key.
+    kTag_SerializedSession_AES128CTRSHA1_IntegrityKey   = 12, // [ BYTE STRING, len 20 ] For sessions supporting AES128CTRSHA1
+                                                              //    message encryption, the data integrity key.
 };
 
 // Weave-defined elliptic curve ids
