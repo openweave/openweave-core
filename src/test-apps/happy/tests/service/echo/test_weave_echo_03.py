@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 #
+#    Copyright (c) 2020 Google, LLC.
 #    Copyright (c) 2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -71,6 +72,10 @@ class test_weave_echo_03(test_weave_echo_base):
 
         print "weave echo test A03: to the Bastion Service Endpoint using shared CASE session"
         echo_args["endpoint"] = "BastionService"
+        super(test_weave_echo_03, self).weave_echo_base(echo_args)
+
+        print "weave echo test A03: to the WOCA Service Endpoint using shared CASE session"
+        echo_args["endpoint"] = "WOCA"
         super(test_weave_echo_03, self).weave_echo_base(echo_args)
 
 if __name__ == "__main__":

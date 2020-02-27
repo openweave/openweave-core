@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -54,6 +55,7 @@
 #include <Weave/Profiles/service-directory/ServiceDirectory.h>
 #include <Weave/Profiles/heartbeat/WeaveHeartbeat.h>
 #include <Weave/Support/crypto/WeaveCrypto.h>
+#include "MockCPClient.h"
 #include "MockDCLPServer.h"
 #include "MockNPServer.h"
 #include "MockSPServer.h"
@@ -65,6 +67,7 @@
 #include "MockTokenPairingServer.h"
 #include "MockWdmViewClient.h"
 #include "MockWdmViewServer.h"
+#include "MockWOCAServer.h"
 
 #include "MockWdmSubscriptionInitiator.h"
 #include "MockWdmSubscriptionResponder.h"
@@ -158,7 +161,7 @@ bool EnableRetry = false;
 
 bool Debug = false;
 bool Preconfig = false;
-bool UseCASE = false;
+bool UseCASE = true;
 const char *ConnectToAddr = NULL;
 uint32_t ConnectIntervalMS = 2000;
 WeaveEchoServer EchoServer;
@@ -166,11 +169,13 @@ WeaveHeartbeatReceiver HeartbeatReceiver;
 MockNetworkProvisioningServer MockNPServer;
 MockDropcamLegacyPairingServer MockDCLPServer;
 MockServiceProvisioningServer MockSPServer;
+MockCertificateProvisioningClient MockCPClient;
 MockFabricProvisioningServer MockFPServer;
 MockPairingServer MockPairingEPServer;
 MockDeviceDescriptionServer MockDDServer;
 MockDeviceControlServer MockDCServer;
 MockTokenPairingServer MockTPServer;
+MockWeaveOperationalCAServer MockWOCAServer;
 
 #if WEAVE_CONFIG_TIME
 MockTimeSync MockTimeNode;
@@ -195,6 +200,9 @@ const char *PairingServer = NULL;
 uint64_t PairingEndPointIdArg = kServiceEndpoint_ServiceProvisioning;
 int PairingTransportArg = kPairingTransport_TCP;
 
+const char *WOCAServer = NULL;
+uint64_t WOCAServerEndPointIdArg = kServiceEndpoint_DeviceOperationalCA;
+
 #define TOOL_NAME "mock-device"
 
 enum
@@ -212,6 +220,8 @@ enum
     kToolOpt_TunnelConnectAddr                  = 1014,
     kToolOpt_TunnelDestNodeId                   = 1015,
 
+    kToolOpt_WOCAServer                         = 1030,
+    kToolOpt_WOCAEndPointId                     = 1031,
     kToolOpt_PairViaWRM                         = 1035,
     kToolOpt_PairingEndPointId                  = 1037,
 
@@ -251,6 +261,8 @@ static OptionDef gToolOptionDefs[] =
     { "pairing-server",             kArgumentRequired,  'p' },
     { "wrm-pairing",                kNoArgument,        kToolOpt_PairViaWRM },
     { "pairing-endpoint-id",        kArgumentRequired,  kToolOpt_PairingEndPointId },
+    { "woca-server",                kArgumentRequired,  kToolOpt_WOCAServer },
+    { "woca-endpoint-id",           kArgumentRequired,  kToolOpt_WOCAEndPointId },
     { "delay",                      kArgumentRequired,  'r' },
     { "delay-time",                 kArgumentRequired,  't' },
     { "preconfig",                  kNoArgument,        'c' },
@@ -296,6 +308,12 @@ static const char *const gToolOptionHelp =
     "\n"
     "  --pairing-endpoint-id\n"
     "       The node id of the pairing service endpoint.\n"
+    "\n"
+    "  --woca-server <hostname>\n"
+    "       Hostname/IP address of WOCA server.\n"
+    "\n"
+    "  --woca-endpoint-id\n"
+    "       The node id of the WOCA service endpoint.\n"
     "\n"
     "  --connect-to <addr>[:<port>][%<interface>]\n"
     "       Create a Weave connection to the specified address on start up. This\n"
@@ -610,9 +628,24 @@ int main(int argc, char *argv[])
     FAIL_ERROR(err, "MockServiceProvisioningServer.Init failed");
     MockSPServer.PairingTransport = PairingTransportArg;
     MockSPServer.PairingEndPointId = PairingEndPointIdArg;
+    MockSPServer.PairingUseCASE = UseCASE;
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+    MockSPServer.mTunnelAgent = &TunAgent;
+#endif // WEAVE_CONFIG_ENABLE_TUNNELING
     if (PairingServer != NULL)
     {
         MockSPServer.PairingServerAddr = PairingServer;
+    }
+
+    // Initialize the mock certificate provisioning client
+    err = MockCPClient.Init(&ExchangeMgr);
+    FAIL_ERROR(err, "MockCertificateProvisioningClient.Init failed");
+    MockCPClient.WOCAServerTransport = PairingTransportArg;
+    MockCPClient.WOCAServerEndPointId = WOCAServerEndPointIdArg;
+    MockCPClient.WOCAServerUseCASE = UseCASE;
+    if (WOCAServer != NULL)
+    {
+        MockCPClient.WOCAServerAddr = WOCAServer;
     }
 
     // Initialize the mock fabric provisioning server
@@ -634,6 +667,10 @@ int main(int argc, char *argv[])
     // Initialize the mock token pairing server.
     err = MockTPServer.Init(&ExchangeMgr);
     FAIL_ERROR(err, "MockTPServer.Init failed");
+
+    // Initialize the mock Weave operational certificate authority server.
+    err = MockWOCAServer.Init(&ExchangeMgr);
+    FAIL_ERROR(err, "MockWOCAServer.Init failed");
 
 
     InitializeEventLogging(&ExchangeMgr);
@@ -688,11 +725,13 @@ int main(int argc, char *argv[])
         MockNPServer.Preconfig();
         MockFPServer.Preconfig();
         MockSPServer.Preconfig();
+        // MockCPClient.Preconfig(); // TODO: Remove
     }
 
     PrintNodeConfig();
 
     printf("  Pairing Server: %s\n", MockSPServer.PairingServerAddr);
+    printf("  WOCA Server: %s\n", MockCPClient.WOCAServerAddr);
 
     // If instructed to initiate a connection to a remote address, arm a timer that will
     // fire as soon as we enter the network service loop.
@@ -910,6 +949,8 @@ int main(int argc, char *argv[])
     MockPairingEPServer.Shutdown();
     MockTPServer.Shutdown();
     MockSPServer.Shutdown();
+    MockCPClient.Shutdown();
+    MockWOCAServer.Shutdown();
 #if WEAVE_CONFIG_LEGACY_WDM
     MockDMPublisher.Finalize();
 #endif
@@ -957,6 +998,16 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
         if (!ParseNodeId(arg, PairingEndPointIdArg))
         {
             PrintArgError("%s: Invalid value specified for pairing endpoint node id: %s\n", progName, arg);
+            return false;
+        }
+        break;
+    case kToolOpt_WOCAServer:
+        WOCAServer = arg;
+        break;
+    case kToolOpt_WOCAEndPointId:
+        if (!ParseNodeId(arg, WOCAServerEndPointIdArg))
+        {
+            PrintArgError("%s: Invalid value specified for WOCA endpoint node id: %s\n", progName, arg);
             return false;
         }
         break;

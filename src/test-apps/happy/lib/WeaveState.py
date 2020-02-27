@@ -327,6 +327,9 @@ class WeaveState(State):
         endpoint["KeyExport"] = {}
         endpoint["KeyExport"]["id"] = '18B4300200000014'    # Use Bastion Service Endpoint ID
 
+        endpoint["WOCA"] = {}
+        endpoint["WOCA"]["id"] = '18B4300200000016'    # Weave Operational Certificate Authority Service Endpoint ID
+
         return endpoint
 
     def getSerialNum(self, node_id=None, state=None):

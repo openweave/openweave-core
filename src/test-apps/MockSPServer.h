@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -28,11 +29,20 @@
 #ifndef MOCKSPSERVER_H_
 #define MOCKSPSERVER_H_
 
+#include "MockCPClient.h"
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
 
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+#include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
+#endif // WEAVE_CONFIG_ENABLE_TUNNELING
+
 using nl::Weave::WeaveExchangeManager;
 using namespace nl::Weave::Profiles::ServiceProvisioning;
+
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+using namespace ::nl::Weave::Profiles::WeaveTunnel;
+#endif // WEAVE_CONFIG_ENABLE_TUNNELING
 
 enum
 {
@@ -54,6 +64,10 @@ public:
     uint64_t PairingEndPointId;
     const char *PairingServerAddr;
     int PairingTransport;
+    bool PairingUseCASE;
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+    WeaveTunnelAgent * mTunnelAgent;
+#endif // WEAVE_CONFIG_ENABLE_TUNNELING
 
 protected:
     WEAVE_ERROR HandleRegisterServicePairAccount(RegisterServicePairAccountMessage& msg);
@@ -87,10 +101,18 @@ private:
     static void HandlePairingServerConnectionComplete(nl::Weave::WeaveConnection *con, WEAVE_ERROR conErr);
     static void HandlePairingServerConnectionClosed(nl::Weave::WeaveConnection *con, WEAVE_ERROR conErr);
 
+    WEAVE_ERROR StartPairDeviceToAccount(void);
     WEAVE_ERROR PrepareBindingForPairingServer();
     static void HandlePairingServerBindingEvent(void *const appState, const nl::Weave::Binding::EventType event,
                                                 const nl::Weave::Binding::InEventParam &inParam,
                                                 nl::Weave::Binding::OutEventParam &outParam);
+
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+    void ReestablishWeaveTunnel(void);
+#endif // WEAVE_CONFIG_ENABLE_TUNNELING
+    static WEAVE_ERROR EncodeGetCertificateRequestAuthInfo(void *const appState, TLVWriter &writer);
+    static void HandleCertificateProvisioningResult(void *const appState, WEAVE_ERROR localErr,
+                                                    uint32_t statusProfileId, uint16_t statusCode);
 };
 
 #endif /* MOCKSPSERVER_H_ */

@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -48,6 +49,7 @@ using namespace nl::Weave::Profiles::ServiceProvisioning;
 using namespace nl::Weave::Profiles::DeviceDescription;
 
 extern MockDeviceDescriptionServer MockDDServer;
+extern MockCertificateProvisioningClient MockCPClient;
 
 MockServiceProvisioningServer::MockServiceProvisioningServer()
 {
@@ -85,6 +87,7 @@ WEAVE_ERROR MockServiceProvisioningServer::Init(WeaveExchangeManager *exchangeMg
 
     PairingEndPointId = FabricState->LocalNodeId;
     PairingServerAddr = defaultPairingServerAddr;
+    PairingUseCASE = false;
 
     // Clear our state.
     mPersistedServiceId = 0;
@@ -236,6 +239,89 @@ WEAVE_ERROR MockServiceProvisioningServer::HandleRegisterServicePairAccount(Regi
         ExitNow();
     }
 
+    err = MockCPClient.StartCertificateProvisioning(WeaveCertProvEngine::kReqType_GetInitialOpDeviceCert,
+                                                    EncodeGetCertificateRequestAuthInfo, this,
+                                                    HandleCertificateProvisioningResult);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR MockServiceProvisioningServer::EncodeGetCertificateRequestAuthInfo(void *const appState, TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    MockServiceProvisioningServer *server = (MockServiceProvisioningServer *) appState;
+    const RegisterServicePairAccountMessage & regServiceMsg = server->mCurClientOpMsg.RegisterServicePairAccount;
+
+    // Encode pairing token.
+    err = writer.PutBytes(ContextTag(kTag_GetCertReqMsg_Authorize_PairingToken), regServiceMsg.PairingToken, regServiceMsg.PairingTokenLen);
+    SuccessOrExit(err);
+
+    // Encode pairing initialization data.
+    err = writer.PutBytes(ContextTag(kTag_GetCertReqMsg_Authorize_PairingInitData), regServiceMsg.PairingInitData, regServiceMsg.PairingInitDataLen);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+void MockServiceProvisioningServer::HandleCertificateProvisioningResult(void *const appState, WEAVE_ERROR localErr,
+                                                                        uint32_t statusProfileId, uint16_t statusCode)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    MockServiceProvisioningServer *server = (MockServiceProvisioningServer *) appState;
+
+    if (localErr != WEAVE_NO_ERROR)
+    {
+        server->HandlePairDeviceToAccountResult(localErr, statusProfileId, statusCode);
+    }
+    else
+    {
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+        // Re-start Weave Tunnel to the Weave Tunnel EndPoint.
+        server->ReestablishWeaveTunnel();
+#endif
+
+        err = server->StartPairDeviceToAccount();
+        if (err != WEAVE_NO_ERROR)
+            server->HandlePairDeviceToAccountResult(err, kWeaveProfile_Common, Profiles::Common::kStatus_InternalServerProblem);
+    }
+}
+
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+void MockServiceProvisioningServer::ReestablishWeaveTunnel(void)
+{
+    uint32_t waitTimeMs = 2000;
+
+    ServiceNetworkUntil(NULL, &waitTimeMs);
+
+    // Clear shared CASE session to the Core Router.
+    if (PairingUseCASE)
+    {
+        WeaveSessionKey * sharedSession = FabricState->FindSharedSession(kServiceEndpoint_CoreRouter, kWeaveAuthMode_CASE_ServiceEndPoint, kWeaveEncryptionType_AES128CTRSHA1);
+        if (sharedSession != NULL)
+            sharedSession->Clear();
+    }
+
+    // Re-start Weave Tunnel to the Weave Tunnel EndPoint.
+    if (mTunnelAgent != NULL)
+    {
+        mTunnelAgent->StopServiceTunnel();
+
+        ServiceNetworkUntil(NULL, &waitTimeMs);
+
+        mTunnelAgent->StartServiceTunnel();
+
+        ServiceNetworkUntil(NULL, &waitTimeMs);
+    }
+}
+#endif // WEAVE_CONFIG_ENABLE_TUNNELING
+
+WEAVE_ERROR MockServiceProvisioningServer::StartPairDeviceToAccount(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
     if (kPairingTransport_TCP == PairingTransport)
     {
         // At this point, the device must send a PairDeviceToAccount request to the service endpoint that handles
@@ -268,7 +354,7 @@ WEAVE_ERROR MockServiceProvisioningServer::HandleRegisterServicePairAccount(Regi
     }
     else
     {
-        err = WEAVE_ERROR_INCORRECT_STATE;
+        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
     }
 
 exit:
@@ -289,12 +375,24 @@ WEAVE_ERROR MockServiceProvisioningServer::PrepareBindingForPairingServer()
     // TODO: [TT] PairingEndPointId appears to default to the local node id.
     //            Shouldn't it default to kServiceEndpoint_ServiceProvisioning instead,
     //            if this is how it's used?
-    err = mPairingServerBinding->BeginConfiguration()
-            .Target_NodeId(PairingEndPointId)
-            .TargetAddress_IP(endPointAddr)
-            .Transport_UDP_WRM()
-            .Security_None()
-            .PrepareBinding();
+    if (PairingUseCASE)
+    {
+        err = mPairingServerBinding->BeginConfiguration()
+                .Target_NodeId(PairingEndPointId)
+                .TargetAddress_IP(endPointAddr)
+                .Transport_UDP_WRM()
+                .Security_SharedCASESession()
+                .PrepareBinding();
+    }
+    else
+    {
+        err = mPairingServerBinding->BeginConfiguration()
+                .Target_NodeId(PairingEndPointId)
+                .TargetAddress_IP(endPointAddr)
+                .Transport_UDP_WRM()
+                .Security_None()
+                .PrepareBinding();
+    }
     SuccessOrExit(err);
 
 exit:

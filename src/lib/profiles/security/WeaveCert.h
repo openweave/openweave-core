@@ -42,6 +42,7 @@ namespace Security {
 
 using nl::Weave::TLV::TLVReader;
 using nl::Weave::TLV::TLVWriter;
+using nl::Weave::ASN1::ASN1Writer;
 using nl::Weave::ASN1::OID;
 using nl::Weave::Crypto::EncodedECPublicKey;
 using nl::Weave::Crypto::EncodedECPrivateKey;
@@ -294,6 +295,8 @@ extern WEAVE_ERROR GenerateOperationalDeviceCert(uint64_t deviceId, EncodedECPub
                                                  GenerateECDSASignatureFunct genCertSignature);
 
 extern WEAVE_ERROR DecodeWeaveDN(TLVReader& reader, WeaveDN& dn);
+
+extern WEAVE_ERROR DecodeConvertTBSCert(TLVReader& reader, ASN1Writer& writer, WeaveCertificateData& certData);
 
 extern WEAVE_ERROR ConvertX509CertToWeaveCert(const uint8_t *x509Cert, uint32_t x509CertLen, uint8_t *weaveCertBuf, uint32_t weaveCertBufSize, uint32_t& weaveCertLen);
 extern WEAVE_ERROR ConvertWeaveCertToX509Cert(const uint8_t *weaveCert, uint32_t weaveCertLen, uint8_t *x509CertBuf, uint32_t x509CertBufSize, uint32_t& x509CertLen);

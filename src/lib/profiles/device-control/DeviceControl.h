@@ -111,7 +111,7 @@ enum
     kResetConfigFlag_NetworkConfig              = 0x0001, /**< Reset network configuration information. */
     kResetConfigFlag_FabricConfig               = 0x0002, /**< Reset fabric configuration information. */
     kResetConfigFlag_ServiceConfig              = 0x0004, /**< Reset network configuration information. */
-    kResetConfigFlag_OperationalCredentials     = 0x0008, /**< Reset device operational credentials. */
+    kResetConfigFlag_OperationalCredentials     = 0x4000, /**< Reset device operational credentials. */
     kResetConfigFlag_FactoryDefaults            = 0x8000  /**< Reset device to full factory defaults. */
 };
 

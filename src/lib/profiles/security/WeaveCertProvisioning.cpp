@@ -181,6 +181,7 @@ WEAVE_ERROR WeaveCertProvEngine::GenerateGetCertificateRequest(PacketBuffer * ms
     VerifyOrExit(reqType == kReqType_GetInitialOpDeviceCert ||
                  reqType == kReqType_RotateOpDeviceCert, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
+    reqType = kReqType_NotSpecified; // TODO: Remove, this is temporary for testing
     mReqType = reqType;
     mDoMfrAttest = doMfrAttest;
 

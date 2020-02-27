@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+#    Copyright (c) 2020 Google, LLC.
 #    Copyright (c) 2015-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -172,7 +173,7 @@ class ServiceAccountManager(object):
 
         if not self.password:
             # Check if service password is set
-            self.password = "nest-egg"
+            self.password = "nest-egg123"
             emsg = "ServiceAccountManager: using default weave_service_password %s." % (
                 self.password)
             self.logger.debug(emsg)

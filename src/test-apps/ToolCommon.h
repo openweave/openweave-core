@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -66,7 +67,6 @@
 #include <PlatformLayer/Ble/Bluez/WoBluezLayer.h>
 #endif // CONFIG_BLE_PLATFORM_BLUEZ
 
-
 using namespace nl::Inet;
 using namespace nl::Weave;
 using namespace nl::Weave::Profiles;
@@ -122,6 +122,18 @@ extern uint8_t TestDevice2_Cert[];
 extern uint16_t TestDevice2_CertLength;
 extern uint8_t TestDevice2_PrivateKey[];
 extern uint16_t TestDevice2_PrivateKeyLength;
+
+extern const uint8_t TestDevice1_X509_RSA_PrivateKey[];
+extern const uint16_t TestDevice1_X509_RSA_PrivateKeyLength;
+extern const uint8_t TestDevice1_X509_RSA_Cert[];
+extern const uint16_t TestDevice1_X509_RSA_CertLength;
+extern const uint8_t TestDevice1_X509_RSA_ICACert1[];
+extern const uint16_t TestDevice1_X509_RSA_ICACert1Length;
+extern const uint8_t TestDevice1_X509_RSA_ICACert2[];
+extern const uint16_t TestDevice1_X509_RSA_ICACert2Length;
+
+extern const uint8_t TestDevice_X509_RSA_RootCert[];
+extern const uint16_t TestDevice_X509_RSA_RootCertLength;
 
 extern bool sSuppressAccessControls;
 

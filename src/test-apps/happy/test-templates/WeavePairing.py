@@ -2,7 +2,7 @@
 
 
 #
-#    Copyright (c) 2019 Google, LLC.
+#    Copyright (c) 2020 Google, LLC.
 #    Copyright (c) 2015-2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -39,9 +39,17 @@ from WeaveTest import WeaveTest
 
 
 options = {"quiet": False,
+           "service": None,
            "mobile": None,
            "device": None,
            "server": None,
+           "service_dir": False,
+           "woca_server": None,
+           "tun_server": None,
+           "service_dir_server": None,
+           "case": False,
+           "case_cert_path": None,
+           "case_key_path": None,
            "tap": None,
            "tier": None,
            "username": None,
@@ -52,6 +60,7 @@ options = {"quiet": False,
            'server_process_tag': "WEAVE-PAIRING-SERVER",
            'mobile_node_id': None,
            'server_node_id': None,
+           'woca_node_id': None,
            'register_cmd': None}
 
 
@@ -61,16 +70,20 @@ def option():
 
 class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
     """
-    weave-pairing [-h --help] [-q --quiet] [-m --mobile <NAME>] [-d --device <NAME>] [-s --server <NAME>]
+    weave-pairing [-h --help] [-q --quiet] [-m --mobile <NAME>] [-d --device <NAME>] [-s --server <NAME>] [-w --woca_server <NAME>]
+        [-C --case] [-E --case_cert_path <path>] [-T --case_key_path <path>]
 
     command to test pairing using a local mock server:
-        $ weave-pairing --mobile node01 --device node02 --server node03
+        $ weave-pairing --mobile node01 --device node02 --server node03 --woca_server node03
 
-    command to test pairing using the default Weave ServiceProvisioning node-id over the internet:
-        $ weave-pairing --mobile node01 --device node02 --server service
+    command to test pairing using the default Weave ServiceProvisioning node-id and WOCA node-id over the internet:
+        $ weave-pairing --mobile node01 --device node02 --server service --woca_server service
 
-    command to test pairing using a custom Weave ServiceProvisioning server over the internet:
-        $ weave-pairing --mobile node01 --device node02 --server <ip address>
+    command to test pairing using the default Weave ServiceProvisioning node-id and WOCA node-id over the internet with CASE session:
+        $ weave-pairing --mobile node01 --device node02 --server service --woca_server service --case --case_cert_path path --case_key_path path
+
+    command to test pairing using a custom Weave ServiceProvisioning server and WOCA server over the internet:
+        $ weave-pairing --mobile node01 --device node02 --server <ip address> --woca_server <ip address>
 
     return:
         0   success
@@ -91,6 +104,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
         resourceIndexList = os.environ.get("RESOURCE_IDS", "thd1").split(" ")
         self.resources = [resourceDictionaries[resourceIndex]
                           for resourceIndex in resourceIndexList]
+
         # Check if Weave Pairing device node is given.
         if self.devices is None:
             emsg = "Missing name or address of the Weave Pairing device node."
@@ -106,6 +120,12 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
         # Check if Weave Pairing server info is given.
         if self.server is None:
             emsg = "Missing name or address of the Weave Pairing server node."
+            self.logger.error("[localhost] WeavePairing: %s" % (emsg))
+            sys.exit(1)
+
+        # Check if Weave Operational CA server info is given.
+        if self.woca_server is None:
+            emsg = "Missing name or address of the Weave Operational CA server node."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
 
@@ -141,12 +161,73 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
             self.server_ip = self.getServiceWeaveIPAddress("ServiceProvisioning")
             self.server_weave_id = self.IPv6toWeaveId(self.server_ip)
 
+        if self._nodeExists(self.woca_server):
+            self.woca_node_id = self.woca_server
+            self.woca_ip = self.getNodeWeaveIPAddress(self.woca_node_id)
+            self.woca_weave_id = self.getWeaveNodeID(self.woca_node_id)
+        elif IP.isIpAddress(self.woca_server):
+            self.woca_ip = self.woca_server
+            self.woca_weave_id = self.IPv6toWeaveId(self.woca_ip)
+        elif IP.isDomainName(self.woca_server) or self.woca_server == "service":
+            self.woca_ip = self.getServiceWeaveIPAddress("WOCA")
+            self.woca_weave_id = self.IPv6toWeaveId(self.woca_ip)
+
+        if self.tun_server is not None:
+            if self._nodeExists(self.tun_server):
+                self.tun_node_id = self.tun_server
+                self.tun_ip = self.getNodeWeaveIPAddress(self.tun_node_id)
+                self.tun_weave_id = self.getWeaveNodeID(self.tun_node_id)
+            elif IP.isIpAddress(self.tun_server):
+                self.tun_ip = self.tun_server
+                self.tun_weave_id = self.IPv6toWeaveId(self.tun_ip)
+            elif IP.isDomainName(self.tun_server) or self.tun_server == "service":
+                self.tun_ip = self.getServiceWeaveIPAddress("Tunnel")
+                self.tun_weave_id = self.IPv6toWeaveId(self.tun_ip)
+
+            if self.tun_ip is None:
+                emsg = "Could not find IP address of the Tunnel server."
+                self.logger.error("[localhost] WeavePairing: %s" % (emsg))
+                sys.exit(1)
+
+            if self.tun_weave_id is None:
+                emsg = "Could not find Weave node ID of the Tunnel server."
+                self.logger.error("[localhost] WeavePairing: %s" % (emsg))
+                sys.exit(1)
+
+            # Check if service node was given in the environment
+            if not self.service and not self.service_dir:
+                if "weave_service_address" in os.environ.keys():
+                    self.service = os.environ['weave_service_address']
+                    emsg = "Found weave_service_address %s." % (self.service)
+                    self.logger.debug("[localhost] Weave: %s" % (emsg))
+
+            if not self.service and self.service_dir:
+                if self.service_dir_server:
+#                    self.skip_service_end = True
+                    self.logger.debug("[localhost] WeaveTunnelStart against tier %s." % self.service_dir_server)
+                else:
+                    if "weave_service_address" in os.environ.keys():
+#                        self.skip_service_end = True
+                        if "unstable" not in os.environ["weave_service_address"]:
+                            self.service_dir_server = os.environ["weave_service_address"]
+                        else:
+                            self.customized_tunnel_port = 20895
+                            self.service_dir_server = os.environ["weave_service_address"] + ":%d" % self.customized_tunnel_port
+                        self.logger.debug("[localhost] WeaveTunnelStart against tier %s." % self.service_dir_server)
+                    else:
+                        # Check if service node was given
+                        emsg = "Service node id (or IP address or service directory) not specified."
+                        self.logger.error("[localhost] WeaveTunnelStart: %s" % (emsg))
+                        self.exit()
+
         self.mobile_ip = self.getNodeWeaveIPAddress(self.mobile_node_id)
 
         self.mobile_weave_id = self.getWeaveNodeID(self.mobile_node_id)
 
         for device, resource in zip(self.devices, self.resources):
             # Check if Weave Pairing device node exists.
+            # TODO: fix
+            device = "BorderRouter"
             if self._nodeExists(device):
                 device_node_id = device
             # Check if device is provided in a form of IP address
@@ -195,12 +276,22 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
             sys.exit(1)
 
         if self.server_ip is None:
-            emsg = "Could not find IP address of the server."
+            emsg = "Could not find IP address of the pairing server."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
 
         if self.server_weave_id is None:
-            emsg = "Could not find Weave node ID of the server."
+            emsg = "Could not find Weave node ID of the pairing server."
+            self.logger.error("[localhost] WeavePairing: %s" % (emsg))
+            sys.exit(1)
+
+        if self.woca_ip is None:
+            emsg = "Could not find IP address of the WOCA server."
+            self.logger.error("[localhost] WeavePairing: %s" % (emsg))
+            sys.exit(1)
+
+        if self.woca_weave_id is None:
+            emsg = "Could not find Weave node ID of the WOCA server."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
 
@@ -349,9 +440,32 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
                 # if the server is a local mock, we need to override the default endpoint id
                 cmd += " --pairing-endpoint-id " + self.server_weave_id
 
+        if self.woca_server is not None:
+            cmd += " --woca-server " + self.woca_ip
+
+            if self.woca_node_id is not None:
+                # if the WOCA server is a local mock, we need to override the default endpoint id
+                cmd += " --woca-endpoint-id " + self.woca_weave_id
+
+        if self.tun_server is not None:
+            cmd += " --tun-border-gw"
+            cmd += " --tun-dest-node-id " + str(self.tun_weave_id)
+            if self.service_dir:
+                cmd += " --service-dir" + " --service-dir-server " + self.service_dir_server
+            else:
+                cmd += " --tun-connect-to " + self.tun_service_ipv4_addr
+
         if self.tap:
             cmd += " --tap-device " + self.tap
 
+        if self.case:
+            cmd += ' --case'
+            if not self.case_cert_path == 'default' and self.woca_server is None:
+                self.cert_file = self.case_cert_path if self.case_cert_path else os.path.join(self.main_conf['log_directory'], device_info['device_weave_id'] + '-cert.weave-b64')
+                self.key_file = self.case_key_path if self.case_key_path else os.path.join(self.main_conf['log_directory'], device_info['device_weave_id'] + '-key.weave-b64')
+                cmd += ' --node-cert ' + self.cert_file + ' --node-key ' + self.key_file
+
+        cmd = self.runAsRoot(cmd)
         self.start_weave_process(
             device_info['device_node_id'],
             cmd,

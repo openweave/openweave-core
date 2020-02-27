@@ -70,7 +70,7 @@ DeviceDescOptions::DeviceDescOptions()
     // Setup Defaults.
     BaseDeviceDesc.Clear();
     BaseDeviceDesc.VendorId = kWeaveVendor_NestLabs;
-    BaseDeviceDesc.ProductId = nl::Weave::Profiles::Vendor::Nestlabs::DeviceDescription::kNestWeaveProduct_Topaz;
+    BaseDeviceDesc.ProductId = nl::Weave::Profiles::Vendor::Nestlabs::DeviceDescription::kNestWeaveProduct_Onyx;
     BaseDeviceDesc.ProductRevision = 1;
     BaseDeviceDesc.ManufacturingDate.Year = 2013;
     BaseDeviceDesc.ManufacturingDate.Month = 1;

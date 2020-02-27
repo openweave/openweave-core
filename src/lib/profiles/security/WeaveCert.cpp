@@ -49,8 +49,6 @@ using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles;
 using namespace nl::Weave::Crypto;
 
-extern WEAVE_ERROR DecodeConvertTBSCert(TLVReader& reader, ASN1Writer& writer, WeaveCertificateData& certData);
-
 #if HAVE_MALLOC && HAVE_FREE
 static void *DefaultAlloc(size_t size)
 {

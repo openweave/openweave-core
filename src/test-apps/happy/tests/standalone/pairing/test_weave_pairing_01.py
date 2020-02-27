@@ -2,6 +2,7 @@
 
 
 #
+#    Copyright (c) 2020 Google LLC.
 #    Copyright (c) 2016-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -103,6 +104,7 @@ class test_weave_pairing_01(unittest.TestCase):
         options["mobile"] = nodeA
         options["devices"] = [nodeB]
         options["server"] = nodeC
+        options["woca_server"] = nodeC
         options["tap"] = self.tap
 
         weave_pairing = WeavePairing.WeavePairing(options)
