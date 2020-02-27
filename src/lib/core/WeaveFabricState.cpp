@@ -762,12 +762,24 @@ WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16
     err = reader.Get(peerNodeId);
     SuccessOrExit(err);
 
-    // Look for or create a session key entry for the given key id and peer node.
+    // Look for / create a session key entry for the given key id and peer node.
     err = FindSessionKey(keyId, peerNodeId, true, sessionKey);
     SuccessOrExit(err);
-
-    // If the key id / peer node matched an existing session key, fail with an error.
-    VerifyOrExit(!sessionKey->IsKeySet(), err = WEAVE_ERROR_DUPLICATE_KEY_ID);
+    if (!sessionKey->IsAllocated())
+    {
+        sessionKey->MsgEncKey.KeyId = keyId;
+        sessionKey->NodeId = peerNodeId;
+        sessionKey->BoundCon = NULL;
+        sessionKey->ReserveCount = 0;
+        sessionKey->Flags = 0;
+    }
+    else
+    {
+        // If the key id / peer node matches an existing session that is NOT suspended, fail with an error.
+        VerifyOrExit(sessionKey->IsSuspended(), err = WEAVE_ERROR_DUPLICATE_KEY_ID);
+    }
+    sessionKey->SetRemoveOnIdle(true);
+    sessionKey->MarkRecentlyActive();
 
     // After this point, if an error occurs, remove the session key.
     removeSessionOnError = true;
