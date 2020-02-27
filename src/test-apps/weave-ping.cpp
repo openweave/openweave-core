@@ -671,7 +671,8 @@ void DriveSending()
         }
 
         // If the --test-session-suspend option has been enabled, suspend and restore
-        // the CASE session every 4 echo requests.
+        // the CASE session every 4 echo requests.  Every 8th echo request, remove the
+        // suspended session before attempting to restore it.
         if (TestSessionSuspend && gWeaveSecurityMode.SecurityMode == WeaveSecurityMode::kCASE)
         {
             if (EchoCount > 0 && (EchoCount % 4) == 0)
@@ -680,16 +681,25 @@ void DriveSending()
                 uint16_t serializedKeyLen;
 
                 printf("Suspending CASE session\n");
-
                 err = FabricState.SuspendSession(EchoClient.KeyId, DestNodeId, buf, sizeof(buf), serializedKeyLen);
                 if (err != WEAVE_NO_ERROR)
                 {
                     printf("FabricState.SuspendSession() failed: %s\n", ErrorStr(err));
                 }
-                else
-                {
-                    printf("Restoring CASE session\n");
 
+                if (err == WEAVE_NO_ERROR && (EchoCount % 8) == 0)
+                {
+                    printf("Removing suspended CASE session\n");
+                    err = FabricState.RemoveSessionKey(EchoClient.KeyId, DestNodeId);
+                    if (err != WEAVE_NO_ERROR)
+                    {
+                        printf("FabricState.RemoveSessionKey() failed: %s\n", ErrorStr(err));
+                    }
+                }
+
+                if (err == WEAVE_NO_ERROR)
+                {
+                    printf("Restoring suspended CASE session\n");
                     err = FabricState.RestoreSession(buf, serializedKeyLen);
                     if (err != WEAVE_NO_ERROR)
                     {
