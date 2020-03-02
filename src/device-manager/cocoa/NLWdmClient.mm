@@ -80,6 +80,7 @@ void bindingEventCallback(void * const apAppState, const nl::Weave::Binding::Eve
     case nl::Weave::Binding::kEvent_DefaultCheck:
         WDM_LOG_DEBUG(@"kEvent_DefaultCheck");
         // fall through
+        OS_FALLTHROUGH;
     default:
         nl::Weave::Binding::DefaultEventHandler(apAppState, aEvent, aInParam, aOutParam);
     }
