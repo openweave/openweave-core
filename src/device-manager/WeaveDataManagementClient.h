@@ -81,7 +81,8 @@ typedef WEAVE_ERROR (*GetDataHandleFunct)(void * apContext, const TraitCatalogBa
 class NL_DLL_EXPORT GenericTraitUpdatableDataSink : public nl::Weave::Profiles::DataManagement::TraitUpdatableDataSink
 {
     friend class WdmClient;
-
+    using nl::Weave::Profiles::DataManagement_Current::TraitDataSink::SetData;
+    using nl::Weave::Profiles::DataManagement_Current::TraitUpdatableDataSink::GetData;
 private:
     GenericTraitUpdatableDataSink(const nl::Weave::Profiles::DataManagement::TraitSchemaEngine * aEngine, WdmClient * apWdmClient);
     ~GenericTraitUpdatableDataSink(void);

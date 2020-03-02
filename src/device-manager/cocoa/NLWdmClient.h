@@ -57,7 +57,7 @@ typedef void (^WdmClientFailureBlock)(id owner, NSError * error);
  * @param nodeId Weave node ID
  *
  */
-- (void *)setNodeId:(uint64_t)nodeId;
+- (void)setNodeId:(uint64_t)nodeId;
 
 /**
  * Create the new data newDataSink

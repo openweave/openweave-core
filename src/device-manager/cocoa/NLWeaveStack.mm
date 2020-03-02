@@ -477,10 +477,10 @@ exit:
     WDM_LOG_METHOD_SIG();
 
     _mDeviceMgr = [[NLWeaveDeviceManager alloc] init:name
-                                                     weaveWorkQueue:_mWorkQueue
-                                                   appCallbackQueue:appCallbackQueue
-                                                        exchangeMgr:&_mExchangeMgr
-                                                        securityMgr:&_mSecurityMgr];
+                                      weaveWorkQueue:_mWorkQueue
+                                    appCallbackQueue:appCallbackQueue
+                                         exchangeMgr:&_mExchangeMgr
+                                         securityMgr:&_mSecurityMgr];
     if (nil == _mDeviceMgr) {
         WDM_LOG_ERROR(@"Cannot create new NLWeaveDeviceManager\n");
     }
@@ -492,12 +492,12 @@ exit:
 {
     WDM_LOG_METHOD_SIG();
 
-    NLWdmClient * _mWdmClient = [[NLWdmClient alloc] init:name
-                                           weaveWorkQueue:_mWorkQueue
-                                         appCallbackQueue:appCallbackQueue
-                                              exchangeMgr:&_mExchangeMgr
-                                             messageLayer:&_mMessageLayer
-                                     nlWeaveDeviceManager:_mDeviceMgr];
+    _mWdmClient = [[NLWdmClient alloc] init:name
+                             weaveWorkQueue:_mWorkQueue
+                           appCallbackQueue:appCallbackQueue
+                                exchangeMgr:&_mExchangeMgr
+                               messageLayer:&_mMessageLayer
+                       nlWeaveDeviceManager:_mDeviceMgr];
     if (nil == _mWdmClient) {
         WDM_LOG_ERROR(@"Cannot create new NLWdmClient\n");
     }
