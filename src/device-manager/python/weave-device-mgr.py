@@ -1148,6 +1148,10 @@ class DeviceMgrCmd(Cmd):
               wpa-enterprise
               wpa2-enterprise
               wpa2-mixed-enterprise
+              wpa3
+              wpa3-mixed-personal
+              wpa3-enterprise
+              wpa3-mixed-enterprise
         """
 
         args = shlex.split(line)

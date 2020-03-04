@@ -64,7 +64,10 @@ WiFiSecurityType_WPA2MixedPersonal          = 5
 WiFiSecurityType_WPAEnterprise              = 6
 WiFiSecurityType_WPA2Enterprise             = 7
 WiFiSecurityType_WPA2MixedEnterprise        = 8
-
+WiFiSecurityType_WPA3Personal               = 9
+WiFiSecurityType_WPA3MixedPersonal          = 10
+WiFiSecurityType_WPA3Enterprise             = 11
+WiFiSecurityType_WPA3MixedEnterprise        = 12
 ThreadPANId_NotSpecified                    = 0xFFFFFFFF
 
 ThreadChannel_NotSpecified                  = 0xFF
@@ -1367,6 +1370,14 @@ def WiFiSecurityTypeToString(val):
         return "WPA2Enterprise"
     if (val == WiFiSecurityType_WPA2MixedEnterprise):
         return "WPA2MixedEnterprise"
+    if (val == WiFiSecurityType_WPA3Personal):
+        return "WPA3"
+    if (val == WiFiSecurityType_WPA3MixedPersonal):
+        return "WPA3Mixed"
+    if (val == WiFiSecurityType_WPA3Enterprise):
+        return "WPA3Enterprise"
+    if (val == WiFiSecurityType_WPA3MixedEnterprise):
+        return "WPA3MixedEnterprise"
     if (val != None):
         return "Unknown (" + str(val)+ ")"
     return None
@@ -1381,14 +1392,22 @@ def ParseSecurityType(val):
         return WiFiSecurityType_WPAPersonal
     if (val == 'wpa2' or val == 'wpa2personal' or val == 'wpa2-personal'):
         return WiFiSecurityType_WPA2Personal
+    if (val == 'wpa3' or val == 'wpa3personal' or val == 'wpa3-personal'):
+        return WiFiSecurityType_WPA3Personal
     if (val == 'wpa2mixed' or val == 'wpa2-mixed' or val == 'wpa2mixedpersonal' or val == 'wpa2-mixed-personal'):
         return WiFiSecurityType_WPA2MixedPersonal
+    if (val == 'wpa3mixed' or val == 'wpa3-mixed' or val == 'wpa3mixedpersonal' or val == 'wpa3-mixed-personal'):
+        return WiFiSecurityType_WPA3MixedPersonal
     if (val == 'wpaenterprise' or val == 'wpa-enterprise'):
         return WiFiSecurityType_WPAEnterprise
     if (val == 'wpa2enterprise' or val == 'wpa2-enterprise'):
         return WiFiSecurityType_WPA2Enterprise
+    if (val == 'wpa3enterprise' or val == 'wpa3-enterprise'):
+        return WiFiSecurityType_WPA3Enterprise
     if (val == 'wpa2mixedenterprise' or val == 'wpa2-mixed-enterprise'):
         return WiFiSecurityType_WPA2MixedEnterprise
+    if (val == 'wpa3mixedenterprise' or val == 'wpa3-mixed-enterprise'):
+        return WiFiSecurityType_WPA3MixedEnterprise
     raise Exception("Invalid Wifi security type: " + str(val))
 
 def DeviceFeatureToString(val):
