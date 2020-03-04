@@ -1905,6 +1905,23 @@
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 
 /**
+ *  @def WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+ *
+ *  @brief
+ *    If set to (1), persistent service directory is enabled.
+ *    Default value is (0) or disabled.
+ *
+ *  @note
+ *    Enabling this feature flag persists the service directory
+ *    cache retrieved from the directory server and use it to
+ *    populate the in-memory cache at initialization time.
+ *
+ */
+#ifndef WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+#define WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY               0
+#endif // WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+
+/**
  *  @def WEAVE_CONFIG_SERVICE_DIR_CONNECT_TIMEOUT_MSECS
  *
  *  @brief
