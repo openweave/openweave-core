@@ -2284,7 +2284,7 @@
  *  @def WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
  *
  *  @brief
- *    Enable (1) or disable (0) the exclusive use of the depricated
+ *    Enable (1) or disable (0) the exclusive use of the deprecated
  *    version of AddNetwork() message in the Network Provisioning
  *    profile.
  *    This option should be enabled when exclusively pairing with Nest
@@ -2307,6 +2307,24 @@
 #ifndef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 #define WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN         0
 #endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+
+/**
+ *  @def WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+ *
+ *  @brief
+ *    Demand enable UDP as needed in the WeaveDeviceManager
+ *
+ *  When this option is enabled, the WeaveDeviceManager will automatically enable
+ *  listening for Weave messages over UDP whenever required to perform a device
+ *  management operation, and disable it when the operation completes.
+ *
+ *  This feature can be used to reduce competition for UDP listening ports the
+ *  WeaveDeviceManager is used in multiple processes on the same host.
+ *
+ */
+#ifndef WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+#define WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP     0
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
 
 /**
  * @def WEAVE_NON_PRODUCTION_MARKER

@@ -508,7 +508,8 @@ class DeviceMgrCmd(Cmd):
             print(str(ex))
             return
 
-        print("Connected to device.")
+        print("Connected to device %X at %s" % (self.devMgr.DeviceId(), self.devMgr.DeviceAddress()))
+
     def do_blediagtest(self, line):
         """
         ble-diag-test [ <options> ]
