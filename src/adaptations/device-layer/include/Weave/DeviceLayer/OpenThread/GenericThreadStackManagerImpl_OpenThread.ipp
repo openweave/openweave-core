@@ -775,7 +775,7 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "GetAndLogThreadTopologyMinimul failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "GetAndLogThreadTopologyMinimal failed: %s", nl::ErrorStr(err));
     }
 
     return err;
