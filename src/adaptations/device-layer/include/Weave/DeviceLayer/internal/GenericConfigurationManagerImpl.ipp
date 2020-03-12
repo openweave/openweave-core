@@ -223,7 +223,7 @@ template<class ImplClass>
 WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetPrimary802154MACAddress(uint8_t * buf)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
-    return ThreadStackManager().GetPrimary802154MACAddress(buf);
+    return ThreadStackMgr().GetPrimary802154MACAddress(buf);
 #else
     return WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND;
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
