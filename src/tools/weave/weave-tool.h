@@ -132,6 +132,9 @@ extern bool GenerateKeyPair(const char *curveName, EVP_PKEY *& key);
 extern bool EncodePrivateKey(EVP_PKEY *key, KeyFormat keyFormat, uint8_t *& encodedKey, uint32_t& encodedKeyLen);
 extern bool WeaveEncodePrivateKey(EVP_PKEY *key, uint8_t *& encodedKey, uint32_t& encodedKeyLen);
 extern bool WeaveEncodeECPrivateKey(EC_KEY *key, bool includePubKey, uint8_t *& encodedKey, uint32_t& encodedKeyLen);
+extern bool ReadPublicKey(const char *fileName, const char *prompt, EVP_PKEY *& key);
+extern bool DecodePublicKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, const char *prompt, EVP_PKEY *& key);
+extern KeyFormat DetectPublicKeyFormat(const uint8_t *key, uint32_t keyLen);
 
 extern bool InitOpenSSL();
 extern OID NIDToWeaveOID(int nid);

@@ -186,8 +186,10 @@ bool DecodePrivateKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat key
     if (keyFormat == kKeyFormat_Weave_Base64)
     {
         tmpKeyBuf = Base64Decode(keyData, keyDataLen, NULL, 0, keyDataLen);
-        if (tmpKeyBuf == NULL)
-            goto exit;
+        if (tmpKeyBuf == NULL) {
+            fprintf(stderr, "Base64 decoding error\n");
+            ExitNow(res = false);
+        }
         keyData = tmpKeyBuf;
         keyFormat = kKeyFormat_Weave_Raw;
     }
@@ -619,4 +621,102 @@ exit:
         encodedKey = NULL;
     }
     return res;
+}
+
+bool ReadPublicKey(const char *fileName, const char *prompt, EVP_PKEY *& key)
+{
+    bool res = true;
+    uint8_t *keyData = NULL;
+    uint32_t keyDataLen;
+
+    key = NULL;
+
+    res = ReadFileIntoMem(fileName, keyData, keyDataLen);
+    if (!res)
+        ExitNow();
+
+    res = DecodePublicKey(keyData, keyDataLen, kKeyFormat_Unknown, fileName, prompt, key);
+
+exit:
+    if (keyData != NULL)
+        free(keyData);
+    return res;
+}
+
+bool DecodePublicKeyOnly(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, EVP_PKEY *& key, bool noErrorOutput)
+{
+    bool res = true;
+    uint8_t *tmpKeyBuf = NULL;
+    BIO *keyBIO = NULL;
+
+    key = NULL;
+
+    if (keyFormat == kKeyFormat_Unknown)
+    {
+        keyFormat = DetectPublicKeyFormat(keyData, keyDataLen);
+    }
+
+    if (keyFormat != kKeyFormat_PEM && keyFormat != kKeyFormat_DER)
+    {
+        if (!noErrorOutput)
+            fprintf(stderr, "Unsupported public key format\n");
+        ExitNow(res = false);
+    }
+
+    keyBIO = BIO_new_mem_buf((void *)keyData, keyDataLen);
+    if (keyBIO == NULL)
+    {
+        if (!noErrorOutput)
+            fprintf(stderr, "Memory allocation error\n");
+        ExitNow(res = false);
+    }
+
+    if (keyFormat == kKeyFormat_PEM)
+    {
+        if (PEM_read_bio_PUBKEY(keyBIO, &key, NULL, NULL) == NULL)
+        {
+            if (!noErrorOutput) {
+                fprintf(stderr, "Unable to read %s\n", keySource);
+                ReportOpenSSLErrorAndExit("PEM_read_bio_PUBKEY", res = false);
+            }
+            ExitNow(res = false);
+        }
+    }
+    else
+    {
+        if (d2i_PUBKEY_bio(keyBIO, &key) == NULL)
+        {
+            if (!noErrorOutput) {
+                fprintf(stderr, "Unable to read %s\n", keySource);
+                ReportOpenSSLErrorAndExit("d2i_PUBKEY_bio", res = false);
+            }
+            ExitNow(res = false);
+        }
+    }
+
+exit:
+    if (tmpKeyBuf != NULL)
+        free(tmpKeyBuf);
+    if (keyBIO != NULL)
+        BIO_free_all(keyBIO);
+    return res;
+}
+
+bool DecodePublicKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *prompt, const char *keySource, EVP_PKEY *& key)
+{
+    bool res = true;
+    key = NULL;
+    res = DecodePublicKeyOnly(keyData, keyDataLen, keyFormat, keySource, key, true);
+    if (!res)
+        return DecodePrivateKey(keyData, keyDataLen, keyFormat, prompt, keySource, key);
+    return res;
+}
+
+KeyFormat DetectPublicKeyFormat(const uint8_t *key, uint32_t keyLen)
+{
+    static const char *publicKeyPEMMarker = "-----BEGIN PUBLIC KEY-----";
+
+    return ContainsPEMMarker(publicKeyPEMMarker, key, keyLen)
+        ? kKeyFormat_PEM
+        : kKeyFormat_DER;
 }
