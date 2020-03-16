@@ -1626,8 +1626,12 @@ exit:
     }
 }
 
-TestBTraitDataSource::TestBTraitDataSource()
-    : TraitDataSource(&TestBTrait::TraitSchema)
+TestBTraitDataSource::TestBTraitDataSource():
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+    TraitUpdatableDataSource(&TestBTrait::TraitSchema)
+#else
+    TraitDataSource(&TestBTrait::TraitSchema)
+#endif
 {
     SetVersion(200);
     taa = TestATrait::ENUM_A_VALUE_1;
@@ -1650,6 +1654,207 @@ TestBTraitDataSource::TestBTraitDataSource()
     tbc_sab = false;
     MOCK_strlcpy(tbc_seac, "hallo", sizeof(tbc_seac));
 }
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+WEAVE_ERROR
+TestBTraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    switch (aLeafHandle) {
+        //
+        // TestATrait
+        //
+
+        case TestBTrait::kPropertyHandle_TaA:
+            int32_t next_taa;
+            err = aReader.Get(next_taa);
+            SuccessOrExit(err);
+            if (next_taa != taa)
+            {
+                WeaveLogDetail(DataManagement, "<<  ta_a is changed from %u to %u", taa, next_taa);
+                taa = next_taa;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  ta_a = %u", taa);
+            break;
+
+        case TestBTrait::kPropertyHandle_TaB:
+            int32_t next_tab;
+            err = aReader.Get(next_tab);
+            SuccessOrExit(err);
+            if (next_tab != tab)
+            {
+                WeaveLogDetail(DataManagement, "<<  ta_b is changed from %u to %u", tab, next_tab);
+                tab = next_tab;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  ta_b = %u", tab);
+            break;
+
+        case TestBTrait::kPropertyHandle_TaC:
+            uint32_t next_tac;
+            err = aReader.Get(next_tac);
+            SuccessOrExit(err);
+            if (next_tac != tac)
+            {
+                WeaveLogDetail(DataManagement, "<<  ta_c is changed from %u to %u", tac, next_tac);
+                tac = next_tac;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  ta_c = %u", tac);
+            break;
+
+        case TestBTrait::kPropertyHandle_TaD_SaA:
+            uint32_t next_tad_saa;
+            err = aReader.Get(next_tad_saa);
+            SuccessOrExit(err);
+            if (next_tad_saa != tad_saa)
+            {
+                WeaveLogDetail(DataManagement, "<<  ta_d.sa_a is changed from %u to %u", tad_saa, next_tad_saa);
+                tad_saa = next_tad_saa;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  ta_d.sa_a = %u", tad_saa);
+            break;
+
+        case TestBTrait::kPropertyHandle_TaD_SaB:
+            bool next_tad_sab;
+            err = aReader.Get(next_tad_sab);
+            SuccessOrExit(err);
+            if (next_tad_sab != tad_sab)
+            {
+                WeaveLogDetail(DataManagement, "<<  ta_d.sa_b is changed from %u to %u", tad_sab, next_tad_sab);
+                tad_sab = next_tad_sab;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  ta_d.sa_b = %u", tad_sab);
+            break;
+
+        case TestBTrait::kPropertyHandle_TaE:
+        {
+            TLVType outerType;
+            uint32_t i = 0;
+
+            err = aReader.EnterContainer(outerType);
+            SuccessOrExit(err);
+
+            while (((err = aReader.Next()) == WEAVE_NO_ERROR) && (i < (sizeof(tae) / sizeof(tae[0])))) {
+                uint32_t next_tae;
+                err = aReader.Get(next_tae);
+                SuccessOrExit(err);
+                if (tae[i] != next_tae)
+                {
+                    WeaveLogDetail(DataManagement, "<<  ta_e[%u] is changed from %u to %u", i, tae[i], next_tae);
+                    tae[i] = next_tae;
+                }
+
+                WeaveLogDetail(DataManagement, "<<  ta_e[%u] = %u", i, tae[i]);
+                i++;
+            }
+
+            err = aReader.ExitContainer(outerType);
+            break;
+        }
+
+        case TestBTrait::kPropertyHandle_TaP:
+            err = aReader.Get(tap);
+            SuccessOrExit(err);
+
+            WeaveLogDetail(DataManagement, "<<  ta_p = %" PRId64, tap);
+            break;
+
+        //
+        // TestBTrait
+        //
+
+        case TestBTrait::kPropertyHandle_TbA:
+            uint32_t next_tba;
+            err = aReader.Get(next_tba);
+            SuccessOrExit(err);
+            if (tba != next_tba)
+            {
+                WeaveLogDetail(DataManagement, "<<  tb_a is changed from %u to %u", tba, next_tba);
+                tba = next_tba;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  tb_a = %u", tba);
+            break;
+
+        case TestBTrait::kPropertyHandle_TbB_SbA:
+            char next_tbb_sba[10];
+            err = aReader.GetString(next_tbb_sba, 10);
+            SuccessOrExit(err);
+            if (strncmp(tbb_sba, next_tbb_sba, 10))
+            {
+                WeaveLogDetail(DataManagement, "<<  tb_b.sb_a is changed from %s to %s", tbb_sba, next_tbb_sba);
+                memcpy(tbb_sba, next_tbb_sba, 10);
+            }
+
+            WeaveLogDetail(DataManagement, "<<  tb_b.sb_a = %s", tbb_sba);
+            break;
+
+        case TestBTrait::kPropertyHandle_TbB_SbB:
+            uint32_t next_tbb_sbb;
+            err = aReader.Get(next_tbb_sbb);
+            SuccessOrExit(err);
+            if (tbb_sbb != next_tbb_sbb)
+            {
+                WeaveLogDetail(DataManagement, "<<  tb_b.sb_b is changed from %u to %u", tbb_sbb, next_tbb_sbb);
+                tbb_sbb = next_tbb_sbb;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  tb_b.sb_b = %u", tbb_sbb);
+            break;
+
+        case TestBTrait::kPropertyHandle_TbC_SaA:
+            uint32_t next_tbc_saa;
+            err = aReader.Get(next_tbc_saa);
+            SuccessOrExit(err);
+            if (tbc_saa != next_tbc_saa)
+            {
+                WeaveLogDetail(DataManagement, "<<  tb_c.sa_a is changed from %u to %u", tbc_saa, next_tbc_saa);
+                tbc_saa = next_tbc_saa;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  tb_c.sa_a = %u", tbc_saa);
+            break;
+
+        case TestBTrait::kPropertyHandle_TbC_SaB:
+            bool next_tbc_sab;
+            err = aReader.Get(next_tbc_sab);
+            SuccessOrExit(err);
+            if (tbc_sab != next_tbc_sab)
+            {
+                WeaveLogDetail(DataManagement, "<<  tb_c.sa_b is changed from %u to %u", tbc_sab, next_tbc_sab);
+                tbc_sab = next_tbc_sab;
+            }
+
+            WeaveLogDetail(DataManagement, "<<  tb_c.sa_b = %u", tbc_sab);
+            break;
+
+        case TestBTrait::kPropertyHandle_TbC_SeaC:
+            char next_tbc_seac[10];
+            err = aReader.GetString(next_tbc_seac, 10);
+            SuccessOrExit(err);
+            if (strncmp(tbc_seac, next_tbc_seac, 10))
+            {
+                WeaveLogDetail(DataManagement, "<<  tb_c.sea_c is changed from \"%s\" to \"%s\"", tbc_seac, next_tbc_seac);
+                memcpy(tbc_seac, next_tbc_seac, 10);
+            }
+
+            WeaveLogDetail(DataManagement, "<<  tb_c.sea_c = \"%s\"", tbc_seac);
+            break;
+
+        default:
+            WeaveLogDetail(DataManagement, "<<  TestBTrait UNKNOWN! %08x", aLeafHandle);
+    }
+
+exit:
+    return err;
+}
+
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
 
 void TestBTraitDataSource::Mutate()
 {

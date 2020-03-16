@@ -86,6 +86,7 @@ namespace Weave {
 namespace Profiles {
 namespace DataManagement_Current {
 class    WdmUpdateEncoderTest;
+class    WdmUpdateServerTest;
 } // namespace DataManagement_Current
 } // namespace Profiles
 } // namespace Weave
@@ -107,7 +108,7 @@ public:
 
 private:
     friend class nl::Weave::Profiles::DataManagement_Current::WdmUpdateEncoderTest;
-
+    friend class nl::Weave::Profiles::DataManagement_Current::WdmUpdateServerTest;
     void SetNullifiedPath(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle, bool isNull);
     WEAVE_ERROR SetData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle, nl::Weave::TLV::TLVReader &aReader, bool aIsNull) __OVERRIDE;
     WEAVE_ERROR SetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader &aReader) __OVERRIDE;
