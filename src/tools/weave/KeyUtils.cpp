@@ -646,7 +646,6 @@ exit:
 bool DecodePublicKeyOnly(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, EVP_PKEY *& key, bool noErrorOutput)
 {
     bool res = true;
-    uint8_t *tmpKeyBuf = NULL;
     BIO *keyBIO = NULL;
 
     key = NULL;
@@ -695,8 +694,6 @@ bool DecodePublicKeyOnly(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat 
     }
 
 exit:
-    if (tmpKeyBuf != NULL)
-        free(tmpKeyBuf);
     if (keyBIO != NULL)
         BIO_free_all(keyBIO);
     return res;
