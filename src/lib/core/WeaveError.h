@@ -1739,6 +1739,24 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  */
 #define WEAVE_ERROR_SESSION_KEY_SUSPENDED                        _WEAVE_ERROR(183)
 
+/**
+ *  @def WEAVE_ERROR_UNSUPPORTED_WIRELESS_REGULATORY_DOMAIN
+ *
+ *  @brief
+ *    The specified wireless regulatory domain is unsupported.
+ *
+ */
+#define WEAVE_ERROR_UNSUPPORTED_WIRELESS_REGULATORY_DOMAIN       _WEAVE_ERROR(184)
+
+/**
+ *  @def WEAVE_ERROR_UNSUPPORTED_WIRELESS_OPERATING_LOCATION
+ *
+ *  @brief
+ *    The specified wireless operating location is unsupported.
+ *
+ */
+#define WEAVE_ERROR_UNSUPPORTED_WIRELESS_OPERATING_LOCATION      _WEAVE_ERROR(185)
+
 
 /**
  *  @}

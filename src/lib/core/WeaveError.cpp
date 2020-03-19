@@ -230,6 +230,8 @@ bool FormatWeaveError(char * buf, uint16_t bufSize, int32_t err)
     case WEAVE_ERROR_WDM_PATH_STORE_FULL                        : desc = "A WDM TraitPath store is full"; break;
     case WEAVE_EVENT_ID_FOUND                                   : desc = "Event id found"; break;
     case WEAVE_ERROR_SESSION_KEY_SUSPENDED                      : desc = "Session key suspended"; break;
+    case WEAVE_ERROR_UNSUPPORTED_WIRELESS_REGULATORY_DOMAIN     : desc = "Unsupported wireless regulatory domain"; break;
+    case WEAVE_ERROR_UNSUPPORTED_WIRELESS_OPERATING_LOCATION    : desc = "Unsupported wireless operating location"; break;
     }
 #endif // !WEAVE_CONFIG_SHORT_ERROR_STR
 
