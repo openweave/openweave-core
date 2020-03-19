@@ -125,7 +125,7 @@ public:
         kMaxSerialNumberLength                  = 32,  /**< Maximum serial number length. */
         kMaxPairingCodeLength                   = 16,  /**< Maximum pairing code length. */
         kMaxRendezvousWiFiESSID                 = 32,  /**< Maximum WiFi ESSID for Rendezvous length. */
-        kMaxSoftwareVersionLength               = 32   /**< Maximum software version length. */
+        kMaxSoftwareVersionLength               = WEAVE_CONFIG_MAX_SOFTWARE_VERSION_LENGTH   /**< Maximum software version length. */
     };
 
     /**

@@ -2344,6 +2344,18 @@
 #endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
 
 /**
+ *  @def WEAVE_CONFIG_MAX_SOFTWARE_VERSION_LENGTH
+ *
+ *  @brief
+ *    Maximum length of the software version field
+ *    in DeviceDescription.
+ *
+ */
+#ifndef WEAVE_CONFIG_MAX_SOFTWARE_VERSION_LENGTH
+#define WEAVE_CONFIG_MAX_SOFTWARE_VERSION_LENGTH           32
+#endif // WEAVE_CONFIG_MAX_SOFTWARE_VERSION_LENGTH
+
+/**
  * @def WEAVE_NON_PRODUCTION_MARKER
  *
  * @brief Defines the name of a mark symbol whose presence signals that the Weave code
