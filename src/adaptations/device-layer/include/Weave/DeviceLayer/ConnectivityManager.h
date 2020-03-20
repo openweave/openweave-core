@@ -207,14 +207,24 @@ protected:
  */
 struct ConnectivityManager::ThreadPollingConfig
 {
-    uint32_t ActivePollingIntervalMS;                   /**< Interval at which the device polls its parent Thread router when
-                                                             when there are active Weave exchanges in progress. Only meaningful
-                                                             when the device is acting as a sleepy end node. */
 
-    uint32_t InactivePollingIntervalMS;                 /**< Interval at which the device polls its parent Thread router when
-                                                             when there are NO active Weave exchanges in progress. Only meaningful
-                                                             when the device is acting as a sleepy end node. */
+    /**
+     *  Interval at which the device polls its parent Thread router when
+     *  when there are active Weave exchanges in progress. Only meaningful
+     *  when the device is acting as a sleepy end node.
+     */
+    uint32_t ActivePollingIntervalMS;
 
+    /**
+     * Interval at which the device polls its parent Thread router when
+     * when there are NO active Weave exchanges in progress. Only meaningful
+     * when the device is acting as a sleepy end node.
+     */
+    uint32_t InactivePollingIntervalMS;
+
+    /**
+     * Clear the structure, setting all members to 0.
+     */
     void Clear() { memset(this, 0, sizeof(*this)); }
 };
 

@@ -62,6 +62,7 @@ public:
     // *** CAUTION ***: Changing the FDS file or record ids of these values will *break* existing devices.
 
     // Limits/definitions imposed by the Nordic SDK
+    // clang-format off
     static constexpr uint16_t kFDSFileIdMin                     = 0x0000; /**< Minimum value that can be used for a FDS file id (per Nordic SDK) */
     static constexpr uint16_t kFDSFileIdMax                     = 0xBFFF; /**< Maximum value that can be used for a FDS file id (per Nordic SDK) */
     static constexpr uint16_t kFDSRecordKeyMin                  = 0x0001; /**< Minimum value that can be used for a FDS record key (per Nordic SDK) */
@@ -107,6 +108,7 @@ public:
     static constexpr uint16_t kPersistedCounterRecordKeyMax     = kFDSRecordKeyMax;
                                                                           /**< Max record key for records containing Weave persisted counter values. */
 
+    // clang-format on
     static WEAVE_ERROR Init(void);
 
     // Configuration methods used by the GenericConfigurationManagerImpl<> template.

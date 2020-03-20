@@ -103,6 +103,7 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
 {
     const char *fmt = NULL;
 
+    // clang-format off
     switch (profileId)
     {
     case kWeaveProfile_BDX:
@@ -318,15 +319,15 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         break;
     case kWeaveProfile_Tunneling:
         switch (statusCode)
-	{
+        {
 #if WEAVE_CONFIG_ENABLE_TUNNELING
-	case WeaveTunnel::kStatusCode_TunnelOpenFail                                    : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel open failed"; break;
-	case WeaveTunnel::kStatusCode_TunnelCloseFail                                   : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel close failed"; break;
-	case WeaveTunnel::kStatusCode_TunnelRouteUpdateFail                             : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel route update failed"; break;
-	case WeaveTunnel::kStatusCode_TunnelReconnectFail                               : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel reconnect failed"; break;
+        case WeaveTunnel::kStatusCode_TunnelOpenFail                                    : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel open failed"; break;
+        case WeaveTunnel::kStatusCode_TunnelCloseFail                                   : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel close failed"; break;
+        case WeaveTunnel::kStatusCode_TunnelRouteUpdateFail                             : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel route update failed"; break;
+        case WeaveTunnel::kStatusCode_TunnelReconnectFail                               : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel reconnect failed"; break;
 #endif
-	default                                                                         : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ]"; break;
-	}
+        default                                                                         : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ]"; break;
+        }
         break;
 
     case kWeaveProfile_StatusReport_Deprecated:
@@ -341,6 +342,7 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         break;
 
     }
+    // clang-format on
 
     if (fmt == NULL)
         fmt = "[ %08" PRIX32 ":%" PRIu16 " ]";

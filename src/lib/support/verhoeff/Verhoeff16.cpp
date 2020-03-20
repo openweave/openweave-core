@@ -30,6 +30,7 @@
 
 #ifndef VERHOEFF16_NO_MULTIPLY_TABLE
 
+// clang-format off
 uint8_t Verhoeff16::sMultiplyTable[] =
 {
     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
@@ -49,13 +50,16 @@ uint8_t Verhoeff16::sMultiplyTable[] =
     14, 13, 12, 11, 10,  9,  8, 15,  6,  5,  4,  3,  2,  1,  0,  7,
     15, 14, 13, 12, 11, 10,  9,  8,  7,  6,  5,  4,  3,  2,  1,  0,
 };
+// clang-format on
 
 #endif // VERHOEFF16_NO_MULTIPLY_TABLE
 
+// clang-format off
 uint8_t Verhoeff16::sPermTable[] =
 {
     4, 7, 5, 14, 8, 12, 15, 0, 2, 11, 3, 13, 10, 6, 9, 1
 };
+// clang-format on
 
 char Verhoeff16::ComputeCheckChar(const char *str)
 {

@@ -49,6 +49,8 @@ namespace FaultInjection {
  * Each point in the code at which a fault can be injected
  * is identified by a member of this enum.
  */
+
+// clang-format off
 typedef enum
 {
     kFault_AllocExchangeContext,                /**< Fail the allocation of an ExchangeContext */
@@ -103,6 +105,7 @@ typedef enum
 #endif // CONFIG_NETWORK_LAYER_BLE
     kFault_NumItems,
 } Id;
+// clang-format on
 
 NL_DLL_EXPORT nl::FaultInjection::Manager &GetManager(void);
 

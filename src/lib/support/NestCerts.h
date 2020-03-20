@@ -39,141 +39,140 @@
 namespace nl {
 namespace NestCerts {
 
-    /**
-     *   @namespace nl::NestCerts::Production
-     *
-     *   @brief
-     *     This namespace includes global symbols for Nest Weave
-     *     "Production" PKI certificates.
-     *
-     *     @note Production certificates are the only certificates
-     *           that may be used in qualified, tested, shipping Weave
-     *           products.
-     */
+/**
+ *   @namespace nl::NestCerts::Production
+ *
+ *   @brief
+ *     This namespace includes global symbols for Nest Weave
+ *     "Production" PKI certificates.
+ *
+ *     @note Production certificates are the only certificates
+ *           that may be used in qualified, tested, shipping Weave
+ *           products.
+ */
 
-    namespace Production {
+namespace Production {
 
-        /**
-         *   @namespace nl::NestCerts::Production::Root
-         *
-         *   @brief
-         *     This namespace includes global symbols for Nest Weave
-         *     Production Root PKI certificates.
-         */
+/**
+ *   @namespace nl::NestCerts::Production::Root
+ *
+ *   @brief
+ *     This namespace includes global symbols for Nest Weave
+ *     Production Root PKI certificates.
+ */
 
-        namespace Root {
+namespace Root {
 
-            extern const NL_DLL_EXPORT uint8_t Cert[];
-            extern const NL_DLL_EXPORT uint16_t CertLength;
+extern const NL_DLL_EXPORT uint8_t Cert[];
+extern const NL_DLL_EXPORT uint16_t CertLength;
 
-            extern const uint8_t PublicKey[];
-            extern const uint16_t PublicKeyLength;
+extern const uint8_t PublicKey[];
+extern const uint16_t PublicKeyLength;
 
-            extern const uint8_t SubjectKeyId[];
-            extern const uint16_t SubjectKeyIdLength;
+extern const uint8_t SubjectKeyId[];
+extern const uint16_t SubjectKeyIdLength;
 
-            extern const uint32_t CurveOID;
+extern const uint32_t CurveOID;
 
-            extern const uint64_t CAId;
-        }
+extern const uint64_t CAId;
+} // namespace Root
 
-        /**
-         *   @namespace nl::NestCerts::Production::DeviceCA
-         *
-         *   @brief
-         *     This namespace includes global symbols for Nest Weave
-         *     Production Device Certificate Authority (CA) PKI
-         *     certificates.
-         */
+/**
+ *   @namespace nl::NestCerts::Production::DeviceCA
+ *
+ *   @brief
+ *     This namespace includes global symbols for Nest Weave
+ *     Production Device Certificate Authority (CA) PKI
+ *     certificates.
+ */
 
-        namespace DeviceCA {
+namespace DeviceCA {
 
-            extern const NL_DLL_EXPORT uint8_t Cert[];
-            extern const NL_DLL_EXPORT uint16_t CertLength;
+extern const NL_DLL_EXPORT uint8_t Cert[];
+extern const NL_DLL_EXPORT uint16_t CertLength;
 
-            extern const uint8_t PublicKey[];
-            extern const uint16_t PublicKeyLength;
+extern const uint8_t PublicKey[];
+extern const uint16_t PublicKeyLength;
 
-            extern const uint8_t SubjectKeyId[];
-            extern const uint16_t SubjectKeyIdLength;
+extern const uint8_t SubjectKeyId[];
+extern const uint16_t SubjectKeyIdLength;
 
-            extern const uint32_t CurveOID;
+extern const uint32_t CurveOID;
 
-            extern const uint64_t CAId;
+extern const uint64_t CAId;
 
-        }
+} // namespace DeviceCA
 
-    } // namespace Production
+} // namespace Production
 
-    /**
-     *   @namespace nl::NestCerts::Development
-     *
-     *   @brief
-     *     This namespace includes global symbols for Nest Weave
-     *     "Development" PKI certificates.
-     *
-     *     @note Development certificates are the only allowed for
-     *           Weave product development and test and shall not be
-     *           used for qualified, tested, shipping Weave products.
-     */
+/**
+ *   @namespace nl::NestCerts::Development
+ *
+ *   @brief
+ *     This namespace includes global symbols for Nest Weave
+ *     "Development" PKI certificates.
+ *
+ *     @note Development certificates are the only allowed for
+ *           Weave product development and test and shall not be
+ *           used for qualified, tested, shipping Weave products.
+ */
 
-    namespace Development {
+namespace Development {
 
-        /**
-         *   @namespace nl::NestCerts::Development::Root
-         *
-         *   @brief
-         *     This namespace includes global symbols for Nest Weave
-         *     Development Root PKI certificates.
-         */
+/**
+ *   @namespace nl::NestCerts::Development::Root
+ *
+ *   @brief
+ *     This namespace includes global symbols for Nest Weave
+ *     Development Root PKI certificates.
+ */
 
-        namespace Root {
+namespace Root {
 
-            extern const NL_DLL_EXPORT uint8_t Cert[];
-            extern const NL_DLL_EXPORT uint16_t CertLength;
+extern const NL_DLL_EXPORT uint8_t Cert[];
+extern const NL_DLL_EXPORT uint16_t CertLength;
 
-            extern const uint8_t PublicKey[];
-            extern const uint16_t PublicKeyLength;
+extern const uint8_t PublicKey[];
+extern const uint16_t PublicKeyLength;
 
-            extern const uint8_t SubjectKeyId[];
-            extern const uint16_t SubjectKeyIdLength;
+extern const uint8_t SubjectKeyId[];
+extern const uint16_t SubjectKeyIdLength;
 
-            extern const uint32_t CurveOID;
+extern const uint32_t CurveOID;
 
-            extern const uint64_t CAId;
+extern const uint64_t CAId;
 
-        }
+} // namespace Root
 
-        /**
-         *   @namespace nl::NestCerts::Development::DeviceCA
-         *
-         *   @brief
-         *     This namespace includes global symbols for Nest Weave
-         *     Development Device Certificate Authority (CA) PKI
-         *     certificates.
-         */
+/**
+ *   @namespace nl::NestCerts::Development::DeviceCA
+ *
+ *   @brief
+ *     This namespace includes global symbols for Nest Weave
+ *     Development Device Certificate Authority (CA) PKI
+ *     certificates.
+ */
 
-        namespace DeviceCA {
+namespace DeviceCA {
 
-            extern const NL_DLL_EXPORT uint8_t Cert[];
-            extern const NL_DLL_EXPORT uint16_t CertLength;
+extern const NL_DLL_EXPORT uint8_t Cert[];
+extern const NL_DLL_EXPORT uint16_t CertLength;
 
-            extern const uint8_t PublicKey[];
-            extern const uint16_t PublicKeyLength;
+extern const uint8_t PublicKey[];
+extern const uint16_t PublicKeyLength;
 
-            extern const uint8_t SubjectKeyId[];
-            extern const uint16_t SubjectKeyIdLength;
+extern const uint8_t SubjectKeyId[];
+extern const uint16_t SubjectKeyIdLength;
 
-            extern const uint32_t CurveOID;
+extern const uint32_t CurveOID;
 
-            extern const uint64_t CAId;
+extern const uint64_t CAId;
 
-        }
+} // namespace DeviceCA
 
-    } // namespace Development
+} // namespace Development
 
 } // namespace NestCerts
 } // namespace nl
-
 
 #endif /* NESTCERTS_H_ */

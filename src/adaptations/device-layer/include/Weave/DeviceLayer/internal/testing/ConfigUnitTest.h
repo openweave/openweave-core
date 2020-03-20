@@ -127,6 +127,7 @@ void RunConfigUnitTest(void)
     }
 
     // ===== Test 7: Store and read binary data
+    // clang-format off
     {
         const static uint8_t kTestData[] =
         {
@@ -159,7 +160,7 @@ void RunConfigUnitTest(void)
         VerifyOrDie(dataLen == sizeof(kTestData));
         VerifyOrDie(memcmp(buf, kTestData, dataLen) == 0);
     }
-
+    // clang-format on
     // ===== Test 8: Clear binary data
     {
         uint8_t buf[512];

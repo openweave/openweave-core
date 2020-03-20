@@ -47,6 +47,7 @@ bool FormatWeaveError(char * buf, uint16_t bufSize, int32_t err)
         return false;
     }
 
+    // clang-format off
 #if !WEAVE_CONFIG_SHORT_ERROR_STR
     switch (err)
     {
@@ -234,6 +235,7 @@ bool FormatWeaveError(char * buf, uint16_t bufSize, int32_t err)
     case WEAVE_ERROR_UNSUPPORTED_WIRELESS_OPERATING_LOCATION    : desc = "Unsupported wireless operating location"; break;
     }
 #endif // !WEAVE_CONFIG_SHORT_ERROR_STR
+    // clang-format on
 
     FormatError(buf, bufSize, "Weave", err, desc);
 
