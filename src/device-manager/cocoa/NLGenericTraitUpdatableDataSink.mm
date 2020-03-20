@@ -291,6 +291,7 @@ static void handleGenericUpdatableDataSinkError(
 
     if (_mWeaveCppGenericTraitUpdatableDataSink != nil) {
         _mWeaveCppGenericTraitUpdatableDataSink->Clear();
+        _mWeaveCppGenericTraitUpdatableDataSink = nil;
     }
 }
 
