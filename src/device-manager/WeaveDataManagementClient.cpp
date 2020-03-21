@@ -985,7 +985,7 @@ void WdmClient::ClientEventCallback(void * const aAppState, SubscriptionClient::
         WeaveLogDetail(DataManagement, "Client->kEvent_OnSubscriptionTerminated. Reason: %u, peer = 0x%" PRIX64 "\n",
                        aInParam.mSubscriptionTerminated.mReason, aInParam.mSubscriptionTerminated.mClient->GetPeerNodeId());
         pWdmClient->mpSubscriptionClient->AbortSubscription();
-        err = WEAVE_ERROR_INCORRECT_STATE;
+        err = aInParam.mSubscriptionTerminated.mReason;
         break;
     case SubscriptionClient::kEvent_OnUpdateComplete:
         if ((aInParam.mUpdateComplete.mReason == WEAVE_NO_ERROR) &&
@@ -1067,7 +1067,7 @@ WEAVE_ERROR WdmClient::NewDataSink(const ResourceIdentifier & aResourceId, uint3
     PropertyPathHandle handle = kNullPropertyPathHandle;
 
     const TraitSchemaEngine * pEngine = TraitSchemaDirectory::GetTraitSchemaEngine(aProfileId);
-    VerifyOrExit(pEngine != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(pEngine != NULL, err = WEAVE_ERROR_INVALID_PROFILE_ID);
 
     VerifyOrExit(mpSubscriptionClient != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
