@@ -81,6 +81,7 @@ struct TraitPathStore
         size_t GetNextValidItem(size_t i, TraitDataHandle aTraitDataHandle) const;
 
         void RemoveTrait(TraitDataHandle aDataHandle);
+        void RemoveItem(const TraitPath &aItem);
         void RemoveItemAt(size_t aIndex);
 
         void Compact();

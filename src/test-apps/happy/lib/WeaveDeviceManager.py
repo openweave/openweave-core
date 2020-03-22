@@ -2,7 +2,7 @@
 
 #
 #    Copyright (c) 2017-2018 Nest Labs, Inc.
-#    Copyright (c) 2019 Google, LLC.
+#    Copyright (c) 2019-2020 Google, LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -152,12 +152,11 @@ class MockWeaveDataManagementClientImp():
         except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
-
         print "close wdm client complete"
 
-    def newDataSink(self, profileid, instanceid, path, testResOption="default"):
+    def newDataSink(self, statusProfileId, instanceid, path, testResOption="default"):
         """
-          new-data-sink <profileid, instanceid, path>
+          new-data-sink <statusProfileId, instanceid, path>
         """
         if self.wdmClient == None:
             print "wdmclient not initialized"
@@ -171,7 +170,7 @@ class MockWeaveDataManagementClientImp():
             resourceIdentifier = ResourceIdentifier.ResourceIdentifier.MakeResTypeIdBytes(0, b'\xfe\xff\xff\xff\xff\xff\xff\xff')
 
         try:
-            traitInstance = self.wdmClient.newDataSink(resourceIdentifier, profileid, instanceid, path)
+            traitInstance = self.wdmClient.newDataSink(resourceIdentifier, statusProfileId, instanceid, path)
         except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
@@ -185,12 +184,13 @@ class MockWeaveDataManagementClientImp():
             return
 
         try:
-            self.wdmClient.flushUpdate()
+            result = self.wdmClient.flushUpdate()
+            print "flushUpdate Complete"
+            print result
+            return result
         except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
-
-        print "flush update complete"
 
     def refreshData(self):
         if self.wdmClient == None:
@@ -198,12 +198,11 @@ class MockWeaveDataManagementClientImp():
             return
 
         try:
-            self.wdmClient.refreshData()
+            result = self.wdmClient.refreshData()
+            print "refresh trait data complete"
         except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
-
-        print "refresh trait data complete"
 
     def refreshIndividualData(self, traitInstance):
         if self.wdmClient == None or traitInstance == None:
@@ -211,12 +210,11 @@ class MockWeaveDataManagementClientImp():
             return
 
         try:
-            traitInstance.refreshData()
+            result = traitInstance.refreshData()
+            print "refresh individual trait data complete"
         except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
-
-        print "refresh individual trait data complete"
 
     def closeIndividualTrait(self, traitInstance):
         if self.wdmClient == None or traitInstance == None:
@@ -225,11 +223,10 @@ class MockWeaveDataManagementClientImp():
 
         try:
             traitInstance.close()
+            print "close current trait"
         except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
-
-        print "close current trait"
 
     def setData(self, traitInstance, path, value):
         if self.wdmClient == None or traitInstance == None:
@@ -257,12 +254,11 @@ class MockWeaveDataManagementClientImp():
 
         try:
             val = traitInstance.getData(path)
+            print "get data in trait complete"
             print val
         except WeaveStack.WeaveStackException, ex:
             print str(ex)
             return
-
-        print "get data in trait complete"
 
     def getVersion(self, traitInstance):
         if self.wdmClient == None or traitInstance == None:
@@ -277,7 +273,27 @@ class MockWeaveDataManagementClientImp():
             print str(ex)
             return
 
-        print "get version in trait complete"
+    def clearTrait(self, traitInstance):
+        if self.wdmClient == None or traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        try:
+            traitInstance.clear()
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
+
+    def deleteData(self, traitInstance, path):
+        if self.wdmClient == None or traitInstance == None:
+            print "wdmclient or traitInstance not initialized"
+            return
+
+        try:
+            traitInstance.deleteData(path)
+        except WeaveStack.WeaveStackException, ex:
+            print str(ex)
+            return
 
 def testWdmClientCreateClose(testObject):
     testObject.createWdmClient()
@@ -295,7 +311,7 @@ def testWdmClientDataSinkEmptyFlushData(testObject):
     testObject.createWdmClient()
     localeSettingsTrait = testObject.newDataSink(20, 0, "/")
     TestCTrait = testObject.newDataSink(593165827, 0, "/")
-    testObject.flushUpdate()
+    results = testObject.flushUpdate()
     testObject.closeWdmClient()
     print "testWdmClientDataSinkEmptyFlushData completes"
 
@@ -309,9 +325,85 @@ def testWdmClientDataSinkSetFlushData(testObject):
     testObject.setData(TestCTrait, "/3/1", 16)
     testObject.setData(TestCTrait, "/3/2", False)
     testObject.setData(TestCTrait, "/4", 17)
-    testObject.flushUpdate()
+    results = testObject.flushUpdate()
     testObject.closeWdmClient()
     print "testWdmClientDataSinkSetFlushData completes"
+
+def testWdmClientDataSinkSetFlushInvalidData(testObject):
+    testObject.createWdmClient()
+    localeSettingsTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.setData(localeSettingsTrait, "/1", 0.1)
+    testObject.setData(TestCTrait, "/1", False)
+    testObject.setData(TestCTrait, "/2", 15)
+    testObject.setData(TestCTrait, "/3/1", "TESTTEST")
+    testObject.setData(TestCTrait, "/3/2", False)
+    testObject.setData(TestCTrait, "/4", 17)
+    results1 = testObject.flushUpdate()
+    if len(results1) != 2:
+        raise ValueError("testWdmClientDataSinkSetFlushInvalidData stage1  fails")
+    print "testWdmClientDataSinkSetFlushInvalidData stage1 completes"
+
+    results2 = testObject.flushUpdate()
+    if len(results2) != 0:
+        raise ValueError("testWdmClientDataSinkSetFlushInvalidData stage2  fails")
+    print "testWdmClientDataSinkSetFlushInvalidData stage2 completes"
+
+    for ele in results1:
+        print "clear trait: " + str(ele.dataSink.profileId)
+        print "clear trait path:" + str(ele.path)
+        testObject.deleteData(ele.dataSink, ele.path)
+
+    results3 = testObject.flushUpdate()
+    if len(results3) != 0:
+        raise ValueError("testWdmClientDataSinkSetFlushInvalidData stage3  fails")
+
+    testObject.setData(TestCTrait, "/4", 20)
+    results4 = testObject.flushUpdate()
+    if len(results4) != 0:
+        raise ValueError("testWdmClientDataSinkSetFlushInvalidData stage4  fails")
+
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkSetFlushInvalidData completes"
+
+def testWdmClientDataSinkSetFlushDataDeleteData(testObject):
+    testObject.createWdmClient()
+    localeSettingsTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.setData(localeSettingsTrait, "/1", "en-US")
+    testObject.setData(TestCTrait, "/1", False)
+    testObject.setData(TestCTrait, "/2", 15)
+    testObject.setData(TestCTrait, "/3/1", 16)
+    testObject.setData(TestCTrait, "/3/2", False)
+    testObject.setData(TestCTrait, "/4", 17)
+
+    testObject.deleteData(localeSettingsTrait, "/1")
+    testObject.deleteData(TestCTrait, "/1")
+    testObject.deleteData(TestCTrait, "/2")
+    testObject.deleteData(TestCTrait, "/3/1")
+    testObject.deleteData(TestCTrait, "/3/2")
+
+    results = testObject.flushUpdate()
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkSetFlushDataDeleteData completes"
+
+def testWdmClientDataSinkSetClearFlushData(testObject):
+    testObject.createWdmClient()
+    localeSettingsTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.setData(localeSettingsTrait, "/1", "en-US")
+    testObject.setData(TestCTrait, "/1", False)
+    testObject.setData(TestCTrait, "/2", 15)
+    testObject.setData(TestCTrait, "/3/1", 16)
+    testObject.setData(TestCTrait, "/3/2", False)
+    testObject.setData(TestCTrait, "/4", 17)
+
+    testObject.clearTrait(localeSettingsTrait)
+    testObject.clearTrait(TestCTrait)
+
+    results = testObject.flushUpdate()
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkSetClearFlushData completes"
 
 def testWdmClientDataSinkRefreshIndividualGetDataRefresh(testObject):
     testObject.createWdmClient()
@@ -335,7 +427,8 @@ def testWdmClientDataSinkRefreshGetDataRefresh(testObject):
     testObject.createWdmClient()
     localeSettingsTrait = testObject.newDataSink(20, 0, "/")
     TestCTrait = testObject.newDataSink(593165827, 0, "/")
-    testObject.refreshData()
+    refreshResults1 = testObject.refreshData()
+
     localeSettingsTraitVersion = testObject.getVersion(localeSettingsTrait)
     TestCTraitVersion = testObject.getVersion(TestCTrait)
     testObject.getData(localeSettingsTrait, "/1")
@@ -344,7 +437,9 @@ def testWdmClientDataSinkRefreshGetDataRefresh(testObject):
     testObject.getData(TestCTrait, "/3/1")
     testObject.getData(TestCTrait, "/3/2")
     testObject.getData(TestCTrait, "/4")
-    testObject.refreshData()
+
+    refreshResults2 = testObject.refreshData()
+
     localeSettingsTraitVersion = testObject.getVersion(localeSettingsTrait)
     TestCTraitVersion = testObject.getVersion(TestCTrait)
     testObject.closeWdmClient()
@@ -354,9 +449,9 @@ def testWdmClientDataSinkCloseIndividualData(testObject):
     testObject.createWdmClient()
     localeSettingsTrait = testObject.newDataSink(20, 0, "/")
     TestCTrait = testObject.newDataSink(593165827, 0, "/")
-    testObject.refreshIndividualData(localeSettingsTrait)
+    refreshResults1 = testObject.refreshIndividualData(localeSettingsTrait)
     testObject.closeIndividualTrait(localeSettingsTrait)
-    testObject.refreshIndividualData(TestCTrait)
+    refreshResults2 = testObject.refreshIndividualData(TestCTrait)
     testObject.closeIndividualTrait(TestCTrait)
     testObject.closeWdmClient()
     print "testWdmClientDataSinkCloseIndividualData completes"
@@ -456,6 +551,9 @@ def RunWdmClientTest():
     testWdmClientDataSinkEmptyFlushData(testObject)
     testWdmClientDataSinkCreateClose(testObject)
     testWdmClientDataSinkSetFlushData(testObject)
+    testWdmClientDataSinkSetFlushInvalidData(testObject)
+    testWdmClientDataSinkSetFlushDataDeleteData(testObject)
+    testWdmClientDataSinkSetClearFlushData(testObject)
     testWdmClientDataSinkSetFlushRefreshGetData(testObject)
     testWdmClientDataSinkRefreshGetDataRefresh(testObject)
     testWdmClientDataSinkRefreshIndividualGetDataRefresh(testObject)

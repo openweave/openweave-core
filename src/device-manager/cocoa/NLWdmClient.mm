@@ -47,6 +47,8 @@
 #import "NLGenericTraitUpdatableDataSink_Protected.h"
 #import "NLResourceIdentifier.h"
 #import "NLResourceIdentifier_Protected.h"
+#import "NLWdmClientFlushUpdateError.h"
+#import "NLWdmClientFlushUpdateDeviceStatusError.h"
 
 using namespace nl::Weave::Profiles;
 using namespace nl::Weave::Profiles::DataManagement;
@@ -181,18 +183,18 @@ exit:
     return result;
 }
 
-static void handleWdmClientComplete(void * wdmClient, void * reqState)
+static void onWdmClientComplete(void * appState, void * reqState)
 {
-    WDM_LOG_DEBUG(@"handleWdmClientComplete");
+    WDM_LOG_DEBUG(@"onWdmClientComplete");
 
     NLWdmClient * client = (__bridge NLWdmClient *) reqState;
     [client dispatchAsyncCompletionBlock:nil];
 }
 
-static void handleWdmClientError(
-    void * wdmClient, void * appReqState, WEAVE_ERROR code, nl::Weave::DeviceManager::DeviceStatus * devStatus)
+static void onWdmClientError(
+    void * appState, void * appReqState, WEAVE_ERROR code, nl::Weave::DeviceManager::DeviceStatus * devStatus)
 {
-    WDM_LOG_DEBUG(@"handleWdmClientError");
+    WDM_LOG_DEBUG(@"onWdmClientError");
 
     NSError * error = nil;
     NSDictionary * userInfo = nil;
@@ -223,6 +225,47 @@ static void handleWdmClientError(
     error = [NSError errorWithDomain:@"com.nest.error" code:code userInfo:userInfo];
 
     [client dispatchAsyncDefaultFailureBlock:error];
+}
+
+static void onWdmClientFlushUpdateComplete(
+    void * appState, void * appReqState, uint16_t pathCount, nl::Weave::DeviceManager::WdmClientFlushUpdateStatus * statusResults)
+{
+    WDM_LOG_DEBUG(@"onWdmClientFlushUpdateComplete");
+
+    NLWdmClient * client = (__bridge NLWdmClient *) appReqState;
+
+    NSMutableArray * statusResultsList = [NSMutableArray arrayWithCapacity:pathCount];
+    NLGenericTraitUpdatableDataSink * dataSink = nil;
+    WDM_LOG_DEBUG(@"Failed path Counts = %u\n", pathCount);
+
+    for (uint32_t i = 0; i < pathCount; i++) {
+        dataSink = [client getDataSink:(long long) statusResults[i].mpDataSink];
+        if (dataSink == nil) {
+            WDM_LOG_DEBUG(@"unexpected, trait %d does not exist in traitMap", i);
+        }
+        if (statusResults[i].mErrorCode == WEAVE_ERROR_STATUS_REPORT_RECEIVED) {
+            NLWdmClientFlushUpdateDeviceStatusError * statusError = [[NLWdmClientFlushUpdateDeviceStatusError alloc]
+                initWithProfileId:statusResults[i].mDevStatus.StatusProfileId
+                       statusCode:statusResults[i].mDevStatus.StatusCode
+                        errorCode:statusResults[i].mDevStatus.SystemErrorCode
+                     statusReport:[client statusReportToString:statusResults[i].mDevStatus.StatusProfileId
+                                                    statusCode:statusResults[i].mDevStatus.StatusCode]
+                             path:[NSString stringWithUTF8String:statusResults[i].mpPath]
+                         dataSink:dataSink];
+
+            [statusResultsList addObject:statusError];
+        } else {
+            NLWdmClientFlushUpdateError * weaveError = [[NLWdmClientFlushUpdateError alloc]
+                initWithWeaveError:statusResults[i].mErrorCode
+                            report:[NSString stringWithUTF8String:nl::ErrorStr(statusResults[i].mErrorCode)]
+                              path:[NSString stringWithUTF8String:statusResults[i].mpPath]
+                          dataSink:dataSink];
+            [statusResultsList addObject:weaveError];
+        }
+    }
+
+    NSLog(@"statusResultsList is: %@", statusResultsList);
+    [client dispatchAsyncCompletionBlockWithResults:statusResultsList];
 }
 
 - (void)markTransactionCompleted
@@ -295,6 +338,19 @@ static void handleWdmClientError(
     if (nil != completionHandler) {
         dispatch_async(_mAppCallbackQueue, ^() {
             completionHandler(_owner, data);
+        });
+    }
+}
+
+- (void)dispatchAsyncCompletionBlockWithResults:(id)error
+{
+    WdmClientCompletionBlock completionHandler = _mCompletionHandler;
+
+    [self markTransactionCompleted];
+
+    if (nil != completionHandler) {
+        dispatch_async(_mAppCallbackQueue, ^() {
+            completionHandler(_owner, error);
         });
     }
 }
@@ -382,6 +438,12 @@ static void handleWdmClientError(
     }
 }
 
+- (NLGenericTraitUpdatableDataSink *)getDataSink:(long long)traitInstancePtr;
+{
+    NSString * address = [NSString stringWithFormat:@"%lld", traitInstancePtr];
+    return (NLGenericTraitUpdatableDataSink *)[_mTraitMap objectForKey:address];
+}
+
 - (void)setNodeId:(uint64_t)nodeId;
 {
     WDM_LOG_METHOD_SIG();
@@ -444,7 +506,7 @@ static void handleWdmClientError(
             _mFailureHandler = [failureHandler copy];
 
             WEAVE_ERROR err
-                = _mWeaveCppWdmClient->FlushUpdate((__bridge void *) self, handleWdmClientComplete, handleWdmClientError);
+                = _mWeaveCppWdmClient->FlushUpdate((__bridge void *) self, onWdmClientFlushUpdateComplete, onWdmClientError);
 
             if (WEAVE_NO_ERROR != err) {
                 [self dispatchAsyncDefaultFailureBlockWithCode:err];
@@ -471,8 +533,7 @@ static void handleWdmClientError(
             _mCompletionHandler = [completionHandler copy];
             _mFailureHandler = [failureHandler copy];
 
-            WEAVE_ERROR err
-                = _mWeaveCppWdmClient->RefreshData((__bridge void *) self, handleWdmClientComplete, handleWdmClientError, NULL);
+            WEAVE_ERROR err = _mWeaveCppWdmClient->RefreshData((__bridge void *) self, onWdmClientComplete, onWdmClientError, NULL);
 
             if (WEAVE_NO_ERROR != err) {
                 [self dispatchAsyncDefaultFailureBlockWithCode:err];

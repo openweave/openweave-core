@@ -140,14 +140,20 @@ static void DumpHandler(DumpWriter aWriter, const char *aIndent, const TLVReader
             break;
 
         case kTLVType_UTF8String:
-            err = temp.GetDataPtr(strbuf);
-            VerifyOrExit(err == WEAVE_NO_ERROR, aWriter("Error in kTLVType_UTF8String"));
+            if (len > 0)
+            {
+                err = temp.GetDataPtr(strbuf);
+                VerifyOrExit(err == WEAVE_NO_ERROR, aWriter("Error in kTLVType_UTF8String"));
+            }
             aWriter("\"%-.*s\"", static_cast<int>(len), strbuf);
             break;
 
         case kTLVType_ByteString:
-            err = temp.GetDataPtr(strbuf);
-            VerifyOrExit(err == WEAVE_NO_ERROR, aWriter("Error in kTLVType_ByteString"));
+            if (len > 0)
+            {
+                err = temp.GetDataPtr(strbuf);
+                VerifyOrExit(err == WEAVE_NO_ERROR, aWriter("Error in kTLVType_ByteString"));
+            }
             aWriter("%p\n", strbuf);
             break;
 

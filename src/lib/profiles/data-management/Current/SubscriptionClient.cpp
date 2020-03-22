@@ -2915,6 +2915,36 @@ exit:
     return err;
 }
 
+WEAVE_ERROR SubscriptionClient::ClearUpdated(TraitUpdatableDataSink * aDataSink, PropertyPathHandle aPropertyHandle)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitDataHandle dataHandle;
+    const TraitSchemaEngine * schemaEngine;
+    bool needToSetUpdateRequiredVersion = false;
+    bool isTraitInstanceInUpdate = false;
+
+    LockUpdateMutex();
+
+    schemaEngine = aDataSink->GetSchemaEngine();
+
+    err = mDataSinkCatalog->Locate(aDataSink, dataHandle);
+    SuccessOrExit(err);
+
+    isTraitInstanceInUpdate = mPendingUpdateSet.IsTraitPresent(dataHandle);
+
+    if (!isTraitInstanceInUpdate)
+    {
+        WeaveLogDetail(DataManagement, "trait %d is not in update pending set, skip ClearUpdated", dataHandle);
+        goto exit;
+    }
+
+    mPendingUpdateSet.RemoveItem(TraitPath(dataHandle, aPropertyHandle));
+
+exit:
+    UnlockUpdateMutex();
+    return err;
+}
+
 /**
  * Tells the SubscriptionClient to empty the set of TraitPaths pending to be updated and abort the
  * update request that is in progress, if any.

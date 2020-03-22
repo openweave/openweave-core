@@ -35,7 +35,11 @@ _ErrorFunct                                 = CFUNCTYPE(None, c_void_p, c_void_p
 _ConstructBytesArrayFunct                   = CFUNCTYPE(None, c_void_p, c_uint32)
 
 class GenericTraitUpdatableDataSink:
-    def __init__(self, traitInstance, wdmClient):
+    def __init__(self, resourceIdentifier, profileId, instanceId, path, traitInstance, wdmClient):
+        self._resourceIdentifier = resourceIdentifier
+        self._profileId = profileId
+        self._instanceId = instanceId
+        self._path = path
         self._traitInstance = traitInstance
         self._wdmClient = wdmClient
         self._weaveStack = WeaveStack()
@@ -46,6 +50,22 @@ class GenericTraitUpdatableDataSink:
         self.close()
         self._weaveStack = None
         self._generictraitupdatabledatasinkLib = None
+
+    @property
+    def resourceIdentifier(self):
+        return self._resourceIdentifier
+
+    @property
+    def profileId(self):
+        return self._profileId
+
+    @property
+    def instanceId(self):
+        return self._instanceId
+
+    @property
+    def path(self):
+        return self._path
 
     def close(self):
         if self._wdmClient != None:
@@ -70,9 +90,7 @@ class GenericTraitUpdatableDataSink:
 
     def refreshData(self):
         self._ensureNotClosed()
-        self._weaveStack.CallAsync(
-            lambda: self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_RefreshData(self._traitInstance, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
-        )
+        self._weaveStack.CallAsync(lambda: self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_RefreshData(self._traitInstance, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError))
 
     def setData(self, path, val, isConditional=False):
         self._ensureNotClosed()
@@ -115,10 +133,16 @@ class GenericTraitUpdatableDataSink:
             )
 
     def getVersion(self):
-        if self._traitInstance != None:
-            return self._weaveStack.Call(
-                lambda: self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetVersion(self._traitInstance)
-            )
+        self._ensureNotClosed()
+        return self._weaveStack.Call(
+            lambda: self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetVersion(self._traitInstance)
+        )
+
+    def deleteData(self, path):
+        self._ensureNotClosed()
+        return self._weaveStack.Call(
+            lambda: self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_DeleteData(self._traitInstance, path)
+        )
 
     def _ensureNotClosed(self):
         if self._traitInstance == None:
@@ -138,3 +162,5 @@ class GenericTraitUpdatableDataSink:
             self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetTLVBytes.restype = c_uint32
             self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetVersion.argtypes = [ c_void_p ]
             self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_GetVersion.restype = c_uint64
+            self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_DeleteData.argtypes = [ c_void_p, c_char_p ]
+            self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_DeleteData.restype = c_uint32

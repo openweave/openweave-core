@@ -278,6 +278,13 @@ public class GenericTraitUpdatableDataSinkImpl implements GenericTraitUpdatableD
     }
 
     @Override
+    public void deleteData(String path)
+    {
+        ensureNotClosed();
+        deleteData(mTraitInstancePtr, path);
+    }
+
+    @Override
     public void beginRefreshData()
     {
         ensureNotClosed();
@@ -371,4 +378,5 @@ public class GenericTraitUpdatableDataSinkImpl implements GenericTraitUpdatableD
     private native boolean isNull(long genericTraitUpdatableDataSinkPtr, String path);
     private native String[] getStringArray(long genericTraitUpdatableDataSinkPtr, String path);
     private native long getVersion(long genericTraitUpdatableDataSinkPtr);
+    private native void deleteData(long genericTraitUpdatableDataSinkPtr, String path);
 };

@@ -390,6 +390,7 @@ public:
     WEAVE_ERROR FlushUpdate();
     WEAVE_ERROR FlushUpdate(bool aForce);
     WEAVE_ERROR SetUpdated(TraitUpdatableDataSink * aDataSink, PropertyPathHandle aPropertyHandle, bool aIsConditional);
+    WEAVE_ERROR ClearUpdated(TraitUpdatableDataSink * aDataSink, PropertyPathHandle aPropertyHandle);
     void DiscardUpdates();
     void SuspendUpdateRetries();
     void OnCatalogChanged();

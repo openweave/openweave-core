@@ -267,7 +267,7 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_DeleteWdmClient(WdmClient *wdmClient);
     NL_DLL_EXPORT void nl_Weave_WdmClient_SetNodeId(WdmClient *wdmClient, uint64_t aNodeId);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_NewDataSink(WdmClient *wdmClient, const ResourceIdentifier *resourceIdentifier, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitUpdatableDataSink ** outGenericTraitUpdatableDataSink);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_FlushUpdate(WdmClient *wdmClient, DMCompleteFunct onComplete, DMErrorFunct onError);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_FlushUpdate(WdmClient *wdmClient, DMFlushUpdateCompleteFunct onComplete, DMErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_RefreshData(WdmClient *wdmClient, DMCompleteFunct onComplete, DMErrorFunct onError);
 
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_Clear(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink);
@@ -275,6 +275,7 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_SetTLVBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, const uint8_t * dataBuf, size_t dataLen, bool aIsConditional);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_GetTLVBytes(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath, ConstructBytesArrayFunct aCallback);
     NL_DLL_EXPORT uint64_t nl_Weave_GenericTraitUpdatableDataSink_GetVersion(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_DeleteData(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath);
 #endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 }
 
@@ -1424,7 +1425,7 @@ WEAVE_ERROR nl_Weave_WdmClient_NewDataSink(WdmClient *wdmClient, const ResourceI
     return err;
 }
 
-WEAVE_ERROR nl_Weave_WdmClient_FlushUpdate(WdmClient *wdmClient, DMCompleteFunct onComplete, DMErrorFunct onError)
+WEAVE_ERROR nl_Weave_WdmClient_FlushUpdate(WdmClient *wdmClient, DMFlushUpdateCompleteFunct onComplete, DMErrorFunct onError)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     err = wdmClient->FlushUpdate(NULL, onComplete, onError);
@@ -1482,6 +1483,11 @@ uint64_t nl_Weave_GenericTraitUpdatableDataSink_GetVersion(GenericTraitUpdatable
 {
     uint64_t version = apGenericTraitUpdatableDataSink->GetVersion();
     return version;
+}
+
+WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_DeleteData(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, const char * apPath)
+{
+    return apGenericTraitUpdatableDataSink->DeleteData(apPath);
 }
 
 namespace nl {

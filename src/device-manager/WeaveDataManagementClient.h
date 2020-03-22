@@ -38,6 +38,7 @@
 #include <Weave/Profiles/data-management/Current/GenericTraitCatalogImpl.h>
 #include <map>
 #include <vector>
+#include "WeaveDeviceManager.h"
 
 namespace nl {
 namespace Weave {
@@ -69,11 +70,22 @@ public:
 
 class GenericTraitUpdatableDataSink;
 class WdmClient;
-class DeviceStatus;
+
+class WdmClientFlushUpdateStatus
+{
+public:
+    uint32_t mErrorCode;
+    DeviceStatus mDevStatus;
+    const char * mpPath;
+    uint32_t mPathLen;
+    TraitDataSink * mpDataSink;
+};
 
 extern "C" {
 typedef void (*DMCompleteFunct)(void * appState, void * appReqState);
 typedef void (*DMErrorFunct)(void * appState, void * appReqState, WEAVE_ERROR err, DeviceStatus * devStatus);
+typedef void (*DMFlushUpdateCompleteFunct)(void * appState, void * appReqState, uint16_t pathCount,
+                                           WdmClientFlushUpdateStatus * statusResults);
 typedef WEAVE_ERROR (*GetDataHandleFunct)(void * apContext, const TraitCatalogBase<TraitDataSink> * const apCatalog,
                                           TraitDataHandle & aHandle);
 };
@@ -83,6 +95,7 @@ class NL_DLL_EXPORT GenericTraitUpdatableDataSink : public nl::Weave::Profiles::
     friend class WdmClient;
     using nl::Weave::Profiles::DataManagement_Current::TraitDataSink::SetData;
     using nl::Weave::Profiles::DataManagement_Current::TraitUpdatableDataSink::GetData;
+
 private:
     GenericTraitUpdatableDataSink(const nl::Weave::Profiles::DataManagement::TraitSchemaEngine * aEngine, WdmClient * apWdmClient);
     ~GenericTraitUpdatableDataSink(void);
@@ -113,6 +126,8 @@ public:
     WEAVE_ERROR GetTLVBytes(const char * apPath, BytesData * apBytesData);
     WEAVE_ERROR IsNull(const char * apPath, bool & aIsNull);
     WEAVE_ERROR GetStringArray(const char * apPath, std::vector<std::string> & aValueVector);
+
+    WEAVE_ERROR DeleteData(const char * apPath);
 
     void * mpAppState;
 
@@ -171,7 +186,7 @@ public:
     WEAVE_ERROR NewDataSink(const ResourceIdentifier & aResourceId, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath,
                             GenericTraitUpdatableDataSink *& apGenericTraitUpdatableDataSink);
 
-    WEAVE_ERROR FlushUpdate(void * apAppReqState, DMCompleteFunct onComplete, DMErrorFunct onError);
+    WEAVE_ERROR FlushUpdate(void * apAppReqState, DMFlushUpdateCompleteFunct onComplete, DMErrorFunct onError);
 
     WEAVE_ERROR RefreshData(void * apAppReqState, DMCompleteFunct onComplete, DMErrorFunct onError,
                             GetDataHandleFunct getDataHandleCb);
@@ -191,6 +206,7 @@ private:
     union
     {
         DMCompleteFunct General;
+        DMFlushUpdateCompleteFunct FlushUpdate;
     } mOnComplete;
     DMErrorFunct mOnError;
     GetDataHandleFunct mGetDataHandle;
@@ -210,6 +226,10 @@ private:
 
     WEAVE_ERROR UnsubscribePublisherTrait(TraitDataSink * apDataSink);
 
+    WEAVE_ERROR UpdateFailedPathResults(WdmClient * const apWdmClient, TraitDataHandle mTraitDataHandle,
+                                        PropertyPathHandle mPropertyPathHandle, uint32_t aReason, uint32_t aStatusProfileId,
+                                        uint16_t aStatusCode);
+
     GenericTraitSinkCatalog mSinkCatalog;
     TraitPath * mpPublisherPathList;
 
@@ -218,6 +238,8 @@ private:
     void * mpContext;
     void * mpAppReqState;
     OpState mOpState;
+    std::vector<std::string> mFailedPaths;
+    std::vector<WdmClientFlushUpdateStatus> mFailedFlushPathStatus;
 };
 } // namespace DeviceManager
 } // namespace Weave

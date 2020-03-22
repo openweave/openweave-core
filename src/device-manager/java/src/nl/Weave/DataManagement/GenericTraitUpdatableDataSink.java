@@ -36,7 +36,7 @@ import java.util.Iterator;
 public interface GenericTraitUpdatableDataSink
 {
     /**
-     * clear trait data
+     * clear the whole trait data.
      */
     public void clear();
 
@@ -331,6 +331,9 @@ public interface GenericTraitUpdatableDataSink
 
     /** Returns the version of the trait represented by this data sink. */
     public long getVersion();
+
+    /** Delete the trait property data on on particular path. */
+    public void deleteData(String path);
 
     /**
      * Begins a sync of the trait data. The result of this operation can be observed through the {@link CompletionHandler}

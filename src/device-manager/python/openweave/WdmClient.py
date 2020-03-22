@@ -26,11 +26,42 @@ from ctypes import *
 from .WeaveStack import *
 from .GenericTraitUpdatableDataSink import *
 from .ResourceIdentifier import *
+from .WeaveUtility import WeaveUtility
 
-__all__ = [ 'WdmClient' ]
+__all__ = [ 'WdmClient', 'WdmFlushUpdateStatusStruct', 'WdmClientFlushUpdateError', 'WdmClientFlushUpdateDeviceError' ]
+
+WEAVE_ERROR_STATUS_REPORT = 4044
+
+class WdmFlushUpdateStatusStruct(Structure):
+    _fields_ = [
+        ("errorCode",       c_uint32),
+        ("DeviceStatus",    DeviceStatusStruct),
+        ("path",            c_void_p),
+        ("pathLen",         c_uint32),
+        ("dataSink",        c_void_p),
+    ]
+
+class WdmClientFlushUpdateError(WeaveStackError):
+    def __init__(self, err, path, dataSink, msg=None):
+        super(WdmClientFlushUpdateError, self).__init__(err, msg)
+        self.path = path
+        self.dataSink = dataSink
+
+    def __str__(self):
+        return "WdmClientFlushUpdateError path:{}, trait profileId:{}, trait InstanceId:{}, msg:{} ".format(self.path, self.dataSink.profileId, self.dataSink.instanceId, self.msg)
+
+class WdmClientFlushUpdateDeviceError(DeviceError):
+    def __init__(self, profileId, statusCode, systemErrorCode, path, dataSink, msg=None):
+        super(WdmClientFlushUpdateDeviceError, self).__init__(profileId, statusCode, systemErrorCode, msg)
+        self.path = path
+        self.dataSink = dataSink
+
+    def __str__(self):
+        return "WdmClientFlushUpdateDeviceError path:{}, trait profileId:{}, trait InstanceId:{}, msg:{} ".format(self.path, self.dataSink.profileId, self.dataSink.instanceId, self.msg)
 
 _CompleteFunct                              = CFUNCTYPE(None, c_void_p, c_void_p)
 _ErrorFunct                                 = CFUNCTYPE(None, c_void_p, c_void_p, c_ulong, POINTER(DeviceStatusStruct))
+_FlushUpdateCompleteFunct                   = CFUNCTYPE(None, c_void_p, c_void_p, c_uint16, POINTER(WdmFlushUpdateStatusStruct))
 
 class WdmClient():
     def __init__(self):
@@ -83,9 +114,10 @@ class WdmClient():
         if (res != 0):
             raise self._weaveStack.ErrorToException(res)
 
-        addr = id(traitInstance)
+        addr = traitInstance.value
+
         if addr not in self._traitTable.keys():
-            self._traitTable[addr] = GenericTraitUpdatableDataSink(traitInstance, self)
+            self._traitTable[addr] = GenericTraitUpdatableDataSink(resourceIdentifier, profileId, instanceId, path, traitInstance, self)
 
         return self._traitTable[addr]
 
@@ -97,14 +129,36 @@ class WdmClient():
     def flushUpdate(self):
         self._ensureNotClosed()
 
-        self._weaveStack.CallAsync(
-            lambda: self._datamanagmentLib.nl_Weave_WdmClient_FlushUpdate(self._wdmClientPtr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
+        def HandleFlushUpdateComplete(appState, reqState, pathCount, statusResultsPtr):
+            statusResults = []
+            for i in range(pathCount):
+                path = WeaveUtility.VoidPtrToByteArray(statusResultsPtr[i].path, statusResultsPtr[i].pathLen).decode()
+                addr = statusResultsPtr[i].dataSink
+                if addr in self._traitTable.keys():
+                    dataSink = self._traitTable[addr]
+                else:
+                    print("unexpected, trait %d does not exist in traitTable", i)
+                    dataSink = None
+
+                if statusResultsPtr[i].errorCode == WEAVE_ERROR_STATUS_REPORT:
+                    statusResults.append(WdmClientFlushUpdateDeviceError(statusResultsPtr[i].DeviceStatus.ProfileId, statusResultsPtr[i].DeviceStatus.StatusCode, statusResultsPtr[i].DeviceStatus.SysErrorCode, path, dataSink))
+                else:
+                    statusResults.append(WdmClientFlushUpdateError(statusResultsPtr[i].errorCode, path, dataSink))
+                print(statusResults[-1])
+
+            self._weaveStack.callbackRes = statusResults
+            self._weaveStack.completeEvent.set()
+
+        cbHandleComplete = _FlushUpdateCompleteFunct(HandleFlushUpdateComplete)
+
+        return self._weaveStack.CallAsync(
+            lambda: self._datamanagmentLib.nl_Weave_WdmClient_FlushUpdate(self._wdmClientPtr, cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
     def refreshData(self):
         self._ensureNotClosed()
 
-        self._weaveStack.CallAsync(
+        return self._weaveStack.CallAsync(
             lambda: self._datamanagmentLib.nl_Weave_WdmClient_RefreshData(self._wdmClientPtr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
@@ -135,7 +189,7 @@ class WdmClient():
             self._datamanagmentLib.nl_Weave_WdmClient_NewDataSink.argtypes = [ c_void_p, POINTER(ResourceIdentifierStruct), c_uint32, c_uint64, c_char_p, c_void_p ]
             self._datamanagmentLib.nl_Weave_WdmClient_NewDataSink.restype = c_uint32
 
-            self._datamanagmentLib.nl_Weave_WdmClient_FlushUpdate.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            self._datamanagmentLib.nl_Weave_WdmClient_FlushUpdate.argtypes = [ c_void_p, _FlushUpdateCompleteFunct, _ErrorFunct ]
             self._datamanagmentLib.nl_Weave_WdmClient_FlushUpdate.restype = c_uint32
 
             self._datamanagmentLib.nl_Weave_WdmClient_RefreshData.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]

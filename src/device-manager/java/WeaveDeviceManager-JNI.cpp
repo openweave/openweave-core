@@ -104,6 +104,8 @@ static jclass sWeaveDeviceDescriptorCls = NULL;
 static jclass sWirelessRegulatoryConfigCls = NULL;
 static jclass sWeaveDeviceManagerCls = NULL;
 static jclass sWeaveStackCls = NULL;
+static jclass sWdmClientFlushUpdateDeviceExceptionCls = NULL;
+static jclass sWdmClientFlushUpdateExceptionCls = NULL;
 
 extern "C" {
     NL_DLL_EXPORT jint JNI_OnLoad(JavaVM *jvm, void *reserved);
@@ -201,6 +203,7 @@ extern "C" {
     NL_DLL_EXPORT jbyteArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getBytes(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
     NL_DLL_EXPORT jobjectArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getStringArray(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
     NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getVersion(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_deleteData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path);
 #endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 };
 
@@ -214,8 +217,6 @@ static void HandleGetFabricConfigComplete(WeaveDeviceManager *deviceMgr, void *r
 static void HandleDeviceEnumerationResponse(WeaveDeviceManager *deviceMgr, void *reqState, const DeviceDescription::WeaveDeviceDescriptor *devdesc, IPAddress deviceAddr, InterfaceId deviceIntf);
 static void HandleGenericOperationComplete(jobject obj, void *reqState);
 static void HandleSimpleOperationComplete(WeaveDeviceManager *deviceMgr, void *reqState);
-static void HandleWdmClientComplete(void *context, void *reqState);
-static void HandleGenericTraitUpdatableDataSinkComplete(void *context, void *reqState);
 static void HandleNotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT connObj);
 static bool HandleSendCharacteristic(BLE_CONNECTION_OBJECT connObj, const uint8_t *svcId, const uint8_t *charId, const uint8_t *characteristicData, uint32_t characteristicDataLen);
 static bool HandleSubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const uint8_t *svcId, const uint8_t *charId);
@@ -225,12 +226,8 @@ static void HandleUnpairTokenComplete(WeaveDeviceManager *deviceMgr, void *reqSt
 static void HandleGetWirelessRegulatoryConfigComplete(WeaveDeviceManager *deviceMgr, void *reqState, const WirelessRegConfig * regConfig);
 static bool HandleCloseConnection(BLE_CONNECTION_OBJECT connObj);
 static uint16_t HandleGetMTU(BLE_CONNECTION_OBJECT connObj);
-static void HandleGenericError(jobject obj, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus);
-static void HandleError(WeaveDeviceManager *deviceMgr, void *reqState, WEAVE_ERROR err, DeviceStatus *devStatus);
-#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
-static void HandleWdmClientError(void *appState, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus);
-static void HandleGenericTraitUpdatableDataSinkError(void *context, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus);
-#endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
+static void HandleGenericError(jobject obj, void *reqState, WEAVE_ERROR deviceMgrErr, DeviceStatus *devStatus);
+static void HandleError(WeaveDeviceManager *deviceMgr, void *reqState, WEAVE_ERROR deviceMgrErr, DeviceStatus *devStatus);
 static void ThrowError(JNIEnv *env, WEAVE_ERROR errToThrow);
 static void ReportError(JNIEnv *env, WEAVE_ERROR cbErr, const char *cbName);
 static void *IOThreadMain(void *arg);
@@ -253,18 +250,27 @@ static WEAVE_ERROR N2J_DeviceDescriptor(JNIEnv *env, const WeaveDeviceDescriptor
 static WEAVE_ERROR J2N_WirelessRegulatoryConfig(JNIEnv *env, jobject inRegConfig, WirelessRegConfig & outRegConfig);
 static WEAVE_ERROR N2J_WirelessRegulatoryConfig(JNIEnv *env, const WirelessRegConfig& inRegConfig, jobject& outRegConfig);
 static WEAVE_ERROR N2J_Error(JNIEnv *env, WEAVE_ERROR inErr, jthrowable& outEx);
-static WEAVE_ERROR N2J_DeviceStatus(JNIEnv *env, DeviceStatus& devStatus, jthrowable& outEx);
 static WEAVE_ERROR J2N_ResourceIdentifier(JNIEnv *env, jobject inResourceIdentifier, ResourceIdentifier& outResourceIdentifier);
 static WEAVE_ERROR GetClassRef(JNIEnv *env, const char *clsType, jclass& outCls);
 static WEAVE_ERROR J2N_StdString(JNIEnv *env, jstring inString,  std::string& outString);
+template<typename GetElementFunct>
+WEAVE_ERROR N2J_GenericArray(JNIEnv *env, uint32_t arrayLen, jclass arrayElemCls, jobjectArray& outArray, GetElementFunct getElem);
 
+#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
+static void HandleWdmClientComplete(void *context, void *reqState);
+static void HandleGenericTraitUpdatableDataSinkComplete(void *context, void *reqState, DeviceStatus *deviceStatus);
+static void HandleWdmClientError(void *appState, void *reqState, WEAVE_ERROR deviceMgrErr, DeviceStatus *devStatus);
+static void HandleGenericTraitUpdatableDataSinkError(void *context, void *reqState, WEAVE_ERROR deviceMgrErr, DeviceStatus *devStatus);
+static void HandleWdmClientFlushUpdateComplete(void *context, void *reqState, uint16_t pathCount, WdmClientFlushUpdateStatus *statusResults);
+static WEAVE_ERROR N2J_DeviceStatus(JNIEnv *env, DeviceStatus& devStatus, jthrowable& outEx);
+static WEAVE_ERROR N2J_WdmClientFlushUpdateError(JNIEnv *env, WEAVE_ERROR inErr, jobject& outEx, const char * path, TraitDataSink * dataSink);
+static WEAVE_ERROR N2J_WdmClientFlushUpdateDeviceStatus(JNIEnv *env, DeviceStatus& devStatus, jobject& outEx, const char * path, TraitDataSink * dataSink);
 static void EngineEventCallback(void * const aAppState,
                                 SubscriptionEngine::EventID aEvent,
                                 const SubscriptionEngine::InEventParam & aInParam, SubscriptionEngine::OutEventParam & aOutParam);
 static void BindingEventCallback (void * const apAppState, const nl::Weave::Binding::EventType aEvent,
                                   const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam);
-template<typename GetElementFunct>
-WEAVE_ERROR N2J_GenericArray(JNIEnv *env, uint32_t arrayLen, jclass arrayElemCls, jobjectArray& outArray, GetElementFunct getElem);
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 
 #if CURRENTLY_UNUSED
 static WEAVE_ERROR J2N_EnumVal(JNIEnv *env, jobject enumObj, int& outVal);
@@ -303,6 +309,10 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
     err = GetClassRef(env, "nl/Weave/DeviceManager/WeaveDeviceManager", sWeaveDeviceManagerCls);
     SuccessOrExit(err);
     err = GetClassRef(env, "nl/Weave/DeviceManager/WeaveStack", sWeaveStackCls);
+    SuccessOrExit(err);
+    err = GetClassRef(env, "nl/Weave/DataManagement/WdmClientFlushUpdateDeviceException", sWdmClientFlushUpdateDeviceExceptionCls);
+    SuccessOrExit(err);
+    err = GetClassRef(env, "nl/Weave/DataManagement/WdmClientFlushUpdateException", sWdmClientFlushUpdateExceptionCls);
     SuccessOrExit(err);
     WeaveLogProgress(DeviceManager, "Java class references loaded.");
 
@@ -2377,6 +2387,82 @@ void HandleGenericTraitUpdatableDataSinkComplete(void *context, void *reqState)
     jobject self = (jobject)sink->mpAppState;
     HandleGenericOperationComplete(self, reqState);
 }
+
+void HandleWdmClientError(void *context, void *reqState, WEAVE_ERROR deviceMgrErr, DeviceStatus *devStatus)
+{
+    WdmClient * wdmClient = reinterpret_cast<WdmClient *>(context);
+    jobject self = (jobject)wdmClient->mpAppState;
+    HandleGenericError(self, reqState, deviceMgrErr, devStatus);
+}
+
+void HandleGenericTraitUpdatableDataSinkError(void *context, void *reqState, WEAVE_ERROR deviceMgrErr, DeviceStatus *devStatus)
+{
+    GenericTraitUpdatableDataSink * sink = reinterpret_cast<GenericTraitUpdatableDataSink *>(context);
+    jobject self = (jobject)sink->mpAppState;
+    HandleGenericError(self, reqState, deviceMgrErr, devStatus);
+}
+
+void HandleWdmClientFlushUpdateComplete(void *context, void *reqState, uint16_t pathCount, WdmClientFlushUpdateStatus *statusResults)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    JNIEnv *env;
+    WdmClient * wdmClient = reinterpret_cast<WdmClient *>(context);
+    jobject self = (jobject)wdmClient->mpAppState;
+    jclass wdmClientCls;
+    jclass java_lang_Throwable = NULL;
+    jmethodID method;
+    jobjectArray exceptionArrayObj = NULL;
+    bool localFramePushed = false;
+
+    sJVM->GetEnv((void **)&env, JNI_VERSION_1_2);
+    WeaveLogProgress(DeviceManager, "Received response to FlushUpdate request, number of failed updated path is %d", pathCount);
+
+    if (env->PushLocalFrame(WDM_JNI_CALLBACK_LOCAL_REF_COUNT) == 0)
+    {
+        localFramePushed = true;
+    }
+
+    VerifyOrExit(localFramePushed, err = WEAVE_ERROR_NO_MEMORY);
+
+    java_lang_Throwable = env->FindClass("java/lang/Throwable");
+    VerifyOrExit(java_lang_Throwable != NULL, err = WDM_JNI_ERROR_TYPE_NOT_FOUND);
+
+    err = N2J_GenericArray(env, pathCount, java_lang_Throwable, exceptionArrayObj,
+    [&statusResults](JNIEnv *_env, uint32_t index, jobject& ex) -> WEAVE_ERROR
+    {
+        WEAVE_ERROR _err = WEAVE_NO_ERROR;
+        if (statusResults[index].mErrorCode == WEAVE_ERROR_STATUS_REPORT_RECEIVED)
+        {
+            _err = N2J_WdmClientFlushUpdateDeviceStatus(_env, statusResults[index].mDevStatus, ex, statusResults->mpPath, statusResults->mpDataSink);
+        }
+        else
+        {
+            _err = N2J_WdmClientFlushUpdateError(_env, statusResults[index].mErrorCode, ex, statusResults->mpPath, statusResults->mpDataSink);
+        }
+        return _err;
+    });
+    SuccessOrExit(err);
+
+    wdmClientCls = env->GetObjectClass(self);
+    VerifyOrExit(wdmClientCls != NULL, err = WDM_JNI_ERROR_TYPE_NOT_FOUND);
+
+    method = env->GetMethodID(wdmClientCls, "onFlushUpdateComplete", "([Ljava/lang/Throwable;)V");
+    VerifyOrExit(method != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
+
+    WeaveLogProgress(DeviceManager, "Calling Java onFlushUpdateComplete method");
+
+    env->ExceptionClear();
+    env->CallVoidMethod(self, method, exceptionArrayObj);
+    VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+        ReportError(env, err, __FUNCTION__);
+    env->ExceptionClear();
+    if (localFramePushed)
+        env->PopLocalFrame(NULL);
+}
+
 #endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 void HandleNotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT connObj)
 {
@@ -2757,7 +2843,7 @@ exit:
     return mtu;
 }
 
-void HandleGenericError(jobject obj, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus)
+void HandleGenericError(jobject obj, void *reqState, WEAVE_ERROR deviceMgrErr, DeviceStatus *devStatus)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     JNIEnv *env;
@@ -2775,14 +2861,14 @@ void HandleGenericError(jobject obj, void *reqState, WEAVE_ERROR deviceErr, Devi
         localFramePushed = true;
     VerifyOrExit(localFramePushed, err = WEAVE_ERROR_NO_MEMORY);
 
-    if (deviceErr == WEAVE_ERROR_STATUS_REPORT_RECEIVED && devStatus != NULL)
+    if (deviceMgrErr == WEAVE_ERROR_STATUS_REPORT_RECEIVED && devStatus != NULL)
     {
         err = N2J_DeviceStatus(env, *devStatus, ex);
         SuccessOrExit(err);
     }
     else
     {
-        err = N2J_Error(env, deviceErr, ex);
+        err = N2J_Error(env, deviceMgrErr, ex);
         SuccessOrExit(err);
     }
 
@@ -2806,27 +2892,11 @@ exit:
         env->PopLocalFrame(NULL);
 }
 
-void HandleError(WeaveDeviceManager *deviceMgr, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus)
+void HandleError(WeaveDeviceManager *deviceMgr, void *reqState, WEAVE_ERROR deviceMgrErr, DeviceStatus *devStatus)
 {
     jobject self = (jobject)deviceMgr->AppState;
-    HandleGenericError(self, reqState, deviceErr, devStatus);
+    HandleGenericError(self, reqState, deviceMgrErr, devStatus);
 }
-
-#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
-void HandleWdmClientError(void *context, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus)
-{
-    WdmClient * wdmClient = reinterpret_cast<WdmClient *>(context);
-    jobject self = (jobject)wdmClient->mpAppState;
-    HandleGenericError(self, reqState, deviceErr, devStatus);
-}
-
-void HandleGenericTraitUpdatableDataSinkError(void *context, void *reqState, WEAVE_ERROR deviceErr, DeviceStatus *devStatus)
-{
-    GenericTraitUpdatableDataSink * sink = reinterpret_cast<GenericTraitUpdatableDataSink *>(context);
-    jobject self = (jobject)sink->mpAppState;
-    HandleGenericError(self, reqState, deviceErr, devStatus);
-}
-#endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 
 void ThrowError(JNIEnv *env, WEAVE_ERROR errToThrow)
 {
@@ -3632,6 +3702,63 @@ exit:
     return err;
 }
 
+WEAVE_ERROR N2J_WdmClientFlushUpdateError(JNIEnv *env, WEAVE_ERROR inErr, jobject& outEx, const char * path, TraitDataSink * dataSink)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    jmethodID constructor;
+    const char *errStr = NULL;
+    jstring errStrObj = NULL;
+    jstring pathStrObj = NULL;
+
+    constructor = env->GetMethodID(sWdmClientFlushUpdateExceptionCls, "<init>", "(ILjava/lang/String;Ljava/lang/String;J)V");
+    VerifyOrExit(constructor != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
+
+    switch (inErr)
+    {
+        case WDM_JNI_ERROR_TYPE_NOT_FOUND            : errStr = "WdmClient Error: JNI type not found"; break;
+        case WDM_JNI_ERROR_METHOD_NOT_FOUND          : errStr = "WdmClient Error: JNI method not found"; break;
+        case WDM_JNI_ERROR_FIELD_NOT_FOUND           : errStr = "WdmClient Error: JNI field not found"; break;
+        default:                                     ; errStr = nl::ErrorStr(inErr); break;
+    }
+
+    errStrObj = (errStr != NULL) ? env->NewStringUTF(errStr) : NULL;
+    pathStrObj = (path != NULL) ? env->NewStringUTF(path) : NULL;
+
+    env->ExceptionClear();
+    outEx = env->NewObject(sWdmClientFlushUpdateExceptionCls, constructor, (jint)inErr, errStrObj, pathStrObj, (jlong)dataSink);
+    VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
+
+exit:
+    env->DeleteLocalRef(errStrObj);
+    env->DeleteLocalRef(pathStrObj);
+    return err;
+}
+
+WEAVE_ERROR N2J_WdmClientFlushUpdateDeviceStatus(JNIEnv *env, DeviceStatus& devStatus, jobject& outEx, const char * path, TraitDataSink * dataSink)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    jmethodID constructor;
+    const char *errStr = NULL;
+    jstring errStrObj = NULL;
+    jstring pathStrObj = NULL;
+
+    constructor = env->GetMethodID(sWdmClientFlushUpdateDeviceExceptionCls, "<init>", "(IIILjava/lang/String;Ljava/lang/String;J)V");
+    VerifyOrExit(constructor != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
+    errStr = nl::StatusReportStr(devStatus.StatusProfileId, devStatus.StatusCode);
+    errStrObj = (errStr != NULL) ? env->NewStringUTF(errStr) : NULL;
+    pathStrObj = (path != NULL) ? env->NewStringUTF(path) : NULL;
+
+    env->ExceptionClear();
+    outEx = (jthrowable)env->NewObject(sWdmClientFlushUpdateDeviceExceptionCls, constructor, (jint)devStatus.StatusCode,
+            (jint)devStatus.StatusProfileId, (jint)devStatus.SystemErrorCode, errStrObj, pathStrObj, (jlong)dataSink);
+    VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
+
+exit:
+    env->DeleteLocalRef(errStrObj);
+    env->DeleteLocalRef(pathStrObj);
+    return err;
+}
+
 WEAVE_ERROR J2N_ResourceIdentifier(JNIEnv *env, jobject inResourceIdentifier, ResourceIdentifier & outResourceIdentifier)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -3842,7 +3969,7 @@ void Java_nl_Weave_DataManagement_WdmClientImpl_beginFlushUpdate(JNIEnv *env, jo
     WeaveLogProgress(DeviceManager, "beginFlushUpdate() called");
 
     pthread_mutex_lock(&sStackLock);
-    err = wdmClient->FlushUpdate((void *)"FlushUpdate", HandleWdmClientComplete, HandleWdmClientError);
+    err = wdmClient->FlushUpdate((void *)"FlushUpdate", HandleWdmClientFlushUpdateComplete, HandleWdmClientError);
     pthread_mutex_unlock(&sStackLock);
 
     if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
@@ -4306,7 +4433,7 @@ jobjectArray Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_getS
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char *pPathStr = NULL;
-    jobjectArray array;
+    jobjectArray array = NULL;
     jclass java_lang_String = NULL;
     std::vector<std::string> stringVector;
 
@@ -4385,6 +4512,31 @@ NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkIm
     version = pDataSink->GetVersion();
 
     return (jlong)version;
+}
+
+NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_deleteData(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr, jstring path)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    const char *pPathStr = NULL;
+    GenericTraitUpdatableDataSink *pDataSink = (GenericTraitUpdatableDataSink *)genericTraitUpdatableDataSinkPtr;
+
+    WeaveLogProgress(DeviceManager, "deleteData() called");
+
+    pPathStr = env->GetStringUTFChars(path, 0);
+    VerifyOrExit(pPathStr != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    err = pDataSink->DeleteData(pPathStr);
+
+exit:
+    if (pPathStr != NULL)
+    {
+        env->ReleaseStringUTFChars(path, pPathStr);
+    }
+
+    if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
+    {
+        ThrowError(env, err);
+    }
 }
 
 namespace nl {
