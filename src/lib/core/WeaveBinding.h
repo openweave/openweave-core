@@ -148,10 +148,10 @@ public:
         kState_Resetting                            = 12,
         kState_Closed                               = 13,
         kState_Failed                               = 14,
-
         kState_MaxState                             = 15, // limited to 4 bits
     };
 
+    // clang-format off
     enum EventType
     {
         kEvent_ConnectionEstablished                = 1,    ///< The requested Weave connection has been established.
@@ -164,6 +164,7 @@ public:
 
         kEvent_DefaultCheck                         = 100,  ///< Used to verify correct default event handling in the application.
     };
+    // clang-format on
 
     typedef void (*EventCallback)(void *apAppState, EventType aEvent, const InEventParam& aInParam, OutEventParam& aOutParam);
 

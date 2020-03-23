@@ -52,21 +52,24 @@ namespace Weave {
 
 using namespace nl::Weave::Encoding;
 
-enum {
-    kFlagInitiator              = 0x0001, /// This context is the initiator of the exchange.
-    kFlagConnectionClosed       = 0x0002, /// This context was associated with a WeaveConnection.
-    kFlagAutoRequestAck         = 0x0004, /// When set, automatically request an acknowledgment whenever a message is sent via UDP.
-    kFlagDropAck                = 0x0008, /// Internal and debug only: when set, the exchange layer does not send an acknowledgment.
-    kFlagResponseExpected       = 0x0010, /// If a response is expected for a message that is being sent.
-    kFlagAckPending             = 0x0020, /// When set, signifies that there is an acknowledgment pending to be sent back.
-    kFlagPeerRequestedAck       = 0x0040, /// When set, signifies that at least one message received on this exchange requested an acknowledgment.
-                                          /// This flag is read by the application to decide if it needs to request an acknowledgment for the
-                                          /// response message it is about to send. This flag can also indicate whether peer is using WRMP.
-    kFlagMsgRcvdFromPeer        = 0x0080, /// When set, signifies that at least one message has been received from peer on this exchange context.
-    kFlagAutoReleaseKey         = 0x0100, /// Automatically release the message encryption key when the exchange context is freed.
-    kFlagAutoReleaseConnection  = 0x0200, /// Automatically release the associated WeaveConnection when the exchange context is freed.
-    kFlagUseEphemeralUDPPort    = 0x0400, /// When set, use the local ephemeral UDP port as the source port for outbound messages.
+// clang-format off
+enum
+{
+    kFlagInitiator              = 0x0001, ///< This context is the initiator of the exchange.
+    kFlagConnectionClosed       = 0x0002, ///< This context was associated with a WeaveConnection.
+    kFlagAutoRequestAck         = 0x0004, ///< When set, automatically request an acknowledgment whenever a message is sent via UDP.
+    kFlagDropAck                = 0x0008, ///< Internal and debug only: when set, the exchange layer does not send an acknowledgment.
+    kFlagResponseExpected       = 0x0010, ///< If a response is expected for a message that is being sent.
+    kFlagAckPending             = 0x0020, ///< When set, signifies that there is an acknowledgment pending to be sent back.
+    kFlagPeerRequestedAck       = 0x0040, ///< When set, signifies that at least one message received on this exchange requested an acknowledgment.
+                                          ///< This flag is read by the application to decide if it needs to request an acknowledgment for the
+                                          ///< response message it is about to send. This flag can also indicate whether peer is using WRMP.
+    kFlagMsgRcvdFromPeer        = 0x0080, ///< When set, signifies that at least one message has been received from peer on this exchange context.
+    kFlagAutoReleaseKey         = 0x0100, ///< Automatically release the message encryption key when the exchange context is freed.
+    kFlagAutoReleaseConnection  = 0x0200, ///< Automatically release the associated WeaveConnection when the exchange context is freed.
+    kFlagUseEphemeralUDPPort    = 0x0400, ///< When set, use the local ephemeral UDP port as the source port for outbound messages.
 };
+//clang-format on
 
 /**
  *  Determine whether the context is the initiator of the exchange.
