@@ -406,16 +406,24 @@ static void CheckStringSerDes(nlTestSuite * inSuite, void * inContext)
     ResourceIdentifier resource(Schema::Weave::Common::RESOURCE_TYPE_DEVICE, 0x18b4300000000001ULL);
     ResourceIdentifier resource1(0x18b4300000000001ULL);
     ResourceIdentifier resource2(Schema::Weave::Common::RESOURCE_TYPE_USER, 0x18b4300000000001ULL);
+    ResourceIdentifier resource3(Schema::Weave::Common::RESOURCE_TYPE_DEVICE, 1ULL);
+    ResourceIdentifier resource4(Schema::Weave::Common::RESOURCE_TYPE_DEVICE, 0x0000000100000001ULL);
     ResourceIdentifier resource_self(ResourceIdentifier::SELF_NODE_ID);
     ResourceIdentifier resource_unknown_type(0xC001, 0x18b4300000000001ULL);
     ResourceIdentifier resource_uninitialized;
 
-    const char * resource_str               = "DEVICE_18B4300000000001";
-    const char * resource2_str              = "USER_18B4300000000001";
-    const char * resource_self_str          = "RESERVED_DEVICE_SELF";
-    const char * resource_uninitialized_str = "RESERVED_NOT_SPECIFIED";
-    const char * resource_unknown_type_str  = "(C001)_18B4300000000001";
-    const char * resource_unknown_str       = "WIDGET_18B4300000000001";
+    const char resource_str[]               = "DEVICE_18B4300000000001";
+    const char resource2_str[]              = "USER_18B4300000000001";
+    const char resource_self_str[]          = "RESERVED_DEVICE_SELF";
+    const char resource_uninitialized_str[] = "RESERVED_NOT_SPECIFIED";
+    const char resource_unknown_type_str[]  = "(C001)_18B4300000000001";
+    const char resource_unknown_str[]       = "WIDGET_18B4300000000001";
+    const char resource_str_long_1[]        = "DEVICE_18B43000000000011";
+    const char resource_str_long_2[]        = "DEVICE_18B4300000000001meaningless_padding";
+    const char resource_str_short_1[]       = "DEVICE_01";
+    const char resource_str_short_2[]       = "DEVICE_0000001";
+    const char resource_str_short_3[]       = "DEVICE_10000001";
+    const char resource_str_err_1[]         = "DEVICE_-1";
 
     char resource_buf[ResourceIdentifier::MAX_STRING_LENGTH];
     WEAVE_ERROR err;
@@ -446,6 +454,31 @@ static void CheckStringSerDes(nlTestSuite * inSuite, void * inContext)
     NL_TEST_ASSERT(inSuite, resource_uninitialized == resource);
     NL_TEST_ASSERT(inSuite, resource_uninitialized != resource_self);
 
+    err = resource_uninitialized.FromString(resource_str_long_1, sizeof(resource_str_long_1));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, resource_uninitialized == resource);
+    NL_TEST_ASSERT(inSuite, resource_uninitialized != resource_self);
+
+    err = resource_uninitialized.FromString(resource_str_long_2, sizeof(resource_str_long_2));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, resource_uninitialized == resource);
+    NL_TEST_ASSERT(inSuite, resource_uninitialized != resource_self);
+
+    err = resource_uninitialized.FromString(resource_str_short_1, sizeof(resource_str_short_1));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    resource_uninitialized.ToString(resource_buf, sizeof(resource_buf));
+    NL_TEST_ASSERT(inSuite, resource_uninitialized == resource3);
+
+    err = resource_uninitialized.FromString(resource_str_short_2, sizeof(resource_str_short_2));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    resource_uninitialized.ToString(resource_buf, sizeof(resource_buf));
+    NL_TEST_ASSERT(inSuite, resource_uninitialized == resource3);
+
+    err = resource_uninitialized.FromString(resource_str_short_3, sizeof(resource_str_short_3));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    resource_uninitialized.ToString(resource_buf, sizeof(resource_buf));
+    NL_TEST_ASSERT(inSuite, resource_uninitialized == resource4);
+
     // verify we map onto self node id
     err = resource_uninitialized.FromString(resource_str, sizeof(resource_str), 0x18b4300000000001ULL);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
@@ -468,6 +501,9 @@ static void CheckStringSerDes(nlTestSuite * inSuite, void * inContext)
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_INVALID_ARGUMENT);
 
     err = resource_uninitialized.FromString(resource_unknown_str, sizeof(resource_unknown_str));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = resource_uninitialized.FromString(resource_unknown_str, sizeof(resource_str_err_1));
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_INVALID_ARGUMENT);
 }
 
