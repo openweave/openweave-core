@@ -544,6 +544,7 @@
  */
 #define WeaveMakeManagedNamespaceIdentifier(aIdentifier, aDesignation) _WeaveMakeManagedNamespaceIdentifier(aIdentifier, aDesignation)
 
+#define WeaveMakeManagedNamespace(aIdentifier, aDesignation) namespace _WeaveMakeManagedNamespaceIdentifier(aIdentifier, aDesignation)
 /**
  *  @def kWeaveManagedNamespace_Legacy
  *
