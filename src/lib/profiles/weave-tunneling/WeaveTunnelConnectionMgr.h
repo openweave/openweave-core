@@ -79,36 +79,48 @@ class ReconnectParam
  */
 class NL_DLL_EXPORT WeaveTunnelConnectionMgr
 {
-  friend class WeaveTunnelAgent;
-  friend class WeaveTunnelControl;
+    friend class WeaveTunnelAgent;
+    friend class WeaveTunnelControl;
 
-  public:
+public:
+    // clang-format off
     typedef enum TunnelConnectionState
     {
-        kState_NotConnected            = 0,   /**< Used to indicate that the Weave Tunnel is not connected */
-        kState_Connecting              = 1,   /**< Used to indicate that the Weave Tunnel connection has been initiated */
-        kState_ConnectionEstablished   = 2,   /**< Used to indicate that the Weave Tunnel connection is established and route information is being exchanged */
-        kState_TunnelOpen              = 3,   /**< Used to indicate that the Weave Tunnel is open and ready for data traffic transit */
-        kState_TunnelClosing           = 4,   /**< Used to indicate that the Weave Tunnel is closing and the connection is being torn down */
-        kState_ReconnectRecvd          = 5,   /**< Used to indicate that the Service wants the border gateway to reconnect after a directory lookup */
+        kState_NotConnected             = 0,   /**< Used to indicate that the Weave Tunnel is not connected. */
+        kState_Connecting               = 1,   /**< Used to indicate that the Weave Tunnel connection has been initiated. */
+        kState_ConnectionEstablished    = 2,   /**< Used to indicate that the Weave Tunnel connection is established and route
+                                                    information is being exchanged. */
+        kState_TunnelOpen               = 3,   /**< Used to indicate that the Weave Tunnel is open and ready for data traffic transit. */
+        kState_TunnelClosing            = 4,   /**< Used to indicate that the Weave Tunnel is closing and the connection is being
+                                                    torn down. */
+        kState_ReconnectRecvd           = 5,   /**< Used to indicate that the Service wants the border gateway to reconnect after a
+                                                    directory lookup. */
     } TunnelConnectionState;
 
     typedef enum TunnelConnNotifyReasons
     {
-        kStatus_TunDown                    = 0,   /**< Used to indicate that the Weave tunnel has gone down */
-        kStatus_TunPrimaryUp               = 1,   /**< Used to indicate that the primary Weave tunnel is up */
-        kStatus_TunPrimaryConnError        = 2,   /**< Used to indicate that a primary tunnel connection attempt has failed or an existing one was locally aborted or closed by peer */
-        kStatus_TunBackupConnError         = 3,   /**< Used to indicate that a backup tunnel connection attempt has failed or an existing one was locally aborted or closed by peer */
-        kStatus_TunFailoverToBackup        = 4,   /**< Used to indicate that the primary tunnel is down and switchover to backup tunnel has occurred */
-        kStatus_TunBackupOnlyDown          = 5,   /**< Used to indicate that the backup tunnel is down */
-        kStatus_TunBackupUp                = 6,   /**< Used to indicate that the Backup Weave tunnel is up */
-        kStatus_TunPrimaryAndBackupUp      = 7,   /**< Used to indicate that both the Primary and Backup Weave tunnel are up */
-        kStatus_TunPrimaryReconnectRcvd    = 8,   /**< Used to indicate that the Service has requested a reconnect for the Primary Weave tunnel */
-        kStatus_TunBackupReconnectRcvd     = 9,   /**< Used to indicate that the Service has requested a reconnect for the Backup Weave tunnel */
-        kStatus_TunPrimaryLiveness         = 10,  /**< Used to indicate information about the Tunnel Liveness probe on the Primary Weave tunnel */
-        kStatus_TunBackupLiveness          = 11,  /**< Used to indicate information about the Tunnel Liveness probe on the Backup Weave tunnel */
+        kStatus_TunDown                 = 0,   /**< Used to indicate that the Weave tunnel has gone down. */
+        kStatus_TunPrimaryUp            = 1,   /**< Used to indicate that the primary Weave tunnel is up. */
+        kStatus_TunPrimaryConnError     = 2,   /**< Used to indicate that a primary tunnel connection attempt has failed or an
+                                                    existing one was locally aborted or closed by peer. */
+        kStatus_TunBackupConnError      = 3,   /**< Used to indicate that a backup tunnel connection attempt has failed or an
+                                                    existing one was locally aborted or closed by peer. */
+        kStatus_TunFailoverToBackup     = 4,   /**< Used to indicate that the primary tunnel is down and switchover to backup tunnel
+                                                    has occurred. */
+        kStatus_TunBackupOnlyDown       = 5,   /**< Used to indicate that the backup tunnel is down. */
+        kStatus_TunBackupUp             = 6,   /**< Used to indicate that the Backup Weave tunnel is up. */
+        kStatus_TunPrimaryAndBackupUp   = 7,   /**< Used to indicate that both the Primary and Backup Weave tunnel are up. */
+        kStatus_TunPrimaryReconnectRcvd = 8,   /**< Used to indicate that the Service has requested a reconnect for the Primary
+                                                    Weave tunnel. */
+        kStatus_TunBackupReconnectRcvd  = 9,   /**< Used to indicate that the Service has requested a reconnect for the Backup Weave
+                                                    tunnel. */
+        kStatus_TunPrimaryLiveness      = 10,  /**< Used to indicate information about the Tunnel Liveness probe on the Primary
+                                                    Weave tunnel. */
+        kStatus_TunBackupLiveness       = 11,  /**< Used to indicate information about the Tunnel Liveness probe on the Backup Weave
+                                                    tunnel. */
 
     } TunnelConnNotifyReasons;
+    // clang-format on
 
     WeaveTunnelConnectionMgr(void);
 
