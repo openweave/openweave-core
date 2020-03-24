@@ -75,8 +75,8 @@ using namespace nl::Weave::ASN1;
 // which is referenced by IETF draft-hao-schnorr-00.
 //
 #if WEAVE_CONFIG_SUPPORT_PASE_CONFIG1
-
-static BIGNUM *PASEConfig1_JPAKE_P()
+// clang-format off
+static BIGNUM * PASEConfig1_JPAKE_P()
 {
     static const uint8_t P[] =
     {
@@ -93,7 +93,7 @@ static BIGNUM *PASEConfig1_JPAKE_P()
     return BN_bin2bn(P, sizeof(P), NULL);
 }
 
-static BIGNUM *PASEConfig1_JPAKE_Q()
+static BIGNUM * PASEConfig1_JPAKE_Q()
 {
     static const uint8_t Q[] =
     {
@@ -104,7 +104,7 @@ static BIGNUM *PASEConfig1_JPAKE_Q()
     return BN_bin2bn(Q, sizeof(Q), NULL);
 }
 
-static BIGNUM *PASEConfig1_JPAKE_G()
+static BIGNUM * PASEConfig1_JPAKE_G()
 {
     static const uint8_t G[] =
     {
@@ -120,6 +120,7 @@ static BIGNUM *PASEConfig1_JPAKE_G()
 
     return BN_bin2bn(G, sizeof(G), NULL);
 }
+// clang-format on
 
 // Utility function for initializing a JPAKE_CTX for PASE Config1
 static WEAVE_ERROR NewPASEConfig1JPAKECTX(const uint8_t *pw, uint16_t pwLen, const char *localContextStr, const char *peerContextStr, struct JPAKE_CTX *& ctx)

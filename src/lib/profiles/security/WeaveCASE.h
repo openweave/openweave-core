@@ -64,6 +64,7 @@ class WeaveCASEEngine;
 
 
 // CASE Protocol Configuration Values
+// clang-format off
 enum
 {
     kCASEConfig_NotSpecified                    = 0,
@@ -111,7 +112,7 @@ enum
     // Mask for Key Confirm Hash Length field in CASEBeginSessionResponse
     kCASEHeader_KeyConfirmHashLengthMask        = 0xC0
 };
-
+// clang-format on
 
 /**
  * Holds context information related to the generation or processing of a CASE begin session messages.
@@ -406,10 +407,10 @@ public:
         kState_Failed                           = 6
     };
 
-    WeaveCASEAuthDelegate *AuthDelegate;                // Authentication delegate object
-    uint8_t State;                                      // [READ-ONLY] Current protocol state
-    uint8_t EncryptionType;                             // [READ-ONLY] Proposed Weave encryption type
-    uint16_t SessionKeyId;                              // [READ-ONLY] Proposed session key id
+    WeaveCASEAuthDelegate *AuthDelegate;                ///< Authentication delegate object
+    uint8_t State;                                      ///< [READ-ONLY] Current protocol state
+    uint8_t EncryptionType;                             ///< [READ-ONLY] Proposed Weave encryption type
+    uint16_t SessionKeyId;                              ///< [READ-ONLY] Proposed session key id
 
     void Init(void);
     void Shutdown(void);
@@ -461,6 +462,7 @@ public:
 #endif
 
 private:
+    // clang-format off
     enum
     {
         kMaxHashLength                          = SHA256::kHashLength,
@@ -482,6 +484,7 @@ private:
 
         kFlag_Reserved                          = kCASEAllowedConfig_Mask // Bottom 2 bits reserved for allowed configs flags
     };
+    // clang-format on
 
     union
     {

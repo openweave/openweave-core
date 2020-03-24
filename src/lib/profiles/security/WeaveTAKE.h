@@ -60,6 +60,7 @@ static const uint8_t kSaltTimeUnlimitedIdentificationKey[] = { 0x12, 0x34, 0x56,
 static const uint8_t kSaltProtocolEncryption[] = { 0x54, 0x41, 0x4B, 0x45 }; // TAKE
 
 // TAKE Control Header Field Definitions
+// clang-format off
 enum
 {
     //
@@ -117,6 +118,7 @@ enum {
     kTAKEConfig_Invalid                             = 0,
     kTAKEConfig_Config1                             = 1
 };
+// clang-format on
 
 // Abstract delegate class called by TAKE engine to perform various
 // actions related to authentication during a TAKE exchange.
@@ -249,6 +251,7 @@ public:
 private:
     WeaveEncryptionKey EncryptionKey;
 
+    // clang-format off
     enum EngineState
     {
         kState_Reset                                           = 0,
@@ -264,7 +267,6 @@ private:
         kState_InitiatorReAuthenticateTokenResponseProcessed   = kState_InitiatorStatesBase + 5,
         kState_InitiatorReconfigureProcessed                   = kState_InitiatorStatesBase + 6,
 
-
         // Responder States
         kState_ResponderStatesBase                             = 20,
         kState_ResponderStatesEnd                              = 29,
@@ -276,6 +278,7 @@ private:
         kState_ResponderReAuthenticateTokenResponseGenerated   = kState_ResponderStatesBase + 5,
         kState_ResponderDone                                   = kState_ResponderStatesBase + 6
     };
+    // clang-format on
 
     uint8_t State;
 

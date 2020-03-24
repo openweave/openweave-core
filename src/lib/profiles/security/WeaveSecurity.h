@@ -46,6 +46,7 @@ namespace Security {
 
 // Message Types for Weave Security Profile
 //
+// clang-format off
 enum
 {
     // ---- PASE Protocol Messages ----
@@ -375,6 +376,7 @@ enum
 
     kWeaveCurveSet_All                          = (kWeaveCurveSet_secp160r1|kWeaveCurveSet_prime192v1|kWeaveCurveSet_secp224r1|kWeaveCurveSet_prime256v1)
 };
+// clang-format on
 
 extern bool IsSupportedCurve(uint32_t curveId);
 
