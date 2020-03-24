@@ -53,6 +53,7 @@ using nl::Inet::IPAddress;
 /**
  *  Service Provisioning Status Codes
  */
+// clang-format off
 enum
 {
     kStatusCode_TooManyServices                 = 1,    /**< There are too many services registered on the device. */
@@ -114,6 +115,7 @@ enum
     kTag_ServiceEndPointAddress_HostName        = 1,    /**< [ utf-8 string ] Host name or literal IP address. */
     kTag_ServiceEndPointAddress_Port            = 2     /**< [ uint, 1-63353 ] IP port number. Optional */
 };
+// clang-format on
 
 
 class NL_DLL_EXPORT RegisterServicePairAccountMessage

@@ -49,12 +49,13 @@ namespace TokenPairing {
 /**
  * Message Types for the Token Pairing Profile.
  */
+// clang-format off
 enum
 {
-    kMsgType_PairTokenRequest                = 1,
-    kMsgType_TokenCertificateResponse        = 2,
-    kMsgType_TokenPairedResponse             = 3,
-    kMsgType_UnpairTokenRequest              = 4
+    kMsgType_PairTokenRequest                     = 1,
+    kMsgType_TokenCertificateResponse             = 2,
+    kMsgType_TokenPairedResponse                  = 3,
+    kMsgType_UnpairTokenRequest                   = 4
 };
 
 
@@ -66,22 +67,22 @@ enum
     /**
      * Profile-specific Tags
      */
-    kTag_TokenPairingBundle                     = 1,    /**< Structure containing an Auth Token Pairing Bundle. */
+    kTag_TokenPairingBundle                       = 1,    /**< Structure containing an Auth Token Pairing Bundle. */
 
     /**
      * Context-specific Tags for TokenPairingBundle Structure
      */
-    kTag_VendorId                               = 0,    /**< Code identifying product vendor. [ uint, range 1-65535 ] */
-    kTag_ProductId                              = 1,    /**< Code identifying product. [ uint, range 1-65535 ] */
-    kTag_ProductRevision                        = 2,    /**< Code identifying product revision. [ uint, range 1-65535 ] */
-    kTag_SoftwareVersion                        = 3,    /**< Version of software on the device. [ UTF-8 string, len 1-32 ] */
-    kTag_DeviceId                               = 4,    /**< Weave device ID. [ uint, 2^64 max ] */
-    kTag_PairingToken                           = 5,    /**< Pairing token from the service [ byte string, len 1-128] */
-    kTag_TakeIdentityRootKey                    = 6,    /**< TAKE IRK [ Byte String, len 1-16] */
-    kTag_EphemeralIdIdentityKey                 = 7,    /**< Ephermeral ID Identity Key [ byte string, len 1-16 ] */
-    kTag_TokenCurrentTimeCounterValueInSeconds  = 8,    /**< Token Current time counter (in seconds) [ unit, 2^32 max ] */
-    kTag_EphemeralIdRotationPeriodScaler        = 9,    /**< Ephemeral ID rotation period scaler [ unit, 256 max ] */
-    kTag_WeaveSignature                         = 10    /**< A Weave signature object (see profiles/security/WeaveSecurity.h) [ structure ] */
+    kTag_VendorId                                 = 0,    /**< Code identifying product vendor. [ uint, range 1-65535 ] */
+    kTag_ProductId                                = 1,    /**< Code identifying product. [ uint, range 1-65535 ] */
+    kTag_ProductRevision                          = 2,    /**< Code identifying product revision. [ uint, range 1-65535 ] */
+    kTag_SoftwareVersion                          = 3,    /**< Version of software on the device. [ UTF-8 string, len 1-32 ] */
+    kTag_DeviceId                                 = 4,    /**< Weave device ID. [ uint, 2^64 max ] */
+    kTag_PairingToken                             = 5,    /**< Pairing token from the service [ byte string, len 1-128] */
+    kTag_TakeIdentityRootKey                      = 6,    /**< TAKE IRK [ Byte String, len 1-16] */
+    kTag_EphemeralIdIdentityKey                   = 7,    /**< Ephermeral ID Identity Key [ byte string, len 1-16 ] */
+    kTag_TokenCurrentTimeCounterValueInSeconds    = 8,    /**< Token Current time counter (in seconds) [ uint, 2^32 max ] */
+    kTag_EphemeralIdRotationPeriodScaler          = 9,    /**< Ephemeral ID rotation period scaler [ uint, 256 max ] */
+    kTag_WeaveSignature                           = 10    /**< A Weave signature object (see profiles/security/WeaveSecurity.h) [ structure ] */
 };
 
 
@@ -90,10 +91,11 @@ enum
  */
 enum
 {
-    kTokenPairing_MaxPairingTokenLength             = 128,  /**< Maximum pairing token length. */
-    kTokenPairing_MaxTakeIdentityRootKeyLength      = 16,   /**< Maximum TAKE IRK length. */
-    kTokenPairing_MaxEphemeralIdIdentityKeyLength   = 16    /**< Maximum Ephermeral ID Identity Key length. */
+    kTokenPairing_MaxPairingTokenLength           = 128,  /**< Maximum pairing token length. */
+    kTokenPairing_MaxTakeIdentityRootKeyLength    = 16,   /**< Maximum TAKE IRK length. */
+    kTokenPairing_MaxEphemeralIdIdentityKeyLength = 16    /**< Maximum Ephermeral ID Identity Key length. */
 };
+// clang-format on
 
 class TokenPairingDelegate;
 
