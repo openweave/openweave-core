@@ -409,6 +409,7 @@ private:
     friend class UpdateDictionaryDirtyPathCut;
     friend class UpdateEncoder;
 
+    // clang-format off
     enum ClientState
     {
         kState_Free                                 = 0,
@@ -433,6 +434,7 @@ private:
         kState_Established_Begin                    = kState_SubscriptionEstablished_Idle,
         kState_Established_End                      = kState_SubscriptionEstablished_Confirming,
     };
+    // clang-format off
 
     ClientState mCurrentState;
 

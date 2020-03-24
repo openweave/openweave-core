@@ -96,6 +96,7 @@ enum
  * @brief
  *   Tags for event metadata.  For complete semantics of the tag values, see the Event Design Specification.
  */
+// clang-format off
 enum
 {
     // public tags for event description
@@ -148,9 +149,11 @@ enum
 
     kTag_EventData               = 50, ///< Optional.  Event data itself.  If empty, it defaults to an empty structure.
 
-    kTag_ExternalEventStructure  = 99, ///< Internal tag for external events.  Never transmitted across the wire, should never be used outside of Weave library
+    kTag_ExternalEventStructure  = 99, ///< Internal tag for external events.  Never transmitted across the wire, should never be
+                                       ///<  used outside of Weave library
 
 };
+// clang-format on
 
 // Tags for the debug trait
 
