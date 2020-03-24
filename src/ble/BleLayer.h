@@ -116,7 +116,7 @@ public:
 protected:
     uint32_t mRefCount;
 
-    void AddRef(void) { mRefCount++; }
+    void AddRef(void) {mRefCount++; }
     void Release(void);
 };
 
