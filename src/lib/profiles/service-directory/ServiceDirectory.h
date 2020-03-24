@@ -62,15 +62,16 @@ struct ServiceConnectBeginArgs;
  *  Weave message types used in this profile
  *
  */
+// clang-format off
 enum
 {
-    kMsgType_ServiceEndpointQuery =         0x00,   ///< Service Endpoint Query message type
-    kMsgType_ServiceEndpointResponse =      0x01    ///< Service Endpoint Response message type
+    kMsgType_ServiceEndpointQuery    = 0x00,   ///< Service Endpoint Query message type
+    kMsgType_ServiceEndpointResponse = 0x01    ///< Service Endpoint Response message type
 };
 
 enum
 {
-    kConnectRequestPoolSize =               4,      ///< the number of simultaneous connect requests
+    kConnectRequestPoolSize          = 4,      ///< the number of simultaneous connect requests
 };
 
 /**
@@ -79,10 +80,10 @@ enum
  */
 enum
 {
-    kMask_DirectoryLen =                    0x0F,   ///< Length of the directory
-    kMask_Redirect =                        0x10,   ///< Redirect flag
-    kMask_SuffixTablePresent =              0x20,   ///< Suffix table present flag
-    kMask_TimeFieldsPresent =               0x40,   ///< Time fields present flag
+    kMask_DirectoryLen               = 0x0F,   ///< Length of the directory
+    kMask_Redirect                   = 0x10,   ///< Redirect flag
+    kMask_SuffixTablePresent         = 0x20,   ///< Suffix table present flag
+    kMask_TimeFieldsPresent          = 0x40,   ///< Time fields present flag
 };
 
 /**
@@ -92,10 +93,10 @@ enum
  */
 enum
 {
-    kMask_HostPortListLen =                 0x07,   ///< Length of the host/port list
-    kMask_DirectoryEntryType =              0xC0,   ///< Entry Type
-    kDirectoryEntryType_SingleNode =        0x00,   ///< A zero value means this entry is a node ID
-    kDirectoryEntryType_HostPortList =      0x40,   ///< This entry is a list of host/port pairs
+    kMask_HostPortListLen            = 0x07,   ///< Length of the host/port list
+    kMask_DirectoryEntryType         = 0xC0,   ///< Entry Type
+    kDirectoryEntryType_SingleNode   = 0x00,   ///< A zero value means this entry is a node ID
+    kDirectoryEntryType_HostPortList = 0x40,   ///< This entry is a list of host/port pairs
 };
 
 /**
@@ -105,11 +106,11 @@ enum
  */
 enum
 {
-    kMask_HostIdType =                      0x03,   ///< The type of host ID
-    kHostIdType_FullyQualified =            0x00,   ///< The host ID is all there
-    kHostIdType_Composite =                 0x01,   ///< The host ID needs to be matched with a suffix
-    kMask_SuffixIndexPresent =              0x04,   ///< A suffix index is present
-    kMask_PortIdPresent =                   0x08    ///< A port ID is present
+    kMask_HostIdType                 = 0x03,   ///< The type of host ID
+    kHostIdType_FullyQualified       = 0x00,   ///< The host ID is all there
+    kHostIdType_Composite            = 0x01,   ///< The host ID needs to be matched with a suffix
+    kMask_SuffixIndexPresent         = 0x04,   ///< A suffix index is present
+    kMask_PortIdPresent              = 0x08    ///< A port ID is present
 };
 
 /**
@@ -118,7 +119,7 @@ enum
  */
 enum
 {
-    kStatus_DirectoryUnavailable =          0x0051  ///< Directory is not available
+    kStatus_DirectoryUnavailable     = 0x0051  ///< Directory is not available
 };
 
 /**
@@ -127,11 +128,12 @@ enum
  */
 enum
 {
-    kServiceMgrState_Initial =              0,
-    kServiceMgrState_Resolving =            1,
-    kServiceMgrState_Waiting =              2,
-    kServiceMgrState_Resolved =             3
+    kServiceMgrState_Initial         = 0,
+    kServiceMgrState_Resolving       = 1,
+    kServiceMgrState_Waiting         = 2,
+    kServiceMgrState_Resolved        = 3
 };
+// clang-format on
 
 #if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
 enum
