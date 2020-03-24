@@ -52,27 +52,28 @@ namespace Weave {
 namespace Profiles {
 namespace DeviceDescription {
 
+// clang-format off
 enum
 {
-    kTextKey_VendorId                           = 'V',  // [ 1-4 hex digits ] Code identifying product vendor.
-    kTextKey_ProductId                          = 'P',  // [ 1-4 hex digits ] Code identifying product.
-    kTextKey_ProductRevision                    = 'R',  // [ 1-4 hex digits ] Code identifying product revision.
-    kTextKey_ManufacturingDate                  = 'D',  // [ 4 or 6 decimal digits ] Calendar date of manufacture in YYMM or YYMMDD form.
-    kTextKey_SerialNumber                       = 'S',  // [ 1-32 char string ] Device serial number.
-    kTextKey_DeviceId                           = 'E',  // [ 8 hex digits ] Weave Device Id / device unique id.
-    kTextKey_Primary802154MACAddress            = 'L',  // [ 8 hex digits ] MAC address for device's primary 802.15.4 interface.
-    kTextKey_PrimaryWiFiMACAddress              = 'W',  // [ 6 hex digits ] MAC address for device's primary WiFi interface.
-    kTextKey_RendezvousWiFiESSID                = 'I',  // [ 1-32 char string ] ESSID for device's WiFi rendezvous network.
-    kTextKey_RendezvousWiFiESSIDSuffix          = 'H',  // [ 1-32 char string ] ESSID for device's WiFi rendezvous network.
-    kTextKey_PairingCode                        = 'C',  // [ 6-16 char string ] The pairing code for the device.
-    kTextKey_PairingCompatibilityVersionMajor   = 'J',  // [ 1-4 hex digits ] Pairing software compatibility major version.
-    kTextKey_PairingCompatibilityVersionMinor   = 'N',  // [ 1-4 hex digits ] Pairing software compatibility minor version.
+    kTextKey_VendorId                         = 'V',  ///< [ 1-4 hex digits ] Code identifying product vendor.
+    kTextKey_ProductId                        = 'P',  ///< [ 1-4 hex digits ] Code identifying product.
+    kTextKey_ProductRevision                  = 'R',  ///< [ 1-4 hex digits ] Code identifying product revision.
+    kTextKey_ManufacturingDate                = 'D',  ///< [ 4 or 6 decimal digits ] Calendar date of manufacture in YYMM or YYMMDD form.
+    kTextKey_SerialNumber                     = 'S',  ///< [ 1-32 char string ] Device serial number.
+    kTextKey_DeviceId                         = 'E',  ///< [ 8 hex digits ] Weave Device Id / device unique id.
+    kTextKey_Primary802154MACAddress          = 'L',  ///< [ 8 hex digits ] MAC address for device's primary 802.15.4 interface.
+    kTextKey_PrimaryWiFiMACAddress            = 'W',  ///< [ 6 hex digits ] MAC address for device's primary WiFi interface.
+    kTextKey_RendezvousWiFiESSID              = 'I',  ///< [ 1-32 char string ] ESSID for device's WiFi rendezvous network.
+    kTextKey_RendezvousWiFiESSIDSuffix        = 'H',  ///< [ 1-32 char string ] ESSID for device's WiFi rendezvous network.
+    kTextKey_PairingCode                      = 'C',  ///< [ 6-16 char string ] The pairing code for the device.
+    kTextKey_PairingCompatibilityVersionMajor = 'J',  ///< [ 1-4 hex digits ] Pairing software compatibility major version.
+    kTextKey_PairingCompatibilityVersionMinor = 'N',  ///< [ 1-4 hex digits ] Pairing software compatibility minor version.
 
-    kEncodingVersion                            = '1',
-    kKeySeparator                               = ':',
-    kValueTerminator                            = '$'
+    kEncodingVersion                          = '1',
+    kKeySeparator                             = ':',
+    kValueTerminator                          = '$'
 };
-
+// clang-format on
 
 class TextDescriptorWriter
 {

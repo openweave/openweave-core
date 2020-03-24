@@ -58,6 +58,8 @@ using nl::Inet::IPAddress;
 /**
  * Device Control Status Codes
  */
+
+// clang-format off
 enum
 {
     kStatusCode_FailSafeAlreadyActive           = 1,    /**< A provisioning fail-safe is already active. */
@@ -72,28 +74,35 @@ enum
     kStatusCode_ResetNotAllowed                 = 8,    /**< The device refused to allow the requested reset. */
     kStatusCode_NoSystemTestDelegate            = 9     /**< The system test cannot run without a delegate. */
 };
+// clang-format on
 
 /**
  * Device Control Message Types
  */
+
+// clang-format off
 enum
 {
-    kMsgType_ResetConfig                     = 1,    /**< Reset the configuration state of the device. */
-    kMsgType_ArmFailSafe                     = 2,    /**< Arm the configuration fail-safe mechanism on the device. */
-    kMsgType_DisarmFailSafe                  = 3,    /**< Disarm an active configuration fail-safe. */
-    kMsgType_EnableConnectionMonitor         = 4,    /**< Enable connection liveness monitoring. */
-    kMsgType_DisableConnectionMonitor        = 5,    /**< Disable connection liveness monitoring. */
-    kMsgType_RemotePassiveRendezvous         = 6,    /**< Request Remote Passive Rendezvous with Device Control server. */
-    kMsgType_RemoteConnectionComplete        = 7,    /**< Indicate to Device Control client that Remote Passive Rendezvous
-                                                            has completed successfully and connection tunnel is open. */
-    kMsgType_StartSystemTest                 = 8,    /**< Start the system test. */
-    kMsgType_StopSystemTest                  = 9,    /**< Stop the system test. */
-    kMsgType_LookingToRendezvous             = 10    /**< Looking to Rendezvouz message. The payload is empty, the only meaningful signal within is the source node id. */
+    kMsgType_ResetConfig                        = 1,    /**< Reset the configuration state of the device. */
+    kMsgType_ArmFailSafe                        = 2,    /**< Arm the configuration fail-safe mechanism on the device. */
+    kMsgType_DisarmFailSafe                     = 3,    /**< Disarm an active configuration fail-safe. */
+    kMsgType_EnableConnectionMonitor            = 4,    /**< Enable connection liveness monitoring. */
+    kMsgType_DisableConnectionMonitor           = 5,    /**< Disable connection liveness monitoring. */
+    kMsgType_RemotePassiveRendezvous            = 6,    /**< Request Remote Passive Rendezvous with Device Control server. */
+    kMsgType_RemoteConnectionComplete           = 7,    /**< Indicate to Device Control client that Remote Passive Rendezvous
+                                                               has completed successfully and connection tunnel is open. */
+    kMsgType_StartSystemTest                    = 8,    /**< Start the system test. */
+    kMsgType_StopSystemTest                     = 9,    /**< Stop the system test. */
+    kMsgType_LookingToRendezvous                = 10    /**< Looking to Rendezvouz message. The payload is empty, the only meaningful
+                                                               signal within is the source node id. */
 };
+// clang-format on
 
 /**
  * ArmFailSafe Mode Values
  */
+
+// clang-format off
 enum
 {
     kArmMode_New                                = 1,    /**< Arm a new fail-safe; return an error if one is already active. */
@@ -101,10 +110,13 @@ enum
     kArmMode_ResumeExisting                     = 3     /**< Resume a fail-safe already in progress; return an error if no fail-safe
                                                                in progress, or if fail-safe token does not match. */
 };
+// clang-format on
 
 /**
  * ResetConfig Flags
  */
+
+// clang-format off
 enum
 {
     kResetConfigFlag_All                        = 0x00FF, /**< Reset all device configuration information. */
@@ -114,21 +126,25 @@ enum
     kResetConfigFlag_OperationalCredentials     = 0x0008, /**< Reset device operational credentials. */
     kResetConfigFlag_FactoryDefaults            = 0x8000  /**< Reset device to full factory defaults. */
 };
+// clang-format on
 
 /**
  * Message Lengths
  */
+
+// clang-format off
 enum
 {
-    kMessageLength_ResetConfig              = 2,    /**< Reset Config message length. */
-    kMessageLength_ArmFailsafe              = 5,    /**< Arm Failsafe message length. */
-    kMessageLength_DisarmFailsafe           = 0,    /**< Disarm Failsafe message length. */
-    kMessageLength_EnableConnectionMonitor  = 4,    /**< Enable Connection Monitor message length. */
-    kMessageLength_DisableConnectionMonitor = 0,    /**< Disable Connection Monitor message length. */
-    kMessageLength_RemotePassiveRendezvous  = 20,   /**< Remote Passive Rendezvous message length. */
-    kMessageLength_StartSystemTest          = 8,    /**< Start System Test message length. */
-    kMessageLength_StopSystemTest           = 0,    /**< Stop System Test message length. */
+    kMessageLength_ResetConfig                  = 2,    /**< Reset Config message length. */
+    kMessageLength_ArmFailsafe                  = 5,    /**< Arm Failsafe message length. */
+    kMessageLength_DisarmFailsafe               = 0,    /**< Disarm Failsafe message length. */
+    kMessageLength_EnableConnectionMonitor      = 4,    /**< Enable Connection Monitor message length. */
+    kMessageLength_DisableConnectionMonitor     = 0,    /**< Disable Connection Monitor message length. */
+    kMessageLength_RemotePassiveRendezvous      = 20,   /**< Remote Passive Rendezvous message length. */
+    kMessageLength_StartSystemTest              = 8,    /**< Start System Test message length. */
+    kMessageLength_StopSystemTest               = 0,    /**< Stop System Test message length. */
 };
+// clang-format on
 
 /**
  * Delegate class for implementing incoming Device Control operations on the server device.

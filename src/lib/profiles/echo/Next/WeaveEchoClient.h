@@ -129,6 +129,7 @@ using namespace ::nl::Weave;
  * When the object is in MultiResponse mode, the event is suppressed if at least one EchoResponse
  * message has been received.
  */
+// clang-format off
 class NL_DLL_EXPORT WeaveEchoClient
 {
     // DOCUMENTATION FOR METHODS IS LOCATED IN THE CORRESPONDING SOURCE FILE
@@ -227,14 +228,14 @@ private:
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     static void HandleSendError(ExchangeContext * ec, WEAVE_ERROR sendErr, void * msgCtxt);
     static void HandleKeyError(ExchangeContext * ec, WEAVE_ERROR keyErr);
-    static void HandleConnectionClosed(ExchangeContext *ec, WeaveConnection *con, WEAVE_ERROR conErr);
+    static void HandleConnectionClosed(ExchangeContext * ec, WeaveConnection * con, WEAVE_ERROR conErr);
     static void HandleSendTimerExpired(System::Layer * systemLayer, void * appState, System::Error err);
 
     static bool IsMultiResponseAddress(const IPAddress & addr);
 
-    WeaveEchoClient(const WeaveEchoClient&);   // not defined
+    WeaveEchoClient(const WeaveEchoClient &);   // not defined
 };
-
+// clang-format on
 /**
  * Input parameters to WeaveEchoClient API event.
  */
