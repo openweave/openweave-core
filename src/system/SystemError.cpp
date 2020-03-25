@@ -133,19 +133,21 @@ bool FormatSystemLayerError(char * buf, uint16_t bufSize, int32_t err)
         return false;
     }
 
+    // clang-format off
 #if !WEAVE_CONFIG_SHORT_ERROR_STR
     switch (err)
     {
-    case WEAVE_SYSTEM_ERROR_NOT_IMPLEMENTED                     : desc = "Not implemented"; break;
-    case WEAVE_SYSTEM_ERROR_NOT_SUPPORTED                       : desc = "Not supported"; break;
-    case WEAVE_SYSTEM_ERROR_BAD_ARGS                            : desc = "Bad arguments"; break;
-    case WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE                    : desc = "Unexpected state"; break;
-    case WEAVE_SYSTEM_ERROR_UNEXPECTED_EVENT                    : desc = "Unexpected event"; break;
-    case WEAVE_SYSTEM_ERROR_NO_MEMORY                           : desc = "No memory"; break;
-    case WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED                : desc = "Real time not synchronized"; break;
-    case WEAVE_SYSTEM_ERROR_ACCESS_DENIED                       : desc = "Access denied"; break;
+    case WEAVE_SYSTEM_ERROR_NOT_IMPLEMENTED      : desc = "Not implemented"; break;
+    case WEAVE_SYSTEM_ERROR_NOT_SUPPORTED        : desc = "Not supported"; break;
+    case WEAVE_SYSTEM_ERROR_BAD_ARGS             : desc = "Bad arguments"; break;
+    case WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE     : desc = "Unexpected state"; break;
+    case WEAVE_SYSTEM_ERROR_UNEXPECTED_EVENT     : desc = "Unexpected event"; break;
+    case WEAVE_SYSTEM_ERROR_NO_MEMORY            : desc = "No memory"; break;
+    case WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED : desc = "Real time not synchronized"; break;
+    case WEAVE_SYSTEM_ERROR_ACCESS_DENIED        : desc = "Access denied"; break;
     }
 #endif // !WEAVE_CONFIG_SHORT_ERROR_STR
+    // clang-format on
 
     nl::FormatError(buf, bufSize, "Sys", err, desc);
 

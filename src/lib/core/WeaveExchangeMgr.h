@@ -77,6 +77,7 @@ class Binding;
 class WeaveExchangeHeader
 {
 public:
+    // clang-format off
     uint8_t  Version;        /**< The version of the Weave Exchange Header format */
     uint8_t  Flags;          /**< Bit flag indicators for the type of Weave message */
     uint16_t ExchangeId;     /**< The Exchange identifier for the ExchangeContext */
@@ -86,6 +87,7 @@ public:
     uint32_t AckMsgId;       /**< Optional; Message identifier being acknowledged.
                                   Specified when requiring acknowledgments. */
 #endif
+    // clang-format on
 };
 
 /**
@@ -124,6 +126,7 @@ class NL_DLL_EXPORT ExchangeContext
 
 public:
 
+    // clang-format off
     typedef uint32_t Timeout;                   /**< Type used to express the timeout in this ExchangeContext, in milliseconds */
 
     WeaveExchangeManager *ExchangeMgr;          /**< [READ ONLY] Owning exchange manager. */
@@ -143,6 +146,9 @@ public:
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     WRMPConfig mWRMPConfig;                     /**< WRMP configuration. */
 #endif
+    // clang-format on
+
+    // clang-format off
     enum
     {
         kSendFlag_AutoRetrans                   = 0x0001, /**< Used to indicate that automatic retransmission is enabled. */
@@ -162,6 +168,7 @@ public:
         kSendFlag_MulticastFromLinkLocal        = kSendFlag_DefaultMulticastSourceAddress,
                                                           /**< Deprecated alias for \c kSendFlag_DefaultMulticastSourceAddress */
     };
+    // clang-format on
 
     bool IsInitiator(void) const;
     bool IsConnectionClosed(void) const;
@@ -404,17 +411,21 @@ class NL_DLL_EXPORT WeaveExchangeManager
     friend class WeaveFabricState;
 
 public:
+    // clang-format off
     enum State
     {
         kState_NotInitialized = 0,              /**< Used to indicate that the WeaveExchangeManager is not initialized */
         kState_Initialized = 1                  /**< Used to indicate that the WeaveExchangeManager is initialized */
     };
+    // clang-format on
 
     WeaveExchangeManager(void);
 
+    // clang-format off
     WeaveMessageLayer *MessageLayer;            /**< [READ ONLY] The associated WeaveMessageLayer object. */
     WeaveFabricState *FabricState;              /**< [READ ONLY] The associated FabricState object. */
     uint8_t State;                              /**< [READ ONLY] The state of the WeaveExchangeManager object. */
+    // clang-format on
 
     WEAVE_ERROR Init(WeaveMessageLayer *msgLayer);
     WEAVE_ERROR Shutdown(void);
@@ -473,12 +484,14 @@ private:
     class RetransTableEntry
     {
       public:
-       uint32_t             msgId;              /**< The message identifier of the Weave message awaiting acknowledgment. */
-       ExchangeContext      *exchContext;       /**< The ExchangeContext for the stored Weave message. */
-       PacketBuffer         *msgBuf;            /**< A pointer to the PacketBuffer object holding the Weave message. */
-       void                 *msgCtxt;           /**< A pointer to an application level context object associated with the message. */
-       uint16_t             nextRetransTime;    /**< A counter representing the next retransmission time for the message. */
-       uint8_t              sendCount;          /**< A counter representing the number of times the message has been sent. */
+        // clang-format off
+        uint32_t             msgId;              /**< The message identifier of the Weave message awaiting acknowledgment. */
+        ExchangeContext      *exchContext;       /**< The ExchangeContext for the stored Weave message. */
+        PacketBuffer         *msgBuf;            /**< A pointer to the PacketBuffer object holding the Weave message. */
+        void                 *msgCtxt;           /**< A pointer to an application level context object associated with the message. */
+        uint16_t             nextRetransTime;    /**< A counter representing the next retransmission time for the message. */
+        uint8_t              sendCount;          /**< A counter representing the number of times the message has been sent. */
+        // clang-format on
     };
     void     WRMPExecuteActions(void);
     void     WRMPExpireTicks(void);

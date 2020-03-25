@@ -57,6 +57,7 @@ using nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase;
 
 class WeaveKeyExport;
 
+// clang-format off
 enum
 {
     // Protocol configurations.
@@ -131,6 +132,7 @@ enum
     kMaxKeySaltSize                                 = kMinKeySaltSize + kMaxAltConfigsCount,
     kKeyExportReconfigureMsgSize                    = sizeof(uint8_t),
 };
+// clang-format on
 
 /**
  *  @class WeaveKeyExportDelegate
@@ -301,20 +303,22 @@ public:
     /**
      *  The current state of the WeaveKeyExport object.
      */
+    // clang-format off
     enum
     {
-        kState_Reset                              = 0,  /**< The initial (and final) state of a WeaveKeyExport object. */
-        kState_InitiatorGeneratingRequest         = 10, /**< Initiator state indicating that the key export request message is being generated. */
-        kState_InitiatorRequestGenerated          = 11, /**< Initiator state indicating that the key export request message has been generated. */
-        kState_InitiatorReconfigureProcessed      = 12, /**< Initiator state indicating that the key export reconfigure message was processed. */
-        kState_InitiatorDone                      = 13, /**< Initiator state indicating that the key export response was processed. */
-        kState_ResponderProcessingRequest         = 20, /**< Responder state indicating that the key export request message is being processed. */
-        kState_ResponderRequestProcessed          = 21, /**< Responder state indicating that the key export request message has been processed. */
-        kState_ResponderDone                      = 22  /**< Responder state indicating that the key export response message was generated. */
+        kState_Reset                         = 0,  /**< The initial (and final) state of a WeaveKeyExport object. */
+        kState_InitiatorGeneratingRequest    = 10, /**< Initiator state indicating that the key export request message is being generated. */
+        kState_InitiatorRequestGenerated     = 11, /**< Initiator state indicating that the key export request message has been generated. */
+        kState_InitiatorReconfigureProcessed = 12, /**< Initiator state indicating that the key export reconfigure message was processed. */
+        kState_InitiatorDone                 = 13, /**< Initiator state indicating that the key export response was processed. */
+        kState_ResponderProcessingRequest    = 20, /**< Responder state indicating that the key export request message is being processed. */
+        kState_ResponderRequestProcessed     = 21, /**< Responder state indicating that the key export request message has been processed. */
+        kState_ResponderDone                 = 22  /**< Responder state indicating that the key export response message was generated. */
     };
+    // clang-format on
 
-    WeaveKeyExportDelegate * KeyExportDelegate;         /**< Pointer to a key export delegate object. */
-    GroupKeyStoreBase * GroupKeyStore;                  /**< Pointer to a platform group key store object. */
+    WeaveKeyExportDelegate * KeyExportDelegate;    /**< Pointer to a key export delegate object. */
+    GroupKeyStoreBase * GroupKeyStore;             /**< Pointer to a platform group key store object. */
 
     void Init(WeaveKeyExportDelegate * keyExportDelegate, GroupKeyStoreBase * groupKeyStore = NULL);
     void Reset(void);

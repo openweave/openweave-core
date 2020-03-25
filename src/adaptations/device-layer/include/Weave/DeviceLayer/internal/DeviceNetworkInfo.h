@@ -59,6 +59,8 @@ public:
         kThreadPSKcLength                   = 16,
     };
 
+    // clang-format off
+
     NetworkType_t NetworkType;              /**< The type of network. */
     uint32_t NetworkId;                     /**< The network id assigned to the network by the device. */
 
@@ -99,6 +101,8 @@ public:
         bool ThreadNetworkKey : 1;          /**< True if the ThreadNetworkKey field is present. */
         bool ThreadPSKc : 1;                /**< True if the ThreadPSKc field is present. */
     } FieldPresent;
+
+    // clang-format on
 
     void Reset();
     WEAVE_ERROR Decode(::nl::Weave::TLV::TLVReader & reader);

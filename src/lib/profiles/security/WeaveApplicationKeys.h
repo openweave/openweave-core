@@ -67,6 +67,7 @@ extern const uint8_t kWeaveAppIntermediateKeyDiversifier[4];
  * @brief
  *   Weave application keys protocol parameter definitions.
  */
+// clang-format off
 enum
 {
     // --- Key sizes.
@@ -85,6 +86,7 @@ enum
     /** Intermediate key diversifier size. */
     kWeaveAppIntermediateKeyDiversifierSize             = sizeof(kWeaveAppIntermediateKeyDiversifier),
 };
+// clang-format on
 
 /**
  *  @class WeaveGroupKey
@@ -95,6 +97,7 @@ enum
  *    epoch key, group master key, intermediate key, and fabric secret.
  *
  */
+// clang-format off
 class WeaveGroupKey
 {
 public:
@@ -110,6 +113,7 @@ public:
         uint32_t GlobalId;                               /**< The application group key global ID. */
     };
 };
+// clang-format on
 
 /**
  *  @class GroupKeyStoreBase

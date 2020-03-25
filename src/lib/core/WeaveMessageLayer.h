@@ -66,6 +66,7 @@ enum
  *    Definitions pertaining to the header of an encoded Weave message.
  *
  */
+// clang-format off
 enum
 {
     kMsgHeaderField_FlagsMask                           = 0x0F0F,
@@ -90,6 +91,7 @@ enum
                                                              kWeaveHeaderFlag_SourceNodeId |
                                                              kWeaveHeaderFlag_MsgCounterSyncReq) << kMsgHeaderField_FlagsShift)
 };
+// clang-format on
 
 
 /**
@@ -101,6 +103,7 @@ enum
  */
 struct WeaveMessageInfo
 {
+    // clang-format off
     uint64_t SourceNodeId;             /**< The source node identifier of the Weave message. */
     uint64_t DestNodeId;               /**< The destination node identifier of the Weave message. */
     uint32_t MessageId;                /**< The message identifier of the Weave message. */
@@ -111,6 +114,7 @@ struct WeaveMessageInfo
     WeaveAuthMode PeerAuthMode;        /**< The means by which the sender of the message was authenticated. Only meaningful for incoming messages. */
     WeaveConnection *InCon;            /**< The connection (if any) over which the message was received. Only meaningful for incoming messages.*/
     const IPPacketInfo *InPacketInfo;  /**< The IP Addressing information of the received message. Only meaningful for incoming messages. */
+    // clang-format on
 
     void Clear() { memset(this, 0, sizeof(*this)); }
 };
@@ -125,39 +129,39 @@ typedef struct WeaveMessageInfo WeaveMessageHeader;
  *
  *    The values defined here are for use within the WeaveMessageInfo.Flags field.
  */
+
+// clang-format off
 typedef enum WeaveMessageFlags
 {
-    kWeaveMessageFlag_ReuseMessageId                    = 0x00000010, /**< Indicates that the existing message identifier must be reused. */
-    kWeaveMessageFlag_ReuseSourceId                     = 0x00000020, /**< Indicates that the existing source node identifier must be reused. */
-    kWeaveMessageFlag_DelaySend                         = 0x00000040, /**< Indicates that the sending of the message needs to be delayed. */
-    kWeaveMessageFlag_RetainBuffer                      = 0x00000080, /**< Indicates that the message buffer should not be freed after sending. */
-    kWeaveMessageFlag_MessageEncoded                    = 0x00001000, /**< Indicates that the Weave message is already encoded. */
-    kWeaveMessageFlag_DefaultMulticastSourceAddress     = 0x00002000, /**< Indicates that default IPv6 source address selection should be used when
-                                                                           sending IPv6 multicast messages. */
-    kWeaveMessageFlag_PeerRequestedAck                  = 0x00004000, /**< Indicates that the sender of the  message requested an acknowledgment. */
-    kWeaveMessageFlag_DuplicateMessage                  = 0x00008000, /**< Indicates that the message is a duplicate of a previously received message. */
-    kWeaveMessageFlag_PeerGroupMsgIdNotSynchronized     = 0x00010000, /**< Indicates that the peer's group key message counter is not synchronized. */
-	kWeaveMessageFlag_FromInitiator                     = 0x00020000, /**< Indicates that the source of the message is the initiator of the
-																		   Weave exchange. */
-    kWeaveMessageFlag_ViaEphemeralUDPPort               = 0x00040000, /**< Indicates that message is being sent/received via the local ephemeral UDP port. */
+    kWeaveMessageFlag_ReuseMessageId                = 0x00000010, /**< Indicates that the existing message identifier must be reused. */
+    kWeaveMessageFlag_ReuseSourceId                 = 0x00000020, /**< Indicates that the existing source node identifier must be reused. */
+    kWeaveMessageFlag_DelaySend                     = 0x00000040, /**< Indicates that the sending of the message needs to be delayed. */
+    kWeaveMessageFlag_RetainBuffer                  = 0x00000080, /**< Indicates that the message buffer should not be freed after sending. */
+    kWeaveMessageFlag_MessageEncoded                = 0x00001000, /**< Indicates that the Weave message is already encoded. */
+    kWeaveMessageFlag_DefaultMulticastSourceAddress = 0x00002000, /**< Indicates that default IPv6 source address selection should be used when
+                                                                       sending IPv6 multicast messages. */
+    kWeaveMessageFlag_PeerRequestedAck              = 0x00004000, /**< Indicates that the sender of the  message requested an acknowledgment. */
+    kWeaveMessageFlag_DuplicateMessage              = 0x00008000, /**< Indicates that the message is a duplicate of a previously received message. */
+    kWeaveMessageFlag_PeerGroupMsgIdNotSynchronized = 0x00010000, /**< Indicates that the peer's group key message counter is not synchronized. */
+    kWeaveMessageFlag_FromInitiator                 = 0x00020000, /**< Indicates that the source of the message is the initiator of the
+                                                                     Weave exchange. */
+    kWeaveMessageFlag_ViaEphemeralUDPPort           = 0x00040000, /**< Indicates that message is being sent/received via the local ephemeral UDP port. */
+    kWeaveMessageFlag_MulticastFromLinkLocal        = kWeaveMessageFlag_DefaultMulticastSourceAddress,
+                                                                  /**< Deprecated alias for \c kWeaveMessageFlag_DefaultMulticastSourceAddress */
 
-    kWeaveMessageFlag_MulticastFromLinkLocal            = kWeaveMessageFlag_DefaultMulticastSourceAddress,
-                                                                      /**< Deprecated alias for \c kWeaveMessageFlag_DefaultMulticastSourceAddress */
+    // NOTE: The bit positions of the following flags correspond to flag fields in an encoded Weave message header.
 
-    // NOTE: The bit positions of the following flags correspond to flag fields in an encoded
-    // Weave message header.
-
-    kWeaveMessageFlag_DestNodeId                        = kWeaveHeaderFlag_DestNodeId,
-                                                                      /**< Indicates that the destination node ID is present in the Weave message header. */
-    kWeaveMessageFlag_SourceNodeId                      = kWeaveHeaderFlag_SourceNodeId,
-                                                                      /**< Indicates that the source node ID is present in the Weave message header. */
-    kWeaveMessageFlag_TunneledData                      = kWeaveHeaderFlag_TunneledData,
-                                                                      /**< Indicates that the Weave message payload is a tunneled IP packet. */
-    kWeaveMessageFlag_MsgCounterSyncReq                 = kWeaveHeaderFlag_MsgCounterSyncReq,
-                                                                      /**< Indicates that the sender requests peer's message counter synchronization. */
+    kWeaveMessageFlag_DestNodeId                    = kWeaveHeaderFlag_DestNodeId,
+                                                                  /**< Indicates that the destination node ID is present in the Weave message header. */
+    kWeaveMessageFlag_SourceNodeId                  = kWeaveHeaderFlag_SourceNodeId,
+                                                                  /**< Indicates that the source node ID is present in the Weave message header. */
+    kWeaveMessageFlag_TunneledData                  = kWeaveHeaderFlag_TunneledData,
+                                                                  /**< Indicates that the Weave message payload is a tunneled IP packet. */
+    kWeaveMessageFlag_MsgCounterSyncReq             = kWeaveHeaderFlag_MsgCounterSyncReq,
+                                                                  /**< Indicates that the sender requests peer's message counter synchronization. */
 
 } WeaveMessageFlags;
-
+// clang-format on
 
 /**
  *  @brief
@@ -944,24 +948,26 @@ inline bool WeaveMessageLayer::IsBoundToLocalIPv6Address(void) const
 /**
  * Bit field definitions for IEEE EUI-64 Identifiers.
  */
+// clang-format off
 enum
 {
-    kEUI64_UL_Mask          = 0x0200000000000000ULL,        /**< Bitmask for the Universal/Local (U/L) bit within an EUI-64 identifier.
-                                                                 A value of 0 indicates the id is Universally (globally) administered.
-                                                                 A value of 1 indicates the id is Locally administered. */
+    kEUI64_UL_Mask       = 0x0200000000000000ULL, /**< Bitmask for the Universal/Local (U/L) bit within an EUI-64 identifier.
+                                                       A value of 0 indicates the id is Universally (globally) administered.
+                                                       A value of 1 indicates the id is Locally administered. */
 
-    kEUI64_UL_Unversal      = 0,                            /**< Universal/Local bit value indicating a Universally administered EUI-64 identifier. */
+    kEUI64_UL_Unversal   = 0,                     /**< Universal/Local bit value indicating a Universally administered EUI-64 identifier. */
 
-    kEUI64_UL_Local         = kEUI64_UL_Mask,               /**< Universal/Local bit value indicating a Locally administered EUI-64 identifier. */
+    kEUI64_UL_Local      = kEUI64_UL_Mask,        /**< Universal/Local bit value indicating a Locally administered EUI-64 identifier. */
 
-    kEUI64_IG_Mask          = 0x0100000000000000ULL,        /**< Bitmask for the Individual/Group (I/G) bit within an EUI-64 identifier.
-                                                                 A value of 0 indicates the id is an individual address.
-                                                                 A value of 1 indicates the id is a group address. */
+    kEUI64_IG_Mask       = 0x0100000000000000ULL, /**< Bitmask for the Individual/Group (I/G) bit within an EUI-64 identifier.
+                                                       A value of 0 indicates the id is an individual address.
+                                                       A value of 1 indicates the id is a group address. */
 
-    kEUI64_IG_Individual    = 0,                            /**< Individual/Group bit value indicating an individual address EUI-64 identifier. */
+    kEUI64_IG_Individual = 0,                     /**< Individual/Group bit value indicating an individual address EUI-64 identifier. */
 
-    kEUI64_IG_Group         = kEUI64_IG_Mask,               /**< Individual/Group bit value indicating an group address EUI-64 identifier. */
+    kEUI64_IG_Group      = kEUI64_IG_Mask,        /**< Individual/Group bit value indicating an group address EUI-64 identifier. */
 };
+// clang-format on
 
 /**
  * Special ranges of Weave Node Ids.

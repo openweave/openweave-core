@@ -156,6 +156,7 @@ typedef uint8_t BlockSetParams_t;
 /**
  * Block set parameter fields location in an 8-bit encoded form.
  */
+// clang-format off
 enum BlockSetParamFields
 {
     kBlockSetSizeMask                     = 0x07,    /**< Size field mask. */
@@ -168,11 +169,13 @@ enum BlockSetParamFields
     kBlockSetIsLongTermMask               = 0x80,    /**< Type field mask. */
     kBlockSetIsLongTermShift              = 7,       /**< Type field shift. */
 };
+// clang-format off
 
 /**
  * Defines block set parameters.
  */
 #if WEAVE_CONFIG_SIMPLE_ALLOCATOR_USE_SMALL_BUFFERS
+// clang-format off
 enum BlockSetParams
 {
     // Simple Allocator parameters
@@ -218,7 +221,10 @@ enum BlockSetParams
     /** Minimum network buffer size required to support Simple Allocator use cases. */
     kMinBufferSize                        = 600,
 };
+// clang-format on
+
 #else // WEAVE_CONFIG_SIMPLE_ALLOCATOR_USE_SMALL_BUFFERS
+// clang-format off
 enum BlockSetParams
 {
     // Simple Allocator parameters
@@ -257,6 +263,8 @@ enum BlockSetParams
      *  is derived from sizes of two memory block (640 + 600) allocated in the network buffer #1. */
     kMinBufferSize                        = 1240,
 };
+// clang-format on
+
 #endif // WEAVE_CONFIG_SIMPLE_ALLOCATOR_USE_SMALL_BUFFERS
 
 /**

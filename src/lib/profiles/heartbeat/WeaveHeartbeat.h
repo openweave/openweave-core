@@ -53,17 +53,18 @@ using ::nl::Weave::System::PacketBuffer;
 /**
  * Weave Heartbeat Message Types
  */
+// clang-format off
 enum
 {
-    kHeartbeatMessageType_Heartbeat             = 1,
+    kHeartbeatMessageType_Heartbeat    = 1,
 };
 
 
 enum
 {
-    kHeartbeatMessageLength                     = 1
+    kHeartbeatMessageLength            = 1
 };
-
+// clang-format on
 
 /**
  * Weave Heartbeat Sender class
@@ -74,17 +75,17 @@ public:
     struct InEventParam;
     struct OutEventParam;
 
+    // clang-format off
     enum EventType
     {
-        kEvent_UpdateSubscriptionState          = 1,    ///< The application is requested to update the subscription state.
-
-        kEvent_HeartbeatSent                    = 2,    ///< A heartbeat message was successfully sent to the peer. If reliable transmission
-                                                        ///<  is enabled, this event indicates that the message was acknowledged.
-        kEvent_HeartbeatFailed                  = 3,    ///< A heartbeat message failed to be sent to the peer.
-
-        kEvent_DefaultCheck                     = 100,  ///< Used to verify correct default event handling in the application.
-                                                        ///<  Applications should NOT expressly handle this event.
+        kEvent_UpdateSubscriptionState = 1,    /**< The application is requested to update the subscription state. */
+        kEvent_HeartbeatSent           = 2,    /**< A heartbeat message was successfully sent to the peer. If reliable transmission
+                                                    is enabled, this event indicates that the message was acknowledged. */
+        kEvent_HeartbeatFailed         = 3,    /**< A heartbeat message failed to be sent to the peer. */
+        kEvent_DefaultCheck            = 100,  /**< Used to verify correct default event handling in the application.  Applications
+                                                    should NOT expressly handle this event. */
     };
+    // clang-format on
 
     typedef void (*EventCallback)(void *appState, EventType eventType, const InEventParam& inParam, OutEventParam& outParam);
 

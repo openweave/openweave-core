@@ -114,7 +114,7 @@ public:
      * using the node's manufacturer attestation private key.
      *
      * First, the enumerated value identifying the manufacturer attestation signature
-     * algorithm should be written in the form of unsiged integer to the supplied TLV
+     * algorithm should be written in the form of unsigned integer to the supplied TLV
      * writer using the following tag:
      *     -- kTag_GetCertReqMsg_MfrAttestSigAlgo
      * Legal enumerated values are taken from the kOID_SigAlgo_* constant namespace.
@@ -144,27 +144,31 @@ public:
     struct InEventParam;
     struct OutEventParam;
 
+    // clang-format off
     enum State
     {
-        kState_NotInitialized                       = 0,    /**< The engine object is not initialized. */
-        kState_Idle                                 = 1,    /**< The engine object is idle. */
-        kState_PreparingBinding                     = 2,    /**< The engine object is waiting for the binding to become ready. */
-        kState_RequestInProgress                    = 3,    /**< A GetCertificateRequest message has been sent and the engine object is awaiting a response. */
+        kState_NotInitialized           = 0, /**< The engine object is not initialized. */
+        kState_Idle                     = 1, /**< The engine object is idle. */
+        kState_PreparingBinding         = 2, /**< The engine object is waiting for the binding to become ready. */
+        kState_RequestInProgress        = 3, /**< A GetCertificateRequest message has been sent and the engine object is awaiting a
+                                                  response. */
     };
 
     enum EventType
     {
-        kEvent_PrepareAuthorizeInfo                 = 1,    /**< The application is requested to prepare the payload for the GetCertificateRequest. */
-        kEvent_ResponseReceived                     = 2,    /**< A GetCertificateResponse message was received from the peer. */
-        kEvent_CommunicationError                   = 3,    /**< A communication error occurred while sending a GetCertificateRequest or waiting for a response. */
+        kEvent_PrepareAuthorizeInfo     = 1, /**< The application is requested to prepare the payload for the GetCertificateRequest. */
+        kEvent_ResponseReceived         = 2, /**< A GetCertificateResponse message was received from the peer. */
+        kEvent_CommunicationError       = 3, /**< A communication error occurred while sending a GetCertificateRequest or waiting
+                                                 for a response. */
     };
 
     enum
     {
-        kReqType_NotSpecified                       = 0,    /**< The Get Certificate request type is not specified. */
-        kReqType_GetInitialOpDeviceCert             = 1,    /**< The Get Certificate request type is to obtain initial operational certificatete. */
-        kReqType_RotateOpDeviceCert                 = 2,    /**< The Get Certificate request type is to rotate the current operational certificatete. */
+        kReqType_NotSpecified           = 0, /**< The Get Certificate request type is not specified. */
+        kReqType_GetInitialOpDeviceCert = 1, /**< The Get Certificate request type is to obtain initial operational certificate. */
+        kReqType_RotateOpDeviceCert     = 2, /**< The Get Certificate request type is to rotate the current operational certificate. */
     };
+    // clang-format on
 
     /**
      *  This function is the application callback that is invoked on Certificate Provisioning Engine API events.
@@ -235,59 +239,66 @@ private:
 /**
  * Input parameters to Weave Certificate Provisioning API event.
  */
+// clang-format off
 struct WeaveCertProvEngine::InEventParam
 {
-    WeaveCertProvEngine * Source;                       /**< The WeaveCertProvEngine from which the API event originated. */
+    WeaveCertProvEngine * Source;            /**< The WeaveCertProvEngine from which the API event originated. */
 
     union
     {
         struct
         {
-            TLVWriter * Writer;                         /**< A pointer to the TLV Writer object, where get certificate authorization
-                                                             information should be encoded. */
+            TLVWriter * Writer;              /**< A pointer to the TLV Writer object, where get certificate authorization
+                                                  information should be encoded. */
         } PrepareAuthorizeInfo;
 
         struct
         {
-            WEAVE_ERROR Reason;                         /**< The error code associated with the communication failure. */
-            StatusReport * RcvdStatusReport;            /**< A pointer to the StatusReport object. Relevant if status report message received from the peer. */
+            WEAVE_ERROR Reason;              /**< The error code associated with the communication failure. */
+            StatusReport * RcvdStatusReport; /**< A pointer to the StatusReport object. Relevant if status report message received
+                                                  from the peer. */
         } CommunicationError;
 
         struct
         {
-            bool ReplaceCert;                           /**< Boolean indicator of whether operational device certificate should be replaced. */
-            const uint8_t * Cert;                       /**< A pointer to the TLV encoded Weave operational certificate assigned by CA Service. */
-            uint16_t CertLen;                           /**< Length of the certificate received in the GetCertificateResponse message. */
-            const uint8_t * RelatedCerts;               /**< A pointer to the TLV encoded list of certificate related to the operational certificate. */
-            uint16_t RelatedCertsLen;                   /**< Length of the related certificate list received in the GetCertificateResponse message. */
+            bool ReplaceCert;                /**< Boolean indicator of whether operational device certificate should be replaced. */
+            const uint8_t * Cert;            /**< A pointer to the TLV encoded Weave operational certificate assigned by CA Service. */
+            uint16_t CertLen;                /**< Length of the certificate received in the GetCertificateResponse message. */
+            const uint8_t * RelatedCerts;    /**< A pointer to the TLV encoded list of certificate related to the operational
+                                                  certificate. */
+            uint16_t RelatedCertsLen;        /**< Length of the related certificate list received in the GetCertificateResponse
+                                                  message. */
         } ResponseReceived;
     };
 
     void Clear() { memset(this, 0, sizeof(*this)); }
 };
+// clang-format on
 
 /**
  * Output parameters to Weave Certificate Provisioning API event.
  */
+// clang-format off
 struct WeaveCertProvEngine::OutEventParam
 {
     union
     {
         struct
         {
-            WEAVE_ERROR Error;                          /**< An error set by the application indicating that
-                                                             an authorization info couldn't be prepared. */
+            WEAVE_ERROR Error;               /**< An error set by the application indicating that an authorization info couldn't be
+                                                  prepared. */
         } PrepareAuthorizeInfo;
 
         struct
         {
-            WEAVE_ERROR Error;                          /**< An error set by the application indicating that
-                                                             response data couldn't be processed. */
+            WEAVE_ERROR Error;               /**< An error set by the application indicating that response data couldn't be
+                                                  processed. */
         } ResponseReceived;
     };
 
     void Clear() { memset(this, 0, sizeof(*this)); }
 };
+// clang-format on
 
 /*
  * Inline Functions

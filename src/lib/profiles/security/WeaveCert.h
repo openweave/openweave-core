@@ -49,6 +49,7 @@ using nl::Weave::Crypto::EncodedECDSASignature;
 
 /** X.509 Certificate Key Purpose Flags
  */
+// clang-format off
 enum
 {
     kKeyPurposeFlag_ServerAuth                  = 0x01,
@@ -120,6 +121,7 @@ enum
     kValidateFlag_IgnoreNotAfter                = 0x0002,
     kValidateFlag_RequireSHA256                 = 0x0004,
 };
+// clang-format on
 
 enum
 {

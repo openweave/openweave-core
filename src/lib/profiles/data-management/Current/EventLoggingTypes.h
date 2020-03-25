@@ -153,10 +153,9 @@ struct DetailedRootSection
      */
     DetailedRootSection(void) : ResourceID(ResourceIdentifier::SELF_NODE_ID) { };
 
-    ResourceIdentifier ResourceID;      /**< The ID of the resource that the generated event pertains to.
-                                   When the event resource is equal to the event source, set
-                                   this value equal to ResourceIdentifier::SELF_NODE_ID */
-    uint64_t TraitInstanceID; /**< Trait instance of the subject of this event. */
+    ResourceIdentifier ResourceID; /**< The ID of the resource that the generated event pertains to.  When the event resource is
+                                   equal to the event source, set this value equal to ResourceIdentifier::SELF_NODE_ID */
+    uint64_t TraitInstanceID;      /**< Trait instance of the subject of this event. */
 };
 
 /**
@@ -209,6 +208,7 @@ struct EventOptions
     EventOptions(utc_timestamp_t, DetailedRootSection *, event_id_t, ImportanceType, bool);
     EventOptions(timestamp_t, DetailedRootSection *, event_id_t, ImportanceType, bool);
 
+    // clang-format off
     Timestamp timestamp;               /**< A union holding either system or UTC timestamp. */
 
     DetailedRootSection * eventSource; /**< A pointer to the detailed resolution of the trait instance.  When NULL, the event source
@@ -216,16 +216,18 @@ struct EventOptions
                                             instance of the trait. */
 
     // Facilities for event grouping
-    event_id_t relatedEventID;         /**< The Event ID from the same Event Source that this event is related to.  When the event is not
-                                            related to any other events, Related Event ID is shall be equal to Event ID, and may be omitted.  A
-                                            value of 0 implies the absence of any related event. */
-    ImportanceType relatedImportance;  /**< EventImportance of the Related Event ID.  When this event and the related event are of the
-                                            same importance, the field may be omitted.  A value of kImportanceType_Invalid implies the
-                                            absence of any related event. */
+    event_id_t relatedEventID;         /**< The Event ID from the same Event Source that this event is related to.  When the event
+                                            is not related to any other events, Related Event ID is shall be equal to Event ID, and
+                                            may be omitted.  A value of 0 implies the absence of any related event. */
+    ImportanceType relatedImportance;  /**< EventImportance of the Related Event ID.  When this event and the related event are of
+                                            the same importance, the field may be omitted.  A value of kImportanceType_Invalid
+                                            implies the absence of any related event. */
 
     TimestampType timestampType;       /**< An enum indicating if the timestamp is valid and its type. */
 
-    bool urgent;                       /**< A flag denoting that the event is time sensitive.  When set, it causes the event log to be flushed. */
+    bool urgent;                       /**< A flag denoting that the event is time sensitive.  When set, it causes the event log to
+                                            be flushed. */
+    // clang-format on
 };
 
 /**

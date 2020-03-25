@@ -407,6 +407,7 @@ ASN1_ERROR DumpASN1(ASN1Reader& asn1Parser, const char *prefix, const char *inde
         else if (asn1Parser.Class == 0)
             switch (asn1Parser.Tag)
             {
+            // clang-format off
             case 1:     printf("BOOLEAN "); break;
             case 2:     printf("INTEGER "); break;
             case 3:     printf("BIT STRING "); break;
@@ -430,6 +431,7 @@ ASN1_ERROR DumpASN1(ASN1Reader& asn1Parser, const char *prefix, const char *inde
             case 23:
             case 24:     printf("TIME "); break;
             default:     printf("[UNIVERSAL %lu] ", (unsigned long)asn1Parser.Tag); break;
+            // clang-format on
             }
         else if (asn1Parser.Class == 0x40)
             printf("[APPLICATION %lu] ", (unsigned long)asn1Parser.Tag);

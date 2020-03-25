@@ -53,24 +53,26 @@ public:
     NetworkInfo();
     ~NetworkInfo();
 
-    ::nl::Weave::Profiles::NetworkProvisioning::NetworkType
-          NetworkType;              /**< The type of network. */
-    int64_t NetworkId;              /**< The network id assigned to the network by the device, -1 if not specified. */
+    /** The type of network. */
+    ::nl::Weave::Profiles::NetworkProvisioning::NetworkType NetworkType;
+    /** The network id assigned to the network by the device, -1 if not specified. */
+    int64_t NetworkId;
 
     // ---- WiFi-specific Fields ----
-    char *WiFiSSID;                 /**< The WiFi SSID, or NULL if not specified. It is a NUL-terminated,
-                                     * dynamically-allocated C-string, owned by the class.  Destroyed on any condition
-                                     * that calls `Clear()` on the object. */
-    ::nl::Weave::Profiles::NetworkProvisioning::WiFiMode
-          WiFiMode;                 /**< The operating mode of the WiFi network.*/
-    ::nl::Weave::Profiles::NetworkProvisioning::WiFiRole
-          WiFiRole;                 /**< The role played by the device on the WiFi network. */
-    ::nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType
-          WiFiSecurityType;         /**< The WiFi security type. */
-    uint8_t *WiFiKey;               /**< The WiFi key, or NULL if not specified. It is a dynamically allocated array
-                                     * of arbitrary octets, owned by the class, with length specified by `WiFiKeyLen`.
-                                     * Destroyed on any condition that calls `Clear()` on the object. */
-    uint32_t WiFiKeyLen;            /**< The length in bytes of the WiFi key. */
+    /** The WiFi SSID, or NULL if not specified. It is a NUL-terminated, dynamically-allocated C-string, owned by the class.
+     *  Destroyed on any condition that calls `Clear()` on the object. */
+    char *WiFiSSID;
+    /** The operating mode of the WiFi network.*/
+    ::nl::Weave::Profiles::NetworkProvisioning::WiFiMode WiFiMode;
+    /** The role played by the device on the WiFi network. */
+    ::nl::Weave::Profiles::NetworkProvisioning::WiFiRole WiFiRole;
+    /** The WiFi security type. */
+    ::nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType WiFiSecurityType;
+    /** The WiFi key, or NULL if not specified. It is a dynamically allocated array of arbitrary octets, owned by the class, with
+     *  length specified by `WiFiKeyLen`.  Destroyed on any condition that calls `Clear()` on the object. */
+    uint8_t *WiFiKey;
+    /** The length in bytes of the WiFi key. */
+    uint32_t WiFiKeyLen;
 
     // ---- Thread-specific Fields ----
     enum
@@ -80,30 +82,28 @@ public:
         kThreadPSKcLength = 16,
     };
 
-    char *ThreadNetworkName;        /**< The name of the Thread network, or NULL if not specified. It is a
-                                     * NUL-terminated, dynamically-allocated C-string, owned by the class.  Destroyed
-                                     * on any condition that calls `Clear()` on the object. */
-    uint8_t *ThreadExtendedPANId;   /**< The Thread extended PAN ID. It is a dynamically allocated array of 8 octects,
-                                     * owned by the class.  Destroyed on any condition that calls `Clear()` on
-                                     * the object. */
-    uint8_t *ThreadNetworkKey;      /**< The Thread master network key , or NULL if not specified. It is a dynamically
-                                     * allocated array of arbitrary octets, owned by the class
-                                     * Destroyed on any condition that calls `Clear()` on
-                                     * the object. */
-    uint8_t *ThreadPSKc;            /**< Thread pre-shared key for commissioner, or NULL if not specified. It is a
-                                     * dynamically allocated array of arbitrary octets, owned by the class
-                                     * Destroyed on any condition that calls `Clear()` on
-                                     * the object. */
-
-    uint32_t ThreadPANId;           /**< The 16-bit Thread PAN ID, or kThreadPANId_NotSpecified */
-    uint8_t ThreadChannel;          /**< The current channel (currently [11..26]) on which the Thread network operates,
-                                     * or kThreadChannel_NotSpecified */
+    /** The name of the Thread network, or NULL if not specified. It is a NUL-terminated, dynamically-allocated C-string, owned by
+     * the class.  Destroyed on any condition that calls `Clear()` on the object. */
+    char *ThreadNetworkName;
+    /** The Thread extended PAN ID. It is a dynamically allocated array of 8 octects, owned by the class.  Destroyed on any
+     * condition that calls `Clear()` on the object. */
+    uint8_t *ThreadExtendedPANId;
+    /** The Thread master network key , or NULL if not specified. It is a dynamically allocated array of arbitrary octets, owned by
+     * the class Destroyed on any condition that calls `Clear()` on the object. */
+    uint8_t *ThreadNetworkKey;
+    /** Thread pre-shared key for commissioner, or NULL if not specified. It is a dynamically allocated array of arbitrary octets,
+     * owned by the class Destroyed on any condition that calls `Clear()` on the object. */
+    uint8_t *ThreadPSKc;
+    /** The 16-bit Thread PAN ID, or kThreadPANId_NotSpecified */
+    uint32_t ThreadPANId;
+    /** The current channel (currently [11..26]) on which the Thread network operates, or kThreadChannel_NotSpecified */
+    uint8_t ThreadChannel;
 
     // ---- General Fields ----
-    int16_t WirelessSignalStrength; /**< The signal strength of the network, or INT16_MIN if not
-                                     * available/applicable. */
-    bool Hidden;                    /**< Whether or not the network is hidden. */
-
+    /** The signal strength of the network, or INT16_MIN if not available/applicable. */
+    int16_t WirelessSignalStrength;
+    /** Whether or not the network is hidden. */
+    bool Hidden;
 
     /**
      * Replace the contents of this NetworkInfo object with the deep copy of the contents of the argument.

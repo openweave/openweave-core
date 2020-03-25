@@ -79,6 +79,7 @@ namespace Echo_Next {
  * error that resulted from sending the message (if any) and the exchange context over which the
  * message was sent.
  */
+// clang-format off
 class NL_DLL_EXPORT WeaveEchoServer : public WeaveServerBase
 {
 public:
@@ -110,18 +111,19 @@ public:
 
     // DEPRECATED APIs -- These APIs provide backwards compatibility with previous versions of WeaveEchoServer.
     // DO NOT USE IN NEW CODE.
-    WEAVE_ERROR Init(WeaveExchangeManager *exchangeMgr);
-    typedef void (*EchoFunct)(uint64_t nodeId, IPAddress nodeAddr, PacketBuffer *payload);
+    WEAVE_ERROR Init(WeaveExchangeManager * exchangeMgr);
+    typedef void (*EchoFunct)(uint64_t nodeId, IPAddress nodeAddr, PacketBuffer * payload);
     EchoFunct OnEchoRequestReceived;
 
 private:
     EventCallback mEventCallback;
 
-    static void HandleEchoRequest(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t profileId, uint8_t msgType, PacketBuffer *payload);
+    static void HandleEchoRequest(ExchangeContext * ec, const IPPacketInfo * pktInfo, const WeaveMessageInfo * msgInfo, uint32_t profileId, uint8_t msgType, PacketBuffer * payload);
     static void SendEchoResponse(System::Layer * systemLayer, void * appState, System::Error err);
 
-    WeaveEchoServer(const WeaveEchoServer&);   // not defined
+    WeaveEchoServer(const WeaveEchoServer &);   // not defined
 };
+// clang-format on
 
 /**
  * Input parameters to WeaveEchoServer API event.

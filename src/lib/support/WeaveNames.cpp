@@ -57,12 +57,15 @@ using namespace nl::Weave::Profiles;
 
 const char *GetVendorName(uint16_t vendorId)
 {
-    switch (vendorId) {
+    // clang-format off
+    switch (vendorId)
+    {
     case kWeaveVendor_Common                                                : return "Common";
     case kWeaveVendor_NestLabs                                              : return "Nest";
     case kWeaveVendor_Yale                                                  : return "Yale";
     case kWeaveVendor_Google                                                : return "Google";
     }
+    // clang-format on
 
     return NULL;
 }
@@ -101,7 +104,9 @@ const char *GetProfileName(uint32_t profileId)
 {
     const char *result = NULL;
 
-    switch (profileId) {
+    // clang-format off
+    switch (profileId)
+    {
     case kWeaveProfile_Common                                               : return "Common";
     case kWeaveProfile_Echo                                                 : return "Echo";
     case kWeaveProfile_NetworkProvisioning                                  : return "NetworkProvisioning";
@@ -135,6 +140,7 @@ const char *GetProfileName(uint32_t profileId)
     case kWeaveProfile_TopazHistory                                         : return "Nest:TopazHistory";
     case kWeaveProfile_NestNetworkManager                                   : return "Nest:NetworkManager";
     }
+    // clang-format on
 
     result = FindProfileName(profileId);
 
@@ -145,9 +151,12 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
 {
     const char *result = NULL;
 
-    switch (profileId) {
+    // clang-format off
+    switch (profileId)
+    {
     case kWeaveProfile_Common:
-        switch (msgType) {
+        switch (msgType)
+        {
         case Common::kMsgType_StatusReport                                  : return "StatusReport";
         case Common::kMsgType_Null                                          : return "Null";
         case Common::kMsgType_WRMP_Delayed_Delivery                         : return "DelayedDelivery";
@@ -155,13 +164,15 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         }
         break;
     case kWeaveProfile_Echo:
-        switch (msgType) {
+        switch (msgType)
+        {
         case kEchoMessageType_EchoRequest                                   : return "EchoRequest";
         case kEchoMessageType_EchoResponse                                  : return "EchoResponse";
         }
         break;
     case kWeaveProfile_NetworkProvisioning:
-        switch (msgType) {
+        switch (msgType)
+        {
         case NetworkProvisioning::kMsgType_ScanNetworks                     : return "ScanNetworks";
         case NetworkProvisioning::kMsgType_NetworkScanComplete              : return "NetworkScanComplete";
 #if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
@@ -181,7 +192,8 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         }
         break;
     case kWeaveProfile_Security:
-        switch (msgType) {
+        switch (msgType)
+        {
         case Security::kMsgType_PASEInitiatorStep1                          : return "PASEInitiatorStep1";
         case Security::kMsgType_PASEResponderStep1                          : return "PASEResponderStep1";
         case Security::kMsgType_PASEResponderStep2                          : return "PASEResponderStep2";
@@ -204,7 +216,8 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         }
         break;
     case kWeaveProfile_FabricProvisioning:
-        switch (msgType) {
+        switch (msgType)
+        {
         case FabricProvisioning::kMsgType_CreateFabric                      : return "CreateFabric";
         case FabricProvisioning::kMsgType_LeaveFabric                       : return "LeaveFabric";
         case FabricProvisioning::kMsgType_GetFabricConfig                   : return "GetFabricConfig";
@@ -213,7 +226,8 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         }
         break;
     case kWeaveProfile_DeviceControl:
-        switch (msgType) {
+        switch (msgType)
+        {
         case DeviceControl::kMsgType_ResetConfig                            : return "ResetConfig";
         case DeviceControl::kMsgType_ArmFailSafe                            : return "ArmFailSafe";
         case DeviceControl::kMsgType_DisarmFailSafe                         : return "DisarmFailSafe";
@@ -226,14 +240,16 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         }
         break;
     case kWeaveProfile_Time:
-        switch (msgType) {
+        switch (msgType)
+        {
         case Time::kTimeMessageType_TimeSyncTimeChangeNotification          : return "TimeSyncTimeChangeNotification";
         case Time::kTimeMessageType_TimeSyncRequest                         : return "TimeSyncRequest";
         case Time::kTimeMessageType_TimeSyncResponse                        : return "TimeSyncResponse";
         }
         break;
     case kWeaveProfile_WDM:
-        switch (msgType) {
+        switch (msgType)
+        {
         case DataManagement::kMsgType_ViewRequest                           : return "ViewRequest";
         case DataManagement::kMsgType_ViewResponse                          : return "ViewResponse";
         case DataManagement::kMsgType_UpdateRequest                         : return "UpdateRequest";
@@ -248,7 +264,8 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         }
         break;
     case kWeaveProfile_SWU:
-        switch (msgType) {
+        switch (msgType)
+        {
         case SoftwareUpdate::kMsgType_ImageAnnounce                         : return "ImageAnnounce";
         case SoftwareUpdate::kMsgType_ImageQuery                            : return "ImageQuery";
         case SoftwareUpdate::kMsgType_ImageQueryResponse                    : return "ImageQueryResponse";
@@ -259,7 +276,8 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         }
         break;
     case kWeaveProfile_BDX:
-        switch (msgType) {
+        switch (msgType)
+        {
         case BDX_Development::kMsgType_SendInit                             : return "SendInit";
         case BDX_Development::kMsgType_SendAccept                           : return "SendAccept";
         case BDX_Development::kMsgType_SendReject                           : return "SendReject";
@@ -280,13 +298,15 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         }
         break;
     case kWeaveProfile_DeviceDescription:
-        switch (msgType) {
+        switch (msgType)
+        {
         case DeviceDescription::kMessageType_IdentifyRequest                : return "IdentifyRequest";
         case DeviceDescription::kMessageType_IdentifyResponse               : return "IdentifyResponse";
         }
         break;
     case kWeaveProfile_ServiceProvisioning:
-        switch (msgType) {
+        switch (msgType)
+        {
         case ServiceProvisioning::kMsgType_RegisterServicePairAccount       : return "RegisterServicePairAccount";
         case ServiceProvisioning::kMsgType_UpdateService                    : return "UpdateService";
         case ServiceProvisioning::kMsgType_UnregisterService                : return "UnregisterService";
@@ -296,7 +316,8 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         break;
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     case kWeaveProfile_ServiceDirectory:
-        switch (msgType) {
+        switch (msgType)
+        {
         case ServiceDirectory::kMsgType_ServiceEndpointQuery                : return "ServiceEndpointQuery";
         case ServiceDirectory::kMsgType_ServiceEndpointResponse             : return "ServiceEndpointResponse";
         }
@@ -304,7 +325,8 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 #if WEAVE_CONFIG_ENABLE_TUNNELING
     case kWeaveProfile_Tunneling:
-        switch (msgType) {
+        switch (msgType)
+        {
         case WeaveTunnel::kMsgType_TunnelOpen                               : return "TunnelOpen";
         case WeaveTunnel::kMsgType_TunnelOpenV2                             : return "TunnelOpenV2";
         case WeaveTunnel::kMsgType_TunnelRouteUpdate                        : return "TunnelRouteUpdate";
@@ -316,12 +338,14 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         break;
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING
     case kWeaveProfile_Heartbeat:
-        switch (msgType) {
+        switch (msgType)
+        {
         case Heartbeat::kHeartbeatMessageType_Heartbeat                     : return "Heartbeat";
         }
         break;
     case kWeaveProfile_TokenPairing:
-        switch (msgType) {
+        switch (msgType)
+        {
         case TokenPairing::kMsgType_PairTokenRequest                        : return "PairTokenRequest";
         case TokenPairing::kMsgType_TokenCertificateResponse                : return "TokenCertificateResponse";
         case TokenPairing::kMsgType_TokenPairedResponse                     : return "TokenPairedResponse";
@@ -329,6 +353,7 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         }
         break;
     }
+    // clang-format on
 
     result = FindMessageName(profileId, msgType);
 

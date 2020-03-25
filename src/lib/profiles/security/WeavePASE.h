@@ -79,6 +79,7 @@ using nl::Weave::Crypto::EllipticCurveJPAKE;
 #endif
 
 // PASE Protocol Configurations
+// clang-format off
 enum
 {
     // -- PASE Protocol Configuration Values
@@ -219,12 +220,13 @@ enum
 {
     kMaxAlternateProtocolConfigs                = 3,
 };
-
+// clang-format on
 // Implements the core logic of the Weave PASE protocol.
 class NL_DLL_EXPORT WeavePASEEngine
 {
 public:
 
+    // clang-format off
     enum EngineState
     {
         kState_Reset                            = 0,
@@ -250,6 +252,7 @@ public:
         kState_ResponderDone                    = kState_ResponderStatesBase + 4,
         kState_ResponderFailed                  = kState_ResponderStatesBase + 5
     };
+    // clang-format on
 
 #if WEAVE_CONFIG_SUPPORT_PASE_CONFIG1
     struct JPAKE_CTX *JPAKECtx;

@@ -192,32 +192,34 @@ public:
         kState_KeyExportInProgress
     };
 
-    WeaveFabricState *FabricState;                      // [READ ONLY] Associated Fabric State object.
-    WeaveExchangeManager *ExchangeManager;              // [READ ONLY] Associated Exchange Manager object.
-    uint8_t State;                                      // [READ ONLY] State of the Weave Message Layer object
+    // clang-format off
+    WeaveFabricState *FabricState;            ///< [READ ONLY] Associated Fabric State object.
+    WeaveExchangeManager *ExchangeManager;    ///< [READ ONLY] Associated Exchange Manager object.
+    uint8_t State;                            ///< [READ ONLY] State of the Weave Message Layer object
 #if WEAVE_CONFIG_ENABLE_CASE_INITIATOR
-    uint32_t InitiatorCASEConfig;                       // CASE configuration proposed when initiating a CASE session
-    uint32_t InitiatorCASECurveId;                      // ECDH curve proposed when initiating a CASE session
-    uint8_t InitiatorAllowedCASEConfigs;                // Set of allowed CASE configurations when initiating a CASE session
-    uint8_t InitiatorAllowedCASECurves;                 // Set of allowed ECDH curves when initiating a CASE session
+    uint32_t InitiatorCASEConfig;             ///< CASE configuration proposed when initiating a CASE session
+    uint32_t InitiatorCASECurveId;            ///< ECDH curve proposed when initiating a CASE session
+    uint8_t InitiatorAllowedCASEConfigs;      ///< Set of allowed CASE configurations when initiating a CASE session
+    uint8_t InitiatorAllowedCASECurves;       ///< Set of allowed ECDH curves when initiating a CASE session
 #endif
 #if WEAVE_CONFIG_ENABLE_CASE_RESPONDER
-    uint8_t ResponderAllowedCASEConfigs;                // Set of allowed CASE configurations when responding to CASE session
-    uint8_t ResponderAllowedCASECurves;                 // Set of allowed ECDH curves when responding to CASE session
+    uint8_t ResponderAllowedCASEConfigs;      ///< Set of allowed CASE configurations when responding to CASE session
+    uint8_t ResponderAllowedCASECurves;       ///< Set of allowed ECDH curves when responding to CASE session
 #endif
 #if WEAVE_CONFIG_ENABLE_KEY_EXPORT_INITIATOR
-    uint8_t InitiatorKeyExportConfig;                   // Key export configuration proposed when initiating key export request
-    uint8_t InitiatorAllowedKeyExportConfigs;           // Set of allowed configurations when initiating key export request
+    uint8_t InitiatorKeyExportConfig;         ///< Key export configuration proposed when initiating key export request
+    uint8_t InitiatorAllowedKeyExportConfigs; ///< Set of allowed configurations when initiating key export request
 #endif
 #if WEAVE_CONFIG_ENABLE_KEY_EXPORT_RESPONDER
-    uint8_t ResponderAllowedKeyExportConfigs;           // Set of allowed configurations when responding to key export request
+    uint8_t ResponderAllowedKeyExportConfigs; ///< Set of allowed configurations when responding to key export request
 #endif
 #if WEAVE_CONFIG_SECURITY_TEST_MODE
-    bool CASEUseKnownECDHKey;                           // Enable the use of a known ECDH key pair in CASE to allow man-in-the-middle
-                                                        // key recovery for testing purposes.
+    bool CASEUseKnownECDHKey;                 ///< Enable the use of a known ECDH key pair in CASE to allow man-in-the-middle
+                                              ///< key recovery for testing purposes.
 #endif
-    uint32_t SessionEstablishTimeout;                   // The amount of time after which an in-progress session establishment will timeout.
-    uint32_t IdleSessionTimeout;                        // The amount of time after which an idle session will be removed.
+    uint32_t SessionEstablishTimeout;         ///< The amount of time after which an in-progress session establishment will timeout.
+    uint32_t IdleSessionTimeout;              ///< The amount of time after which an idle session will be removed.
+    // clang-format on
 
     WeaveSecurityManager(void);
 

@@ -150,6 +150,7 @@ enum
  * @note WeaveAuthMode is an API data type only; it should never be sent over-the-wire.
  */
 typedef uint16_t WeaveAuthMode;
+// clang-format off
 enum
 {
     kWeaveAuthMode_NotSpecified                         = 0x0000, /**< Authentication mode not specified. */
@@ -198,6 +199,7 @@ enum
     kWeaveAuthMode_Cert_Device                          = kWeaveAuthMode_CASE_Device,
     kWeaveAuthMode_Cert_ServiceEndPoint                 = kWeaveAuthMode_CASE_ServiceEndPoint,
 };
+// clang-format on
 
 /** True if the authentication mode is based on the Weave PASE protocol. */
 inline bool IsPASEAuthMode(WeaveAuthMode authMode) { return (authMode & kWeaveAuthModeCategory_Mask) == kWeaveAuthModeCategory_PASE; }

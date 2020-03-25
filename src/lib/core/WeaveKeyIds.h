@@ -68,6 +68,7 @@ public:
      * @brief
      *   Public Weave key ID fields, flags, and types.
      */
+    // clang-format off
     enum
     {
         /**
@@ -78,10 +79,14 @@ public:
          *        are encoded in the Weave message.
          *  @{
          */
-        kType_None                                          = 0x00000000,  /**< Weave message is unencrypted. */
-        kType_General                                       = 0x00001000,  /**< General key type. */
-        kType_Session                                       = 0x00002000,  /**< Session key type. */
-        kType_AppStaticKey                                  = 0x00004000,  /**< Application static key type. */
+        /** Weave message is unencrypted. */
+        kType_None                                          = 0x00000000,
+        /** General key type. */
+        kType_General                                       = 0x00001000,
+        /** Session key type. */
+        kType_Session                                       = 0x00002000,
+        /** Application static key type. */
+        kType_AppStaticKey                                  = 0x00004000,
         /** Application rotating key type. */
         kType_AppRotatingKey                                = kType_AppStaticKey | kTypeModifier_IncorporatesEpochKey,
         /** @} */
@@ -135,6 +140,7 @@ public:
         kGroupLocalNumber_Max                               = (kMask_GroupLocalNumber >> kShift_GroupLocalNumber),
         /** @} */
     };
+    // clang-format on
 
     /**
      *  Get Weave key type of the specified key ID.

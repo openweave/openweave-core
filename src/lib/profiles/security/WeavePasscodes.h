@@ -50,6 +50,7 @@ using nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase;
  *  @brief
  *    Weave passcode encryption configuration types.
  */
+// clang-format off
 enum
 {
     kPasscode_Config1_TEST_ONLY                         = 0x01, /**< Passcode encryption configuration #1 is not using encryption and secret
@@ -105,6 +106,7 @@ enum
     /** Passcode fingerprint key diversifier size. */
     kPasscodeFingerprintKeyDiversifierSize              = sizeof(kPasscodeFingerprintKeyDiversifier),
 };
+// clang-format on
 
 
 // Encrypt Weave passcode.
