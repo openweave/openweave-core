@@ -46,6 +46,7 @@ NetworkTelemetryManager NetworkTelemetryManager::sInstance;
 
 WeaveTelemetryBase::WeaveTelemetryBase()
 {
+    mEnabled = false;
 }
 
 void WeaveTelemetryBase::Init(uint32_t aIntervalMsec)
@@ -91,7 +92,7 @@ WEAVE_ERROR NetworkTelemetryManager::Init(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    WeaveLogProgress(DeviceLayer, "Initiating Network Telemetry & Topology\n");
+    WeaveLogProgress(DeviceLayer, "Initiating Network Telemetry & Topology");
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
     mWiFiTelemetry.Init(WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS);
@@ -109,14 +110,18 @@ WEAVE_ERROR NetworkTelemetryManager::Init(void)
     return err;
 }
 
-
 #if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
 void WiFiTelemetry::GetTelemetryStatsAndLogEvent(void)
 {
     WEAVE_ERROR err;
 
-    err = ConnectivityMgr().GetAndLogWifiStatsCounters();
-    SuccessOrExit(err);
+    if (ConnectivityMgr().IsWiFiStationProvisioned() &&
+        ConnectivityMgr().IsWiFiStationEnabled() &&
+        ConfigurationMgr().IsPairedToAccount())
+    {
+        err = ConnectivityMgr().GetAndLogWifiStatsCounters();
+        SuccessOrExit(err);
+    }
 
 exit:
     return;
@@ -129,8 +134,13 @@ void ThreadTelemetry::GetTelemetryStatsAndLogEvent(void)
 {
     WEAVE_ERROR err;
 
-    err = ThreadStackMgr().GetAndLogThreadStatsCounters();
-    SuccessOrExit(err);
+    if (ConnectivityMgr().IsThreadProvisioned() &&
+        ConnectivityMgr().IsThreadEnabled() &&
+        ConfigurationMgr().IsPairedToAccount())
+    {
+        err = ThreadStackMgr().GetAndLogThreadStatsCounters();
+        SuccessOrExit(err);
+    }
 
 exit:
     return;
@@ -140,13 +150,18 @@ void ThreadTopology::GetTelemetryStatsAndLogEvent(void)
 {
     WEAVE_ERROR err;
 
+    if (ConnectivityMgr().IsThreadProvisioned() &&
+        ConnectivityMgr().IsThreadEnabled() &&
+        ConfigurationMgr().IsPairedToAccount())
+    {
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL
-    err = ThreadStackMgr().GetAndLogThreadTopologyFull();
-    SuccessOrExit(err);
+        err = ThreadStackMgr().GetAndLogThreadTopologyFull();
+        SuccessOrExit(err);
 #else
-    err = ThreadStackMgr().GetAndLogThreadTopologyMinimal();
-    SuccessOrExit(err);
+        err = ThreadStackMgr().GetAndLogThreadTopologyMinimal();
+        SuccessOrExit(err);
 #endif
+    }
 
 exit:
     return;
@@ -157,81 +172,85 @@ exit:
 #if WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
 void TunnelTelemetry::GetTelemetryStatsAndLogEvent(void)
 {
-    nl::Weave::Profiles::DataManagement_Current::event_id_t eventId;
-    nl::Weave::Profiles::WeaveTunnel::WeaveTunnelStatistics tunnelStats;
-    Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TelemetryTunnelStatsEvent statsEvent;
-
-    ServiceTunnelAgent.GetWeaveTunnelStatistics(tunnelStats);
-
-    statsEvent.txBytesToService       = tunnelStats.mPrimaryStats.mTxBytesToService;
-    statsEvent.rxBytesFromService     = tunnelStats.mPrimaryStats.mRxBytesFromService;
-    statsEvent.txMessagesToService    = tunnelStats.mPrimaryStats.mTxMessagesToService;
-    statsEvent.rxMessagesFromService  = tunnelStats.mPrimaryStats.mRxMessagesFromService;
-    statsEvent.tunnelDownCount        = tunnelStats.mPrimaryStats.mTunnelDownCount;
-    statsEvent.tunnelConnAttemptCount = tunnelStats.mPrimaryStats.mTunnelConnAttemptCount;
-
-    statsEvent.lastTimeTunnelWentDown    = tunnelStats.mPrimaryStats.mLastTimeTunnelWentDown;
-    statsEvent.lastTimeTunnelEstablished = tunnelStats.mPrimaryStats.mLastTimeTunnelEstablished;
-
-    statsEvent.droppedMessagesCount = tunnelStats.mDroppedMessagesCount;
-
-    switch (ServiceTunnelAgent.GetWeaveTunnelAgentState())
+    if (ConnectivityMgr().GetServiceTunnelMode() == ConnectivityManager::kServiceTunnelMode_Enabled &&
+        ConfigurationMgr().IsPairedToAccount())
     {
-    case nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent::kState_Initialized_NoTunnel:
-        statsEvent.currentTunnelState = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_STATE_NO_TUNNEL;
-        break;
-    case nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent::kState_PrimaryTunModeEstablished:
-        statsEvent.currentTunnelState = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_STATE_PRIMARY_ESTABLISHED;
-        break;
-    case nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent::kState_BkupOnlyTunModeEstablished:
-        statsEvent.currentTunnelState =
-            Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_STATE_BACKUP_ONLY_ESTABLISHED;
-        break;
-    case nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent::kState_PrimaryAndBkupTunModeEstablished:
-        statsEvent.currentTunnelState =
-            Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_STATE_PRIMARY_AND_BACKUP_ESTABLISHED;
-        break;
-    default:
-        break;
+        nl::Weave::Profiles::DataManagement_Current::event_id_t eventId;
+        nl::Weave::Profiles::WeaveTunnel::WeaveTunnelStatistics tunnelStats;
+        Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TelemetryTunnelStatsEvent statsEvent;
+
+        ServiceTunnelAgent.GetWeaveTunnelStatistics(tunnelStats);
+
+        statsEvent.txBytesToService       = tunnelStats.mPrimaryStats.mTxBytesToService;
+        statsEvent.rxBytesFromService     = tunnelStats.mPrimaryStats.mRxBytesFromService;
+        statsEvent.txMessagesToService    = tunnelStats.mPrimaryStats.mTxMessagesToService;
+        statsEvent.rxMessagesFromService  = tunnelStats.mPrimaryStats.mRxMessagesFromService;
+        statsEvent.tunnelDownCount        = tunnelStats.mPrimaryStats.mTunnelDownCount;
+        statsEvent.tunnelConnAttemptCount = tunnelStats.mPrimaryStats.mTunnelConnAttemptCount;
+
+        statsEvent.lastTimeTunnelWentDown    = tunnelStats.mPrimaryStats.mLastTimeTunnelWentDown;
+        statsEvent.lastTimeTunnelEstablished = tunnelStats.mPrimaryStats.mLastTimeTunnelEstablished;
+
+        statsEvent.droppedMessagesCount = tunnelStats.mDroppedMessagesCount;
+
+        switch (ServiceTunnelAgent.GetWeaveTunnelAgentState())
+        {
+        case nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent::kState_Initialized_NoTunnel:
+            statsEvent.currentTunnelState = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_STATE_NO_TUNNEL;
+            break;
+        case nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent::kState_PrimaryTunModeEstablished:
+            statsEvent.currentTunnelState = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_STATE_PRIMARY_ESTABLISHED;
+            break;
+        case nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent::kState_BkupOnlyTunModeEstablished:
+            statsEvent.currentTunnelState =
+                Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_STATE_BACKUP_ONLY_ESTABLISHED;
+            break;
+        case nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent::kState_PrimaryAndBkupTunModeEstablished:
+            statsEvent.currentTunnelState =
+                Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_STATE_PRIMARY_AND_BACKUP_ESTABLISHED;
+            break;
+        default:
+            break;
+        }
+
+        switch (tunnelStats.mCurrentActiveTunnel)
+        {
+        case nl::Weave::Profiles::WeaveTunnel::kType_TunnelUnknown:
+            statsEvent.currentActiveTunnel = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_TYPE_NONE;
+            break;
+        case nl::Weave::Profiles::WeaveTunnel::kType_TunnelPrimary:
+            statsEvent.currentActiveTunnel = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_TYPE_PRIMARY;
+            break;
+        case nl::Weave::Profiles::WeaveTunnel::kType_TunnelBackup:
+            statsEvent.currentActiveTunnel = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_TYPE_BACKUP;
+            break;
+        case nl::Weave::Profiles::WeaveTunnel::kType_TunnelShortcut:
+            statsEvent.currentActiveTunnel = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_TYPE_SHORTCUT;
+            break;
+        default:
+            break;
+        }
+
+        WeaveLogProgress(DeviceLayer,
+                         "Weave Tunnel Counters\n"
+                         "Tx Messages:                   %d\n"
+                         "Rx Messages:                   %d\n"
+                         "Tunnel Down Count:             %d\n"
+                         "Tunnel Conn Attempt Count:     %d\n"
+                         "Tunnel State:                  %d\n"
+                         "CurrentActiveTunnel:           %d\n",
+                         statsEvent.txMessagesToService, statsEvent.rxMessagesFromService, statsEvent.tunnelDownCount, statsEvent.tunnelConnAttemptCount,
+                         statsEvent.currentTunnelState, statsEvent.currentActiveTunnel);
+
+        WeaveLogProgress(DeviceLayer,
+                         "Weave Tunnel Time Stamps\n"
+                         "LastTime TunnelWentDown:       %" PRIu64 "\n"
+                         "LastTime TunnelEstablished:    %" PRIu64 "\n",
+                         statsEvent.lastTimeTunnelWentDown, statsEvent.lastTimeTunnelEstablished);
+
+        eventId = nl::LogEvent(&statsEvent);
+        WeaveLogProgress(DeviceLayer, "Weave Tunnel Tolopoly Stats Event Id: %u\n", eventId);
     }
-
-    switch (tunnelStats.mCurrentActiveTunnel)
-    {
-    case nl::Weave::Profiles::WeaveTunnel::kType_TunnelUnknown:
-        statsEvent.currentActiveTunnel = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_TYPE_NONE;
-        break;
-    case nl::Weave::Profiles::WeaveTunnel::kType_TunnelPrimary:
-        statsEvent.currentActiveTunnel = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_TYPE_PRIMARY;
-        break;
-    case nl::Weave::Profiles::WeaveTunnel::kType_TunnelBackup:
-        statsEvent.currentActiveTunnel = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_TYPE_BACKUP;
-        break;
-    case nl::Weave::Profiles::WeaveTunnel::kType_TunnelShortcut:
-        statsEvent.currentActiveTunnel = Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TUNNEL_TYPE_SHORTCUT;
-        break;
-    default:
-        break;
-    }
-
-    WeaveLogProgress(DeviceLayer,
-                     "Weave Tunnel Counters\n"
-                     "Tx Messages:                   %d\n"
-                     "Rx Messages:                   %d\n"
-                     "Tunnel Down Count:             %d\n"
-                     "Tunnel Conn Attempt Count:     %d\n"
-                     "Tunnel State:                  %d\n"
-                     "CurrentActiveTunnel:           %d\n",
-                     statsEvent.txMessagesToService, statsEvent.rxMessagesFromService, statsEvent.tunnelDownCount, statsEvent.tunnelConnAttemptCount,
-                     statsEvent.currentTunnelState, statsEvent.currentActiveTunnel);
-
-    WeaveLogProgress(DeviceLayer,
-                     "Weave Tunnel Time Stamps\n"
-                     "LastTime TunnelWentDown:       %" PRIu64 "\n"
-                     "LastTime TunnelEstablished:    %" PRIu64 "\n",
-                     statsEvent.lastTimeTunnelWentDown, statsEvent.lastTimeTunnelEstablished);
-
-    eventId = nl::LogEvent(&statsEvent);
-    WeaveLogProgress(DeviceLayer, "Weave Tunnel Tolopoly Stats Event Id: %u\n", eventId);
 
     return;
 }
