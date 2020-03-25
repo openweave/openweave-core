@@ -57,8 +57,8 @@ WEAVE_ERROR ResourceIdentifier::ToTLV(nl::Weave::TLV::TLVWriter & aWriter, const
     }
     else if (ResourceType == Schema::Weave::Common::RESOURCE_TYPE_DEVICE)
     {
-            err = aWriter.Put(aTag, ResourceId);
-            SuccessOrExit(err);
+        err = aWriter.Put(aTag, ResourceId);
+        SuccessOrExit(err);
     }
     else
     {
@@ -222,38 +222,61 @@ WEAVE_ERROR ResourceIdentifier::FromString(const char * inBuffer, size_t bufferL
     const char * resourceName;
     char * endPtr;
     uint32_t r_lower, r_upper;
-    char uintbuffer[9];
+    const size_t hexDigitsInInt32 = 8;
+    char uintbuffer[hexDigitsInInt32 + 1];
 
     for (resourceType = Schema::Weave::Common::RESOURCE_TYPE_DEVICE; resourceType <= Schema::Weave::Common::RESOURCE_TYPE_SERVICE;
          resourceType++)
     {
-        resourceName = ResourceTypeAsString(resourceType);
+        resourceName                 = ResourceTypeAsString(resourceType);
+        const size_t resourceNameLen = (resourceName == NULL ? 0 : strlen(resourceName));
 
         if (resourceName == NULL)
             continue;
 
-        if ((strlen(resourceName) + 1) > bufferLen)
+        if ((resourceNameLen + 1) > bufferLen)
             continue;
 
-        if ((strncmp(resourceName, inBuffer, strlen(resourceName)) == 0) && inBuffer[strlen(resourceName)] == '_')
+        if ((strncmp(resourceName, inBuffer, resourceNameLen) == 0) && inBuffer[resourceNameLen] == '_')
         {
+            // Ensure there is at least 1 character after the prefix.
+            bufferLen -= resourceNameLen + 1;
+            VerifyOrExit(bufferLen > 1, err = WEAVE_ERROR_INVALID_ARGUMENT);
             // skip over the prefix
-            inBuffer += strlen(resourceName) + 1;
+            inBuffer += resourceNameLen + 1;
             break;
         }
     }
 
     VerifyOrExit(resourceType <= Schema::Weave::Common::RESOURCE_TYPE_SERVICE, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    memcpy(uintbuffer, inBuffer, 8);
-    uintbuffer[8] = '\0';
-    r_upper     = strtoul(uintbuffer, &endPtr, 16);
-    VerifyOrExit(strlen(endPtr) == 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    // Content after the 16 hexadecimal digits will be ignored.
+    if (bufferLen > (2 * hexDigitsInInt32))
+        bufferLen = (2 * hexDigitsInInt32);
 
-    memcpy(uintbuffer, inBuffer + 8, 8);
-    uintbuffer[8] = '\0';
-    r_lower     = strtoul(inBuffer + 8, &endPtr, 16);
-    VerifyOrExit(strlen(endPtr) == 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    if (bufferLen > hexDigitsInInt32)
+    {
+        memcpy(uintbuffer, inBuffer + bufferLen - hexDigitsInInt32, hexDigitsInInt32);
+        uintbuffer[hexDigitsInInt32] = '\0';
+
+        r_lower = strtoul(uintbuffer, &endPtr, 16);
+        VerifyOrExit(strlen(endPtr) == 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+        memset(uintbuffer, 0, sizeof(uintbuffer));
+        memcpy(uintbuffer, inBuffer, bufferLen - hexDigitsInInt32);
+
+        r_upper = strtoul(uintbuffer, &endPtr, 16);
+        VerifyOrExit(strlen(endPtr) == 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    }
+    else
+    {
+        r_upper = 0;
+        memset(uintbuffer, 0, sizeof(uintbuffer));
+        memcpy(uintbuffer, inBuffer, bufferLen);
+
+        r_lower = strtoul(uintbuffer, &endPtr, 16);
+        VerifyOrExit(strlen(endPtr) == 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    }
 
     ResourceId   = ((uint64_t) r_upper) << 32 | ((uint64_t) r_lower);
     ResourceType = resourceType;
