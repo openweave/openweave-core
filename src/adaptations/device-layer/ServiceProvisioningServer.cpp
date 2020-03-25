@@ -76,7 +76,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
         ExitNow();
     }
 
-    WeaveLogProgress(DeviceLayer, "Registering new service: %" PRIx64 " (account id %*s)", msg.ServiceId, (int)msg.AccountIdLen, msg.AccountId);
+    WeaveLogProgress(DeviceLayer, "Registering new service: %" PRIx64 " (account id %.*s)", msg.ServiceId, (int)msg.AccountIdLen, msg.AccountId);
 
     // Store the service id and the service config in persistent storage.
     err = ConfigurationMgr().StoreServiceProvisioningData(msg.ServiceId, msg.ServiceConfig, msg.ServiceConfigLen, NULL, 0);
