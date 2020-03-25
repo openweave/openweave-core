@@ -116,8 +116,7 @@ void WiFiTelemetry::GetTelemetryStatsAndLogEvent(void)
     WEAVE_ERROR err;
 
     if (ConnectivityMgr().IsWiFiStationProvisioned() &&
-        ConnectivityMgr().IsWiFiStationEnabled() &&
-        ConfigurationMgr().IsPairedToAccount())
+        ConnectivityMgr().IsWiFiStationEnabled())
     {
         err = ConnectivityMgr().GetAndLogWifiStatsCounters();
         SuccessOrExit(err);
@@ -135,8 +134,7 @@ void ThreadTelemetry::GetTelemetryStatsAndLogEvent(void)
     WEAVE_ERROR err;
 
     if (ConnectivityMgr().IsThreadProvisioned() &&
-        ConnectivityMgr().IsThreadEnabled() &&
-        ConfigurationMgr().IsPairedToAccount())
+        ConnectivityMgr().IsThreadEnabled())
     {
         err = ThreadStackMgr().GetAndLogThreadStatsCounters();
         SuccessOrExit(err);
@@ -151,8 +149,7 @@ void ThreadTopology::GetTelemetryStatsAndLogEvent(void)
     WEAVE_ERROR err;
 
     if (ConnectivityMgr().IsThreadProvisioned() &&
-        ConnectivityMgr().IsThreadEnabled() &&
-        ConfigurationMgr().IsPairedToAccount())
+        ConnectivityMgr().IsThreadEnabled())
     {
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL
         err = ThreadStackMgr().GetAndLogThreadTopologyFull();
@@ -172,8 +169,7 @@ exit:
 #if WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
 void TunnelTelemetry::GetTelemetryStatsAndLogEvent(void)
 {
-    if (ConnectivityMgr().GetServiceTunnelMode() == ConnectivityManager::kServiceTunnelMode_Enabled &&
-        ConfigurationMgr().IsPairedToAccount())
+    if (ConnectivityMgr().GetServiceTunnelMode() == ConnectivityManager::kServiceTunnelMode_Enabled)
     {
         nl::Weave::Profiles::DataManagement_Current::event_id_t eventId;
         nl::Weave::Profiles::WeaveTunnel::WeaveTunnelStatistics tunnelStats;
