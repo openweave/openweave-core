@@ -1929,6 +1929,7 @@ void *IOThreadMain(void *arg)
         sleepTime.tv_sec = 10;
         sleepTime.tv_usec = 0;
 
+        WeaveLogProgress(DeviceManager, "IO thread starting starting debugging 1");
         // Collect the currently active file descriptors.
         sSystemLayer.PrepareSelect(numFDs, &readFDs, &writeFDs, &exceptFDs, sleepTime);
         sInet.PrepareSelect(numFDs, &readFDs, &writeFDs, &exceptFDs, sleepTime);
@@ -1936,9 +1937,11 @@ void *IOThreadMain(void *arg)
         // Unlock the stack so that Java threads can make API calls.
         pthread_mutex_unlock(&sStackLock);
 
+        WeaveLogProgress(DeviceManager, "IO thread starting starting debugging 2");
         // Wait for for I/O or for the next timer to expire.
         int selectRes = select(numFDs, &readFDs, &writeFDs, &exceptFDs, &sleepTime);
 
+        WeaveLogProgress(DeviceManager, "IO thread starting starting debugging 3");
         // Break the loop if requested to shutdown.
         if (sShutdown)
             break;
@@ -1946,6 +1949,7 @@ void *IOThreadMain(void *arg)
         // Re-lock the stack.
         pthread_mutex_lock(&sStackLock);
 
+        WeaveLogProgress(DeviceManager, "IO thread starting starting debugging 4");
         // Perform I/O and/or dispatch timers.
         sSystemLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
         sInet.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);

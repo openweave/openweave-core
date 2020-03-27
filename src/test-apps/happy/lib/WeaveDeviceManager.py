@@ -449,21 +449,23 @@ def testWdmClientDataSinkResourceIdentifierMakeResTypeIdBytes(testObject):
     testObject.closeWdmClient()
     print "testWdmClientDataSinkResourceIdentifierMakeResTypeIdBytes completes"
 
+def testWdmClientMultipleRrefresh(testObject):
+    testObject.createWdmClient()
+    localeSettingsTrait = testObject.newDataSink(20, 0, "/")
+    TestCTrait = testObject.newDataSink(593165827, 0, "/")
+    testObject.refreshData()
+    print "testWdmClientMultipleRrefresh round1 completes"
+    testObject.refreshData()
+    print "testWdmClientMultipleRrefresh round2 completes"
+    testObject.refreshData()
+    print "testWdmClientMultipleRrefresh round3 completes"
+    testObject.closeWdmClient()
+    print "testWdmClientDataSinkRefreshGetDataRefresh completes"
+
 def RunWdmClientTest():
     print "Run Weave Data Management Test"
     testObject = MockWeaveDataManagementClientImp()
-    testWdmClientCreateClose(testObject)
-    testWdmClientDataSinkEmptyFlushData(testObject)
-    testWdmClientDataSinkCreateClose(testObject)
-    testWdmClientDataSinkSetFlushData(testObject)
-    testWdmClientDataSinkSetFlushRefreshGetData(testObject)
-    testWdmClientDataSinkRefreshGetDataRefresh(testObject)
-    testWdmClientDataSinkRefreshIndividualGetDataRefresh(testObject)
-    testWdmClientDataSinkCloseIndividualData(testObject)
-    testWdmClientDataSinkSetRefreshFlushGetData(testObject)
-    testWdmClientDataSinkResourceIdentifierMakeResTypeIdInt(testObject)
-    testWdmClientDataSinkResourceIdentifierMakeResTypeIdBytes(testObject)
-
+    testWdmClientMultipleRrefresh(testObject)
     print "Run Weave Data Management Complete"
 
 class ExtendedOption (Option):
