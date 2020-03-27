@@ -2,6 +2,7 @@
 
 
 #
+#    Copyright (c) 2020 Google LLC.
 #    Copyright (c) 2016-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -80,7 +81,7 @@ class test_weave_pairing_01(unittest.TestCase):
 
         self.username = os.environ.get("WEAVE_USERNAME", "test-it+weave_happy_fabric%s@nestlabs.com" % self.fabric_id)
 
-        self.password = os.environ.get("WEAVE_PASSWORD", "nest-egg")
+        self.password = os.environ.get("WEAVE_PASSWORD", "nest-egg123")
 
         self.initial_device_index = int(os.environ.get("INITIAL_DEVICE_INDEX", "1"))
 
