@@ -68,8 +68,6 @@ WEAVE_ERROR WeaveCertProvEngine::Init(Binding * binding, WeaveNodeOpAuthDelegate
     VerifyOrExit(eventCallback != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     AppState = appState;
-    mReqType = kReqType_NotSpecified;
-    mDoMfrAttest = false;
     mBinding = binding;
     mOpAuthDelegate = opAuthDelegate;
     mMfrAttestDelegate = mfrAttestDelegate;
@@ -478,10 +476,6 @@ exit:
  */
 void WeaveCertProvEngine::HandleRequestDone(void)
 {
-    // Clear the request state.
-    mReqType = kReqType_NotSpecified;
-    mDoMfrAttest = false;
-
     // Abort any in-progress exchange and release the exchange context.
     if (mEC != NULL)
     {

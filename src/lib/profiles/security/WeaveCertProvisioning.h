@@ -161,9 +161,8 @@ public:
 
     enum
     {
-        kReqType_NotSpecified                       = 0,    /**< The Get Certificate request type is not specified. */
-        kReqType_GetInitialOpDeviceCert             = 1,    /**< The Get Certificate request type is to obtain initial operational certificatete. */
-        kReqType_RotateOpDeviceCert                 = 2,    /**< The Get Certificate request type is to rotate the current operational certificatete. */
+        kReqType_GetInitialOpDeviceCert             = 0,    /**< The Get Certificate request type is to obtain initial operational certificatete. */
+        kReqType_RotateOpDeviceCert                 = 1,    /**< The Get Certificate request type is to rotate the current operational certificatete. */
     };
 
     /**
