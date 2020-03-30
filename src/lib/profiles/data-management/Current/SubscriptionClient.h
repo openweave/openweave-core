@@ -539,6 +539,8 @@ private:
                                                               const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId,
                                                               uint8_t aMsgType, PacketBuffer * aPayload);
 
+    static void OnSubscribeScheduleWorkCallback(System::Layer * aSystemLayer, void * aAppState, System::Error);
+
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     IWeaveWDMMutex * mUpdateMutex;

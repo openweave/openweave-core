@@ -710,29 +710,39 @@ exit:
  */
 void SubscriptionClient::InitiateSubscription(void)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     mConfig = kConfig_Initiator;
-
-    if (IsRetryEnabled())
-    {
-        if (false == mBinding->IsPreparing())
-        {
-            ResetResubscribe();
-        }
-    }
-    else
-    {
-        _InitiateSubscription();
-    }
+    err = SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->ScheduleWork(OnSubscribeScheduleWorkCallback, this);
+    WeaveLogFunctError(err);
 }
 
 void SubscriptionClient::InitiateCounterSubscription(const uint32_t aLivenessTimeoutSec)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     mConfig = kConfig_CounterSubscriber;
 
     // the liveness timeout spec is given and not part of the subscription setup
     mLivenessTimeoutMsec = aLivenessTimeoutSec * 1000;
 
-    _InitiateSubscription();
+    err = SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->ScheduleWork(OnSubscribeScheduleWorkCallback, this);
+    WeaveLogFunctError(err);
+}
+
+void SubscriptionClient::OnSubscribeScheduleWorkCallback(System::Layer * aSystemLayer, void * aAppState, System::Error)
+{
+    SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aAppState);
+
+    if (pClient->IsRetryEnabled())
+    {
+        if (false == pClient->mBinding->IsPreparing())
+        {
+            pClient->ResetResubscribe();
+        }
+    }
+    else
+    {
+        pClient->_InitiateSubscription();
+    }
 }
 
 void SubscriptionClient::_AddRef()
