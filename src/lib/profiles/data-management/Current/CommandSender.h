@@ -59,7 +59,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  * SendCommand(), which will override the default Binding. It is not necessary to provide a default
  * Binding, however any binding provided to CommandSender must already be initialized.
  *
- * ## EventHandler
+ * ## EventCallback
  *
  * The user must define a function of this type if they wish to be updated about
  * events that happen after the sending of the command (see "API Events" below).
@@ -108,7 +108,9 @@ public:
         kEvent_DefaultCheck                         = 100,    //< Used to verify correct default event handling in the application.
     };
 
-    // Data returned to the sender by the recipient of the custom command.
+    /**
+     * Data returned to the sender by the recipient of the custom command.
+     */
     struct InEventParam
     {
         void Clear(void) { memset(this, 0, sizeof(*this)); }
@@ -141,16 +143,25 @@ public:
         };
     };
 
-    // Data returned back to a CommandSender object from an EventCallback
-    // function.
+    /**
+     * Data returned back to a CommandSender object from an EventCallback
+     * function.
+     */
     struct OutEventParam
     {
         void Clear(void) { memset(this, 0, sizeof(*this)); }
-        bool defaultHandlerCalled;
+        bool defaultHandlerCalled;  /**< should be set if DefaultEventHandler is called */
     };
 
     typedef void (*EventCallback)(void * const aAppState, EventType aEvent, const InEventParam &aInParam, OutEventParam &aOutEventParam);
 
+    /**
+     * Encapsulates arguments to be passed into SendCommand().
+     *
+     * At minimum, ResourceId, ProfileId, and CommandType should be set before
+     * the struct is passed to SendCommand(). InstanceId, Flags, and
+     * VersionRange will default to 0 if not set.
+     */
     struct SendParams {
         WEAVE_ERROR PopulateTraitPath(TraitCatalogBase<TraitDataSink> *aCatalog, TraitDataSink *aSink, uint32_t aCommandType);
 
@@ -168,7 +179,9 @@ public:
         uint64_t ActionTimeMicroSecond;
         uint64_t ExpiryTimeMicroSecond;
 
-        // Set to non-zero number to specify command timeout that's different than the one specified in the binding
+        /*
+         * Set to non-zero number to specify command timeout that's different than the one specified in the binding
+         */
         uint32_t ResponseTimeoutMsOverride;
     };
 

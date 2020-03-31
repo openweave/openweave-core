@@ -296,10 +296,6 @@ private:
     CommandSender mCommandSender;
     void Command_Send (void);
     void Command_End (const bool aAbort = false);
-    static void OnMessageReceivedForCustomCommand (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload);
-    static void HandleCustomCommandTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr);
 };
 
 static MockWdmSubscriptionResponderImpl gWdmSubscriptionResponder;

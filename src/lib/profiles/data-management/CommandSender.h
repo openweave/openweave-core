@@ -27,4 +27,3 @@
 #endif // WEAVE_CONFIG_DATA_MANAGEMENT_NAMESPACE == kWeaveManagedNamespace_Current
 
 #endif // _WEAVE_DATA_MANAGEMENT_COMMAND_H
-
