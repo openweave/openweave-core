@@ -304,18 +304,36 @@ PlatformResult AddRemoveThreadAddress(InterfaceType inInterfaceType, const Inet:
 {
     otError otErr;
     otNetifAddress otAddress;
+    otBorderRouterConfig brConfig;
 
     memset(&otAddress, 0, sizeof(otAddress));
+
+    ThreadStackMgrImpl().LockThreadStack();
+
     otAddress.mAddress = ToOpenThreadIP6Address(inAddress);
     otAddress.mPrefixLength = 64;
     otAddress.mValid = true;
     otAddress.mPreferred = true;
 
-    ThreadStackMgrImpl().LockThreadStack();
+    brConfig.mConfigure = false;
+    brConfig.mDefaultRoute = false;
+    brConfig.mDhcp = false;
+    brConfig.mOnMesh = true;
+    brConfig.mPreference = 0;
+    brConfig.mPreferred = true;
+    brConfig.mPrefix.mPrefix = otAddress.mAddress;
+    brConfig.mPrefix.mLength = 64;
+    brConfig.mRloc16 = otThreadGetRloc16(ThreadStackMgrImpl().OTInstance());
+    brConfig.mSlaac = false;
+    brConfig.mStable = true;
 
     if (inAdd)
     {
         otErr = otIp6AddUnicastAddress(ThreadStackMgrImpl().OTInstance(), &otAddress);
+        if (otErr == OT_ERROR_NONE)
+        {
+            otErr = otBorderRouterAddOnMeshPrefix(ThreadStackMgrImpl().OTInstance(), &brConfig);
+        }
     }
     else
     {
@@ -328,6 +346,13 @@ PlatformResult AddRemoveThreadAddress(InterfaceType inInterfaceType, const Inet:
         if (otErr == OT_ERROR_NOT_FOUND)
         {
             WeaveLogProgress(DeviceLayer, "otIp6RemoveUnicastAddress: already removed");
+            otErr = OT_ERROR_NONE;
+        }
+
+        otErr = otBorderRouterRemoveOnMeshPrefix(ThreadStackMgrImpl().OTInstance(), &brConfig.mPrefix);
+        if (otErr == OT_ERROR_NOT_FOUND)
+        {
+            WeaveLogProgress(DeviceLayer, "otBorderRouterRemoveOnMeshPrefix: already removed");
             otErr = OT_ERROR_NONE;
         }
     }
@@ -358,27 +383,66 @@ PlatformResult AddRemoveThreadAddress(InterfaceType inInterfaceType, const Inet:
 
 #if WARM_CONFIG_SUPPORT_THREAD_ROUTING
 
-#error "Weave Thread router support not implemented"
-
 PlatformResult StartStopThreadAdvertisement(InterfaceType inInterfaceType, const Inet::IPPrefix &inPrefix, bool inStart)
 {
-    // TODO: implement me
+    if (inInterfaceType != kInterfaceTypeThread) { return kPlatformResultFailure; }
+    if ((inPrefix.Length & 7) != 0) { return kPlatformResultFailure; }
+
+    // Thread Stack should attempt to become a router if params are set, so nothing special needed
+
+    return kPlatformResultSuccess;
 }
 
 #endif // WARM_CONFIG_SUPPORT_THREAD_ROUTING
 
 #if WARM_CONFIG_SUPPORT_BORDER_ROUTING
 
-#error "Weave border router support not implemented"
-
 PlatformResult AddRemoveThreadRoute(InterfaceType inInterfaceType, const Inet::IPPrefix &inPrefix, RoutePriority inPriority, bool inAdd)
 {
-    // TODO: implement me
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    otError otErr;
+    otExternalRouteConfig routeConfig;
+
+    int ot_priority = OT_ROUTE_PREFERENCE_HIGH;
+    switch (inPriority)
+    {
+        case kRoutePriorityLow:
+            ot_priority = OT_ROUTE_PREFERENCE_LOW;
+            break;
+        case kRoutePriorityMedium:
+            ot_priority = OT_ROUTE_PREFERENCE_MED;
+            break;
+        case kRoutePriorityHigh:
+            ot_priority = OT_ROUTE_PREFERENCE_HIGH;
+            break;
+    }
+
+    ThreadStackMgrImpl().LockThreadStack();
+
+    otBorderRouterRegister(ThreadStackMgrImpl().OTInstance());
+
+    memcpy(routeConfig.mPrefix.mPrefix.mFields.m8, inPrefix.IPAddr.Addr, sizeof(routeConfig.mPrefix.mPrefix.mFields));
+    routeConfig.mPrefix.mLength = inPrefix.Length;
+    routeConfig.mStable = true;
+    routeConfig.mPreference = ot_priority;
+
+    if (inAdd)
+    {
+        otErr = otBorderRouterAddRoute(ThreadStackMgrImpl().OTInstance(), &routeConfig);
+    }
+    else
+    {
+        otErr = otBorderRouterRemoveRoute(ThreadStackMgrImpl().OTInstance(), &routeConfig.mPrefix);
+    }
+
+    err = MapOpenThreadError(otErr);
+    ThreadStackMgrImpl().UnlockThreadStack();
+    return (err == WEAVE_NO_ERROR) ? kPlatformResultSuccess : kPlatformResultFailure;
 }
 
 PlatformResult SetThreadRoutePriority(InterfaceType inInterfaceType, const Inet::IPPrefix &inPrefix, RoutePriority inPriority)
 {
-    // TODO: implement me
+    return AddRemoveThreadRoute(inInterfaceType, inPrefix, inPriority, true);
 }
 
 #endif // WARM_CONFIG_SUPPORT_BORDER_ROUTING
