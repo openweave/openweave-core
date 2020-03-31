@@ -1,0 +1,151 @@
+From 102c9e1296b656c4049c1110abc8a52b43bd0dcf Mon Sep 17 00:00:00 2001
+From: Richard Levitte <levitte@openssl.org>
+Date: Fri, 28 Jul 2017 13:38:03 +0200
+Subject: [PATCH] Perl: Use File::Glob::bsd_glob rather than File::Glob::glob
+
+File::Glob::glob is deprecated, it's use generates this kind of
+message:
+
+    File::Glob::glob() will disappear in perl 5.30. Use File::Glob::bsd_glob() instead. at ../master/Configure line 277.
+
+So instead, use a construction that makes the caller glob() use
+File::Glob::bsd_glob().
+
+Note that we're still excluding VMS, as it's directory specs use '['
+and ']', which have a different meaning with bsd_glob and would need
+some extra quoting.  This might change, but later.
+
+Reviewed-by: Rich Salz <rsalz@openssl.org>
+(Merged from https://github.com/openssl/openssl/pull/4040)
+---
+ Configure                      | 2 +-
+ test/build.info                | 2 +-
+ test/recipes/15-test_ecparam.t | 2 +-
+ test/recipes/40-test_rehash.t  | 2 +-
+ test/recipes/80-test_ssl_new.t | 2 +-
+ test/recipes/99-test_fuzz.t    | 2 +-
+ test/run_tests.pl              | 2 +-
+ util/mkdef.pl                  | 2 +-
+ util/process_docs.pl           | 2 +-
+ 9 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/Configure b/Configure
+index 7750e929cf..61b86c4921 100755
+--- a/Configure
++++ b/Configure
+@@ -15,7 +15,7 @@ use Config;
+ use File::Basename;
+ use File::Spec::Functions qw/:DEFAULT abs2rel rel2abs/;
+ use File::Path qw/mkpath/;
+-use if $^O ne "VMS", 'File::Glob' => qw/glob/;
++use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
+ 
+ # see INSTALL for instructions.
+ 
+diff --git a/test/build.info b/test/build.info
+index 2e8775e44f..a73e6caec0 100644
+--- a/test/build.info
++++ b/test/build.info
+@@ -450,7 +450,7 @@ ENDIF
+ {-
+    use File::Spec::Functions;
+    use File::Basename;
+-   use if $^O ne "VMS", 'File::Glob' => qw/glob/;
++   use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
+ 
+    my @nogo_headers = ( "asn1_mac.h",
+                         "__decc_include_prologue.h",
+diff --git a/test/recipes/15-test_ecparam.t b/test/recipes/15-test_ecparam.t
+index 9fabd3b277..0f9b70b4bc 100644
+--- a/test/recipes/15-test_ecparam.t
++++ b/test/recipes/15-test_ecparam.t
+@@ -11,7 +11,7 @@ use strict;
+ use warnings;
+ 
+ use File::Spec;
+-use if $^O ne "VMS", 'File::Glob' => qw/glob/;
++use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
+ use OpenSSL::Test qw/:DEFAULT data_file/;
+ use OpenSSL::Test::Utils;
+ 
+diff --git a/test/recipes/40-test_rehash.t b/test/recipes/40-test_rehash.t
+index f902c238c0..b374e598d1 100644
+--- a/test/recipes/40-test_rehash.t
++++ b/test/recipes/40-test_rehash.t
+@@ -13,7 +13,7 @@ use warnings;
+ use File::Spec::Functions;
+ use File::Copy;
+ use File::Basename;
+-use if $^O ne "VMS", 'File::Glob' => qw/glob/;
++use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
+ use OpenSSL::Test qw/:DEFAULT srctop_file/;
+ 
+ setup("test_rehash");
+diff --git a/test/recipes/80-test_ssl_new.t b/test/recipes/80-test_ssl_new.t
+index 100b8528c8..de351903a5 100644
+--- a/test/recipes/80-test_ssl_new.t
++++ b/test/recipes/80-test_ssl_new.t
+@@ -12,7 +12,7 @@ use warnings;
+ 
+ use File::Basename;
+ use File::Compare qw/compare_text/;
+-use if $^O ne "VMS", 'File::Glob' => qw/glob/;
++use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
+ 
+ use OpenSSL::Test qw/:DEFAULT srctop_dir srctop_file/;
+ use OpenSSL::Test::Utils qw/disabled alldisabled available_protocols/;
+diff --git a/test/recipes/99-test_fuzz.t b/test/recipes/99-test_fuzz.t
+index 75248ef70d..a0493a50d6 100644
+--- a/test/recipes/99-test_fuzz.t
++++ b/test/recipes/99-test_fuzz.t
+@@ -9,7 +9,7 @@
+ use strict;
+ use warnings;
+ 
+-use if $^O ne "VMS", 'File::Glob' => qw/glob/;
++use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
+ use OpenSSL::Test qw/:DEFAULT srctop_file/;
+ use OpenSSL::Test::Utils;
+ 
+diff --git a/test/run_tests.pl b/test/run_tests.pl
+index 66f620e216..1695729e81 100644
+--- a/test/run_tests.pl
++++ b/test/run_tests.pl
+@@ -16,7 +16,7 @@ BEGIN {
+ 
+ use File::Spec::Functions qw/catdir catfile curdir abs2rel rel2abs/;
+ use File::Basename;
+-use if $^O ne "VMS", 'File::Glob' => qw/glob/;
++use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
+ use Module::Load::Conditional qw(can_load);
+ 
+ my $TAP_Harness = can_load(modules => { 'TAP::Harness' => undef }) 
+diff --git a/util/mkdef.pl b/util/mkdef.pl
+index b3eb6b3d9d..7a85e80082 100755
+--- a/util/mkdef.pl
++++ b/util/mkdef.pl
+@@ -49,7 +49,7 @@ use lib ".";
+ use configdata;
+ use File::Spec::Functions;
+ use File::Basename;
+-use if $^O ne "VMS", 'File::Glob' => qw/glob/;
++use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
+ 
+ my $debug=0;
+ 
+diff --git a/util/process_docs.pl b/util/process_docs.pl
+index 5db78d85f2..49176ad30b 100644
+--- a/util/process_docs.pl
++++ b/util/process_docs.pl
+@@ -13,7 +13,7 @@ use File::Spec::Functions;
+ use File::Basename;
+ use File::Copy;
+ use File::Path;
+-use if $^O ne "VMS", 'File::Glob' => qw/glob/;
++use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
+ use Getopt::Long;
+ use Pod::Usage;
+ 
+-- 
+2.25.1.696.g5e7596f4ac-goog
+
