@@ -290,11 +290,19 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetThreadProvi
             memcpy(netInfo.ThreadNetworkKey, activeDataset.mMasterKey.m8, sizeof(netInfo.ThreadNetworkKey));
             netInfo.FieldPresent.ThreadNetworkKey = true;
         }
+#ifdef EFR32_OPENTHREAD_API
+        if (activeDataset.mComponents.mIsPskcPresent)
+        {
+            memcpy(netInfo.ThreadPSKc, activeDataset.mPskc.m8, sizeof(netInfo.ThreadPSKc));
+            netInfo.FieldPresent.ThreadPSKc = true;
+        }
+#else // !EFR32_OPENTHREAD_API
         if (activeDataset.mComponents.mIsPSKcPresent)
         {
             memcpy(netInfo.ThreadPSKc, activeDataset.mPSKc.m8, sizeof(netInfo.ThreadPSKc));
             netInfo.FieldPresent.ThreadPSKc = true;
         }
+#endif // !EFR32_OPENTHREAD_API
     }
     if (activeDataset.mComponents.mIsPanIdPresent)
     {
@@ -342,8 +350,13 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadProvi
     }
     if (netInfo.FieldPresent.ThreadPSKc)
     {
+#ifdef EFR32_OPENTHREAD_API
+        memcpy(newDataset.mPskc.m8, netInfo.ThreadPSKc, sizeof(newDataset.mPskc.m8));
+        newDataset.mComponents.mIsPskcPresent = true;
+#else // !EFR32_OPENTHREAD_API
         memcpy(newDataset.mPSKc.m8, netInfo.ThreadPSKc, sizeof(newDataset.mPSKc.m8));
         newDataset.mComponents.mIsPSKcPresent = true;
+#endif // !EFR32_OPENTHREAD_API
     }
     if (netInfo.ThreadPANId != kThreadPANId_NotSpecified)
     {
@@ -388,7 +401,11 @@ ConnectivityManager::ThreadDeviceType GenericThreadStackManagerImpl_OpenThread<I
 
     if (linkMode.mDeviceType)
     {
+#ifdef EFR32_OPENTHREAD_API
+        if (otThreadIsRouterEligible(mOTInst))
+#else // !EFR32_OPENTHREAD_API
         if (otThreadIsRouterRoleEnabled(mOTInst))
+#endif // !EFR32_OPENTHREAD_API
         {
             deviceType = ConnectivityManager::kThreadDeviceType_Router;
         }
@@ -463,7 +480,11 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadDevic
     case ConnectivityManager::kThreadDeviceType_FullEndDevice:
         linkMode.mDeviceType = true;
         linkMode.mRxOnWhenIdle = true;
+#ifdef EFR32_OPENTHREAD_API
+        otThreadSetRouterEligible(mOTInst, deviceType == ConnectivityManager::kThreadDeviceType_Router);
+#else // !EFR32_OPENTHREAD_API
         otThreadSetRouterRoleEnabled(mOTInst, deviceType == ConnectivityManager::kThreadDeviceType_Router);
+#endif // !EFR32_OPENTHREAD_API
         break;
     case ConnectivityManager::kThreadDeviceType_MinimalEndDevice:
         linkMode.mDeviceType = false;
@@ -652,14 +673,18 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
                      "MAC Rx Unicast:               %d\n"
                      "MAC Rx Broadcast:             %d\n"
                      "MAC Rx Data:                  %d\n"
-                     "MAC Rx Data Polls:            %d\n"
+                     "MAC Rx Data Polls:            %d",
+                     counterEvent.phyRx, counterEvent.macUnicastRx, counterEvent.macBroadcastRx,
+                     counterEvent.macRxData, counterEvent.macRxDataPoll);
+
+    WeaveLogProgress(DeviceLayer,
+                     "Rx Counters (Contd.):\n"
                      "MAC Rx Beacons:               %d\n"
                      "MAC Rx Beacon Reqs:           %d\n"
                      "MAC Rx Other:                 %d\n"
                      "MAC Rx Filtered Whitelist:    %d\n"
-                     "MAC Rx Filtered DestAddr:     %d\n",
-                     counterEvent.phyRx, counterEvent.macUnicastRx, counterEvent.macBroadcastRx, counterEvent.macRxData,
-                     counterEvent.macRxDataPoll, counterEvent.macRxBeacon, counterEvent.macRxBeaconReq, counterEvent.macRxOtherPkt,
+                     "MAC Rx Filtered DestAddr:     %d",
+                     counterEvent.macRxBeacon, counterEvent.macRxBeaconReq, counterEvent.macRxOtherPkt,
                      counterEvent.macRxFilterWhitelist, counterEvent.macRxFilterDestAddr);
 
     WeaveLogProgress(DeviceLayer,
@@ -668,14 +693,18 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
                      "MAC Tx Unicast:               %d\n"
                      "MAC Tx Broadcast:             %d\n"
                      "MAC Tx Data:                  %d\n"
-                     "MAC Tx Data Polls:            %d\n"
+                     "MAC Tx Data Polls:            %d",
+                     counterEvent.phyTx, counterEvent.macUnicastTx, counterEvent.macBroadcastTx, counterEvent.macTxData,
+                     counterEvent.macTxDataPoll);
+
+    WeaveLogProgress(DeviceLayer,
+                     "Tx Counters (Contd.):\n"
                      "MAC Tx Beacons:               %d\n"
                      "MAC Tx Beacon Reqs:           %d\n"
                      "MAC Tx Other:                 %d\n"
                      "MAC Tx Retry:                 %d\n"
-                     "MAC Tx CCA Fail:              %d\n",
-                     counterEvent.phyTx, counterEvent.macUnicastTx, counterEvent.macBroadcastTx, counterEvent.macTxData,
-                     counterEvent.macTxDataPoll, counterEvent.macTxBeacon, counterEvent.macTxBeaconReq, counterEvent.macTxOtherPkt,
+                     "MAC Tx CCA Fail:              %d",
+                     counterEvent.macTxBeacon, counterEvent.macTxBeaconReq, counterEvent.macTxOtherPkt,
                      counterEvent.macTxRetry, counterEvent.macTxFailCca);
 
     WeaveLogProgress(DeviceLayer,
@@ -685,12 +714,12 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
                      "MAC Rx Unknown Neighbor Fail: %d\n"
                      "MAC Rx Invalid Src Addr Fail: %d\n"
                      "MAC Rx FCS Fail:              %d\n"
-                     "MAC Rx Other Fail:            %d\n",
+                     "MAC Rx Other Fail:            %d",
                      counterEvent.macRxFailDecrypt, counterEvent.macRxFailNoFrame, counterEvent.macRxFailUnknownNeighbor,
                      counterEvent.macRxFailInvalidSrcAddr, counterEvent.macRxFailFcs, counterEvent.macRxFailOther);
 
     eventId = nl::LogEvent(&counterEvent);
-    WeaveLogProgress(DeviceLayer, "OpenThread Telemetry Stats Event Id: %u\n", eventId);
+    WeaveLogProgress(DeviceLayer, "OpenThread Telemetry Stats Event Id: %u", eventId);
 
     Impl()->UnlockThreadStack();
 
@@ -740,21 +769,21 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
                      "Parent Last RSSI: %d\n"
                      "Partition ID:     %d\n"
                      "Extended Address: %02X%02X:%02X%02X:%02X%02X:%02X%02X\n"
-                     "Instant RSSI:     %d\n",
+                     "Instant RSSI:     %d",
                      topologyEvent.rloc16, topologyEvent.routerId, topologyEvent.leaderRouterId, topologyEvent.parentAverageRssi,
                      topologyEvent.parentLastRssi, topologyEvent.partitionId, topologyEvent.extAddress.mBuf[0], topologyEvent.extAddress.mBuf[1],
                      topologyEvent.extAddress.mBuf[2], topologyEvent.extAddress.mBuf[3], topologyEvent.extAddress.mBuf[4],
                      topologyEvent.extAddress.mBuf[5], topologyEvent.extAddress.mBuf[6], topologyEvent.extAddress.mBuf[7], topologyEvent.instantRssi);
 
     eventId = nl::LogEvent(&topologyEvent);
-    WeaveLogProgress(DeviceLayer, "OpenThread Telemetry Stats Event Id: %u\n", eventId);
+    WeaveLogProgress(DeviceLayer, "OpenThread Telemetry Stats Event Id: %u", eventId);
 
     Impl()->UnlockThreadStack();
 
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "GetAndLogThreadTopologyMinimul failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "GetAndLogThreadTopologyMinimal failed: %s", nl::ErrorStr(err));
     }
 
     return err;
@@ -852,26 +881,30 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
                      "Leader Router ID:      %u\n"
                      "Leader Address:        %02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X:%02X%02X\n"
                      "Leader Weight:         %d\n"
-                     "Local Leader Weight:   %d\n"
+                     "Local Leader Weight:   %d",
+                     fullTopoEvent.rloc16, fullTopoEvent.routerId, fullTopoEvent.leaderRouterId,
+                     fullTopoEvent.leaderAddress.mBuf[0], fullTopoEvent.leaderAddress.mBuf[1], fullTopoEvent.leaderAddress.mBuf[2], fullTopoEvent.leaderAddress.mBuf[3],
+                     fullTopoEvent.leaderAddress.mBuf[4], fullTopoEvent.leaderAddress.mBuf[5], fullTopoEvent.leaderAddress.mBuf[6], fullTopoEvent.leaderAddress.mBuf[7],
+                     fullTopoEvent.leaderAddress.mBuf[8], fullTopoEvent.leaderAddress.mBuf[9], fullTopoEvent.leaderAddress.mBuf[10], fullTopoEvent.leaderAddress.mBuf[11],
+                     fullTopoEvent.leaderAddress.mBuf[12], fullTopoEvent.leaderAddress.mBuf[13], fullTopoEvent.leaderAddress.mBuf[14], fullTopoEvent.leaderAddress.mBuf[15],
+                     fullTopoEvent.leaderWeight, fullTopoEvent.leaderLocalWeight);
+
+    WeaveLogProgress(DeviceLayer,
+                     "Thread Topology (Contd.):\n"
                      "Network Data Len:      %d\n"
                      "Network Data Version:  %d\n"
                      "Extended Address:      %02X%02X:%02X%02X:%02X%02X:%02X%02X\n"
                      "Partition ID:          %X\n"
                      "Instant RSSI:          %d\n"
                      "Neighbor Table Length: %d\n"
-                     "Child Table Length:    %d\n",
-                     fullTopoEvent.rloc16, fullTopoEvent.routerId, fullTopoEvent.leaderRouterId,
-                     fullTopoEvent.leaderAddress.mBuf[0], fullTopoEvent.leaderAddress.mBuf[1], fullTopoEvent.leaderAddress.mBuf[2], fullTopoEvent.leaderAddress.mBuf[3],
-                     fullTopoEvent.leaderAddress.mBuf[4], fullTopoEvent.leaderAddress.mBuf[5], fullTopoEvent.leaderAddress.mBuf[6], fullTopoEvent.leaderAddress.mBuf[7],
-                     fullTopoEvent.leaderAddress.mBuf[8], fullTopoEvent.leaderAddress.mBuf[9], fullTopoEvent.leaderAddress.mBuf[10], fullTopoEvent.leaderAddress.mBuf[11],
-                     fullTopoEvent.leaderAddress.mBuf[12], fullTopoEvent.leaderAddress.mBuf[13], fullTopoEvent.leaderAddress.mBuf[14], fullTopoEvent.leaderAddress.mBuf[15],
-                     fullTopoEvent.leaderWeight, fullTopoEvent.leaderLocalWeight, fullTopoEvent.networkData.mLen, fullTopoEvent.networkDataVersion,
+                     "Child Table Length:    %d",
+                     fullTopoEvent.networkData.mLen, fullTopoEvent.networkDataVersion,
                      fullTopoEvent.extAddress.mBuf[0], fullTopoEvent.extAddress.mBuf[1], fullTopoEvent.extAddress.mBuf[2], fullTopoEvent.extAddress.mBuf[3],
                      fullTopoEvent.extAddress.mBuf[4], fullTopoEvent.extAddress.mBuf[5], fullTopoEvent.extAddress.mBuf[6], fullTopoEvent.extAddress.mBuf[7],
                      fullTopoEvent.partitionId, fullTopoEvent.instantRssi, fullTopoEvent.neighborTableSize, fullTopoEvent.childTableSize);
 
     eventId = nl::LogEvent(&fullTopoEvent);
-    WeaveLogProgress(DeviceLayer, "OpenThread Full Topology Event Id: %u\n", eventId);
+    WeaveLogProgress(DeviceLayer, "OpenThread Full Topology Event Id: %u", eventId);
 
     // Populate the neighbor event options.
     // This way the neighbor topology entries are linked to the actual topology full event.
@@ -932,22 +965,25 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
                          "AvgRSSI:           %3d\n"
                          "LastRSSI:          %3d\n"
                          "LinkFrameCounter:  %10d\n"
-                         "MleFrameCounter:   %10d\n"
-                         "RxOnWhenIdle:      %c\n"
-                         "SecureDataRequest: %c\n"
-                         "FullFunction:      %c\n"
-                         "FullNetworkData:   %c\n"
-                         "IsChild:           %c%s\n",
+                         "MleFrameCounter:   %10d",
                          i, neighborTopoEvent.extAddress.mBuf[0], neighborTopoEvent.extAddress.mBuf[1], neighborTopoEvent.extAddress.mBuf[2],
                          neighborTopoEvent.extAddress.mBuf[3], neighborTopoEvent.extAddress.mBuf[4], neighborTopoEvent.extAddress.mBuf[5],
                          neighborTopoEvent.extAddress.mBuf[6], neighborTopoEvent.extAddress.mBuf[7], neighborTopoEvent.rloc16, neighborTopoEvent.age,
                          neighborTopoEvent.linkQualityIn, neighborTopoEvent.averageRssi, neighborTopoEvent.lastRssi, neighborTopoEvent.linkFrameCounter,
-                         neighborTopoEvent.mleFrameCounter, neighborTopoEvent.rxOnWhenIdle ? 'Y' : 'n', neighborTopoEvent.secureDataRequest ? 'Y' : 'n',
+                         neighborTopoEvent.mleFrameCounter);
+
+        WeaveLogProgress(DeviceLayer,
+                         "RxOnWhenIdle:      %c\n"
+                         "SecureDataRequest: %c\n"
+                         "FullFunction:      %c\n"
+                         "FullNetworkData:   %c\n"
+                         "IsChild:           %c%s",
+                         neighborTopoEvent.rxOnWhenIdle ? 'Y' : 'n', neighborTopoEvent.secureDataRequest ? 'Y' : 'n',
                          neighborTopoEvent.fullFunction ? 'Y' : 'n', neighborTopoEvent.fullNetworkData ? 'Y' : 'n',
                          neighborTopoEvent.isChild ? 'Y' : 'n', printBuf);
 
         eventId = nl::LogEvent(&neighborTopoEvent, neighborTopoOpts);
-        WeaveLogProgress(DeviceLayer, "OpenThread Neighbor TopoEntry[%u] Event Id: %ld\n", i, eventId);
+        WeaveLogProgress(DeviceLayer, "OpenThread Neighbor TopoEntry[%u] Event Id: %ld", i, eventId);
     }
 
     Impl()->UnlockThreadStack();

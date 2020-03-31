@@ -199,6 +199,10 @@ public:
     void SetEventCallback(EventCallback aEventCallback);
     WeaveConnection *GetConnection() const;
     WeaveExchangeManager *GetExchangeManager() const;
+    bool IsConnectionTransport() const;
+    bool IsUDPTransport() const;
+    bool IsWRMTransport() const;
+    bool IsUnreliableUDPTransport() const;
 
     enum
     {
@@ -308,6 +312,7 @@ private:
 
     bool GetFlag(uint8_t flag) const;
     void SetFlag(uint8_t flag);
+    void ClearFlag(uint8_t flag);
 
     WEAVE_ERROR DoPrepare(WEAVE_ERROR configErr);
     void DoReset(State newState);
@@ -384,10 +389,7 @@ public:
     Configuration& Security_EncryptionType(uint8_t aEncType);
     Configuration& Security_AuthenticationMode(WeaveAuthMode aAuthMode);
 
-    Configuration& ConfigureFromMessage(
-            const WeaveMessageInfo *apMsgHeader,
-            const nl::Inet::IPPacketInfo *apPktInfo,
-            WeaveConnection *apConnection = NULL);
+    Configuration& ConfigureFromMessage(const WeaveMessageInfo *aMsgInfo, const Inet::IPPacketInfo *aPacketInfo);
 
     WEAVE_ERROR PrepareBinding(void);
 
@@ -572,9 +574,34 @@ inline void Binding::SetFlag(uint8_t flag)
     mFlags |= flag;
 }
 
+inline void Binding::ClearFlag(uint8_t flag)
+{
+    mFlags &= ~flag;
+}
+
 inline WeaveExchangeManager *Binding::GetExchangeManager() const
 {
     return mExchangeManager;
+}
+
+inline bool Binding::IsConnectionTransport() const
+{
+    return mTransportOption == kTransport_TCP || mTransportOption == kTransport_ExistingConnection;
+}
+
+inline bool Binding::IsUDPTransport() const
+{
+    return mTransportOption == kTransport_UDP || mTransportOption == kTransport_UDP_WRM;
+}
+
+inline bool Binding::IsWRMTransport() const
+{
+    return mTransportOption == kTransport_UDP_WRM;
+}
+
+inline bool Binding::IsUnreliableUDPTransport() const
+{
+    return mTransportOption == kTransport_UDP;
 }
 
 inline Binding::Configuration Binding::BeginConfiguration()

@@ -358,6 +358,30 @@ WEAVE_ERROR WeaveServiceManager::init(WeaveExchangeManager *aExchangeMgr,
 
     clearCacheState();
 
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+
+    if (Platform::IsPersistentServiceDirPresent(kPersistedServiceDirVersion))
+    {
+        WeaveLogProgress(ServiceDirectory, "Persistent service directory exists");
+
+        err = loadPersistentServiceDirIntoCache();
+
+        if (err != WEAVE_NO_ERROR)
+        {
+            Platform::ClearPersistentServiceDir();
+            WeaveLogProgress(ServiceDirectory, "Restore error, persistent service directory cleared");
+
+        }
+        else
+        {
+            mCacheState = kServiceMgrState_Resolved;
+            WeaveLogProgress(ServiceDirectory, "Persistent service directory successfully restored");
+        }
+
+    }
+
+#endif // WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+
     finalizeConnectRequests();
 
 exit:
@@ -427,6 +451,10 @@ WEAVE_ERROR WeaveServiceManager::connect(uint64_t aServiceEp,
          * the only way forward is to get the root directory from the
          * service config and install it.
          */
+
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+        Platform::ClearPersistentServiceDir();
+#endif // WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
 
         err = mAccessor(mCache.base, mCache.length);
         SuccessOrExit(err);
@@ -903,6 +931,11 @@ void WeaveServiceManager::unresolve(void)
 
     if (mCacheState > kServiceMgrState_Resolving)
     {
+
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+        Platform::ClearPersistentServiceDir();
+#endif //WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+
         cleanupExchangeContext();
 
         mCacheState = kServiceMgrState_Resolving;
@@ -948,6 +981,10 @@ void WeaveServiceManager::reset(void)
 
     clearWorkingState();
     clearCacheState();
+
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+    Platform::ClearPersistentServiceDir();
+#endif //WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
 
     finalizeConnectRequests();
 }
@@ -1114,6 +1151,10 @@ void WeaveServiceManager::onResponseReceived(uint32_t aProfileId, uint8_t aMsgTy
 
         clearWorkingState();
 
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+        Platform::ClearPersistentServiceDir();
+#endif
+
         mCacheState = kServiceMgrState_Initial;
 
         transactionsReportStatus(report);
@@ -1133,79 +1174,19 @@ void WeaveServiceManager::onResponseReceived(uint32_t aProfileId, uint8_t aMsgTy
         VerifyOrExit(aMsgType == kMsgType_ServiceEndpointResponse, err = WEAVE_ERROR_INVALID_MESSAGE_TYPE);
         VerifyOrExit(mCacheState == kServiceMgrState_Waiting, err = WEAVE_ERROR_INCORRECT_STATE);
 
-        /*
-         * this block unpacks the service directory message.
-         */
+        err = unpackPacketBuffer(aMsg, true, &redir);
+        SuccessOrExit(err);
 
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+        if (!redir)
         {
-            MessageIterator i(aMsg);
-
-            uint16_t msgLen = aMsg->DataLength();
-            uint8_t dirCtrl;
-            uint8_t *writePtr;
-            uint8_t dirLen;
-            bool suffixesPresent;
-            uint8_t aLength;
-            bool timePresent = false;
-
-            err = i.readByte(&dirCtrl);
+            WeaveLogProgress(ServiceDirectory, "Persisting service directory response");
+            err = Platform::StorePersistentServiceDir(aMsg->Start(),
+                                                      aMsg->DataLength(),
+                                                      kPersistedServiceDirVersion);
             SuccessOrExit(err);
-
-            dirLen = dirCtrl & kMask_DirectoryLen;
-            redir = (dirCtrl & kMask_Redirect) != 0;
-            suffixesPresent = (dirCtrl & kMask_SuffixTablePresent) != 0;
-            timePresent = (dirCtrl & kMask_TimeFieldsPresent) != 0;
-
-            if (((msgLen > mCache.length) && !timePresent) || (msgLen > (mCache.length + (sizeof(uint64_t) + sizeof(uint32_t)))))
-            {
-                WeaveLogProgress(ServiceDirectory, "message length error: %d m.len:%d", msgLen, mCache.length);
-
-                err = WEAVE_ERROR_MESSAGE_TOO_LONG;
-            }
-            SuccessOrExit(err);
-
-            /*
-             * here we have directory information beyond the root directory but
-             * we're not done yet.
-             */
-
-            mDirectory.length = dirLen;
-            writePtr = mDirectory.base = mCache.base;
-
-            err = cacheDirectory(i, mDirectory.length, writePtr);
-            SuccessOrExit(err);
-
-            if (suffixesPresent)
-            {
-                WeaveLogProgress(ServiceDirectory, "suffixesPresent");
-
-                err = i.readByte(&aLength);
-                SuccessOrExit(err);
-
-                mSuffixTable.length = aLength;
-                writePtr += 1;
-                mSuffixTable.base = writePtr;
-
-                mDirAndSuffTableSize++;
-
-                err = cacheSuffixes(i, mSuffixTable.length, writePtr);
-                SuccessOrExit(err);
-            }
-
-            else
-            {
-                mSuffixTable.length = 0;
-                mSuffixTable.base = NULL;
-            }
-
-            if (timePresent)
-            {
-                WeaveLogProgress(ServiceDirectory, "timePresent");
-
-                err = handleTimeInfo(i);
-                SuccessOrExit(err);
-            }
         }
+#endif // WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
 
         /*
          * Release the received message buffer so that any code we
@@ -1576,6 +1557,128 @@ exit:
     return err;
 }
 
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+/**
+ *  @brief
+ *    This method loads the persistent service directory to cache.
+ */
+WEAVE_ERROR WeaveServiceManager::loadPersistentServiceDirIntoCache()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    PacketBuffer* msgBuf = NULL;
+    uint16_t len;
+
+    msgBuf = PacketBuffer::New();
+    err = Platform::LoadPersistentServiceDir(msgBuf->Start(),
+                                             msgBuf->AvailableDataLength(),
+                                             len,
+                                             kPersistedServiceDirVersion);
+    SuccessOrExit(err);
+
+    msgBuf->SetDataLength(len);
+
+    err = unpackPacketBuffer(msgBuf, false);
+    SuccessOrExit(err);
+
+exit:
+
+    if (msgBuf != NULL)
+        PacketBuffer::Free(msgBuf);
+
+    return err;
+}
+#endif //WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+
+/**
+ *  @brief
+ *    This method unpacks the packetbuffer to cache.
+ *
+ *  @param [in] aMsg         The content of this message.
+ *  @param [in] useTimeInfo If need to handle time info
+ *  @param [in] redir        Return whether need to redirect
+ */
+WEAVE_ERROR WeaveServiceManager::unpackPacketBuffer(PacketBuffer *aMsg, bool useTimeInfo, bool *redir)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    WeaveLogProgress(ServiceDirectory, "Unpacks the packetBuffer to cache");
+
+    {
+        MessageIterator i(aMsg);
+
+        uint16_t msgLen = aMsg->DataLength();
+        uint8_t dirCtrl;
+        uint8_t *writePtr;
+        uint8_t dirLen;
+        bool suffixesPresent;
+        uint8_t aLength;
+        bool timePresent = false;
+
+        err = i.readByte(&dirCtrl);
+        SuccessOrExit(err);
+        dirLen = dirCtrl & kMask_DirectoryLen;
+        if (redir != NULL)
+        {
+          *redir = (dirCtrl & kMask_Redirect) != 0;
+        }
+        suffixesPresent = (dirCtrl & kMask_SuffixTablePresent) != 0;
+        timePresent = (dirCtrl & kMask_TimeFieldsPresent) != 0;
+
+        if (((msgLen > mCache.length) && !timePresent) || (msgLen > (mCache.length + (sizeof(uint64_t) + sizeof(uint32_t)))))
+        {
+            WeaveLogProgress(ServiceDirectory, "message length error: %d m.len:%d", msgLen, mCache.length);
+
+            err = WEAVE_ERROR_MESSAGE_TOO_LONG;
+        }
+        SuccessOrExit(err);
+
+        /*
+         * here we have directory information beyond the root directory but
+         * we're not done yet.
+         */
+
+        mDirectory.length = dirLen;
+        writePtr = mDirectory.base = mCache.base;
+
+        err = cacheDirectory(i, mDirectory.length, writePtr);
+        SuccessOrExit(err);
+
+        if (suffixesPresent)
+        {
+            WeaveLogProgress(ServiceDirectory, "suffixesPresent");
+
+            err = i.readByte(&aLength);
+            SuccessOrExit(err);
+
+            mSuffixTable.length = aLength;
+            writePtr += 1;
+            mSuffixTable.base = writePtr;
+
+            mDirAndSuffTableSize++;
+
+            err = cacheSuffixes(i, mSuffixTable.length, writePtr);
+            SuccessOrExit(err);
+        }
+
+        else
+        {
+            mSuffixTable.length = 0;
+            mSuffixTable.base = NULL;
+        }
+
+        if (timePresent && useTimeInfo)
+        {
+            WeaveLogProgress(ServiceDirectory, "timePresent");
+
+            err = handleTimeInfo(i);
+            SuccessOrExit(err);
+        }
+    }
+
+exit:
+
+    return err;
+}
 
 /**
  *  @brief
@@ -1763,6 +1866,10 @@ void WeaveServiceManager::fail(WEAVE_ERROR aError)
     clearWorkingState();
     clearCacheState();
 
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+    Platform::ClearPersistentServiceDir();
+#endif
+
     transactionsErrorOut(aError);
 }
 
@@ -1922,6 +2029,10 @@ void WeaveServiceManager::clearCache(void)
     {
         clearWorkingState();
         clearCacheState();
+
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+        Platform::ClearPersistentServiceDir();
+#endif
     }
 }
 #endif //WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY

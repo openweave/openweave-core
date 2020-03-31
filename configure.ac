@@ -917,6 +917,36 @@ AC_MSG_RESULT(${use_happy_dns})
 AM_CONDITIONAL([WEAVE_RUN_HAPPY_DNS], [test "${use_happy_dns}" = "yes"])
 AC_SUBST(HAPPY_DNS,[${with_happy_dns}])
 
+AC_MSG_CHECKING([checking whether to use specific schema while running data management in mobile client])
+AC_ARG_WITH(schema,
+    [AS_HELP_STRING([--with-schema=SCHEMA],
+        [Add custom schema directory for weave data management client support, where the directory needs to include
+         pre-generated schema cpp and header files and CustomBuiltInTraitSchemaDirectory.cpp file. [default=none].])],
+    [
+        case "${with_schema}" in
+
+        no)
+            ;;
+
+        yes)
+            AC_MSG_ERROR([Invalid value ${with_schema} for --with-schema])
+            ;;
+
+        *)
+            use_schema=yes
+            ;;
+        esac
+    ],
+    [use_schema=no])
+
+AC_MSG_RESULT(${use_schema})
+
+AM_CONDITIONAL([WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE], [test "${use_schema}" = "yes"])
+AC_SUBST(WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE,[${with_schema}])
+if test "${use_schema}" = "yes"; then
+    AC_DEFINE_UNQUOTED([WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE],[${WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE}/CustomBuiltInTraitSchemaDirectory.cpp],[Define custom schema directory])
+fi
+
 #
 # Happy Service Test Suite
 #
@@ -1231,7 +1261,7 @@ AC_DEFINE_UNQUOTED([CONFIG_NETWORK_LAYER_INET],[${CONFIG_NETWORK_LAYER_INET}],[D
 AC_MSG_CHECKING([device layer])
 AC_ARG_WITH(device-layer,
     [AS_HELP_STRING([--with-device-layer=LAYER],
-        [Specify the target environment for the Weave Device Layer.  Choose one of: esp32, nrf5, or none @<:@default=none@:>@.])],
+        [Specify the target environment for the Weave Device Layer.  Choose one of: efr32, esp32, nrf5, or none @<:@default=none@:>@.])],
     [
         case "${with_device_layer}" in
 
@@ -1239,6 +1269,9 @@ AC_ARG_WITH(device-layer,
             ;;
 
         nrf5|none)
+            ;;
+
+        efr32|none)
             ;;
 
         *)
@@ -1256,12 +1289,22 @@ esp32)
       WEAVE_DEVICE_LAYER_TARGET=ESP32
       WEAVE_DEVICE_LAYER_TARGET_ESP32=1
       WEAVE_DEVICE_LAYER_TARGET_NRF5=0
+      WEAVE_DEVICE_LAYER_TARGET_EFR32=0
       ;;
 
 nrf5)
       CONFIG_DEVICE_LAYER=1
       WEAVE_DEVICE_LAYER_TARGET=nRF5
       WEAVE_DEVICE_LAYER_TARGET_NRF5=1
+      WEAVE_DEVICE_LAYER_TARGET_ESP32=0
+      WEAVE_DEVICE_LAYER_TARGET_EFR32=0
+      ;;
+
+efr32)
+      CONFIG_DEVICE_LAYER=1
+      WEAVE_DEVICE_LAYER_TARGET=EFR32
+      WEAVE_DEVICE_LAYER_TARGET_EFR32=1
+      WEAVE_DEVICE_LAYER_TARGET_NRF5=0
       WEAVE_DEVICE_LAYER_TARGET_ESP32=0
       ;;
 
@@ -1270,6 +1313,7 @@ none)
       WEAVE_DEVICE_LAYER_TARGET=NONE
       WEAVE_DEVICE_LAYER_TARGET_ESP32=0
       WEAVE_DEVICE_LAYER_TARGET_NRF5=0
+      WEAVE_DEVICE_LAYER_TARGET_EFR32=0
       ;;
 
 esac
@@ -1280,6 +1324,10 @@ AC_DEFINE_UNQUOTED([CONFIG_DEVICE_LAYER],[${CONFIG_DEVICE_LAYER}],[Define to 1 i
 
 AC_SUBST(WEAVE_DEVICE_LAYER_TARGET)
 AC_DEFINE_UNQUOTED([WEAVE_DEVICE_LAYER_TARGET],[${WEAVE_DEVICE_LAYER_TARGET}],[Target platform name for OpenWeave Device Layer.])
+
+AC_SUBST(WEAVE_DEVICE_LAYER_TARGET_EFR32)
+AM_CONDITIONAL([WEAVE_DEVICE_LAYER_TARGET_EFR32],    [test "${WEAVE_DEVICE_LAYER_TARGET_EFR32}" = 1])
+AC_DEFINE_UNQUOTED([WEAVE_DEVICE_LAYER_TARGET_EFR32],[${WEAVE_DEVICE_LAYER_TARGET_EFR32}],[Define to 1 if you want to build the OpenWeave Device Layer for Silicon Labs EFR32 platforms.])
 
 AC_SUBST(WEAVE_DEVICE_LAYER_TARGET_ESP32)
 AM_CONDITIONAL([WEAVE_DEVICE_LAYER_TARGET_ESP32],    [test "${WEAVE_DEVICE_LAYER_TARGET_ESP32}" = 1])
@@ -2777,6 +2825,7 @@ AC_MSG_NOTICE([
   Happy Services                                   : ${with_happy_service}
   Happy Services Test Suites                       : ${with_happy_test_suite}
   Happy DNS Servers                                : ${with_happy_dns}
+  Schema                                           : ${with_schema}
   Treat warnings as errors                         : ${nl_cv_warnings_as_errors}
   Build tests                                      : ${nl_cv_build_tests}
   Build long running tests                         : ${nl_cv_build_long_tests}

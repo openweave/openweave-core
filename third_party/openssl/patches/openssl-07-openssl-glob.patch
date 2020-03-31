@@ -1,0 +1,176 @@
+From 8d2214c0a49584044d96b80e846ac8f6df35a0ad Mon Sep 17 00:00:00 2001
+From: Richard Levitte <levitte@openssl.org>
+Date: Tue, 1 Aug 2017 22:43:56 +0200
+Subject: [PATCH] File::Glob option ':bsd_glob' doesn't work everywhere,
+ replace w/ a wrapper
+
+Reviewed-by: Andy Polyakov <appro@openssl.org>
+(Merged from https://github.com/openssl/openssl/pull/4069)
+---
+ Configure                      |  2 +-
+ test/build.info                |  2 +-
+ test/recipes/15-test_ecparam.t |  2 +-
+ test/recipes/40-test_rehash.t  |  2 +-
+ test/recipes/80-test_ssl_new.t |  3 +--
+ test/recipes/99-test_fuzz.t    |  2 +-
+ test/run_tests.pl              |  4 +++-
+ util/mkdef.pl                  |  4 +++-
+ util/perl/OpenSSL/Glob.pm      | 21 +++++++++++++++++++++
+ util/process_docs.pl           |  4 +++-
+ 10 files changed, 36 insertions(+), 10 deletions(-)
+ create mode 100644 util/perl/OpenSSL/Glob.pm
+
+diff --git a/Configure b/Configure
+index ada1472b24..70893626e1 100755
+--- a/Configure
++++ b/Configure
+@@ -17,7 +17,7 @@ use lib "$FindBin::Bin/util/perl";
+ use File::Basename;
+ use File::Spec::Functions qw/:DEFAULT abs2rel rel2abs/;
+ use File::Path qw/mkpath/;
+-use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
++use OpenSSL::Glob;
+ 
+ # see INSTALL for instructions.
+ 
+diff --git a/test/build.info b/test/build.info
+index e7982605fe..6abd635231 100644
+--- a/test/build.info
++++ b/test/build.info
+@@ -461,7 +461,7 @@ ENDIF
+ {-
+    use File::Spec::Functions;
+    use File::Basename;
+-   use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
++   use OpenSSL::Glob;
+ 
+    my @nogo_headers = ( "asn1_mac.h",
+                         "__decc_include_prologue.h",
+diff --git a/test/recipes/15-test_ecparam.t b/test/recipes/15-test_ecparam.t
+index 0f9b70b4bc..47a1a4f20c 100644
+--- a/test/recipes/15-test_ecparam.t
++++ b/test/recipes/15-test_ecparam.t
+@@ -11,7 +11,7 @@ use strict;
+ use warnings;
+ 
+ use File::Spec;
+-use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
++use OpenSSL::Glob;
+ use OpenSSL::Test qw/:DEFAULT data_file/;
+ use OpenSSL::Test::Utils;
+ 
+diff --git a/test/recipes/40-test_rehash.t b/test/recipes/40-test_rehash.t
+index b374e598d1..1204f1f77f 100644
+--- a/test/recipes/40-test_rehash.t
++++ b/test/recipes/40-test_rehash.t
+@@ -13,7 +13,7 @@ use warnings;
+ use File::Spec::Functions;
+ use File::Copy;
+ use File::Basename;
+-use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
++use OpenSSL::Glob;
+ use OpenSSL::Test qw/:DEFAULT srctop_file/;
+ 
+ setup("test_rehash");
+diff --git a/test/recipes/80-test_ssl_new.t b/test/recipes/80-test_ssl_new.t
+index f86e50988e..1ab8ef8d78 100644
+--- a/test/recipes/80-test_ssl_new.t
++++ b/test/recipes/80-test_ssl_new.t
+@@ -12,8 +12,7 @@ use warnings;
+ 
+ use File::Basename;
+ use File::Compare qw/compare_text/;
+-use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
+-
++use OpenSSL::Glob;
+ use OpenSSL::Test qw/:DEFAULT srctop_dir srctop_file/;
+ use OpenSSL::Test::Utils qw/disabled alldisabled available_protocols/;
+ 
+diff --git a/test/recipes/99-test_fuzz.t b/test/recipes/99-test_fuzz.t
+index a0493a50d6..9322ff7790 100644
+--- a/test/recipes/99-test_fuzz.t
++++ b/test/recipes/99-test_fuzz.t
+@@ -9,7 +9,7 @@
+ use strict;
+ use warnings;
+ 
+-use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
++use OpenSSL::Glob;
+ use OpenSSL::Test qw/:DEFAULT srctop_file/;
+ use OpenSSL::Test::Utils;
+ 
+diff --git a/test/run_tests.pl b/test/run_tests.pl
+index 1171eec2f7..9f517da3a9 100644
+--- a/test/run_tests.pl
++++ b/test/run_tests.pl
+@@ -16,7 +16,9 @@ BEGIN {
+ 
+ use File::Spec::Functions qw/catdir catfile curdir abs2rel rel2abs/;
+ use File::Basename;
+-use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
++use FindBin;
++use lib "$FindBin::Bin/../util/perl";
++use OpenSSL::Glob;
+ use Module::Load::Conditional qw(can_load);
+ 
+ my $TAP_Harness = can_load(modules => { 'TAP::Harness' => undef }) 
+diff --git a/util/mkdef.pl b/util/mkdef.pl
+index 7a85e80082..d7baf8aa05 100755
+--- a/util/mkdef.pl
++++ b/util/mkdef.pl
+@@ -49,7 +49,9 @@ use lib ".";
+ use configdata;
+ use File::Spec::Functions;
+ use File::Basename;
+-use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
++use FindBin;
++use lib "$FindBin::Bin/perl";
++use OpenSSL::Glob;
+ 
+ my $debug=0;
+ 
+diff --git a/util/perl/OpenSSL/Glob.pm b/util/perl/OpenSSL/Glob.pm
+new file mode 100644
+index 0000000000..ec87da4aea
+--- /dev/null
++++ b/util/perl/OpenSSL/Glob.pm
+@@ -0,0 +1,21 @@
++package OpenSSL::Glob;
++
++use strict;
++use warnings;
++
++use File::Glob;
++
++use Exporter;
++use vars qw($VERSION @ISA @EXPORT);
++
++$VERSION = '0.1';
++@ISA = qw(Exporter);
++@EXPORT = qw(glob);
++
++sub glob {
++    goto &File::Glob::bsd_glob if $^O ne "VMS";
++    goto &CORE::glob;
++}
++
++1;
++__END__
+diff --git a/util/process_docs.pl b/util/process_docs.pl
+index 49176ad30b..2b7f3227d3 100644
+--- a/util/process_docs.pl
++++ b/util/process_docs.pl
+@@ -13,7 +13,9 @@ use File::Spec::Functions;
+ use File::Basename;
+ use File::Copy;
+ use File::Path;
+-use if $^O ne "VMS", 'File::Glob' => qw/:bsd_glob/;
++use FindBin;
++use lib "$FindBin::Bin/perl";
++use OpenSSL::Glob;
+ use Getopt::Long;
+ use Pod::Usage;
+ 
+-- 
+2.25.1.696.g5e7596f4ac-goog
+

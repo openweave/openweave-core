@@ -63,7 +63,6 @@ EXTRA_DIST                                            = \
     test-file-development.txt				\
     test-weave-device-descriptor-encode.sh		\
     weave-bdx-client.cpp				\
-    weave-parallel-test-engine				\
     $(NULL)
 
 SUBDIRS                                               = \
@@ -74,7 +73,7 @@ SUBDIRS                                               = \
 # Define a package-specific test driver (for 'make check').
 #
 
-LOG_DRIVER=$(abs_srcdir)/weave-parallel-test-engine
+LOG_DRIVER=$(abs_top_srcdir)/third_party/autoconf/repo/weave-parallel-test-engine
 
 #
 # Local headers to build against and distribute but not to install
@@ -1036,6 +1035,8 @@ check_SCRIPTS                                 +=                \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py       \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py       \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py       \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_04.py       \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_05.py       \
     $(NULL)
 
 endif # WEAVE_RUN_HAPPY_WDM
@@ -1412,6 +1413,7 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            TestWdmSubscriptionlessNotificationReceiver.cpp		\
                                            schema/nest/test/trait/TestATrait.cpp			\
                                            schema/nest/test/trait/TestBTrait.cpp			\
+                                           schema/nest/test/trait/TestCTrait.cpp            \
                                            schema/nest/test/trait/TestETrait.cpp			\
                                            schema/nest/test/trait/TestCommon.cpp \
                                            schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
@@ -1442,6 +1444,7 @@ TestWdmOneWayCommandReceiver_SOURCES     = TestWdmOneWayCommandReceiver.cpp				\
                                            MockEvents.cpp						\
                                            schema/nest/test/trait/TestATrait.cpp			\
                                            schema/nest/test/trait/TestBTrait.cpp			\
+                                           schema/nest/test/trait/TestCTrait.cpp			\
                                            schema/nest/test/trait/TestETrait.cpp			\
                                            schema/nest/test/trait/TestCommon.cpp                        \
                                            schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
@@ -1475,6 +1478,7 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            MockSourceTraits.cpp                                     \
                                            schema/nest/test/trait/TestATrait.cpp                    \
                                            schema/nest/test/trait/TestBTrait.cpp                    \
+                                           schema/nest/test/trait/TestCTrait.cpp                    \
                                            schema/nest/test/trait/TestETrait.cpp                    \
                                            schema/nest/test/trait/TestCommon.cpp \
                                            schema/weave/trait/locale/LocaleSettingsTrait.cpp        \

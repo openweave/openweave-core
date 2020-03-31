@@ -38,6 +38,7 @@ USE_LWIP                       ?= 0
 NO_OPENSSL                     ?= 0
 BLUEZ                          ?= 0
 USE_FUZZING                    ?= 0
+TESTS                          ?= 1
 
 HOSTOS                          = $(shell uname -s |tr [:upper:] [:lower:])
 ARCH                            = $(shell uname -m |tr [:upper:] [:lower:])
@@ -229,6 +230,19 @@ endif # SERVICE
 
 ifdef DNS
 configure_OPTIONS              += --with-happy-dns=$(DNS)
+else
+configure_OPTIONS              +=
+endif
+
+ifdef SCHEMA
+configure_OPTIONS              += --with-schema=$(SCHEMA)
+else
+configure_OPTIONS              +=
+endif
+
+# Disable tests generation
+ifeq ($(TESTS),0)
+configure_OPTIONS              += --disable-tests
 else
 configure_OPTIONS              +=
 endif
@@ -553,5 +567,7 @@ command line or in the environment:
                           default location to the Happy tool.  When set to any
                           other value, the value is treated as the location of
                           the Happy tool.
+
+  TESTS=[1|0]             Enable/disable tests (default: '$(TESTS)').
 
 endef

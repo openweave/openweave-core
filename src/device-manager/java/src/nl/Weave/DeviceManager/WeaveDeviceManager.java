@@ -1,6 +1,7 @@
 /*
 
-    Copyright (c) 013-2017 Nest Labs, Inc.
+    Copyright (c) 2013-2018 Nest Labs, Inc.
+    Copyright (c) 2019 Google, LLC.
     All rights reserved.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -411,6 +412,16 @@ public class WeaveDeviceManager
         beginUnpairToken(mDeviceMgrPtr);
     }
 
+    public void beginGetWirelessRegulatoryConfig()
+    {
+        beginGetWirelessRegulatoryConfig(mDeviceMgrPtr);
+    }
+
+    public void beginSetWirelessRegulatoryConfig(WirelessRegulatoryConfig regConfig)
+    {
+        beginSetWirelessRegulatoryConfig(mDeviceMgrPtr, regConfig);
+    }
+
     public void setRendezvousAddress(String rendezvousAddr)
     {
         setRendezvousAddress(mDeviceMgrPtr, rendezvousAddr);
@@ -627,6 +638,16 @@ public class WeaveDeviceManager
         }
     }
 
+    public void onGetWirelessRegulatoryConfigComplete(WirelessRegulatoryConfig regConfig)
+    {
+        mCompHandler.onGetWirelessRegulatoryConfigComplete(regConfig);
+    }
+    
+    public void onSetWirelessRegulatoryConfigComplete()
+    {
+        mCompHandler.onSetWirelessRegulatoryConfigComplete();
+    }
+
     public void onError(Throwable err)
     {
         mCompHandler.onError(err);
@@ -635,6 +656,11 @@ public class WeaveDeviceManager
     public void onDeviceEnumerationResponse(WeaveDeviceDescriptor deviceDesc, String deviceAddr)
     {
         mCompHandler.onDeviceEnumerationResponse(deviceDesc, deviceAddr);
+    }
+
+    public long getDeviceMgrPtr()
+    {
+        return mDeviceMgrPtr;
     }
 
     public interface CompletionHandler
@@ -677,6 +703,8 @@ public class WeaveDeviceManager
         void onStopSystemTestComplete();
         void onError(Throwable err);
         void onDeviceEnumerationResponse(WeaveDeviceDescriptor deviceDesc, String deviceAddr);
+        void onGetWirelessRegulatoryConfigComplete(WirelessRegulatoryConfig regConfig);
+        void onSetWirelessRegulatoryConfigComplete();
     }
 
     public static native boolean isValidPairingCode(String pairingCode);
@@ -688,7 +716,7 @@ public class WeaveDeviceManager
 
     // ----- Protected Members -----
 
-    protected CompletionHandler mCompHandler;
+    private CompletionHandler mCompHandler;
 
     protected void finalize() throws Throwable
     {
@@ -776,6 +804,8 @@ public class WeaveDeviceManager
     private native void beginDisableConnectionMonitor(long deviceMgrPtr);
     private native void beginPairToken(long deviceMgrPtr, byte[] pairingToken);
     private native void beginUnpairToken(long deviceMgrPtr);
+    private native void beginGetWirelessRegulatoryConfig(long deviceMgrPtr);
+    private native void beginSetWirelessRegulatoryConfig(long deviceMgrPtr, WirelessRegulatoryConfig regConfig);
     private native void close(long deviceMgrPtr);
     private native boolean isConnected(long deviceMgrPtr);
     private native long deviceId(long deviceMgrPtr);

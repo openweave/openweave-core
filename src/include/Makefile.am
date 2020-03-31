@@ -643,6 +643,10 @@ $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/MessageDef.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ResourceIdentifier.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ViewClient.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitData.h \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SingleResourceTraitCatalog.ipp \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SingleResourceTraitCatalog.h \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/GenericTraitCatalogImpl.ipp \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/GenericTraitCatalogImpl.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitCatalog.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitPathStore.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SubscriptionEngine.h \
@@ -702,6 +706,7 @@ $(NULL)
 nl_public_WeaveProfiles_network_provisioning_header_sources = \
 $(nl_public_WeaveProfiles_source_dirstem)/network-provisioning/NetworkInfo.h         \
 $(nl_public_WeaveProfiles_source_dirstem)/network-provisioning/NetworkProvisioning.h \
+$(nl_public_WeaveProfiles_source_dirstem)/network-provisioning/WirelessRegConfig.h \
 $(NULL)
 
 nl_public_WeaveProfiles_security_header_sources = \
@@ -713,6 +718,7 @@ $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveAppGroupGlobalIds.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveApplicationKeys.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveCASE.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveCert.h \
+$(nl_public_WeaveProfiles_source_dirstem)/security/WeaveCertProvisioning.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveDummyGroupKeyStore.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeavePASE.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveTAKE.h \
@@ -820,6 +826,9 @@ $(filter %.h,$(nl_public_WeaveProfiles_header_destinations)): $(nl_public_WeaveP
 	$(call create-link)
 
 $(filter %.hpp,$(nl_public_WeaveProfiles_header_destinations)): $(nl_public_WeaveProfiles_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveProfiles_source_dirstem)/%.hpp | $(nl_public_WeaveProfiles_header_dirs)
+	$(call create-link)
+
+$(filter %.ipp,$(nl_public_WeaveProfiles_header_destinations)): $(nl_public_WeaveProfiles_destination_dirstem)/%.ipp: $(abs_srcdir)/../$(nl_public_WeaveProfiles_source_dirstem)/%.ipp | $(nl_public_WeaveProfiles_header_dirs)
 	$(call create-link)
 
 weave_profiles_basedir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)
@@ -956,12 +965,13 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 #
 # Weave Device Manager
 #
-
 nl_public_WeaveDeviceManager_source_dirstem = device-manager
 nl_public_WeaveDeviceManager_destination_dirstem = Weave/DeviceManager
 
 nl_public_WeaveDeviceManager_header_sources = \
 $(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDeviceManager.h \
+$(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDataManagementClient.h \
+$(nl_public_WeaveDeviceManager_source_dirstem)/TraitSchemaDirectory.h \
 $(NULL)
 
 nl_public_WeaveDeviceManager_header_paths = $(subst $(nl_public_WeaveDeviceManager_source_dirstem)/,,$(nl_public_WeaveDeviceManager_header_sources))
@@ -1032,6 +1042,32 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeavePlatformConfig.h         
 $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_NRF5
+
+if WEAVE_DEVICE_LAYER_TARGET_EFR32
+
+nl_public_WeaveDeviceLayer_target_header_sources =                                                   \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/BLEManagerImpl.h                                  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/gatt_db.h                                         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/freertos_bluetooth.h                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/BlePlatformConfig.h                               \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/ConfigurationManagerImpl.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/ConnectivityManagerImpl.h                         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/efr32-weave-mbedtls-config.h                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/EFR32Config.h                                     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/GroupKeyStoreImpl.h                               \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/InetPlatformConfig.h                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/NetworkProvisioningServerImpl.h                   \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/PlatformManagerImpl.h                             \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/SoftwareUpdateManagerImpl.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/SystemPlatformConfig.h                            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/ThreadStackManagerImpl.h                          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/WarmPlatformConfig.h                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/WeaveDevicePlatformConfig.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/WeaveDevicePlatformEvent.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EFR32/WeavePlatformConfig.h                             \
+$(NULL)
+
+endif # WEAVE_DEVICE_LAYER_TARGET_EFR32
 
 if CONFIG_DEVICE_LAYER
 

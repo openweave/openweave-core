@@ -1,21 +1,26 @@
 /*
  *
- *    Copyright (c) 2016 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
- *    This document is the property of Nest. It is considered
- *    confidential and proprietary information.
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- *    This document may not be reproduced or transmitted in any form,
- *    in whole or in part, without the express written permission of
- *    Nest.
+ *        http://www.apache.org/licenses/LICENSE-2.0
  *
- *
- *    Contact:
- *    Version:
- *
- *    Revision history:
- *    Date         Version    Owner/Summary
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+/**
+ *    @file
+ *      This file defines Weave Data Language (WDL) event priorities and
+ *      schema access controls, privileges, and variability qualities.
  *
  */
 
@@ -44,8 +49,8 @@ enum EventImportance {
   /**
    * Production Critical importance denotes events whose loss would have
    * significant impact on critical customer-facing features. They are the
-   * highest importance and should be used sparingly and with consideration
-   * of product constraints like power and memory.
+   * highest importance/priority and should be used sparingly and with consideration
+   * of product constraints like power and memory. 
    */
   EVENT_IMPORTANCE_PRODUCTION_CRITICAL = 1;
 

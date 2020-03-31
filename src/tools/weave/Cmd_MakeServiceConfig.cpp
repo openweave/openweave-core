@@ -49,7 +49,7 @@ static OptionDef gCmdOptionDefs[] =
     { "cert",      kArgumentRequired, 'c' },
     { "prod-root", kNoArgument,       'p' },
     { "dev-root",  kNoArgument,       'd' },
-    { NULL }
+    { }
 };
 
 static const char *const gCmdOptionHelp =

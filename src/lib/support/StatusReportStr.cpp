@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -140,6 +141,7 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         switch (statusCode)
         {
         case nl::Weave::Profiles::Common::kStatus_Success                               : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Success"; break;
+        case nl::Weave::Profiles::Common::kStatus_Canceled                              : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Canceled"; break;
         case nl::Weave::Profiles::Common::kStatus_BadRequest                            : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Bad/malformed request"; break;
         case nl::Weave::Profiles::Common::kStatus_UnsupportedMessage                    : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Unrecognized/unsupported message"; break;
         case nl::Weave::Profiles::Common::kStatus_UnexpectedMessage                     : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Unexpected message"; break;
@@ -240,6 +242,8 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         case NetworkProvisioning::kStatusCode_TestNetworkFailed                         : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Test network failed"; break;
         case NetworkProvisioning::kStatusCode_NetworkConnectFailed                      : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Network connect failed"; break;
         case NetworkProvisioning::kStatusCode_NoRouterAvailable                         : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] No router available"; break;
+        case NetworkProvisioning::kStatusCode_UnsupportedRegulatoryDomain               : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Unsupported wireless regulatory domain"; break;
+        case NetworkProvisioning::kStatusCode_UnsupportedOperatingLocation              : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Unsupported wireless operating location"; break;
         default                                                                         : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
         break;
@@ -264,7 +268,11 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         case Security::kStatusCode_InvalidUseOfSessionKey                               : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Invalid use of session key"; break;
         case Security::kStatusCode_InternalKeyError                                     : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Internal key error"; break;
         case Security::kStatusCode_NoCommonKeyExportConfiguration                       : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] No common key export configuration"; break;
-        case Security::kStatusCode_UnathorizedKeyExportRequest                          : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Unauthorized key export request"; break;
+        case Security::kStatusCode_UnauthorizedKeyExportRequest                         : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Unauthorized key export request"; break;
+        case Security::kStatusCode_NoNewOperationalCertRequired                         : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] No new operational certificate required"; break;
+        case Security::kStatusCode_OperationalNodeIdInUse                               : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Operational node Id collision"; break;
+        case Security::kStatusCode_InvalidOperationalNodeId                             : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Invalid operational node Id"; break;
+        case Security::kStatusCode_InvalidOperationalCertificate                        : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ] Invalid operational certificate"; break;
         default                                                                         : fmt = "[ Security(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
         break;

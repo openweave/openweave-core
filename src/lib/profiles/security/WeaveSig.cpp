@@ -503,10 +503,9 @@ exit:
 
 // Takes an ECDSA signature in DER form and converts it to Weave form.
 // ECDSA-Sig-Value ::= SEQUENCE { r INTEGER, s INTEGER }
-WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, TLVWriter& writer, uint64_t tag)
+WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, EncodedECDSASignature& sig)
 {
     WEAVE_ERROR err;
-    EncodedECDSASignature sig;
     ASN1Reader reader;
 
     reader.Init(sigBuf, sigLen);
@@ -522,6 +521,20 @@ WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sig
         sig.S = const_cast<uint8_t *>(reader.Value);
         sig.SLen = reader.ValueLen;
     } ASN1_EXIT_SEQUENCE;
+
+exit:
+    return err;
+}
+
+// Takes an ECDSA signature in DER form and converts it to Weave form.
+// ECDSA-Sig-Value ::= SEQUENCE { r INTEGER, s INTEGER }
+WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, TLVWriter& writer, uint64_t tag)
+{
+    WEAVE_ERROR err;
+    EncodedECDSASignature sig;
+
+    err = ConvertECDSASignature_DERToWeave(sigBuf, sigLen, sig);
+    SuccessOrExit(err);
 
     err = EncodeWeaveECDSASignature(writer, sig, tag);
     SuccessOrExit(err);

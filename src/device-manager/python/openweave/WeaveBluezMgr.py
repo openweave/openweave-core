@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2015-2017 Nest Labs, Inc.
+#    Copyright (c) 2015-2018 Nest Labs, Inc.
+#    Copyright (c) 2019-2020 Google LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +21,8 @@
 #      BLE Central support for Weave Device Manager via BlueZ APIs.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import abc
 import dbus
 import dbus.service
@@ -34,21 +37,23 @@ import threading
 import time
 import traceback
 import uuid
-import Queue
+import six.moves.queue
 
 
 from ctypes import *
+import six
+from six.moves import range
 
 try:
     from gi.repository import GObject
 except:
     from pgi.repository import GObject
 
-from WeaveBleUtility import *
-from WeaveBleUtility import _VoidPtrToUUIDString
-from WeaveBleUtility import _VoidPtrToByteArray
+from .WeaveBleUtility import *
+from .WeaveUtility import WeaveUtility
+from .WeaveBleUtility import VoidPtrToUUIDString
 
-from WeaveBleBase import WeaveBleBase
+from .WeaveBleBase import WeaveBleBase
 
 weave_service = uuid.UUID('0000FEAF-0000-1000-8000-00805F9B34FB')
 weave_tx      = uuid.UUID('18EE2EF5-263D-4559-959F-4F9C429F9D11')
@@ -81,7 +86,7 @@ def get_bluez_objects(bluez, bus, interface, prefix_path):
     results = []
     if bluez is None or bus is None or interface is None or prefix_path is None:
         return results
-    for item in bluez.GetManagedObjects().iteritems():
+    for item in six.iteritems(bluez.GetManagedObjects()):
         delegates = item[1].get(interface)
         if not delegates:
             continue
@@ -166,7 +171,7 @@ class BluezDbusAdapter():
                     self.adapter.StopDiscovery()
                     self.logger.info("scanning stopped")
                 else:
-                    print "it has stopped scanning"
+                    print("it has stopped scanning")
             if action_flag:
                 if not self.adapter_event.wait(bleStatusTransitionTimeoutSec):
                     if enable:
@@ -222,7 +227,7 @@ class BluezDbusAdapter():
         except:
             self.logger.debug(traceback.format_exc())
             return False
-        
+
     def DiscoverableTimeout(self, timeoutSec):
         try:
             result = self.adapter_properties.Set(ADAPTER_INTERFACE, 'DiscoverableTimeout', timeoutSec)
@@ -275,7 +280,10 @@ class BluezDbusDevice():
         self.path = self.device.object_path
         self.device_event = threading.Event()
         if self.Name:
-            self.device_id = uuid.uuid3(uuid.NAMESPACE_DNS, self.Name.encode('utf-8'))
+            try:
+                self.device_id = uuid.uuid3(uuid.NAMESPACE_DNS, self.Name)
+            except UnicodeDecodeError:
+                self.device_id = uuid.uuid3(uuid.NAMESPACE_DNS, self.Name.encode('utf-8'))
         else:
             self.device_id = uuid.uuid4()
         self.bluez = bluez
@@ -697,7 +705,7 @@ class BluezManager(WeaveBleBase):
                 format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
         self.scan_quiet= False
         self.peripheral_list = []
-        self.weave_queue = Queue.Queue()
+        self.weave_queue = six.moves.queue.Queue()
         self.Gmainloop = None
         self.daemon_thread = None
         self.adapter = None
@@ -790,7 +798,7 @@ class BluezManager(WeaveBleBase):
             while not self.Gmainloop or not self.Gmainloop.is_running():
                 time.sleep(0.00001)
             target(**kwargs)
-        except Exception, err:
+        except Exception as err:
             traceback.print_exc()
         finally:
             self.Gmainloop.quit()
@@ -954,7 +962,7 @@ class BluezManager(WeaveBleBase):
             else:
                 return False
         else:
-            print "device cannot be found"
+            print("device cannot be found")
             return False
 
     def disconnect(self):
@@ -983,10 +991,10 @@ class BluezManager(WeaveBleBase):
         self.logger.debug("write start")
         result = False
         if self.target and self.target.Connected:
-            converted_data = str(_VoidPtrToByteArray(buffer, length))
-            self.charId_tx = bytearray(uuid.UUID(str(_VoidPtrToUUIDString(charId, 16))).bytes)
-            self.svcId_tx = bytearray(uuid.UUID(str(_VoidPtrToUUIDString(svcId, 16))).bytes)
-            self.tx.WriteValue(dbus.Array([dbus.Byte(ord(i)) for i in converted_data], 'y'),
+            converted_data = WeaveUtility.VoidPtrToByteArray(buffer, length)
+            self.charId_tx = bytearray(uuid.UUID(str(VoidPtrToUUIDString(charId, 16))).bytes)
+            self.svcId_tx = bytearray(uuid.UUID(str(VoidPtrToUUIDString(svcId, 16))).bytes)
+            self.tx.WriteValue(dbus.Array([dbus.Byte(i) for i in converted_data], 'y'),
                                options="",
                                reply_handler=self.WriteCharactertisticSuccessCB,
                                error_handler=self.WriteCharactertisticErrorCB,
@@ -1057,8 +1065,8 @@ class BluezManager(WeaveBleBase):
 
     def SubscribeBleCharacteristic(self, connObj, svcId, charId, subscribe):
         result = False
-        self.charId_rx = bytearray(uuid.UUID(_VoidPtrToUUIDString(charId, 16)).bytes)
-        self.svcId_rx = bytearray(uuid.UUID(str(_VoidPtrToUUIDString(svcId, 16))).bytes)
+        self.charId_rx = bytearray(uuid.UUID(VoidPtrToUUIDString(charId, 16)).bytes)
+        self.svcId_rx = bytearray(uuid.UUID(str(VoidPtrToUUIDString(svcId, 16))).bytes)
 
         if self.target and self.target.Connected:
             try:

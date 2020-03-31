@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -132,6 +133,27 @@ enum
     kServiceMgrState_Resolved =             3
 };
 
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+enum
+{
+    /** Version number associated with persisted service directory data
+     *
+     * By convention, the version number of persisted service directory
+     * data is the same as the message type number of the SD response
+     * message.  This reflects the fact that the persisted data is an
+     * exact copy of the payload of that message.
+     */
+    kPersistedServiceDirVersion = kMsgType_ServiceEndpointResponse
+};
+
+namespace Platform {
+    extern WEAVE_ERROR LoadPersistentServiceDir(uint8_t *buf, uint16_t bufsize, uint16_t &len, uint8_t version);
+    extern WEAVE_ERROR StorePersistentServiceDir(uint8_t *buf, uint16_t len, uint8_t version);
+    extern WEAVE_ERROR ClearPersistentServiceDir();
+    extern bool IsPersistentServiceDirPresent(uint8_t version);
+}
+#endif // WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+
 #define kServiceEndpoint_Directory              (0x18B4300200000001ull)     ///< Directory profile endpoint
 #define kServiceEndpoint_SoftwareUpdate         (0x18B4300200000002ull)     ///< Software update profile endpoint
 #define kServiceEndpoint_Data_Management        (0x18B4300200000003ull)     ///< Core Weave data management protocol endpoint
@@ -142,6 +164,7 @@ enum
 #define kServiceEndpoint_CoreRouter             (0x18B4300200000012ull)     ///< Core router endpoint
 #define kServiceEndpoint_FileDownload           (0x18B4300200000013ull)     ///< File download profile endpoint
 #define kServiceEndpoint_Bastion                (0x18B4300200000014ull)     ///< Nest Bastion service endpoint
+#define kServiceEndpoint_DeviceOperationalCA    (0x18B4300200000016ull)     ///< Nest device operational certification authority service endpoint
 
 /**
  * @class WeaveServiceManager
@@ -409,6 +432,10 @@ private:
                                  const uint32_t aConnectTimeoutMsecs = 0,
                                  const InterfaceId aConnectIntf = INET_NULL_INTERFACEID);
 
+#if WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+    WEAVE_ERROR loadPersistentServiceDirIntoCache();
+#endif
+    WEAVE_ERROR unpackPacketBuffer(PacketBuffer *aMsg, bool useTimePresent, bool *redir = NULL);
     WEAVE_ERROR cacheDirectory(MessageIterator &, uint8_t, uint8_t *&);
     WEAVE_ERROR cacheSuffixes(MessageIterator &, uint8_t, uint8_t *&);
     WEAVE_ERROR calculateEntryLength(uint8_t *entryStart, uint8_t entryCtrlByte, uint16_t *entryLen);

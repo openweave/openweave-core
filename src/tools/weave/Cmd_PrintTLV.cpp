@@ -48,7 +48,7 @@ static void _DumpWriter(const char *aFormat, ...);
 static OptionDef gCmdOptionDefs[] =
 {
     { "base64", kNoArgument, 'b' },
-    { NULL }
+    { }
 };
 
 static const char *const gCmdOptionHelp =

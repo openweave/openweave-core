@@ -2,6 +2,7 @@
 
 
 #
+#    Copyright (c) 2020 Google LLC.
 #    Copyright (c) 2016-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -57,11 +58,9 @@ class test_weave_pairing_01(unittest.TestCase):
             if "unstable" not in os.environ["weave_service_address"]:
                 found = re.search('.(\w+).nestlabs.com', os.environ["weave_service_address"])
                 self.tier = found.group(1)
-                self.customized_tunnel_port = None
             else:
                 found = re.search('(\w+.unstable).nestlabs.com', os.environ["weave_service_address"])
                 self.tier = found.group(1)
-                self.customized_tunnel_port = 20895
 
         self.topology_setup_required = int(os.environ.get("TOPOLOGY", "1")) == 1
 
@@ -82,7 +81,7 @@ class test_weave_pairing_01(unittest.TestCase):
 
         self.username = os.environ.get("WEAVE_USERNAME", "test-it+weave_happy_fabric%s@nestlabs.com" % self.fabric_id)
 
-        self.password = os.environ.get("WEAVE_PASSWORD", "nest-egg")
+        self.password = os.environ.get("WEAVE_PASSWORD", "nest-egg123")
 
         self.initial_device_index = int(os.environ.get("INITIAL_DEVICE_INDEX", "1"))
 
@@ -156,9 +155,6 @@ class test_weave_pairing_01(unittest.TestCase):
 
         options["case"] = self.case
         options["service_dir"] = self.use_service_dir
-
-        if self.customized_tunnel_port:
-            options["customized_tunnel_port"] = self.customized_tunnel_port
 
         weave_tunnel = WeaveTunnelStart.WeaveTunnelStart(options)
         ret = weave_tunnel.run()

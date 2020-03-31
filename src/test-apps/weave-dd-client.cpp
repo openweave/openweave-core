@@ -61,7 +61,7 @@ uint32_t ResendMaxCnt = 3;
 static OptionDef gToolOptionDefs[] =
 {
     { "dest-addr", kArgumentRequired, 'D' },
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =

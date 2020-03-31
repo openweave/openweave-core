@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019-2020 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,6 +74,8 @@ using namespace nl::Weave::Profiles::Vendor::Nestlabs::DropcamLegacyPairing;
 using namespace nl::Weave::Profiles::Vendor::Nestlabs::Thermostat;
 using namespace nl::Weave::TLV;
 
+const nl::Weave::ExchangeContext::Timeout kResponseTimeoutMsec = 15000;
+
 static bool IsProductWildcard(uint16_t productId);
 
 static const uint32_t ENUMERATED_NODES_LIST_INITIAL_SIZE = 256;
@@ -136,6 +139,9 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mUseAccessToken = true;
     mConnectedToRemoteDevice = false;
     mIsUnsecuredConnectionListenerSet = false;
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    mUDPEnabled = false;
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
     mPingSize = 0;
     mTokenPairingCertificate = NULL;
     mTokenPairingCertificateLen = 0;
@@ -382,10 +388,11 @@ WEAVE_ERROR WeaveDeviceManager::InitiateDeviceEnumeration()
 
     VerifyOrExit(kOpState_EnumerateDevices == mOpState, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    // Refresh the message layer endpoints to cope with changes in network interface status
-    // (e.g. new addresses being assigned).
-    err = mMessageLayer->RefreshEndpoints();
+    // Enable UDP if not already enabled.
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    err = EnableUDP();
     SuccessOrExit(err);
+#endif //WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
 
     // Form an Identify device request containing the device criteria specified by the application.
     reqMsg.TargetFabricId = mDeviceCriteria.TargetFabricId;
@@ -420,7 +427,13 @@ WEAVE_ERROR WeaveDeviceManager::InitiateDeviceEnumeration()
         mCurReq->OnMessageReceived = HandleDeviceEnumerationIdentifyResponse;
     }
 
-    WeaveLogProgress(DeviceManager, "Sending IdentifyRequest to enumerate devices");
+#if WEAVE_PROGRESS_LOGGING
+    {
+        char peerDescStr[ExchangeContext::kGetPeerDescription_MaxLength];
+        mCurReq->GetPeerDescription(peerDescStr, sizeof(peerDescStr));
+        WeaveLogProgress(DeviceManager, "Sending IdentifyRequest to enumerate devices (target %s)", peerDescStr);
+    }
+#endif
 
     // Send an Identify message over UDP to the specified rendezvous address.  Typically the rendezvous address
     // will be an multicast/broadcast address, however this can be changed by the application.
@@ -485,7 +498,7 @@ void WeaveDeviceManager::StopDeviceEnumeration()
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceManager, "StopDeviceEnumeration failure: err = %d", err);
+        WeaveLogError(DeviceManager, "StopDeviceEnumeration failure: err = %s", nl::ErrorStr(err));
     }
 }
 
@@ -1001,7 +1014,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceManager, "RemotePassiveRendezvous failed, err = %d", err);
+        WeaveLogError(DeviceManager, "RemotePassiveRendezvous failed, err = %s", nl::ErrorStr(err));
 
         // Cancel RemotePassiveRendezvous timer, clear OpState and free saved copy of pairing code, leaving
         // connection to assisting device open.
@@ -1256,7 +1269,7 @@ void WeaveDeviceManager::Close(bool graceful)
     // Cancel our unsecured listen, if enabled.
     err = ClearUnsecuredConnectionHandler();
     if (err != WEAVE_NO_ERROR)
-        WeaveLogProgress(DeviceControl, "ClearUnsecuredConnectionListener failed, err = %d", err);
+        WeaveLogProgress(DeviceControl, "ClearUnsecuredConnectionListener failed, err = %s", nl::ErrorStr(err));
 
     // If this instance of the device manager was performing a passive rendezvous, clear any associated state.
     if (sListeningDeviceMgr == this)
@@ -1828,6 +1841,77 @@ WEAVE_ERROR WeaveDeviceManager::SetRendezvousMode(uint16_t modeFlags, void* appR
     mOpState = kOpState_SetRendezvousMode;
 
     err = SendRequest(kWeaveProfile_NetworkProvisioning, NetworkProvisioning::kMsgType_SetRendezvousMode, msgBuf,
+            HandleNetworkProvisioningResponse);
+    msgBuf = NULL;
+
+exit:
+    if (msgBuf != NULL)
+        PacketBuffer::Free(msgBuf);
+    if (err != WEAVE_NO_ERROR)
+        ClearOpState();
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::GetWirelessRegulatoryConfig(void* appReqState, GetWirelessRegulatoryConfigCompleteFunct onComplete,
+        ErrorFunct onError)
+{
+    WEAVE_ERROR     err     = WEAVE_NO_ERROR;
+    PacketBuffer*   msgBuf  = NULL;
+
+    if (mOpState != kOpState_Idle)
+        return WEAVE_ERROR_INCORRECT_STATE;
+
+    VerifyOrExit(onComplete != NULL && onError != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    msgBuf = PacketBuffer::New();
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    mAppReqState = appReqState;
+    mOnComplete.GetWirelessRegulatoryConfig = onComplete;
+    mOnError = onError;
+    mOpState = kOpState_GetWirelessRegulatoryConfig;
+
+    err = SendRequest(kWeaveProfile_NetworkProvisioning, NetworkProvisioning::kMsgType_GetWirelessRegulatoryConfig, msgBuf,
+            HandleNetworkProvisioningResponse);
+    msgBuf = NULL;
+
+exit:
+    if (msgBuf != NULL)
+        PacketBuffer::Free(msgBuf);
+    if (err != WEAVE_NO_ERROR)
+        ClearOpState();
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::SetWirelessRegulatoryConfig(const WirelessRegConfig *regConfig, void* appReqState,
+        CompleteFunct onComplete, ErrorFunct onError)
+{
+    WEAVE_ERROR     err     = WEAVE_NO_ERROR;
+    PacketBuffer*   msgBuf  = NULL;
+    TLVWriter       writer;
+
+    if (mOpState != kOpState_Idle)
+        return WEAVE_ERROR_INCORRECT_STATE;
+
+    VerifyOrExit(onComplete != NULL && onError != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    msgBuf = PacketBuffer::New();
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    writer.Init(msgBuf);
+
+    err = regConfig->Encode(writer);
+    SuccessOrExit(err);
+
+    err = writer.Finalize();
+    SuccessOrExit(err);
+
+    mAppReqState = appReqState;
+    mOnComplete.General = onComplete;
+    mOnError = onError;
+    mOpState = kOpState_SetWirelessRegulatoryConfig;
+
+    err = SendRequest(kWeaveProfile_NetworkProvisioning, NetworkProvisioning::kMsgType_SetWirelessRegulatoryConfig, msgBuf,
             HandleNetworkProvisioningResponse);
     msgBuf = NULL;
 
@@ -2641,6 +2725,11 @@ void WeaveDeviceManager::ClearRequestState()
 
 void WeaveDeviceManager::ClearOpState()
 {
+    // Disable UDP if it was enabled on demand.
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    DisableUDP();
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+
     if (mCurReqMsgRetained != NULL)
     {
         PacketBuffer::Free(mCurReqMsgRetained);
@@ -2651,6 +2740,69 @@ void WeaveDeviceManager::ClearOpState()
 
     mOpState = kOpState_Idle;
 }
+
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+
+uint32_t WeaveDeviceManager::sUDPDemandEnableCount = 0;
+
+WEAVE_ERROR WeaveDeviceManager::EnableUDP(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // If UDP listening is NOT already enabled in the Weave Message Layer,
+    // enable it now.  Track the number of times UDP is automatically enabled
+    // across all WeaveDeviceManager instances so that it can be automatically
+    // disabled when no longer needed.
+    if (!mMessageLayer->UDPListenEnabled())
+    {
+        WeaveLogProgress(DeviceManager, "Enabling UDP listen");
+        mMessageLayer->SetUDPListenEnabled(true);
+        err = mMessageLayer->RefreshEndpoints();
+        SuccessOrExit(err);
+
+        if (!mUDPEnabled)
+        {
+            sUDPDemandEnableCount++;
+            mUDPEnabled = true;
+        }
+    }
+    else
+    {
+        if (sUDPDemandEnableCount > 0 && !mUDPEnabled)
+        {
+            sUDPDemandEnableCount++;
+            mUDPEnabled = true;
+        }
+    }
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::DisableUDP(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // If UDP listening was enabled on demand, disable is once there are no
+    // WeaveDeviceManager instances need it.
+    if (mUDPEnabled)
+    {
+        mUDPEnabled = false;
+        sUDPDemandEnableCount--;
+        if (sUDPDemandEnableCount == 0)
+        {
+            WeaveLogProgress(DeviceManager, "Disabling UDP listen");
+            mMessageLayer->SetUDPListenEnabled(false);
+            err = mMessageLayer->RefreshEndpoints();
+            SuccessOrExit(err);
+        }
+    }
+
+exit:
+    return err;
+}
+
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
 
 void WeaveDeviceManager::HandleUnsecuredConnectionCallbackRemoved(void *appState)
 {
@@ -2697,14 +2849,17 @@ WEAVE_ERROR WeaveDeviceManager::InitiateConnection()
     // If starting from the NotConnected state, reset the connection identify count.
     if (mConState == kConnectionState_NotConnected)
     {
-        WeaveLogProgress(DeviceManager, "Initiating connection to device");
+        WeaveLogProgress(DeviceManager, (mOpState == kOpState_RendezvousDevice)
+                ? "Initiating rendezvous for device"
+                : "Initiating connection to device");
         mConTryCount = 0;
     }
 
-    // Refresh the message layer endpoints to cope with changes in network interface status
-    // (e.g. new addresses being assigned).
-    err = mMessageLayer->RefreshEndpoints();
+    // Enable UDP if not already enabled.
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    err = EnableUDP();
     SuccessOrExit(err);
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
 
     // Form an Identify device request containing the device criteria specified by the application.
     reqMsg.TargetFabricId = mDeviceCriteria.TargetFabricId;
@@ -2745,7 +2900,13 @@ WEAVE_ERROR WeaveDeviceManager::InitiateConnection()
         // TODO setup request timeout
     }
 
-    WeaveLogProgress(DeviceManager, "Sending IdentifyRequest to locate device");
+#if WEAVE_PROGRESS_LOGGING
+    {
+        char peerDescStr[ExchangeContext::kGetPeerDescription_MaxLength];
+        mCurReq->GetPeerDescription(peerDescStr, sizeof(peerDescStr));
+        WeaveLogProgress(DeviceManager, "Sending IdentifyRequest to locate device (target %s)", peerDescStr);
+    }
+#endif
 
     mConState = kConnectionState_IdentifyDevice;
 
@@ -2876,7 +3037,7 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        WeaveLogError(DeviceManager, "HandleDeviceEnumerationIdentifyResponse failure: err = %d", err);
+        WeaveLogError(DeviceManager, "HandleDeviceEnumerationIdentifyResponse failure: err = %s", nl::ErrorStr(err));
         devMgr->mOnError(devMgr, devMgr->mAppReqState, err, NULL);
     }
 }
@@ -2920,6 +3081,12 @@ void WeaveDeviceManager::HandleConnectionIdentifyResponse(ExchangeContext *ec, c
 
     // Cancel the identify timer.
     devMgr->mSystemLayer->CancelTimer(HandleConnectionIdentifyTimeout, devMgr);
+
+    // Disable UDP if it was enabled on demand.
+#if WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+    err = devMgr->DisableUDP();
+    SuccessOrExit(err);
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
 
     // If we got an Identify response...
     if (profileId == kWeaveProfile_DeviceDescription && msgType == kMessageType_IdentifyResponse)
@@ -3087,7 +3254,7 @@ void WeaveDeviceManager::HandleDeviceEnumerationTimeout(System::Layer* aSystemLa
 exit:
     if (lError != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceManager, "HandleDeviceEnumerationTimeout failure, err = %d", lError);
+        WeaveLogError(DeviceManager, "HandleDeviceEnumerationTimeout failure, err = %s", nl::ErrorStr(lError));
     }
 }
 
@@ -3963,6 +4130,20 @@ void WeaveDeviceManager::HandleNetworkProvisioningResponse(ExchangeContext *ec, 
         devMgr->mOnComplete.GetNetworks(devMgr, devMgr->mAppReqState, resultCount, netInfoList);
 
         delete[] netInfoList;
+    }
+
+    else if (profileId == kWeaveProfile_NetworkProvisioning && msgType == NetworkProvisioning::kMgrType_GetWirelessRegulatoryConfigComplete)
+    {
+        VerifyOrExit(opState == kOpState_GetWirelessRegulatoryConfig, err = WEAVE_ERROR_INVALID_MESSAGE_TYPE);
+
+        WirelessRegConfig regConfig;
+
+        regConfig.Init();
+
+        err = regConfig.DecodeInPlace(payload);
+        SuccessOrExit(err);
+
+        devMgr->mOnComplete.GetWirelessRegulatoryConfig(devMgr, devMgr->mAppReqState, &regConfig);
     }
 
     else if (profileId == kWeaveProfile_Common && msgType == nl::Weave::Profiles::Common::kMsgType_StatusReport)
@@ -5088,6 +5269,40 @@ WEAVE_ERROR WeaveDeviceManager::EndCertValidation(WeaveCertificateSet& certSet, 
 {
     // Nothing to do
     return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR WeaveDeviceManager::ConfigureBinding(Binding * const apBinding)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    nl::Weave::Binding::Configuration bindingConfig = apBinding->BeginConfiguration();
+
+    if (mDeviceCon != NULL)
+    {
+        bindingConfig
+                .Target_NodeId(mDeviceId)
+                .Transport_ExistingConnection(mDeviceCon)
+                .Exchange_ResponseTimeoutMsec(kResponseTimeoutMsec);
+
+        if (mSessionKeyId == WeaveKeyId::kNone)
+        {
+            bindingConfig.Security_None();
+        }
+        else
+        {
+            bindingConfig.Security_Key(mSessionKeyId);
+            bindingConfig.Security_EncryptionType(mEncType);
+        }
+
+        err = bindingConfig.PrepareBinding();
+    }
+    else
+    {
+        WeaveLogDetail(DeviceManager, "apDeviceCon is NULL");
+        err = WEAVE_ERROR_INCORRECT_STATE;
+    }
+
+    return err;
 }
 
 bool IsProductWildcard(uint16_t productId)

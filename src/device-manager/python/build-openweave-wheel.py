@@ -20,6 +20,7 @@
 #      Builds a Python wheel package for OpenWeave.
 #
 
+from __future__ import absolute_import
 import sys
 import os
 import stat
@@ -161,8 +162,9 @@ try:
             'License :: OSI Approved :: Apache Software License',
             'Programming Language :: Python :: 2',
             'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
         ],
-        python_requires='>=2.7, <3',
+        python_requires='>=2.7',
         packages=[
             'openweave'                     # Arrange to install a package named "openweave"
         ],

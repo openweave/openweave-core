@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google, LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -1121,13 +1122,17 @@ WEAVE_ERROR NotificationEngine::SendNotify(PacketBuffer * aBuffer, SubscriptionH
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    err = aSubHandler->SendNotificationRequest(aBuffer);
-    SuccessOrExit(err);
-
     // We can only have 1 notify in flight for any given subscription - increment and break out.
     mNumNotifiesInFlight++;
 
+    err = aSubHandler->SendNotificationRequest(aBuffer);
+    SuccessOrExit(err);
+
 exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        mNumNotifiesInFlight--;
+    }
     return err;
 }
 
@@ -1583,7 +1588,7 @@ exit:
     {
         // abort subscription, squash error, signal to upper
         // layers that the subscription is done
-        aSubHandler->HandleSubscriptionTerminated(err, NULL);
+        aSubHandler->TerminateSubscription(err, NULL, false);
 
         aSubscriptionHandled = true;
         err                  = WEAVE_NO_ERROR;
@@ -1700,6 +1705,17 @@ exit:
 }
 
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
+void NotificationEngine::Run(System::Layer * aSystemLayer, void * aAppState, System::Error)
+{
+    NotificationEngine * const pEngine = reinterpret_cast<NotificationEngine *>(aAppState);
+    pEngine->Run();
+}
+
+void NotificationEngine::ScheduleRun()
+{
+    SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->ScheduleWork(Run, this);
+}
 
 void NotificationEngine::Run()
 {

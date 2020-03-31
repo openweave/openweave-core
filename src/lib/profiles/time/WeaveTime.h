@@ -1245,7 +1245,7 @@ protected:
     WEAVE_ERROR SendSyncRequest(void);
 
     void SetClientState(const ClientState state);
-    const char * const GetClientStateName(void) const;
+    const char * GetClientStateName(void) const;
 
     static void HandleTimeChangeNotification(ExchangeContext *aEC, const IPPacketInfo *aPktInfo,
         const WeaveMessageInfo *aMsgInfo, uint32_t aProfileId, uint8_t aMsgType, PacketBuffer *aPayload);

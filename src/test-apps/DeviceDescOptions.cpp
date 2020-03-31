@@ -44,7 +44,7 @@ DeviceDescOptions::DeviceDescOptions()
         { "product-id",       kArgumentRequired, kToolCommonOpt_DeviceProductId        },
         { "product-rev",      kArgumentRequired, kToolCommonOpt_DeviceProductRevision  },
         { "software-version", kArgumentRequired, kToolCommonOpt_DeviceSoftwareVersion  },
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 

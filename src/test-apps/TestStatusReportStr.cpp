@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -68,7 +69,7 @@ struct Profile_Status {
     WeaveProfileId id;
     const char *fmt;
     uint8_t statusCount;
-    uint16_t statusCodes[21];
+    uint16_t statusCodes[23];
 };
 
 static struct Profile_Status sContext[] = {
@@ -203,7 +204,7 @@ static struct Profile_Status sContext[] = {
     {
         kWeaveProfile_Security,
         "[ Security(%08" PRIX32 "):%" PRIu16 " ]",
-        19,
+        23,
         {
             Security::kStatusCode_SessionAborted,
             Security::kStatusCode_PASESupportsOnlyConfig1,
@@ -223,7 +224,11 @@ static struct Profile_Status sContext[] = {
             Security::kStatusCode_InvalidUseOfSessionKey,
             Security::kStatusCode_InternalKeyError,
             Security::kStatusCode_NoCommonKeyExportConfiguration,
-            Security::kStatusCode_UnathorizedKeyExportRequest,
+            Security::kStatusCode_UnauthorizedKeyExportRequest,
+            Security::kStatusCode_NoNewOperationalCertRequired,
+            Security::kStatusCode_OperationalNodeIdInUse,
+            Security::kStatusCode_InvalidOperationalNodeId,
+            Security::kStatusCode_InvalidOperationalCertificate,
          }
     },
     {

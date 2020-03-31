@@ -53,6 +53,15 @@ public:
     virtual WEAVE_ERROR Unlock(void) = 0;
 };
 
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+class IUpdateRequestDataElementAccessControlDelegate
+{
+public:
+    virtual WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath,
+                                               const TraitCatalogBase<TraitDataSource> & aCatalog) = 0;
+};
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+
 /**
  * @class SubscriptionEngine
  *
@@ -84,11 +93,17 @@ public:
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
         kEvent_OnIncomingSubscriptionlessNotification =
             1, ///< Called when an incoming subscriptionless notification has arrived before updating the data element.
-        kEvent_DataElementAccessControlCheck =
-            2, ///< Called when an incoming subscriptionless notification is being processed for access control of each data element.
+        kEvent_DataElementAccessControlCheck = 2, ///< Called when an incoming subscriptionless notification is being processed for
+                                                  ///< access control of each data element.
         kEvent_SubscriptionlessNotificationProcessingComplete =
             3, ///< Called upon completion of processing of all trait data in the subscriptionless notify.
 #endif         // #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+        kEvent_OnIncomingUpdateRequest = 4, ///< Called when an incoming update has arrived before updating the data element.
+        kEvent_UpdateRequestDataElementAccessControlCheck =
+            5, ///< Called when an incoming update is being processed for access control of each data element.
+        kEvent_UpdateRequestProcessingComplete = 6, ///< Called upon completion of processing of all trait data in the update.
+#endif                                              // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
     };
 
     /**
@@ -124,11 +139,28 @@ public:
         struct
         {
             const TraitCatalogBase<TraitDataSink> * mCatalog; ///< A pointer to the TraitCatalog for the data sinks.
-            const TraitPath *mPath;                           ///< A pointer to the TraitPath being accessed by the
-                                                          ///< subscriptionless notification.
-            const nl::Weave::WeaveMessageInfo * mMsgInfo; ///< A pointer to the message information for the request
+            const TraitPath * mPath;                          ///< A pointer to the TraitPath being accessed by the
+                                                              ///< subscriptionless notification.
+            const nl::Weave::WeaveMessageInfo * mMsgInfo;     ///< A pointer to the message information for the request
         } mDataElementAccessControlForNotification;
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+        struct
+        {
+            WEAVE_ERROR processingError;                  ///< The WEAVE_ERROR encountered in processing the
+                                                          ///< Update Request.
+            const nl::Weave::WeaveMessageInfo * mMsgInfo; ///< A pointer to the message information for the request
+        } mIncomingUpdateRequest;
+
+        struct
+        {
+            const TraitCatalogBase<TraitDataSource> * mCatalog; ///< A pointer to the TraitCatalog for the data sources.
+            const TraitPath * mPath;                            ///< A pointer to the TraitPath being accessed by the
+                                                                ///< update request.
+            const nl::Weave::WeaveMessageInfo * mMsgInfo;       ///< A pointer to the message information for the request
+        } mDataElementAccessControlForUpdateRequest;
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
     };
 
     /**
@@ -158,15 +190,28 @@ public:
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
         struct
         {
-            bool mShouldContinueProcessing;      ///< Set to true if subscriptionless notification is allowed.
+            bool mShouldContinueProcessing; ///< Set to true if subscriptionless notification is allowed.
         } mIncomingSubscriptionlessNotification;
 
         struct
         {
-            bool mRejectNotification;      ///< Set to true if subscriptionless notification is rejected.
-            WEAVE_ERROR mReason;           ///< The reason for the rejection, if any.
+            bool mRejectNotification; ///< Set to true if subscriptionless notification is rejected.
+            WEAVE_ERROR mReason;      ///< The reason for the rejection, if any.
         } mDataElementAccessControlForNotification;
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+        struct
+        {
+            bool mShouldContinueProcessing; ///< Set to true if update is allowed.
+        } mIncomingUpdateRequest;
+
+        struct
+        {
+            bool mRejectUpdateRequest; ///< Set to true if update is rejected.
+            WEAVE_ERROR mReason;       ///< The reason for the rejection, if any.
+        } mDataElementAccessControlForUpdateRequest;
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
     };
 
     /**
@@ -253,8 +298,7 @@ public:
     WEAVE_ERROR NewClient(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
                           SubscriptionClient::EventCallback const aEventCallback,
                           const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                          const uint32_t aInactivityTimeoutDuringSubscribingMsec,
-                          IWeaveWDMMutex * aUpdateMutex);
+                          const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveWDMMutex * aUpdateMutex);
 
     WEAVE_ERROR NewSubscriptionHandler(SubscriptionHandler ** const subHandler);
 
@@ -301,8 +345,7 @@ public:
                      const EventCallback aEventCallback = NULL);
 
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
-    WEAVE_ERROR RegisterForSubscriptionlessNotifications(
-                     const TraitCatalogBase<TraitDataSink> * const apCatalog);
+    WEAVE_ERROR RegisterForSubscriptionlessNotifications(const TraitCatalogBase<TraitDataSink> * const apCatalog);
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
     nl::Weave::WeaveExchangeManager * GetExchangeManager(void) const { return mExchangeMgr; };
@@ -342,22 +385,35 @@ private:
     class SubscriptionlessNotifyDataElementAccessControlDelegate : public IDataElementAccessControlDelegate
     {
     public:
-         SubscriptionlessNotifyDataElementAccessControlDelegate(const WeaveMessageInfo * aMsgInfo)
-         {
-             mMsgInfo = aMsgInfo;
-         }
+        SubscriptionlessNotifyDataElementAccessControlDelegate(const WeaveMessageInfo * aMsgInfo) { mMsgInfo = aMsgInfo; }
 
-         WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath,
-                                            const TraitCatalogBase<TraitDataSink> & aCatalog);
+        WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath, const TraitCatalogBase<TraitDataSink> & aCatalog);
 
     private:
-         const WeaveMessageInfo * mMsgInfo;
+        const WeaveMessageInfo * mMsgInfo;
     };
 
     static void OnSubscriptionlessNotification(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
                                                const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
                                                PacketBuffer * aPayload);
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+    class UpdateRequestDataElementAccessControlDelegate : public IUpdateRequestDataElementAccessControlDelegate
+    {
+    public:
+        UpdateRequestDataElementAccessControlDelegate(const WeaveMessageInfo * aMsgInfo) { mMsgInfo = aMsgInfo; }
+
+        WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath, const TraitCatalogBase<TraitDataSource> & aCatalog);
+
+    private:
+        const WeaveMessageInfo * mMsgInfo;
+    };
+
+    static void OnUpdateRequest(nl::Weave::ExchangeContext * apEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                PacketBuffer * aPayload);
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
 
 #if WDM_ENABLE_SUBSCRIPTION_CLIENT
     // Client-specific features
@@ -370,11 +426,62 @@ private:
 
 #endif // WDM_ENABLE_SUBSCRIPTION_CLIENT
 
-    static WEAVE_ERROR ProcessDataList(nl::Weave::TLV::TLVReader & aReader,
-                                       const TraitCatalogBase<TraitDataSink> * aCatalog,
-                                       bool & aOutIsPartialChange,
-                                       TraitDataHandle & aOutTraitDataHandle,
+    static WEAVE_ERROR ProcessDataList(nl::Weave::TLV::TLVReader & aReader, const TraitCatalogBase<TraitDataSink> * aCatalog,
+                                       bool & aOutIsPartialChange, TraitDataHandle & aOutTraitDataHandle,
                                        IDataElementAccessControlDelegate & acDelegate);
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+    struct StatusDataHandleElement
+    {
+        uint32_t mProfileId;
+        uint16_t mStatusCode;
+        TraitDataHandle mTraitDataHandle;
+    };
+
+    struct UpdateResponseWriterContext
+    {
+        void * mpFirstStatusDataHandleElement;
+        const TraitCatalogBase<TraitDataSource> * mpCatalog;
+        uint32_t mNumDataElements;
+    };
+
+    static WEAVE_ERROR AllocateRightSizedBuffer(PacketBuffer *& buf, const uint32_t desiredSize, const uint32_t minSize,
+                                                uint32_t & outMaxPayloadSize);
+    static WEAVE_ERROR InitializeStatusDataHandleList(Weave::TLV::TLVReader & aReader,
+                                                      StatusDataHandleElement * apStatusDataHandleList, uint32_t & aNumDataElements,
+                                                      uint8_t * apBufEndAddr);
+    static void ConstructStatusListVersionList(Weave::TLV::TLVWriter & aWriter, void * apContext);
+    static void UpdateStatusDataHandleElement(StatusDataHandleElement * apStatusDataHandleList, TraitDataHandle aTraitDataHandle,
+                                              WEAVE_ERROR & err, uint32_t aCurrentIndex);
+    static bool IsStartingPath(StatusDataHandleElement * apStatusDataHandleList, TraitDataHandle aTraitDataHandle,
+                               uint32_t aCurrentIndex);
+    static WEAVE_ERROR UpdateTraitVersions(StatusDataHandleElement * apStatusDataHandleList,
+                                           const TraitCatalogBase<TraitDataSource> * apCatalog, uint32_t aNumDataElements);
+    static WEAVE_ERROR SendFaultyUpdateResponse(Weave::ExchangeContext * apEC);
+    static WEAVE_ERROR SendUpdateResponse(Weave::ExchangeContext * apEC, uint32_t aNumDataElements,
+                                          const TraitCatalogBase<TraitDataSource> * apCatalog, PacketBuffer * apBuf,
+                                          bool existFailure, uint32_t aMaxPayloadSize);
+    static WEAVE_ERROR ProcessUpdateRequestDataElement(Weave::TLV::TLVReader & aReader, TraitDataHandle & aHandle,
+                                                       PropertyPathHandle & aPathHandle,
+                                                       const TraitCatalogBase<TraitDataSource> * apCatalog,
+                                                       IUpdateRequestDataElementAccessControlDelegate & acDelegate,
+                                                       bool aConditionalLoop, uint32_t aCurrentIndex, bool & aExistFailure,
+                                                       StatusDataHandleElement * apStatusDataHandleList);
+    static WEAVE_ERROR ProcessUpdateRequestDataListWithConditionality(Weave::TLV::TLVReader & aReader,
+                                                                      StatusDataHandleElement * apStatusDataHandleList,
+                                                                      const TraitCatalogBase<TraitDataSource> * apCatalog,
+                                                                      IUpdateRequestDataElementAccessControlDelegate & acDelegate,
+                                                                      bool & aExistFailure, bool aConditionalLoop);
+    static WEAVE_ERROR ProcessUpdateRequestDataList(Weave::TLV::TLVReader & aReader,
+                                                    StatusDataHandleElement * apStatusDataHandleList,
+                                                    const TraitCatalogBase<TraitDataSource> * apCatalog,
+                                                    IUpdateRequestDataElementAccessControlDelegate & acDelegate,
+                                                    bool & aExistFailure, uint32_t aNumDataElements);
+    static WEAVE_ERROR ProcessUpdateRequest(Weave::ExchangeContext * apEC, Weave::TLV::TLVReader & aReader,
+                                            const TraitCatalogBase<TraitDataSource> * apCatalog,
+                                            IUpdateRequestDataElementAccessControlDelegate & acDelegate);
+
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
 #if WEAVE_DETAIL_LOGGING
     void LogSubscriptionFreed(void) const;
 #endif // #if WEAVE_DETAIL_LOGGING

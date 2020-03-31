@@ -3794,7 +3794,7 @@ static OptionDef gToolOptionDefs[] =
 {
     { "fuzz-duration", kArgumentRequired, 'f' },
     { "fuzz-mask",     kArgumentRequired, 'm' },
-    { NULL }
+    { }
 };
 
 static const char *const gToolOptionHelp =

@@ -172,7 +172,7 @@ class WeaveBle(WeaveTest, HappyNode, HappyNetwork, HappyProcess):
             return
 
         cmd += " --enable-bluez-peripheral --peripheral-name N0001 --peripheral-address " + self.interfaces[0]["bd_address"]
-        cmd += " --print-fault-counters"
+        cmd += " --print-fault-counters --wdm-resp-mutual-sub --test-case 10 --total-count 0 --wdm-update-timing NoSub "
         self.start_weave_process(node_id=self.server_node_id, cmd=cmd, tag=self.server_process_tag, rootMode=True)
 
     def resetBluez(self):

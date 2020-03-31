@@ -2,7 +2,8 @@
 
 
 #
-#    Copyright (c) 2016-2017 Nest Labs, Inc.
+#    Copyright (c) 2016-2018 Nest Labs, Inc.
+#    Copyright (c) 2019 Google, LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -158,7 +159,11 @@ class WeaveTunnelStart(HappyNodeRoute, WeaveTest):
             else:
                 if "weave_service_address" in os.environ.keys():
                     self.skip_service_end = True
-                    self.service_dir_server = os.environ['weave_service_address']
+                    if "unstable" not in os.environ["weave_service_address"]:
+                        self.service_dir_server = os.environ["weave_service_address"]
+                    else:
+                        self.customized_tunnel_port = 20895
+                        self.service_dir_server = os.environ["weave_service_address"] + ":%d" % self.customized_tunnel_port
                     self.logger.debug("[localhost] WeaveTunnelStart against tier %s." % self.service_dir_server)
                 else:
                     # Check if service node was given
@@ -317,9 +322,6 @@ class WeaveTunnelStart(HappyNodeRoute, WeaveTest):
                 self.cert_file = self.case_cert_path if self.case_cert_path else os.path.join(self.main_conf['log_directory'], self.gateway_weave_id.upper() + '-cert.weave-b64')
                 self.key_file = self.case_key_path if self.case_key_path else os.path.join(self.main_conf['log_directory'], self.gateway_weave_id.upper() + '-key.weave-b64')
                 cmd += ' --node-cert ' + self.cert_file + ' --node-key ' + self.key_file
-
-            if self.customized_tunnel_port:
-                self.service_dir_server = self.service_dir_server + ":%d" % self.customized_tunnel_port
 
             if self.service_dir:
                 cmd += " --service-dir " + str(self.service_weave_id) + ' --service-dir-server ' + self.service_dir_server

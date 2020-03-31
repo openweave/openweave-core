@@ -152,16 +152,18 @@ private:
     // publisher side
     uint32_t mTimeBetweenLivenessCheckSec;
     SingleResourceSourceTraitCatalog mSourceCatalog;
-    SingleResourceSourceTraitCatalog::CatalogItem mSourceCatalogStore[6];
+    SingleResourceSourceTraitCatalog::CatalogItem mSourceCatalogStore[10];
 
     // source traits
     LocaleSettingsTraitDataSource mLocaleSettingsDataSource;
+    LocaleCapabilitiesTraitDataSource mLocaleCapabilitiesDataSource;
     TestATraitDataSource mTestADataSource0;
     TestATraitDataSource mTestADataSource1;
     TestBTraitDataSource mTestBDataSource;
     TestBLargeTraitDataSource mTestBLargeDataSource;
     BoltLockSettingTraitDataSource mBoltLockSettingDataSource;
     ApplicationKeysTraitDataSource mApplicationKeysTraitDataSource;
+    TestCTraitDataSource mTestCDataSource;
 
     static void EngineEventCallback (void * const aAppState, SubscriptionEngine::EventID aEvent,
         const SubscriptionEngine::InEventParam & aInParam, SubscriptionEngine::OutEventParam & aOutParam);
@@ -195,6 +197,8 @@ private:
         kLocaleSettingsTraitSourceIndex,
         kBoltLockSettingTraitSourceIndex,
         kApplicationKeysTraitSourceIndex,
+        kTestCTraitSourceIndex,
+        kLocaleCapabilitiesTraitSourceIndex,
 
         kNumTraitHandles,
     };
@@ -292,15 +296,10 @@ private:
     CommandSender mCommandSender;
     void Command_Send (void);
     void Command_End (const bool aAbort = false);
-    static void IncomingUpdateRequest(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
-            const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
-            uint8_t msgType, PacketBuffer *payload);
-    static void IncomingPartialUpdateRequest(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
-            const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
-            uint8_t msgType, PacketBuffer *payload);
-    static void IncomingUpdateRequestHandler(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
-            const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
-            uint8_t msgType, PacketBuffer *payload);
+    static void OnMessageReceivedForCustomCommand (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
+        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
+        uint8_t aMsgType, PacketBuffer *aPayload);
+    static void HandleCustomCommandTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr);
 };
 
 static MockWdmSubscriptionResponderImpl gWdmSubscriptionResponder;
@@ -403,6 +402,8 @@ WEAVE_ERROR MockWdmSubscriptionResponderImpl::Init (nl::Weave::WeaveExchangeMana
     mSourceCatalog.Add(0, &mLocaleSettingsDataSource, mTraitHandleSet[kLocaleSettingsTraitSourceIndex]);
     mSourceCatalog.Add(0, &mBoltLockSettingDataSource, mTraitHandleSet[kBoltLockSettingTraitSourceIndex]);
     mSourceCatalog.Add(0, &mApplicationKeysTraitDataSource, mTraitHandleSet[kApplicationKeysTraitSourceIndex]);
+    mSourceCatalog.Add(0, &mTestCDataSource, mTraitHandleSet[kTestCTraitSourceIndex]);
+    mSourceCatalog.Add(0, &mLocaleCapabilitiesDataSource, mTraitHandleSet[kLocaleCapabilitiesTraitSourceIndex]);
 
     switch (mTestCaseId)
     {
@@ -477,16 +478,6 @@ WEAVE_ERROR MockWdmSubscriptionResponderImpl::Init (nl::Weave::WeaveExchangeMana
     mSinkAddressList[kTestBDataSinkIndex] = &mTestBDataSink;
     mSinkAddressList[kLocaleCapabilitiesTraitSinkIndex] = &mLocaleCapabilitiesDataSink;
 
-    err = mExchangeMgr->RegisterUnsolicitedMessageHandler(nl::Weave::Profiles::kWeaveProfile_WDM,
-                                                          kMsgType_UpdateRequest,
-                                                          IncomingUpdateRequest,
-                                                          this);
-    SuccessOrExit(err);
-    err = mExchangeMgr->RegisterUnsolicitedMessageHandler(nl::Weave::Profiles::kWeaveProfile_WDM,
-                                                          kMsgType_PartialUpdateRequest,
-                                                          IncomingPartialUpdateRequest,
-                                                          this);
-    SuccessOrExit(err);
     Command_End();
 
 exit:
@@ -787,9 +778,12 @@ void MockWdmSubscriptionResponderImpl::PublisherEventCallback (void * const aApp
         break;
 
     case SubscriptionHandler::kEvent_OnSubscriptionTerminated:
-        WeaveLogDetail(DataManagement, "Publisher->kEvent_OnSubscriptionTerminated. Reason: %u, peer = 0x%" PRIX64 "\n",
-                aInParam.mSubscriptionTerminated.mReason,
-                aInParam.mSubscriptionTerminated.mHandler->GetPeerNodeId());
+        WeaveLogDetail(DataManagement, "Publisher->kEvent_OnSubscriptionTerminated. peer = 0x%" PRIX64 ", %s: %s",
+                aInParam.mSubscriptionTerminated.mHandler->GetPeerNodeId(),
+                (aInParam.mSubscriptionTerminated.mIsStatusCodeValid) ? "Status Report" : "Error",
+                (aInParam.mSubscriptionTerminated.mIsStatusCodeValid)
+                    ? ::nl::StatusReportStr(aInParam.mSubscriptionTerminated.mStatusProfileId, aInParam.mSubscriptionTerminated.mStatusCode)
+                    : ::nl::ErrorStr(aInParam.mSubscriptionTerminated.mReason));
         switch (gFinalStatus)
         {
         case kPublisherCancel:
@@ -809,7 +803,6 @@ void MockWdmSubscriptionResponderImpl::PublisherEventCallback (void * const aApp
         {
             //responder->mExchangeMgr->MessageLayer->SystemLayer->CancelTimer(HandleDataFlipTimeout, aAppState);
         }
-        HandleClientRelease(responder);
         HandlePublisherRelease();
         gResponderState.init();
         responder->onCompleteTest();
@@ -1024,7 +1017,9 @@ void MockWdmSubscriptionResponderImpl::HandleClientComplete(void *aAppState)
         }
         if (gFinalStatus == kClientAbort)
         {
-            (void)responder->mSubscriptionClient->AbortSubscription();
+            responder->mSubscriptionClient->AbortSubscription();
+            responder->mSubscriptionClient->Free();
+            responder->mSubscriptionClient = NULL;
         }
     }
 }
@@ -1046,160 +1041,6 @@ void MockWdmSubscriptionResponderImpl::Command_End(const bool aAbort)
 {
     WeaveLogDetail(DataManagement, "Responder %s: state: %d", __func__, mCmdState);
     mCommandSender.Close(aAbort);
-}
-
-void MockWdmSubscriptionResponderImpl::IncomingUpdateRequestHandler(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
-    const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
-            uint8_t msgType, PacketBuffer *payload)
-{
-    switch (msgType)
-    {
-        case kMsgType_UpdateRequest:
-            IncomingUpdateRequest(ec, pktInfo, msgInfo, profileId, msgType, payload);
-            break;
-
-        case kMsgType_PartialUpdateRequest:
-            IncomingPartialUpdateRequest(ec, pktInfo, msgInfo, profileId, msgType, payload);
-            break;
-
-        default:
-            WeaveLogError(DataManagement, "Unexpected message with type 0x" PRIu8 "");
-            PacketBuffer::Free(payload);
-            ec->Close();
-            break;
-    }
-}
-
-void MockWdmSubscriptionResponderImpl::IncomingUpdateRequest(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
-    const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
-            uint8_t msgType, PacketBuffer *payload)
-{
-    WEAVE_ERROR     err     = WEAVE_NO_ERROR;
-    nl::Weave::TLV::TLVReader reader;
-    nl::Weave::TLV::TLVWriter writer;
-    UpdateRequest::Parser parser;
-    UpdateResponse::Builder updateResponseBuilder;
-    StatusReport statusReport;
-    uint8_t updateResponseBuf[512];
-    ReferencedTLVData referenceTLVData;
-    PacketBuffer * mBuf   = PacketBuffer::NewWithAvailableSize(1024);
-    MockWdmSubscriptionResponderImpl * pResponder = reinterpret_cast<MockWdmSubscriptionResponderImpl *>(ec->AppState);
-
-    VerifyOrExit(NULL != pResponder, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    WeaveLogDetail(DataManagement, "Incoming Update Request, dumping it");
-
-    reader.Init(payload);
-    reader.Next();
-    DebugPrettyPrint(reader);
-
-    WeaveLogDetail(DataManagement, "constructing notification if subscription exists and status report");
-
-    if (pResponder->mUpdateTiming != MockWdmNodeOptions::kTiming_NoSub)
-    {
-        pResponder->mLocaleSettingsDataSource.Mutate();
-        SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
-    }
-
-    writer.Init(updateResponseBuf, sizeof(updateResponseBuf));
-    err = updateResponseBuilder.Init(&writer);
-    SuccessOrExit(err);
-
-    {
-        VersionList::Builder &lVLBuilder = updateResponseBuilder.CreateVersionListBuilder();
-        lVLBuilder.AddVersion(pResponder->mLocaleSettingsDataSource.GetVersion());
-        lVLBuilder.EndOfVersionList();
-        SuccessOrExit(lVLBuilder.GetError());
-    }
-
-    {
-        StatusList::Builder &lSLBuilder = updateResponseBuilder.CreateStatusListBuilder();
-        lSLBuilder.AddStatus(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kStatus_Success);
-        lSLBuilder.EndOfStatusList();
-        SuccessOrExit(lSLBuilder.GetError());
-    }
-
-    updateResponseBuilder.EndOfResponse();
-    SuccessOrExit(updateResponseBuilder.GetError());
-
-    referenceTLVData.init(sizeof(updateResponseBuf), sizeof(updateResponseBuf), updateResponseBuf);
-
-    statusReport.init(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kStatus_Success, &referenceTLVData);
-    err = statusReport.pack(mBuf);
-    SuccessOrExit(err);
-
-    err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, mBuf, nl::Weave::ExchangeContext::kSendFlag_RequestAck);
-    mBuf = NULL;
-    SuccessOrExit(err);
-
-exit:
-    WeaveLogFunctError(err);
-
-    if (NULL != payload)
-    {
-        PacketBuffer::Free(payload);
-        payload = NULL;
-    }
-
-    if (NULL != mBuf)
-    {
-        PacketBuffer::Free(mBuf);
-        mBuf = NULL;
-    }
-
-    if (NULL != ec)
-    {
-        ec->Close();
-    }
-}
-
-void MockWdmSubscriptionResponderImpl::IncomingPartialUpdateRequest(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
-    const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
-            uint8_t msgType, PacketBuffer *payload)
-{
-    WEAVE_ERROR     err     = WEAVE_NO_ERROR;
-    nl::Weave::TLV::TLVReader reader;
-    UpdateRequest::Parser parser;
-    WeaveLogDetail(DataManagement, "Incoming PartialUpdate Request");
-
-    // Set the handler on the EC, as we'll get more requests on this exchange.
-    ec->OnMessageReceived = IncomingUpdateRequestHandler;
-
-    reader.Init(payload);
-    reader.Next();
-    parser.Init(reader);
-    parser.CheckSchemaValidity();
-
-    reader.Init(payload);
-    DebugPrettyPrint(reader);
-
-    PacketBuffer * msgBuf   = PacketBuffer::NewWithAvailableSize(0);
-    VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
-
-    err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM,
-                          nl::Weave::Profiles::DataManagement::kMsgType_UpdateContinue,
-                          msgBuf,
-                          nl::Weave::ExchangeContext::kSendFlag_RequestAck);
-    msgBuf = NULL;
-    SuccessOrExit(err);
-
-exit:
-    WeaveLogFunctError(err);
-
-    if (NULL != payload)
-    {
-        PacketBuffer::Free(payload);
-        payload = NULL;
-    }
-
-    if (NULL != msgBuf)
-    {
-        PacketBuffer::Free(msgBuf);
-        msgBuf = NULL;
-    }
-
-    // Don't close the EC; more requests fill follow.
-    // TODO: we should close the EC on a timeout.
 }
 
 void MockWdmSubscriptionResponderImpl::CommandEventHandler(void * const aAppState, CommandSender::EventType aEvent, const CommandSender::InEventParam &aInParam, CommandSender::OutEventParam &aOutEventParam)

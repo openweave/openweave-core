@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2019 Google LLC.
+ *    Copyright (c) 2019-2020 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -171,32 +171,42 @@ WEAVE_ERROR FactoryProvisioningBase<DerivedClass>::StoreProvisioningValue(uint8_
         break;
     }
 
-    case FactoryProvisioningData::kTag_DeviceId:
+    case FactoryProvisioningData::kTag_MfrDeviceId:
     {
         uint64_t deviceId;
         err = reader.Get(deviceId);
         SuccessOrExit(err);
-        err = ConfigurationMgr().StoreDeviceId(deviceId);
+        err = ConfigurationMgr().StoreManufacturerDeviceId(deviceId);
         SuccessOrExit(err);
         break;
     }
 
-    case FactoryProvisioningData::kTag_DeviceCert:
+    case FactoryProvisioningData::kTag_MfrDeviceCert:
     {
         const uint8_t * cert;
         err = reader.GetDataPtr(cert);
         SuccessOrExit(err);
-        err = ConfigurationMgr().StoreDeviceCertificate(cert, reader.GetLength());
+        err = ConfigurationMgr().StoreManufacturerDeviceCertificate(cert, reader.GetLength());
         SuccessOrExit(err);
         break;
     }
 
-    case FactoryProvisioningData::kTag_DevicePrivateKey:
+    case FactoryProvisioningData::kTag_MfrDeviceICACerts:
+    {
+        const uint8_t * certs;
+        err = reader.GetDataPtr(certs);
+        SuccessOrExit(err);
+        err = ConfigurationMgr().StoreManufacturerDeviceIntermediateCACerts(certs, reader.GetLength());
+        SuccessOrExit(err);
+        break;
+    }
+
+    case FactoryProvisioningData::kTag_MfrDevicePrivateKey:
     {
         const uint8_t * privKey;
         err = reader.GetDataPtr(privKey);
         SuccessOrExit(err);
-        err = ConfigurationMgr().StoreDevicePrivateKey(privKey, reader.GetLength());
+        err = ConfigurationMgr().StoreManufacturerDevicePrivateKey(privKey, reader.GetLength());
         SuccessOrExit(err);
         break;
     }

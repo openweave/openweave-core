@@ -384,6 +384,15 @@ exit:
     return err;
 }
 
+- (WEAVE_ERROR)GetDeviceMgrPtr:(long long*)deviceMgrPtr
+{
+    __block WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WDM_LOG_METHOD_SIG();
+    *deviceMgrPtr = (long long)_mWeaveCppDM;
+
+    return err;
+}
+
 - (WEAVE_ERROR)GetDeviceAddress:(NSMutableString *)strAddr;
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;

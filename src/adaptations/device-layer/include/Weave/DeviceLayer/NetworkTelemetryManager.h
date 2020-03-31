@@ -138,7 +138,20 @@ public:
 #if WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
     TunnelTelemetry mTunnelTelemetry;
 #endif
+
+private:
+    friend NetworkTelemetryManager & NetworkTelemetryMgr(void);
+
+    static NetworkTelemetryManager sInstance;
 };
+
+/**
+ * Returns a reference to the NetworkTelemetryManager singleton object.
+ */
+inline NetworkTelemetryManager & NetworkTelemetryMgr(void)
+{
+    return NetworkTelemetryManager::sInstance;
+}
 
 } // namespace Internal
 } // namespace DeviceLayer

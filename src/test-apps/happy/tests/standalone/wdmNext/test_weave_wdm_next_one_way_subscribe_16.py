@@ -56,7 +56,7 @@ class test_weave_wdm_next_one_way_subscribe_16(weave_wdm_next_test_base):
         wdm_next_args['server_inter_event_period'] = 2000
 
         wdm_next_args['client_log_check'] = [('Client\[0\] \[(ALIVE|CONFM)\] EndSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
-                                             ('Client\[0\] \[CANCL\] _AbortSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations'])]
+                                             ('Client\[0\] \[CANCL\] TerminateSubscription ', wdm_next_args['test_client_iterations'])]
         wdm_next_args['server_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] CancelRequestHandler', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()

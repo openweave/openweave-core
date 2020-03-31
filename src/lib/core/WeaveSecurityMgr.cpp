@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -2471,6 +2472,12 @@ bool WeaveSecurityManager::IsKeyError(WEAVE_ERROR err)
             err == WEAVE_ERROR_UNKNOWN_KEY_TYPE ||
             err == WEAVE_ERROR_INVALID_USE_OF_SESSION_KEY ||
             err == WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
+
+    // NOTE: This method should NOT return true for WEAVE_ERROR_SESSION_KEY_SUSPENDED.
+    // A suspended session is one that has been serialized for persistence.  Once this
+    // has happened, subsequent inbound messages referencing the session should not
+    // provoke a Key Error back to the sender, lest they cause the other end of the
+    // session to abort.
 }
 
 /**
@@ -3178,7 +3185,7 @@ WEAVE_ERROR WeaveSecurityManager::SendStatusReport(WEAVE_ERROR localErr, Exchang
         break;
     case WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_REQUEST:
         profileId = kWeaveProfile_Security;
-        statusCode = kStatusCode_UnathorizedKeyExportRequest;
+        statusCode = kStatusCode_UnauthorizedKeyExportRequest;
         break;
 #endif // WEAVE_CONFIG_ENABLE_KEY_EXPORT_RESPONDER
     default:

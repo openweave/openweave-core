@@ -53,7 +53,6 @@ protected:
     bool _IsInProgress(void);
     SoftwareUpdateManager::State _GetState(void);
 
-    void _OnPlatformEvent(const WeaveDeviceEvent * event);
     void _SetRetryPolicyCallback(const SoftwareUpdateManager::RetryPolicyCallback aRetryPolicyCallback);
 
     static void _DefaultEventHandler(void *apAppState, SoftwareUpdateManager::EventType aEvent,
@@ -131,7 +130,6 @@ private:
 
     PacketBuffer * mImageQueryPacketBuffer;
 
-    bool mHaveServiceConnectivity;
     bool mScheduledCheckEnabled;
     bool mShouldRetry;
     bool mIgnorePartialImage;
@@ -161,4 +159,3 @@ extern template class Internal::GenericSoftwareUpdateManagerImpl<SoftwareUpdateM
 
 // #endif // WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER
 #endif // GENERIC_SOFTWARE_UPDATE_MANAGER_IMPL_H
-

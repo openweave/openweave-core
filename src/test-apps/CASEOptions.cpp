@@ -152,7 +152,7 @@ CASEOptions::CASEOptions()
         { "case-use-known-key",     kNoArgument,            kToolCommonOpt_CASEUseKnownECDHKey  },
 #endif // WEAVE_CONFIG_SECURITY_TEST_MODE
 #endif // WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
-        { NULL }
+        { }
     };
     OptionDefs = optionDefs;
 

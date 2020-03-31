@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -478,6 +479,26 @@
  */
 #ifndef WEAVE_DEVICE_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT
 #define WEAVE_DEVICE_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT 10000
+#endif
+
+// -------------------- Just-In-Time Provisioning Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+ *
+ * Enable just-in-time provisioning functionality in the Weave Device Layer.
+ *
+ * When enabled, device creates and uses its ephemeral operational credentials:
+ *   - operational device id
+ *   - operational device self-signed certificate
+ *   - operational device private key
+ * When enabled, device also implements certificate provisioning protocol and uses it to obtain
+ * service assigned certificate from the Certification Authority Service.
+ *
+ * Then, device uses these credentials to authenticate and communicate to other Weave nodes.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
+#define WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING 0
 #endif
 
 // -------------------- Thread Configuration --------------------

@@ -134,6 +134,7 @@ private:
     int mTestCaseId;
     int mTestSecurityMode;
     uint32_t mKeyId;
+    bool mUseTCP;
 
     TraitPath mTraitPaths[4];
     VersionedTraitPath mVersionedTraitPaths[4];
@@ -380,6 +381,8 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::Init(
     {
         mTestCaseId = kTestCase_TestTrait;
     }
+
+    mUseTCP = aConfig.mUseTCP;
 
     mTestSecurityMode = aTestSecurityMode;
 
@@ -705,11 +708,17 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::PrepareBinding()
 
     Binding::Configuration bindingConfig = mBinding->BeginConfiguration()
         .Target_NodeId(mPublisherNodeId) // TODO: aPublisherNodeId
-        .Transport_UDP_WRM()
-        .Transport_DefaultWRMPConfig(gWRMPConfig)
-
-        // (default) max num of msec between any outgoing message and next incoming message (could be a response to it)
         .Exchange_ResponseTimeoutMsec(kResponseTimeoutMsec);
+
+    if (mUseTCP)
+    {
+        bindingConfig.Transport_TCP();
+    }
+    else
+    {
+        bindingConfig.Transport_UDP_WRM()
+            .Transport_DefaultWRMPConfig(gWRMPConfig);
+    }
 
     if (nl::Weave::kWeaveSubnetId_NotSpecified != mPublisherSubnetId)
     {
@@ -777,13 +786,13 @@ void MockWdmSubscriptionInitiatorImpl::BindingEventCallback (void * const apAppS
     case nl::Weave::Binding::kEvent_PrepareFailed:
         // Don't fail; let the protocol retry.
         //err = aInParam.PrepareFailed.Reason;
-        WeaveLogDetail(DataManagement, "kEvent_PrepareFailed: reason %d", err);
+        WeaveLogDetail(DataManagement, "kEvent_PrepareFailed: reason %s", ::nl::ErrorStr(aInParam.PrepareFailed.Reason));
         break;
 
     case nl::Weave::Binding::kEvent_BindingFailed:
         // Don't fail; let the protocol retry.
         //err = aInParam.BindingFailed.Reason;
-        WeaveLogDetail(DataManagement, "kEvent_BindingFailed: reason %d", err);
+        WeaveLogDetail(DataManagement, "kEvent_BindingFailed: reason %s", ::nl::ErrorStr(aInParam.PrepareFailed.Reason));
         break;
 
     case nl::Weave::Binding::kEvent_BindingReady:
@@ -1090,11 +1099,15 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
 
         break;
     case SubscriptionClient::kEvent_OnSubscriptionTerminated:
-        WeaveLogDetail(DataManagement, "Client->kEvent_OnSubscriptionTerminated. Reason: %u, peer = 0x%" PRIX64 "\n",
-                aInParam.mSubscriptionTerminated.mReason,
-                aInParam.mSubscriptionTerminated.mClient->GetPeerNodeId());
+        WeaveLogDetail(DataManagement, "Client->kEvent_OnSubscriptionTerminated. peer = 0x%" PRIX64 ", %s: %s",
+                aInParam.mSubscriptionTerminated.mClient->GetPeerNodeId(),
+                (aInParam.mSubscriptionTerminated.mIsStatusCodeValid) ? "Status Report" : "Error",
+                (aInParam.mSubscriptionTerminated.mIsStatusCodeValid)
+                    ? ::nl::StatusReportStr(aInParam.mSubscriptionTerminated.mStatusProfileId, aInParam.mSubscriptionTerminated.mStatusCode)
+                    : ::nl::ErrorStr(aInParam.mSubscriptionTerminated.mReason));
 
         initiator->mWillRetry = aInParam.mSubscriptionTerminated.mWillRetry;
+        WeaveLogDetail(DataManagement, "mWillRetry is %s", aInParam.mSubscriptionTerminated.mWillRetry ? "true" : "false");
 
         switch (gFinalStatus)
         {
@@ -1129,7 +1142,7 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
         break;
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     case SubscriptionClient::kEvent_OnUpdateComplete:
-        if ((aInParam.mUpdateComplete.mReason == WEAVE_NO_ERROR) && (nl::Weave::Profiles::Common::kStatus_Success == aInParam.mUpdateComplete.mStatusCode))
+        if ((aInParam.mUpdateComplete.mReason == WEAVE_NO_ERROR) && (nl::Weave::Profiles::kWeaveProfile_Common == aInParam.mUpdateComplete.mStatusProfileId) && (nl::Weave::Profiles::Common::kStatus_Success == aInParam.mUpdateComplete.mStatusCode))
         {
             WeaveLogDetail(DataManagement, "Update: path result: success");
         }
@@ -1143,8 +1156,6 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
 
             if (initiator->mUpdateDiscardOnError)
             {
-                TraitDataSink *sink = NULL;
-                initiator->mSinkCatalog.Locate(aInParam.mUpdateComplete.mTraitDataHandle, &sink);
                 initiator->mSubscriptionClient->DiscardUpdates();
             }
         }
@@ -1263,8 +1274,9 @@ void MockWdmSubscriptionInitiatorImpl::PublisherEventCallback (void * const aApp
             initiator->mExchangeMgr->MessageLayer->SystemLayer->CancelTimer(HandleDataFlipTimeout, initiator);
         }
 
-        if (initiator->mEnableRetry == false || initiator->mWillRetry == false)
+        if (initiator->mEnableRetry == false)
         {
+            WeaveLogDetail(DataManagement, "%s %d", __FUNCTION__, __LINE__);
             HandlePublisherRelease();
             if (gEvaluateSuccessIteration == true)
             {
@@ -1290,8 +1302,11 @@ void MockWdmSubscriptionInitiatorImpl::HandleClientComplete(void *aAppState)
     WEAVE_ERROR err;
     MockWdmSubscriptionInitiatorImpl * const initiator = reinterpret_cast<MockWdmSubscriptionInitiatorImpl *>(aAppState);
 
+    WeaveLogDetail(DataManagement, "%s %d", __FUNCTION__, __LINE__);
+
     if (gIsMutualSubscription == true)
     {
+        WeaveLogDetail(DataManagement, "%s %d", __FUNCTION__, __LINE__);
         gEvaluateSuccessIteration = true;
         initiator->mWillRetry = false;
     }
@@ -1317,9 +1332,11 @@ void MockWdmSubscriptionInitiatorImpl::HandleClientComplete(void *aAppState)
 
 void MockWdmSubscriptionInitiatorImpl::HandlePublisherComplete()
 {
+    WeaveLogDetail(DataManagement, "%s %d", __FUNCTION__, __LINE__);
 
     if (gIsMutualSubscription == true)
     {
+        WeaveLogDetail(DataManagement, "%s %d", __FUNCTION__, __LINE__);
         gEvaluateSuccessIteration = true;
     }
 
@@ -1573,7 +1590,7 @@ void MockWdmSubscriptionInitiatorImpl::MonitorClientCurrentState (nl::Weave::Sys
     {
         if (
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-                false == initiator->mSubscriptionClient->IsUpdatePendingOrInProgress() && initiator->mUpdateTiming == MockWdmNodeOptions::kTiming_NoSub ||
+                (false == initiator->mSubscriptionClient->IsUpdatePendingOrInProgress() && initiator->mUpdateTiming == MockWdmNodeOptions::kTiming_NoSub) ||
 #endif
                 (initiator->mSubscriptionClient->IsEstablishedIdle() && (gIsMutualSubscription == false || gSubscriptionHandler->IsEstablishedIdle())))
         {

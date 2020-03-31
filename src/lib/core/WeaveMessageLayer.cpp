@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2019 Google LLC.
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -1725,7 +1725,7 @@ void WeaveMessageLayer::HandleUDPMessage(UDPEndPoint *endPoint, PacketBuffer *ms
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(MessageLayer, "HandleUDPMessage Error %d", err);
+        WeaveLogError(MessageLayer, "HandleUDPMessage Error %s", nl::ErrorStr(err));
 
         PacketBuffer::Free(msg);
 
@@ -1743,7 +1743,7 @@ exit:
 
 void WeaveMessageLayer::HandleUDPReceiveError(UDPEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo)
 {
-    WeaveLogError(MessageLayer, "HandleUDPReceiveError Error %d", err);
+    WeaveLogError(MessageLayer, "HandleUDPReceiveError Error %s", nl::ErrorStr(err));
 
     WeaveMessageLayer *msgLayer = (WeaveMessageLayer *) endPoint->AppState;
     if (msgLayer->OnReceiveError != NULL)
@@ -2610,6 +2610,8 @@ NL_DLL_EXPORT WEAVE_ERROR GenerateWeaveNodeId(uint64_t & nodeId)
     {
         err = nl::Weave::Platform::Security::GetSecureRandomData(reinterpret_cast<uint8_t*>(&id), sizeof(id));
         SuccessOrExit(err);
+
+        id &= ~kEUI64_UL_Local;
     }
 
     nodeId = id | kEUI64_UL_Local;

@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google, LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -113,6 +114,11 @@ public:
      * Main work-horse function that executes the run-loop.
      */
     void Run(void);
+
+    /**
+     * Main work-horse function that executes the run-loop asynchronously on the Weave thread
+     */
+    void ScheduleRun(void);
 
     /**
      * Marks a handle associated with a data source as being dirty.
@@ -393,6 +399,8 @@ private:
     WEAVE_ERROR SendNotify(PacketBuffer * aBuf, SubscriptionHandler * aSubHandler);
 
     WEAVE_ERROR SendNotifyRequest();
+
+    static void Run(System::Layer * aSystemLayer, void * aAppState, System::Error);
 
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     WEAVE_ERROR BuildSubscriptionlessNotification(PacketBuffer *msgBuf, uint32_t maxPayloadSize, TraitPath *aPathList,

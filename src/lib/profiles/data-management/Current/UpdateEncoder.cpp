@@ -33,7 +33,7 @@
 #include <SystemLayer/SystemStats.h>
 #include <Weave/Support/WeaveFaultInjection.h>
 
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 namespace nl {
 namespace Weave {
@@ -539,4 +539,4 @@ void UpdateEncoder::RemoveInProgressPrivateItemsAfter(TraitPathStore &aList, siz
 }; // namespace Weave
 }; // namespace nl
 
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE

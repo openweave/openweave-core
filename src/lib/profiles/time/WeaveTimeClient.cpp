@@ -2669,7 +2669,7 @@ void SingleSourceTimeSyncClient::HandleTimeChangeNotification(ExchangeContext *a
     }
 }
 
-const char * const SingleSourceTimeSyncClient::GetClientStateName(void) const
+const char * SingleSourceTimeSyncClient::GetClientStateName(void) const
 {
     const char * stateName = NULL;
 

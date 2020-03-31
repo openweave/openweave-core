@@ -61,7 +61,7 @@ static OptionDef gToolOptionDefs[] =
 {
     { "output-file", kArgumentRequired, 'o' },
     { "dest-addr",   kArgumentRequired, 'D' },
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =

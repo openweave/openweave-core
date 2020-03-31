@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2019 Google LLC.
+ *    Copyright (c) 2019-2020 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -92,12 +92,13 @@ namespace FactoryProvisioningData {
 enum
 {
     kTag_SerialNumber           = 0,    // [ utf-8 string ] Serial number
-    kTag_DeviceId               = 1,    // [ uint, 64-bit max ] Manufacturer-assigned device id
-    kTag_DeviceCert             = 2,    // [ byte string ] Manufacturer-assigned device certificate
-    kTag_DevicePrivateKey       = 3,    // [ byte string ] Manufacturer-assigned device key
+    kTag_MfrDeviceId            = 1,    // [ uint, 64-bit max ] Manufacturer-assigned device id
+    kTag_MfrDeviceCert          = 2,    // [ byte string ] Manufacturer-assigned device certificate
+    kTag_MfrDevicePrivateKey    = 3,    // [ byte string ] Manufacturer-assigned device key
     kTag_PairingCode            = 4,    // [ utf-8 string ] Pairing code
     kTag_ProductRev             = 5,    // [ uint, 16-bit max ] Product revision
-    kTag_MfgDate                = 6     // [ utf-8 string ] Manufacturing date
+    kTag_MfgDate                = 6,    // [ utf-8 string ] Manufacturing date
+    kTag_MfrDeviceICACerts      = 7,    // [ byte string ] Manufacturer-assigned device intermediate CA certificates
 };
 
 /**

@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019-2020 Google, LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,16 +45,15 @@ using namespace ::nl::Weave::Profiles::Common;
 using namespace ::nl::Weave::Profiles::DataManagement;
 using namespace ::nl::Weave::Profiles::DataManagement_Current;
 
-UpdateDirtyPathFilter::UpdateDirtyPathFilter(SubscriptionClient *apSubClient,
-                                             TraitDataHandle traitDataHandle,
+UpdateDirtyPathFilter::UpdateDirtyPathFilter(SubscriptionClient * apSubClient, TraitDataHandle traitDataHandle,
                                              const TraitSchemaEngine * aEngine)
 {
-    mpSubClient = apSubClient;
+    mpSubClient      = apSubClient;
     mTraitDataHandle = traitDataHandle;
-    mSchemaEngine = aEngine;
+    mSchemaEngine    = aEngine;
 }
 
-bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle)
+bool UpdateDirtyPathFilter::FilterPath(PropertyPathHandle pathhandle)
 {
     bool retval = false;
 
@@ -71,11 +71,11 @@ bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle)
 
 UpdateDictionaryDirtyPathCut::UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, UpdateEncoder * apEncoder)
 {
-    mpUpdateEncoder = apEncoder;
+    mpUpdateEncoder  = apEncoder;
     mTraitDataHandle = aTraitDataHandle;
 }
 
-WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath (PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine)
+WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath(PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     // TODO: rename this struct, and pass apEngine to the constructor.
@@ -84,6 +84,74 @@ WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath (PropertyPathHandle aPathhandl
     err = mpUpdateEncoder->InsertInProgressUpdateItem(TraitPath(mTraitDataHandle, aPathhandle));
     WeaveLogDetail(DataManagement, "Cut dictionary %u, %u; err %d", mTraitDataHandle, aPathhandle, err);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
+    return err;
+}
+
+WEAVE_ERROR TraitSchemaEngine::ParseTagString(const char * apTagString, char ** apEndptr, uint8_t & aParseRes) const
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    unsigned long int tag;
+    VerifyOrExit(apTagString != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(*apTagString == '/', err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    apTagString++;
+    tag = strtoul(apTagString, apEndptr, 0);
+    VerifyOrExit(!(*apEndptr == apTagString || (**apEndptr != '\0' && **apEndptr != '/')), err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(tag < kContextTagMaxNum, err = WEAVE_ERROR_INVALID_TLV_TAG);
+    aParseRes = tag;
+exit:
+    return err;
+}
+
+WEAVE_ERROR TraitSchemaEngine::MapPathToHandle(const char * aPathString, PropertyPathHandle & aHandle) const
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    PropertyPathHandle childProperty, curProperty;
+    char * parseEnd;
+    uint8_t parseRes = 0;
+    uint64_t tag     = 0;
+
+    VerifyOrExit(aPathString != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    // initialize the out argument to NULL
+    aHandle = kNullPropertyPathHandle;
+
+    // Set our starting point for traversal to the root node.
+    curProperty = kRootPropertyPathHandle;
+
+    if (aPathString[0] == '/' && aPathString[1] == '\0')
+    {
+        ExitNow();
+    }
+
+    // Descend into our schema tree using the tags encountered to help navigate through the various branches.
+    while (*aPathString != '\0')
+    {
+        err = ParseTagString(aPathString, &parseEnd, parseRes);
+        SuccessOrExit(err);
+
+        // Todo: add dictionary support, not yet supported
+        tag = ContextTag(parseRes);
+
+        childProperty = GetChildHandle(curProperty, TagNumFromTag(tag));
+        if (IsNullPropertyPathHandle(childProperty))
+        {
+            err = WEAVE_ERROR_TLV_TAG_NOT_FOUND;
+            SuccessOrExit(err);
+        }
+
+        // Set the current node.
+        curProperty = childProperty;
+
+        aPathString = parseEnd;
+    }
+
+exit:
+    if (err == WEAVE_NO_ERROR)
+    {
+        aHandle = curProperty;
+    }
 
     return err;
 }
@@ -293,10 +361,8 @@ exit:
 }
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandle aHandle,
-                                                               uint64_t aTagToWrite,
-                                                               TLVWriter & aWriter,
-                                                               IGetDataDelegate * aDelegate,
+WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandle aHandle, uint64_t aTagToWrite,
+                                                               TLVWriter & aWriter, IGetDataDelegate * aDelegate,
                                                                PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -304,8 +370,8 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
 #if TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
     nl::Weave::TLV::TLVType dataContainerType;
     PropertyDictionaryKey dictionaryItemKey;
-    uintptr_t context = 0;
-    uint32_t numKeysEncoded = 0;
+    uintptr_t context                               = 0;
+    uint32_t numKeysEncoded                         = 0;
     PropertySchemaHandle dictionaryItemSchemaHandle = GetPropertySchemaHandle(GetFirstChild(aHandle));
     PropertyPathHandle dictionaryItemPathHandle;
     PropertyPathHandle itemToSkipTo = aPropertyPathHandleOfDictItemToStartFrom;
@@ -316,8 +382,7 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
     // items.
     aPropertyPathHandleOfDictItemToStartFrom = kNullPropertyPathHandle;
 
-    err = aWriter.StartContainer(aTagToWrite,
-            nl::Weave::TLV::kTLVType_Structure, dataContainerType);
+    err = aWriter.StartContainer(aTagToWrite, nl::Weave::TLV::kTLVType_Structure, dataContainerType);
     SuccessOrExit(err);
 
     while ((err = aDelegate->GetNextDictionaryItemKey(aHandle, context, dictionaryItemKey)) == WEAVE_NO_ERROR)
@@ -338,18 +403,18 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
         err = RetrieveData(dictionaryItemPathHandle, tag, aWriter, aDelegate);
         if (err != WEAVE_NO_ERROR)
         {
-            WeaveLogDetail(DataManagement, "Dictionary item whith path 0x%" PRIx32 ", tag 0x% " PRIx64 " failed with error % " PRIu32 "",
-                    dictionaryItemPathHandle, tag, err);
+            WeaveLogDetail(DataManagement,
+                           "Dictionary item whith path 0x%" PRIx32 ", tag 0x% " PRIx64 " failed with error % " PRIu32 "",
+                           dictionaryItemPathHandle, tag, err);
         }
-        if (numKeysEncoded > 0 &&
-                ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY)))
+        if (numKeysEncoded > 0 && ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY)))
         {
             // BUFFER_TOO_SMALL means there is no more space in the current buffer.
             // NO_MEMORY means the application is trying to build a chain of pBufs, but
             // there are no more buffers.
-            aWriter = backupWriter;
+            aWriter                                  = backupWriter;
             aPropertyPathHandleOfDictItemToStartFrom = dictionaryItemPathHandle;
-            err = WEAVE_NO_ERROR;
+            err                                      = WEAVE_NO_ERROR;
             break;
         }
         SuccessOrExit(err);
@@ -371,13 +436,11 @@ exit:
     return err;
 }
 
-WEAVE_ERROR TraitSchemaEngine::GetRelativePathTags(const PropertyPathHandle aCandidateHandle,
-                                                   uint64_t *aTags,
-                                                   const uint32_t aTagsSize,
-                                                   uint32_t &aNumTags) const
+WEAVE_ERROR TraitSchemaEngine::GetRelativePathTags(const PropertyPathHandle aCandidateHandle, uint64_t * aTags,
+                                                   const uint32_t aTagsSize, uint32_t & aNumTags) const
 {
     PropertyPathHandle pathWalkStore[mSchema.mTreeDepth];
-    uint32_t pathWalkDepth         = 0;
+    uint32_t pathWalkDepth = 0;
     PropertyPathHandle curProperty;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -399,7 +462,7 @@ WEAVE_ERROR TraitSchemaEngine::GetRelativePathTags(const PropertyPathHandle aCan
         while (pathWalkDepth)
         {
             PropertyPathHandle curHandle = pathWalkStore[pathWalkDepth - 1];
-            aTags[aNumTags] = GetTag(curHandle);
+            aTags[aNumTags]              = GetTag(curHandle);
             pathWalkDepth--;
             aNumTags++;
         }
@@ -410,7 +473,8 @@ exit:
 }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
-WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader & aReader, ISetDataDelegate * aDelegate, IPathFilter * apPathFilter) const
+WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader & aReader, ISetDataDelegate * aDelegate,
+                                         IPathFilter * apPathFilter) const
 {
     WEAVE_ERROR err                 = WEAVE_NO_ERROR;
     TLVType type                    = kTLVType_NotSpecified;
@@ -429,7 +493,7 @@ WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader &
     // The logic further below deals with the cases where this function was called on a path handle at the dictionary or higher.
     if (IsInDictionary(curHandle, dictionaryItemHandle))
     {
-        aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryItemModifyBegin, dictionaryItemHandle);
+        aDelegate->OnSetDataEvent(ISetDataDelegate::kSetDataEvent_DictionaryItemModifyBegin, dictionaryItemHandle);
         dictionaryEventSignalled = true;
     }
 
@@ -447,29 +511,40 @@ WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader &
         // ascension is returning back to a higher point in the tree.
         do
         {
-            if (!(apPathFilter != NULL && apPathFilter->FilterPath(curHandle))) {
+            if (!(apPathFilter != NULL && apPathFilter->FilterPath(curHandle)))
+            {
 #if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
                 if (!IsNullPropertyPathHandle(curHandle))
 #endif
                 {
-                    if (!IsLeaf(curHandle)) {
-                        if (descending) {
+                    if (!IsLeaf(curHandle))
+                    {
+                        if (descending)
+                        {
                             bool enterContainer = (aReader.GetType() != kTLVType_Null);
-                            if (enterContainer) {
+                            if (enterContainer)
+                            {
                                 err = aReader.EnterContainer(type);
                                 SuccessOrExit(err);
 
                                 parentHandle = curHandle;
-                            } else {
-                                if (IsNullable(curHandle)) {
+                            }
+                            else
+                            {
+                                if (IsNullable(curHandle))
+                                {
                                     err = aDelegate->SetData(curHandle, aReader, !enterContainer);
-                                } else {
+                                }
+                                else
+                                {
                                     err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH;
                                 }
                                 SuccessOrExit(err);
                             }
                         }
-                    } else {
+                    }
+                    else
+                    {
                         err = aDelegate->SetData(curHandle, aReader, aReader.GetType() == kTLVType_Null);
                         SuccessOrExit(err);
 
@@ -479,18 +554,22 @@ WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader &
                     }
                 }
 
-                if (!descending) {
-                    if (IsDictionary(curHandle)) {
+                if (!descending)
+                {
+                    if (IsDictionary(curHandle))
+                    {
                         // We can surmise this is a replace if we're ascending to a node that is a dictionary, and that node
                         // is lower than the target node this function was directed at (we can't get to this point in code if the
                         // two handles (target and current) are equivalent to each other).
-                        aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryReplaceEnd, curHandle);
-                    } else if (IsDictionary(parentHandle)) {
-                        // We can surmise this is a modify/add if we're ascending to a node whose parent is a dictionary, and that node
-                        // is lower than the target node this function was directed at (we can't get to this point in code if the
-                        // two handles (target and current) are equivalent to each other). Those cases are handled by the two 'if'
-                        // statements at the top and bottom of this function.
-                        aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryItemModifyEnd, curHandle);
+                        aDelegate->OnSetDataEvent(ISetDataDelegate::kSetDataEvent_DictionaryReplaceEnd, curHandle);
+                    }
+                    else if (IsDictionary(parentHandle))
+                    {
+                        // We can surmise this is a modify/add if we're ascending to a node whose parent is a dictionary, and that
+                        // node is lower than the target node this function was directed at (we can't get to this point in code if
+                        // the two handles (target and current) are equivalent to each other). Those cases are handled by the two
+                        // 'if' statements at the top and bottom of this function.
+                        aDelegate->OnSetDataEvent(ISetDataDelegate::kSetDataEvent_DictionaryItemModifyEnd, curHandle);
                     }
                 }
             }
@@ -499,45 +578,54 @@ WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader &
             err = aReader.Next();
             VerifyOrExit((err == WEAVE_NO_ERROR) || (err == WEAVE_END_OF_TLV), );
 
-            if (err == WEAVE_END_OF_TLV) {
+            if (err == WEAVE_END_OF_TLV)
+            {
                 // We've hit the end of the container - exit out and point our current handle to its parent.
                 // In the process, restore the parentHandle as well.
                 err = aReader.ExitContainer(type);
                 SuccessOrExit(err);
 
-                curHandle = parentHandle;
+                curHandle    = parentHandle;
                 parentHandle = GetParent(curHandle);
 
                 descending = false;
-            } else {
+            }
+            else
+            {
                 const uint64_t tag = aReader.GetTag();
 
                 descending = true;
 
-                if (IsProfileTag(tag)) {
-                    VerifyOrExit(ProfileIdFromTag(tag) == kWeaveProfile_DictionaryKey,
-                                 err = WEAVE_ERROR_INVALID_TLV_TAG);
+                if (IsProfileTag(tag))
+                {
+                    VerifyOrExit(ProfileIdFromTag(tag) == kWeaveProfile_DictionaryKey, err = WEAVE_ERROR_INVALID_TLV_TAG);
                     curHandle = GetDictionaryItemHandle(parentHandle, TagNumFromTag(tag));
-                } else {
+                }
+                else
+                {
                     curHandle = GetChildHandle(parentHandle, TagNumFromTag(tag));
                 }
 
-                if (!(apPathFilter != NULL && apPathFilter->FilterPath(curHandle))) {
-                    if (IsDictionary(curHandle)) {
+                if (!(apPathFilter != NULL && apPathFilter->FilterPath(curHandle)))
+                {
+                    if (IsDictionary(curHandle))
+                    {
                         // If we're descending onto a node that is a dictionary, we know for certain that it is a replace operation
                         // since the target path handle for this function was higher in the tree than the node representing the
                         // dictionary itself.
-                        aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryReplaceBegin, curHandle);
-                    } else if (IsDictionary(parentHandle)) {
+                        aDelegate->OnSetDataEvent(ISetDataDelegate::kSetDataEvent_DictionaryReplaceBegin, curHandle);
+                    }
+                    else if (IsDictionary(parentHandle))
+                    {
                         // Alternatively, if we're descending onto a node whose parent is a dictionary, we know that this node
-                        // represents an element in the dictionary and as such, is an appropriate point in the traversal to notify the
-                        // application of an upcoming dictionary item modification/insertion.
-                        aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryItemModifyBegin,
-                                                   curHandle);
+                        // represents an element in the dictionary and as such, is an appropriate point in the traversal to notify
+                        // the application of an upcoming dictionary item modification/insertion.
+                        aDelegate->OnSetDataEvent(ISetDataDelegate::kSetDataEvent_DictionaryItemModifyBegin, curHandle);
                     }
                 }
 #if !TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
-                if (IsNullPropertyPathHandle(curHandle)) {
+                if (IsNullPropertyPathHandle(curHandle))
+                {
                     err = WEAVE_ERROR_TLV_TAG_NOT_FOUND;
                     break;
                 }
@@ -548,7 +636,7 @@ WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader &
 
     if (dictionaryEventSignalled)
     {
-        aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryItemModifyEnd, dictionaryItemHandle);
+        aDelegate->OnSetDataEvent(ISetDataDelegate::kSetDataEvent_DictionaryItemModifyEnd, dictionaryItemHandle);
     }
 
 exit:
@@ -564,8 +652,7 @@ bool TraitSchemaEngine::IsParent(PropertyPathHandle aChildHandle, PropertyPathHa
 {
     bool retval = false;
 
-    VerifyOrExit(aChildHandle != kNullPropertyPathHandle &&
-                 aParentHandle != kNullPropertyPathHandle, );
+    VerifyOrExit(aChildHandle != kNullPropertyPathHandle && aParentHandle != kNullPropertyPathHandle, );
 
     do
     {
@@ -927,22 +1014,28 @@ void TraitDataSink::SetVersion(uint64_t aVersion)
     {
         if (aVersion != mVersion)
         {
-            WeaveLogDetail(DataManagement, "Trait %08x version: 0x%" PRIx64 " -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), mVersion,
-                    aVersion);
+            WeaveLogDetail(DataManagement, "Trait %08x version: 0x%" PRIx64 " -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(),
+                           mVersion, aVersion);
         }
     }
     else
     {
         WeaveLogDetail(DataManagement, "Trait %08x version: n/a -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), aVersion);
     }
-    mVersion = aVersion;
+    mVersion         = aVersion;
     mHasValidVersion = true;
+}
+
+void TraitDataSink::ClearVersion(void)
+{
+    WeaveLogDetail(DataManagement, "Trait %08x version: cleared", mSchemaEngine->GetProfileId());
+    mHasValidVersion = false;
 }
 
 void TraitDataSink::SetLastNotifyVersion(uint64_t aVersion)
 {
-    WeaveLogDetail(DataManagement, "Trait %08x last notify version: 0x%" PRIx64 " -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), mLastNotifyVersion,
-            aVersion);
+    WeaveLogDetail(DataManagement, "Trait %08x last notify version: 0x%" PRIx64 " -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(),
+                   mLastNotifyVersion, aVersion);
 
     mLastNotifyVersion = aVersion;
 }
@@ -952,10 +1045,10 @@ void * TraitDataSink::sChangeRejectionContext                      = NULL;
 
 TraitDataSink::TraitDataSink(const TraitSchemaEngine * aEngine)
 {
-    mSchemaEngine    = aEngine;
-    mVersion         = 0;
+    mSchemaEngine      = aEngine;
+    mVersion           = 0;
     mLastNotifyVersion = 0;
-    mHasValidVersion = 0;
+    mHasValidVersion   = 0;
 }
 
 WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReader & aReader, uint8_t aFlags,
@@ -1050,13 +1143,13 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
         else
         {
             // We need to clear this since we don't have a good version of data anymore.
-            mHasValidVersion = false;
+            ClearVersion();
         }
     }
     else
     {
-        WeaveLogDetail(DataManagement, "<StoreData> [Trait %08x] version: 0x%" PRIx64 " (no-change)",
-                       mSchemaEngine->GetProfileId(), mVersion);
+        WeaveLogDetail(DataManagement, "<StoreData> [Trait %08x] version: 0x%" PRIx64 " (no-change)", mSchemaEngine->GetProfileId(),
+                       mVersion);
     }
 
     if (aFlags & kLastElementInChange)
@@ -1068,25 +1161,25 @@ exit:
     return err;
 }
 
-void TraitDataSink::OnDataSinkEvent(DataSinkEventType aEventType, PropertyPathHandle aHandle)
+void TraitDataSink::OnSetDataEvent(SetDataEventType aEventType, PropertyPathHandle aHandle)
 {
     EventType event;
 
     switch (aEventType)
     {
-    case kDataSinkEvent_DictionaryReplaceBegin:
+    case kSetDataEvent_DictionaryReplaceBegin:
         event = kEventDictionaryReplaceBegin;
         break;
 
-    case kDataSinkEvent_DictionaryReplaceEnd:
+    case kSetDataEvent_DictionaryReplaceEnd:
         event = kEventDictionaryReplaceEnd;
         break;
 
-    case kDataSinkEvent_DictionaryItemModifyBegin:
+    case kSetDataEvent_DictionaryItemModifyBegin:
         event = kEventDictionaryItemModifyBegin;
         break;
 
-    case kDataSinkEvent_DictionaryItemModifyEnd:
+    case kSetDataEvent_DictionaryItemModifyEnd:
         event = kEventDictionaryItemModifyEnd;
         break;
 
@@ -1140,8 +1233,9 @@ TraitDataSource::TraitDataSource(const TraitSchemaEngine * aEngine)
 
 uint64_t TraitDataSource::GetVersion(void)
 {
-    // At the time of version retrieval, check to see if the version is still at the sentinel value of 0 (indicating 'no version') set at construction. If it is,
-    // it means that the data source has not over-ridden the version to something other than 0, indicating that it desires to use randomized data versions.
+    // At the time of version retrieval, check to see if the version is still at the sentinel value of 0 (indicating 'no version')
+    // set at construction. If it is, it means that the data source has not over-ridden the version to something other than 0,
+    // indicating that it desires to use randomized data versions.
     while (mVersion == 0)
     {
         mVersion = GetRandU64();
@@ -1188,8 +1282,7 @@ void TraitDataSource::OnCustomCommand(Command * aCommand, const nl::Weave::Weave
  *  object.
  */
 void TraitDataSource::OnCustomCommand(Command * aCommand, const nl::Weave::WeaveMessageInfo * aMsgInfo,
-                                      nl::Weave::PacketBuffer * aPayload,
-                                      nl::Weave::TLV::TLVReader & aArgumentReader)
+                                      nl::Weave::PacketBuffer * aPayload, nl::Weave::TLV::TLVReader & aArgumentReader)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -1269,27 +1362,33 @@ WEAVE_ERROR TraitDataSource::Unlock()
     return SubscriptionEngine::GetInstance()->Unlock();
 }
 
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+WEAVE_ERROR TraitDataSource::Unlock(bool aSkipVersionIncrement)
+{
+    if (mManagedVersion && mSetDirtyCalled && !aSkipVersionIncrement)
+    {
+        IncrementVersion();
+    }
+
+    VerifyOrDie(SubscriptionEngine::GetInstance());
+    return SubscriptionEngine::GetInstance()->Unlock();
+}
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
 TraitUpdatableDataSink::TraitUpdatableDataSink(const TraitSchemaEngine * aEngine) :
-    TraitDataSink(aEngine),
-    mUpdateRequiredVersion(0),
-    mUpdateStartVersion(0),
-    mConditionalUpdate(false),
-    mPotentialDataLoss(false),
-    mpSubClient(NULL),
-    mpUpdateEncoder(NULL)
-{
-};
+    TraitDataSink(aEngine), mUpdateRequiredVersion(0), mUpdateStartVersion(0), mConditionalUpdate(false), mPotentialDataLoss(false),
+    mpSubClient(NULL), mpUpdateEncoder(NULL) { };
 
 void TraitUpdatableDataSink::Lock(SubscriptionClient * apSubClient)
 {
-    VerifyOrDie(apSubClient!=NULL);
+    VerifyOrDie(apSubClient != NULL);
     apSubClient->LockUpdateMutex();
 }
 
 void TraitUpdatableDataSink::Unlock(SubscriptionClient * apSubClient)
 {
-    VerifyOrDie(apSubClient!=NULL);
+    VerifyOrDie(apSubClient != NULL);
     apSubClient->UnlockUpdateMutex();
 }
 
@@ -1308,12 +1407,12 @@ WEAVE_ERROR TraitUpdatableDataSink::GetData(PropertyPathHandle aHandle, uint64_t
     return err;
 }
 
-void TraitUpdatableDataSink::SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion)
+void TraitUpdatableDataSink::SetUpdateRequiredVersion(const uint64_t & aUpdateRequiredVersion)
 {
     if (aUpdateRequiredVersion != mUpdateRequiredVersion)
     {
         WeaveLogDetail(DataManagement, "[Trait %08x] UpdateRequiredVersion: 0x%" PRIx64 " -> 0x%" PRIx64 "",
-                mSchemaEngine->GetProfileId(), mUpdateRequiredVersion, aUpdateRequiredVersion);
+                       mSchemaEngine->GetProfileId(), mUpdateRequiredVersion, aUpdateRequiredVersion);
         mUpdateRequiredVersion = aUpdateRequiredVersion;
 
         // TODO: Ideally, this fault would be injected when the payload is encoded; but, all DataElements for the
@@ -1331,16 +1430,13 @@ void TraitUpdatableDataSink::SetUpdateStartVersion(void)
     if (GetVersion() != mUpdateStartVersion)
     {
         WeaveLogDetail(DataManagement, "[Trait %08x] UpdateStartVersion: 0x%" PRIx64 " -> 0x%" PRIx64 "",
-                mSchemaEngine->GetProfileId(), mUpdateStartVersion, GetVersion());
+                       mSchemaEngine->GetProfileId(), mUpdateStartVersion, GetVersion());
         mUpdateStartVersion = GetVersion();
     }
 }
 
-WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle,
-                                             PropertyPathHandle aHandle,
-                                             uint64_t aTagToWrite,
-                                             TLVWriter & aWriter,
-                                             PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom)
+WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite,
+                                             TLVWriter & aWriter, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -1348,14 +1444,13 @@ WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle,
     {
         WeaveLogDetail(DataManagement, "process dictionary in update");
         err = mSchemaEngine->RetrieveUpdatableDictionaryData(aHandle, aTagToWrite, aWriter,
-                                                             static_cast<TraitSchemaEngine::IGetDataDelegate*>(this),
+                                                             static_cast<TraitSchemaEngine::IGetDataDelegate *>(this),
                                                              aPropertyPathHandleOfDictItemToStartFrom);
     }
     else
     {
         UpdateDictionaryDirtyPathCut updateDirtyPathCut(aTraitDataHandle, GetUpdateEncoder());
-        err = mSchemaEngine->RetrieveData(aHandle, aTagToWrite, aWriter,
-                                          static_cast<TraitSchemaEngine::IGetDataDelegate *>(this),
+        err = mSchemaEngine->RetrieveData(aHandle, aTagToWrite, aWriter, static_cast<TraitSchemaEngine::IGetDataDelegate *>(this),
                                           &updateDirtyPathCut);
     }
     SuccessOrExit(err);
@@ -1392,7 +1487,8 @@ exit:
  * @retval      WEAVE_ERROR_WDM_PATH_STORE_FULL if there is no memory to store the path.
  * @retval      Other WEAVE_ERROR codes depending on the failure.
  */
-WEAVE_ERROR TraitUpdatableDataSink::SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional)
+WEAVE_ERROR TraitUpdatableDataSink::SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle,
+                                               bool aIsConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -1404,5 +1500,120 @@ WEAVE_ERROR TraitUpdatableDataSink::SetUpdated(SubscriptionClient * apSubClient,
 exit:
     return err;
 }
-
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+TraitUpdatableDataSource::OnChangeRejection TraitUpdatableDataSource::sChangeRejectionCb = NULL;
+void * TraitUpdatableDataSource::sChangeRejectionContext                                 = NULL;
+
+TraitUpdatableDataSource::TraitUpdatableDataSource(const TraitSchemaEngine * aEngine) : TraitDataSource(aEngine) { }
+
+WEAVE_ERROR TraitUpdatableDataSource::StoreDataElement(PropertyPathHandle aHandle, TLVReader & aReader, uint8_t aFlags,
+                                                       OnChangeRejection aFunc, void * aContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    DataElement::Parser parser;
+    bool dataPresent = false, deletePresent = false;
+
+    err = parser.Init(aReader);
+    SuccessOrExit(err);
+
+    err = parser.CheckPresence(&dataPresent, &deletePresent);
+    SuccessOrExit(err);
+
+    if (deletePresent)
+    {
+        err = parser.GetDeletedDictionaryKeys(&aReader);
+        SuccessOrExit(err);
+
+        while ((err = aReader.Next()) == WEAVE_NO_ERROR)
+        {
+            PropertyDictionaryKey key;
+            PropertyPathHandle handle;
+
+            err = aReader.Get(key);
+            SuccessOrExit(err);
+
+            // In the case of a delete, the path is usually directed to the dictionary itself. We
+            // need to get the handle to the child dictionary element handle first before we can
+            // pass it up to the application.
+            handle = mSchemaEngine->GetFirstChild(aHandle);
+            VerifyOrExit(handle != kNullPropertyPathHandle, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+            handle = CreatePropertyPathHandle(GetPropertySchemaHandle(handle), key);
+            OnEvent(kEventDictionaryItemDelete, &handle);
+        }
+
+        VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_END_OF_TLV, );
+        err = WEAVE_NO_ERROR;
+    }
+
+    if (aHandle != kNullPropertyPathHandle && dataPresent)
+    {
+        err = parser.GetData(&aReader);
+        SuccessOrExit(err);
+        err = mSchemaEngine->StoreData(aHandle, aReader, this, NULL);
+        SuccessOrExit(err);
+    }
+
+exit:
+    return err;
+}
+
+void TraitUpdatableDataSource::OnSetDataEvent(SetDataEventType aEventType, PropertyPathHandle aHandle)
+{
+    EventType event;
+
+    switch (aEventType)
+    {
+    case kSetDataEvent_DictionaryReplaceBegin:
+        event = kEventDictionaryReplaceBegin;
+        break;
+
+    case kSetDataEvent_DictionaryReplaceEnd:
+        event = kEventDictionaryReplaceEnd;
+        break;
+
+    case kSetDataEvent_DictionaryItemModifyBegin:
+        event = kEventDictionaryItemModifyBegin;
+        break;
+
+    case kSetDataEvent_DictionaryItemModifyEnd:
+        event = kEventDictionaryItemModifyEnd;
+        break;
+
+    default:
+        return;
+    };
+
+    OnEvent(event, &aHandle);
+}
+
+void TraitUpdatableDataSource::RejectChange(uint16_t aRejectionStatusCode)
+{
+    if (sChangeRejectionCb)
+    {
+        sChangeRejectionCb(aRejectionStatusCode, GetVersion(), sChangeRejectionContext);
+    }
+}
+
+WEAVE_ERROR TraitUpdatableDataSource::SetData(PropertyPathHandle aHandle, TLVReader & aReader, bool aIsNull)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // if a trait has no nullable handles, aIsNull will always be false
+    // and serves no purpose. this is true for the default implementation.
+    IgnoreUnusedVariable(aIsNull);
+
+    if (mSchemaEngine->IsLeaf(aHandle))
+    {
+        err = SetLeafData(aHandle, aReader);
+        if (err != WEAVE_NO_ERROR)
+        {
+            WeaveLogDetail(DataManagement, "ahandle %u err: %d", aHandle, err);
+        }
+    }
+    return err;
+}
+
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT

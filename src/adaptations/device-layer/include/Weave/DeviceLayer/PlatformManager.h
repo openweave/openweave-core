@@ -28,6 +28,19 @@
 
 namespace nl {
 namespace Weave {
+namespace System {
+namespace Platform {
+namespace Layer {
+
+System::Error PostEvent(System::Layer&, void*, System::Object&, System::EventType, uintptr_t);
+System::Error DispatchEvents(System::Layer&, void*);
+System::Error DispatchEvent(System::Layer&, void*, System::Event);
+System::Error StartTimer(System::Layer&, void*, uint32_t);
+
+} // namespace Layer
+} // namespace Platform
+} // namespace System
+
 namespace DeviceLayer {
 
 class PlatformManagerImpl;
@@ -90,10 +103,11 @@ private:
     template<class> friend class Internal::GenericThreadStackManagerImpl_OpenThread;
     template<class> friend class Internal::GenericThreadStackManagerImpl_OpenThread_LwIP;
     template<class> friend class Internal::GenericConfigurationManagerImpl;
-    friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::PostEvent(::nl::Weave::System::Layer & aLayer, void * aContext, ::nl::Weave::System::Object & aTarget, ::nl::Weave::System::EventType aType, uintptr_t aArgument);
-    friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::DispatchEvents(::nl::Weave::System::Layer & aLayer, void * aContext);
-    friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::DispatchEvent(::nl::Weave::System::Layer & aLayer, void * aContext, ::nl::Weave::System::Event aEvent);
-    friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::StartTimer(::nl::Weave::System::Layer & aLayer, void * aContext, uint32_t aMilliseconds);
+    // Parentheses used to fix clang parsing issue with these declarations
+    friend ::nl::Weave::System::Error (::nl::Weave::System::Platform::Layer::PostEvent(::nl::Weave::System::Layer & aLayer, void * aContext, ::nl::Weave::System::Object & aTarget, ::nl::Weave::System::EventType aType, uintptr_t aArgument));
+    friend ::nl::Weave::System::Error (::nl::Weave::System::Platform::Layer::DispatchEvents(::nl::Weave::System::Layer & aLayer, void * aContext));
+    friend ::nl::Weave::System::Error (::nl::Weave::System::Platform::Layer::DispatchEvent(::nl::Weave::System::Layer & aLayer, void * aContext, ::nl::Weave::System::Event aEvent));
+    friend ::nl::Weave::System::Error (::nl::Weave::System::Platform::Layer::StartTimer(::nl::Weave::System::Layer & aLayer, void * aContext, uint32_t aMilliseconds));
 
     void PostEvent(const WeaveDeviceEvent * event);
     void DispatchEvent(const WeaveDeviceEvent * event);

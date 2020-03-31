@@ -62,6 +62,7 @@ using namespace nl::Weave::Encoding;
 using namespace nl::Weave::Crypto;
 using namespace nl::Weave::Profiles;
 using namespace nl::Weave::Profiles::FabricProvisioning;
+using namespace nl::Weave::Profiles::Security;
 using namespace nl::Weave::Profiles::Security::AppKeys;
 
 #if WEAVE_CONFIG_SECURITY_TEST_MODE
@@ -390,20 +391,7 @@ void WeaveFabricState::RemoveSessionKey(WeaveSessionKey *sessionKey, bool wasIdl
     WeaveLogDetail(MessageLayer, "Removing %ssession key: Id=%04" PRIX16 " Peer=%016" PRIX64,
             (wasIdle) ? "idle " : "", sessionKey->MsgEncKey.KeyId, sessionKey->NodeId);
 
-    if (sessionKey->IsSharedSession())
-    {
-        SharedSessionEndNode *endNode = SharedSessionsNodes;
-
-        // Clear all information about shared session end nodes.
-        for (int i = 0; i < WEAVE_CONFIG_MAX_SHARED_SESSIONS_END_NODES; i++, endNode++)
-        {
-            if (endNode->SessionKey == sessionKey)
-            {
-                memset((uint8_t *)endNode, 0, sizeof(SharedSessionEndNode));
-            }
-        }
-    }
-
+    RemoveSharedSessionEndNodes(sessionKey);
     sessionKey->Clear();
 }
 
@@ -602,6 +590,312 @@ exit:
     return err;
 }
 
+void WeaveFabricState::RemoveSharedSessionEndNodes(const WeaveSessionKey *sessionKey)
+{
+    if (sessionKey->IsSharedSession())
+    {
+        SharedSessionEndNode *endNode = SharedSessionsNodes;
+
+        // Clear all information about shared session end nodes.
+        for (int i = 0; i < WEAVE_CONFIG_MAX_SHARED_SESSIONS_END_NODES; i++, endNode++)
+        {
+            if (endNode->SessionKey == sessionKey)
+            {
+                memset((uint8_t *)endNode, 0, sizeof(SharedSessionEndNode));
+            }
+        }
+    }
+}
+
+/**
+ * Suspend and serialize the state of an active Weave security session.
+ *
+ * Serializes the state of an identified Weave security session into the supplied buffer
+ * and suspends the session such that no further messages can be sent or received.
+ *
+ * This method is intended to be used by devices that do not retain RAM while sleeping,
+ * allowing them to persist the state of an active session and thereby avoid the need to
+ * re-establish the session when they wake.
+ */
+WEAVE_ERROR WeaveFabricState::SuspendSession(uint16_t keyId, uint64_t peerNodeId, uint8_t * buf, uint16_t bufSize, uint16_t & serializedSessionLen)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveSessionKey * sessionKey;
+
+    // Lookup the specified session.
+    err = GetSessionKey(keyId, peerNodeId, sessionKey);
+    SuccessOrExit(err);
+
+    // Assert various requirements about the session.
+    VerifyOrExit(sessionKey->IsKeySet(), err = WEAVE_ERROR_KEY_NOT_FOUND);
+    VerifyOrExit(!sessionKey->IsSuspended(), err = WEAVE_ERROR_SESSION_KEY_SUSPENDED);
+    VerifyOrExit(sessionKey->BoundCon == NULL, err = WEAVE_ERROR_INVALID_USE_OF_SESSION_KEY);
+    VerifyOrExit(IsCertAuthMode(sessionKey->AuthMode), err = WEAVE_ERROR_INVALID_USE_OF_SESSION_KEY);
+
+    {
+        TLVWriter writer;
+        TLVType container;
+
+        writer.Init(buf, bufSize);
+
+        // Begin encoding a Security:SerializedSession TLV structure.
+        err = writer.StartContainer(ProfileTag(kWeaveProfile_Security, kTag_SerializedSession), kTLVType_Structure, container);
+        SuccessOrExit(err);
+
+        // Encode various information about the session, in tag order.
+        err = writer.Put(ContextTag(kTag_SerializedSession_KeyId), sessionKey->MsgEncKey.KeyId);
+        SuccessOrExit(err);
+        err = writer.Put(ContextTag(kTag_SerializedSession_PeerNodeId), sessionKey->NodeId);
+        SuccessOrExit(err);
+        err = writer.Put(ContextTag(kTag_SerializedSession_NextMessageId), sessionKey->NextMsgId.GetValue());
+        SuccessOrExit(err);
+        err = writer.Put(ContextTag(kTag_SerializedSession_MaxRcvdMessageId), sessionKey->MaxRcvdMsgId);
+        SuccessOrExit(err);
+        err = writer.Put(ContextTag(kTag_SerializedSession_MessageRcvdFlags), sessionKey->RcvFlags);
+        SuccessOrExit(err);
+        err = writer.PutBoolean(ContextTag(kTag_SerializedSession_IsLocallyInitiated), sessionKey->IsLocallyInitiated());
+        SuccessOrExit(err);
+        err = writer.PutBoolean(ContextTag(kTag_SerializedSession_IsShared), sessionKey->IsSharedSession());
+        SuccessOrExit(err);
+
+        // If the session is shared...
+        if (sessionKey->IsSharedSession())
+        {
+            SharedSessionEndNode *endNode = SharedSessionsNodes;
+            TLVType container2;
+
+            // Begin encoding an array containing the alternate node ids for the peer.
+            err = writer.StartContainer(ContextTag(kTag_SerializedSession_SharedSessionAltNodeIds), kTLVType_Array, container2);
+            SuccessOrExit(err);
+
+            for (int i = 0; i < WEAVE_CONFIG_MAX_SHARED_SESSIONS_END_NODES; i++, endNode++)
+            {
+                if (endNode->SessionKey == sessionKey)
+                {
+                    err = writer.Put(AnonymousTag, endNode->EndNodeId);
+                    SuccessOrExit(err);
+                }
+            }
+
+            // End the array.
+            err = writer.EndContainer(container2);
+            SuccessOrExit(err);
+        }
+
+        // For a CASE-based session, encode the certificate type presented by the peer.
+        err = writer.Put(ContextTag(kTag_SerializedSession_CASE_PeerCertType), CertTypeFromAuthMode(sessionKey->AuthMode));
+        SuccessOrExit(err);
+
+        // Encode the encryption type used to encrypt messages via this session.
+        err = writer.Put(ContextTag(kTag_SerializedSession_EncryptionType), sessionKey->MsgEncKey.EncType);
+        SuccessOrExit(err);
+
+        // Encode the encryption key(s) associated with the session.
+        switch (sessionKey->MsgEncKey.EncType)
+        {
+        case kWeaveEncryptionType_AES128CTRSHA1:
+            err = writer.PutBytes(ContextTag(kTag_SerializedSession_AES128CTRSHA1_DataKey),
+                    sessionKey->MsgEncKey.EncKey.AES128CTRSHA1.DataKey, WeaveEncryptionKey_AES128CTRSHA1::DataKeySize);
+            SuccessOrExit(err);
+            err = writer.PutBytes(ContextTag(kTag_SerializedSession_AES128CTRSHA1_IntegrityKey),
+                    sessionKey->MsgEncKey.EncKey.AES128CTRSHA1.IntegrityKey, WeaveEncryptionKey_AES128CTRSHA1::IntegrityKeySize);
+            SuccessOrExit(err);
+            break;
+        default:
+            ExitNow(err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
+        }
+
+        // End the Security:SerializedSession TLV structure and finalize the encoding.
+        err = writer.EndContainer(container);
+        SuccessOrExit(err);
+        err = writer.Finalize();
+        SuccessOrExit(err);
+
+        serializedSessionLen = (uint16_t)writer.GetLengthWritten();
+    }
+
+    // Mark the session key as suspended.
+    sessionKey->MarkSuspended();
+
+    // Wipe the key.
+    sessionKey->MsgEncKey.EncType = kWeaveEncryptionType_None;
+    ClearSecretData((uint8_t *)&sessionKey->MsgEncKey.EncKey, sizeof(sessionKey->MsgEncKey.EncKey));
+
+exit:
+    // If something goes wrong, make sure we don't leave any key material behind.
+    if (err != WEAVE_NO_ERROR)
+    {
+        ClearSecretData(buf, bufSize);
+    }
+    return err;
+}
+
+/**
+ * Restore a previously suspended Weave Security Session from a serialized state.
+ *
+ */
+WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16_t serializedSessionLen)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVReader reader;
+    TLVType container;
+    uint16_t keyId;
+    uint64_t peerNodeId;
+    WeaveSessionKey * sessionKey = NULL;
+    bool removeSessionOnError = false;
+
+    reader.Init(serializedSession, serializedSessionLen);
+
+    // Look for and enter the Security:SerializedSession TLV structure.
+    err = reader.Next(kTLVType_Structure, ProfileTag(kWeaveProfile_Security, kTag_SerializedSession));
+    SuccessOrExit(err);
+    err = reader.EnterContainer(container);
+    SuccessOrExit(err);
+
+    // Read the key id and peer node id.
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_KeyId));
+    SuccessOrExit(err);
+    err = reader.Get(keyId);
+    SuccessOrExit(err);
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_PeerNodeId));
+    SuccessOrExit(err);
+    err = reader.Get(peerNodeId);
+    SuccessOrExit(err);
+
+    // Look for / create a session key entry for the given key id and peer node.
+    err = FindSessionKey(keyId, peerNodeId, true, sessionKey);
+    SuccessOrExit(err);
+    if (!sessionKey->IsAllocated())
+    {
+        sessionKey->MsgEncKey.KeyId = keyId;
+        sessionKey->NodeId = peerNodeId;
+        sessionKey->BoundCon = NULL;
+        sessionKey->ReserveCount = 0;
+        sessionKey->Flags = 0;
+    }
+    else
+    {
+        // If the key id / peer node matches an existing session that is NOT suspended, fail with an error.
+        VerifyOrExit(sessionKey->IsSuspended(), err = WEAVE_ERROR_DUPLICATE_KEY_ID);
+    }
+    sessionKey->SetRemoveOnIdle(true);
+    sessionKey->MarkRecentlyActive();
+
+    // After this point, if an error occurs, remove the session key.
+    removeSessionOnError = true;
+
+    // If the key id / peer node matched a suspended session key, clear the suspended flag.
+    sessionKey->ClearSuspended();
+
+    // Clear any alternate end node ids associated with the session key.
+    RemoveSharedSessionEndNodes(sessionKey);
+
+    // Read the encoded session information in tag order and restore it into the session key entry.
+    {
+        uint32_t nextMsgId;
+        err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_NextMessageId));
+        SuccessOrExit(err);
+        err = reader.Get(nextMsgId);
+        SuccessOrExit(err);
+        err = sessionKey->NextMsgId.Init(nextMsgId);
+        SuccessOrExit(err);
+    }
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_MaxRcvdMessageId));
+    SuccessOrExit(err);
+    err = reader.Get(sessionKey->MaxRcvdMsgId);
+    SuccessOrExit(err);
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_MessageRcvdFlags));
+    SuccessOrExit(err);
+    err = reader.Get(sessionKey->RcvFlags);
+    SuccessOrExit(err);
+    {
+        bool b;
+        err = reader.Next(kTLVType_Boolean, ContextTag(kTag_SerializedSession_IsLocallyInitiated));
+        SuccessOrExit(err);
+        err = reader.Get(b);
+        SuccessOrExit(err);
+        sessionKey->SetLocallyInitiated(b);
+        err = reader.Next(kTLVType_Boolean, ContextTag(kTag_SerializedSession_IsShared));
+        SuccessOrExit(err);
+        err = reader.Get(b);
+        SuccessOrExit(err);
+        sessionKey->SetSharedSession(b);
+    }
+
+    // If the session is a shared session, restore the list of alternate end node ids.
+    if (sessionKey->IsSharedSession())
+    {
+        TLVType container2;
+
+        err = reader.Next(kTLVType_Array, ContextTag(kTag_SerializedSession_SharedSessionAltNodeIds));
+        SuccessOrExit(err);
+        err = reader.EnterContainer(container2);
+        SuccessOrExit(err);
+
+        while ((err = reader.Next(kTLVType_UnsignedInteger, kTLVTagControl_Anonymous)) == WEAVE_NO_ERROR)
+        {
+            uint64_t altNodeId;
+
+            err = reader.Get(altNodeId);
+            SuccessOrExit(err);
+
+            err = AddSharedSessionEndNode(sessionKey, altNodeId);
+            SuccessOrExit(err);
+        }
+
+        err = reader.ExitContainer(container2);
+        SuccessOrExit(err);
+    }
+
+    // Read and restore the session AuthMode.
+    {
+        uint8_t certType;
+        err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_CASE_PeerCertType));
+        SuccessOrExit(err);
+        err = reader.Get(certType);
+        SuccessOrExit(err);
+        sessionKey->AuthMode = CASEAuthMode(certType);
+    }
+
+    // Restore the session message encryption type.
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_EncryptionType));
+    SuccessOrExit(err);
+    err = reader.Get(sessionKey->MsgEncKey.EncType);
+    SuccessOrExit(err);
+
+    // Based on the encryption type, restore the associated keys.
+    switch (sessionKey->MsgEncKey.EncType)
+    {
+    case kWeaveEncryptionType_AES128CTRSHA1:
+        err = reader.Next(kTLVType_ByteString, ContextTag(kTag_SerializedSession_AES128CTRSHA1_DataKey));
+        SuccessOrExit(err);
+        VerifyOrExit(reader.GetLength() == WeaveEncryptionKey_AES128CTRSHA1::DataKeySize, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        err = reader.GetBytes(sessionKey->MsgEncKey.EncKey.AES128CTRSHA1.DataKey, WeaveEncryptionKey_AES128CTRSHA1::DataKeySize);
+        SuccessOrExit(err);
+        err = reader.Next(kTLVType_ByteString, ContextTag(kTag_SerializedSession_AES128CTRSHA1_IntegrityKey));
+        SuccessOrExit(err);
+        VerifyOrExit(reader.GetLength() == WeaveEncryptionKey_AES128CTRSHA1::IntegrityKeySize, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        err = reader.GetBytes(sessionKey->MsgEncKey.EncKey.AES128CTRSHA1.IntegrityKey, WeaveEncryptionKey_AES128CTRSHA1::IntegrityKeySize);
+        SuccessOrExit(err);
+        break;
+    default:
+        ExitNow(err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
+    }
+
+    // Verify no other data in the serialized session structure.
+    err = reader.VerifyEndOfContainer();
+    SuccessOrExit(err);
+    err = reader.ExitContainer(container);
+    SuccessOrExit(err);
+
+exit:
+    if (removeSessionOnError && err != WEAVE_NO_ERROR)
+    {
+        RemoveSessionKey(sessionKey, false);
+    }
+    return err;
+}
+
 WEAVE_ERROR WeaveFabricState::GetSessionState(uint64_t remoteNodeId,
                                               uint16_t keyId,
                                               uint8_t encType,
@@ -635,6 +929,8 @@ WEAVE_ERROR WeaveFabricState::GetSessionState(uint64_t remoteNodeId,
         err = FindSessionKey(keyId, remoteNodeId, false, sessionKey);
         if (err != WEAVE_NO_ERROR)
             return err;
+        if (sessionKey->IsSuspended())
+            return WEAVE_ERROR_SESSION_KEY_SUSPENDED;
         if (sessionKey->MsgEncKey.EncType != encType)
             return (sessionKey->MsgEncKey.EncType == kWeaveEncryptionType_None) ? WEAVE_ERROR_KEY_NOT_FOUND : WEAVE_ERROR_WRONG_ENCRYPTION_TYPE;
         if (sessionKey->BoundCon != NULL && sessionKey->BoundCon != con)
@@ -1677,6 +1973,8 @@ bool WeaveFabricState::RemoveIdleSessionKeys()
 
     return potentialIdleSessionsExist;
 }
+
+
 
 // ============================================================
 // Weave Message Encryption Application Key Cache.

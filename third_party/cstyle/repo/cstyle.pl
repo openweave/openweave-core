@@ -86,6 +86,7 @@ my(%extensions) = (
 		   "cc",	"c++",
 		   "cp",	"c++",
 		   "cpp",	"c++",	
+		   "ipp",	"c++",	
 		   "cxx",	"c++",
 		   "h",		"c-header",
 		   "hh",	"c++-header",

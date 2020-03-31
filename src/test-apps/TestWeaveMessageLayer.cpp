@@ -66,7 +66,7 @@ static OptionDef gToolOptionDefs[] =
 #if WEAVE_CONFIG_SECURITY_TEST_MODE
     { "use-session-key",    kNoArgument,        'S' },
 #endif
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =

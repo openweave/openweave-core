@@ -350,7 +350,7 @@ static OptionDef gToolOptionDefs[] = { { "loglevel", kArgumentRequired, 'l' },
                                        { "test", kArgumentRequired, 't' },
                                        { "verbose", kNoArgument, 'V' },
                                        { "wdm", kNoArgument, 'w' },
-                                       { NULL } };
+                                       { } };
 
 static const char * gToolOptionHelp = "  -l, --loglevel <logLevel>\n"
                                       "       Configured default log level, 1 - PRODUCTION, 2 - INFO, 3 - DEBUG\n"

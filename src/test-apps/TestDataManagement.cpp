@@ -79,7 +79,7 @@ static OptionDef gToolOptionDefs[] =
 #if WEAVE_CONFIG_SECURITY_TEST_MODE
     { "allow-dups",     kNoArgument,        'A' },
 #endif
-    { NULL }
+    { }
 };
 
 static const char *gToolOptionHelp =

@@ -52,7 +52,7 @@ static OptionDef gCmdOptionDefs[] =
     { "self",       kNoArgument,       's' },
     { "sha1",       kNoArgument,       '1' },
     { "sha256",     kNoArgument,       '2' },
-    { NULL }
+    { }
 };
 
 static const char *const gCmdOptionHelp =

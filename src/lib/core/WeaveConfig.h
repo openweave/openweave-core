@@ -1905,6 +1905,23 @@
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 
 /**
+ *  @def WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+ *
+ *  @brief
+ *    If set to (1), persistent service directory is enabled.
+ *    Default value is (0) or disabled.
+ *
+ *  @note
+ *    Enabling this feature flag persists the service directory
+ *    cache retrieved from the directory server and use it to
+ *    populate the in-memory cache at initialization time.
+ *
+ */
+#ifndef WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+#define WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY               0
+#endif // WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
+
+/**
  *  @def WEAVE_CONFIG_SERVICE_DIR_CONNECT_TIMEOUT_MSECS
  *
  *  @brief
@@ -2284,7 +2301,7 @@
  *  @def WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
  *
  *  @brief
- *    Enable (1) or disable (0) the exclusive use of the depricated
+ *    Enable (1) or disable (0) the exclusive use of the deprecated
  *    version of AddNetwork() message in the Network Provisioning
  *    profile.
  *    This option should be enabled when exclusively pairing with Nest
@@ -2307,6 +2324,36 @@
 #ifndef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 #define WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN         0
 #endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+
+/**
+ *  @def WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+ *
+ *  @brief
+ *    Demand enable UDP as needed in the WeaveDeviceManager
+ *
+ *  When this option is enabled, the WeaveDeviceManager will automatically enable
+ *  listening for Weave messages over UDP whenever required to perform a device
+ *  management operation, and disable it when the operation completes.
+ *
+ *  This feature can be used to reduce competition for UDP listening ports the
+ *  WeaveDeviceManager is used in multiple processes on the same host.
+ *
+ */
+#ifndef WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+#define WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP     0
+#endif // WEAVE_CONFIG_DEVICE_MGR_DEMAND_ENABLE_UDP
+
+/**
+ *  @def WEAVE_CONFIG_MAX_SOFTWARE_VERSION_LENGTH
+ *
+ *  @brief
+ *    Maximum length of the software version field
+ *    in DeviceDescription.
+ *
+ */
+#ifndef WEAVE_CONFIG_MAX_SOFTWARE_VERSION_LENGTH
+#define WEAVE_CONFIG_MAX_SOFTWARE_VERSION_LENGTH           32
+#endif // WEAVE_CONFIG_MAX_SOFTWARE_VERSION_LENGTH
 
 /**
  * @def WEAVE_NON_PRODUCTION_MARKER

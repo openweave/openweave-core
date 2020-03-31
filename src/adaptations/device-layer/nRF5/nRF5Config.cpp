@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -769,13 +770,13 @@ void NRF5Config::RunConfigUnitTest()
 
         for (int i = 0; i < 100; i++)
         {
-            err = WriteConfigValueBin(kConfigKey_DeviceCert, kTestData, sizeof(kTestData));
+            err = WriteConfigValueBin(kConfigKey_MfrDeviceCert, kTestData, sizeof(kTestData));
             VerifyOrDie(err == WEAVE_NO_ERROR);
 
             vTaskDelay(pdMS_TO_TICKS(50));
         }
 
-        err = ReadConfigValueBin(kConfigKey_DeviceCert, buf, sizeof(buf), dataLen);
+        err = ReadConfigValueBin(kConfigKey_MfrDeviceCert, buf, sizeof(buf), dataLen);
         VerifyOrDie(err == WEAVE_NO_ERROR);
 
         VerifyOrDie(dataLen == sizeof(kTestData));

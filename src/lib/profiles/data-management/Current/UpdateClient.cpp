@@ -38,7 +38,7 @@
 #include <SystemLayer/SystemFaultInjection.h>
 #include <SystemLayer/SystemStats.h>
 
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 namespace nl {
 namespace Weave {
@@ -56,8 +56,10 @@ void UpdateClient::FlushExistingExchangeContext(const bool aAbortNow)
         mEC->AppState          = NULL;
         mEC->OnMessageReceived = NULL;
         mEC->OnResponseTimeout = NULL;
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
         mEC->OnSendError       = NULL;
         mEC->OnAckRcvd         = NULL;
+#endif
 
         if (aAbortNow)
         {
@@ -131,7 +133,9 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aBuf, 
     mEC->AppState = this;
     mEC->OnMessageReceived = OnMessageReceived;
     mEC->OnResponseTimeout = OnResponseTimeout;
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     mEC->OnSendError = OnSendError;
+#endif
 
 #if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
     reader.Init(aBuf);
@@ -161,10 +165,12 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aBuf, 
                 0, 1));
 
     // Use WRM's SendError fault to fail asynchronously
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateRequestSendErrorAsync,
             nl::Weave::FaultInjection::GetManager().FailAtFault(
                 nl::Weave::FaultInjection::kFault_WRMSendError,
                 0, 1));
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
 
     err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, msgType, aBuf,
             nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);

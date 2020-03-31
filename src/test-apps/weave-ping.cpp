@@ -113,6 +113,8 @@ uint8_t ServiceDirCache[300];
 bool UseWRMP = false;
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
 
+bool TestSessionSuspend = false;
+
 enum NameResolutionStateEnum
 {
     kNameResolutionState_NotStarted,
@@ -123,6 +125,7 @@ enum NameResolutionStateEnum
 enum
 {
     kToolOpt_UseServiceDir                          = 1000,
+    kToolOpt_TestSessionSuspend                     = 1001,
 };
 
 static OptionDef gToolOptionDefs[] =
@@ -140,7 +143,8 @@ static OptionDef gToolOptionDefs[] =
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     { "service-dir",  kNoArgument,       kToolOpt_UseServiceDir },
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-    { NULL }
+    { "test-session-suspend", kNoArgument, kToolOpt_TestSessionSuspend },
+    { }
 };
 
 static const char *const gToolOptionHelp =
@@ -183,6 +187,9 @@ static const char *const gToolOptionHelp =
     "       Use service directory to lookup the destination node address.\n"
     "\n"
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    "  --test-session-suspend\n"
+    "       Test the ability to suspend and restore a CASE session.\n"
+    "\n"
     ;
 
 static OptionSet gToolOptions =
@@ -489,6 +496,9 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
     case 'D':
         DestAddr = arg;
         break;
+    case kToolOpt_TestSessionSuspend:
+        TestSessionSuspend = true;
+        break;
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
         return false;
@@ -658,6 +668,45 @@ void DriveSending()
         {
             EchoClient.EncryptionType = kWeaveEncryptionType_AES128CTRSHA1;
             EchoClient.KeyId = gGroupKeyEncOptions.GetEncKeyId();
+        }
+
+        // If the --test-session-suspend option has been enabled, suspend and restore
+        // the CASE session every 4 echo requests.  Every 8th echo request, remove the
+        // suspended session before attempting to restore it.
+        if (TestSessionSuspend && gWeaveSecurityMode.SecurityMode == WeaveSecurityMode::kCASE)
+        {
+            if (EchoCount > 0 && (EchoCount % 4) == 0)
+            {
+                uint8_t buf[256];
+                uint16_t serializedKeyLen;
+
+                printf("Suspending CASE session\n");
+                err = FabricState.SuspendSession(EchoClient.KeyId, DestNodeId, buf, sizeof(buf), serializedKeyLen);
+                if (err != WEAVE_NO_ERROR)
+                {
+                    printf("FabricState.SuspendSession() failed: %s\n", ErrorStr(err));
+                }
+
+                if (err == WEAVE_NO_ERROR && (EchoCount % 8) == 0)
+                {
+                    printf("Removing suspended CASE session\n");
+                    err = FabricState.RemoveSessionKey(EchoClient.KeyId, DestNodeId);
+                    if (err != WEAVE_NO_ERROR)
+                    {
+                        printf("FabricState.RemoveSessionKey() failed: %s\n", ErrorStr(err));
+                    }
+                }
+
+                if (err == WEAVE_NO_ERROR)
+                {
+                    printf("Restoring suspended CASE session\n");
+                    err = FabricState.RestoreSession(buf, serializedKeyLen);
+                    if (err != WEAVE_NO_ERROR)
+                    {
+                        printf("FabricState.RestoreSession() failed: %s\n", ErrorStr(err));
+                    }
+                }
+            }
         }
 
         err = EchoClient.SendEchoRequest(DestNodeId, DestIPAddr, DestPort, DestIntf, payloadBuf);

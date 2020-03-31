@@ -1721,6 +1721,7 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  *
  */
 #define WEAVE_ERROR_WDM_PATH_STORE_FULL                          _WEAVE_ERROR(181)
+
 /**
  * @def WEAVE_EVENT_ID_FOUND
  *
@@ -1728,6 +1729,34 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  *   Event ID matching the criteria was found
  */
 #define WEAVE_EVENT_ID_FOUND                                     _WEAVE_ERROR(182)
+
+/**
+ *  @def WEAVE_ERROR_SESSION_KEY_SUSPENDED
+ *
+ *  @brief
+ *    Use of the identified session key is suspended.
+ *
+ */
+#define WEAVE_ERROR_SESSION_KEY_SUSPENDED                        _WEAVE_ERROR(183)
+
+/**
+ *  @def WEAVE_ERROR_UNSUPPORTED_WIRELESS_REGULATORY_DOMAIN
+ *
+ *  @brief
+ *    The specified wireless regulatory domain is unsupported.
+ *
+ */
+#define WEAVE_ERROR_UNSUPPORTED_WIRELESS_REGULATORY_DOMAIN       _WEAVE_ERROR(184)
+
+/**
+ *  @def WEAVE_ERROR_UNSUPPORTED_WIRELESS_OPERATING_LOCATION
+ *
+ *  @brief
+ *    The specified wireless operating location is unsupported.
+ *
+ */
+#define WEAVE_ERROR_UNSUPPORTED_WIRELESS_OPERATING_LOCATION      _WEAVE_ERROR(185)
+
 
 /**
  *  @}

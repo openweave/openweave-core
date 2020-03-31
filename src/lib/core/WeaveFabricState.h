@@ -361,6 +361,7 @@ public:
         kFlag_IsRemoveOnIdle         = 0x04,            /**< The session should be removed when idle (only applies to sessions
                                                              that are not bound to a connection). */
         kFlag_RecentlyActive         = 0x08,            /**< The session was recently active. */
+        kFlag_Suspended              = 0x10,            /**< The session has been suspended. */
     };
 
     uint64_t NodeId;                                    /**< The id of the node with which the session key is shared. */
@@ -387,6 +388,9 @@ public:
     bool IsRecentlyActive() const       { return GetFlag(Flags, kFlag_RecentlyActive); }
     void MarkRecentlyActive()           { SetFlag(Flags, kFlag_RecentlyActive); }
     void ClearRecentlyActive()          { ClearFlag(Flags, kFlag_RecentlyActive); }
+    bool IsSuspended() const            { return GetFlag(Flags, kFlag_Suspended); }
+    void MarkSuspended()                { SetFlag(Flags, kFlag_Suspended); }
+    void ClearSuspended()               { ClearFlag(Flags, kFlag_Suspended); }
 };
 
 /**
@@ -522,6 +526,10 @@ public:
     WEAVE_ERROR AddSharedSessionEndNode(WeaveSessionKey *sessionKey, uint64_t endNodeId);
     WEAVE_ERROR GetSharedSessionEndNodeIds(const WeaveSessionKey *sessionKey, uint64_t *endNodeIds,
                                            uint8_t endNodeIdsBufSize, uint8_t& endNodeIdsCount);
+    void RemoveSharedSessionEndNodes(const WeaveSessionKey *sessionKey);
+
+    WEAVE_ERROR SuspendSession(uint16_t keyId, uint64_t peerNodeId, uint8_t * buf, uint16_t bufSize, uint16_t & serializedSessionLen);
+    WEAVE_ERROR RestoreSession(uint8_t * serializedSession, uint16_t serializedSessionLen);
 
     WEAVE_ERROR GetSessionState(uint64_t remoteNodeId, uint16_t keyId, uint8_t encType, WeaveConnection *con, WeaveSessionState& outSessionState);
 
