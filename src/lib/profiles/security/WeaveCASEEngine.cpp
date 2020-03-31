@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google, LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -1083,13 +1084,15 @@ exit:
  *                                  in the CASE certificate info structure.  The entity
  *                                  certificate is expected to be encoded in Weave TLV form.
  * @param[in] entityCertLen         The length in bytes of the encoded entity certificate.
- * @param[in] intermediateCert      Optionally, an buffer containing an intermediate certificate
+ * @param[in] intermediateCerts     Optionally, an buffer containing an intermediate certificate
+ *                                  or a TLV encoded array of intermediate certificates
  *                                  to be included as a related certificate within the CASE
  *                                  certificate info structure.  When supplied, the intermediate
  *                                  certificate is expected to be encoded in Weave TLV form.
  *                                  If NULL is given, the generated certificate info structure
  *                                  will not contain any related certificates.
- * @param[in] intermediateCertLen   The length in bytes of the encoded intermediate certificate.
+ * @param[in] intermediateCertsLen  The length in bytes of the encoded intermediate certificate
+ *                                  structure or TLV encoded array of intermediate certificates.
  *
  * @retval #WEAVE_NO_ERROR          If the operation succeeded.
  * @retval other                    Other Weave error codes related to the decoding of the
@@ -1098,7 +1101,7 @@ exit:
  */
 WEAVE_ERROR EncodeCASECertInfo(uint8_t * buf, uint16_t bufSize, uint16_t& certInfoLen,
         const uint8_t * entityCert, uint16_t entityCertLen,
-        const uint8_t * intermediateCert, uint16_t intermediateCertLen)
+        const uint8_t * intermediateCerts, uint16_t intermediateCertsLen)
 {
     WEAVE_ERROR err;
     TLVWriter writer;
@@ -1106,7 +1109,7 @@ WEAVE_ERROR EncodeCASECertInfo(uint8_t * buf, uint16_t bufSize, uint16_t& certIn
     writer.Init(buf, bufSize);
     writer.ImplicitProfileId = kWeaveProfile_Security;
 
-    err = EncodeCASECertInfo(writer, entityCert, entityCertLen, intermediateCert, intermediateCertLen);
+    err = EncodeCASECertInfo(writer, entityCert, entityCertLen, intermediateCerts, intermediateCertsLen);
     SuccessOrExit(err);
 
     err = writer.Finalize();
@@ -1131,13 +1134,15 @@ exit:
  *                                  in the CASE certificate info structure.  The entity
  *                                  certificate is expected to be encoded in Weave TLV form.
  * @param[in] entityCertLen         The length in bytes of the encoded entity certificate.
- * @param[in] intermediateCert      Optionally, an buffer containing an intermediate certificate
+ * @param[in] intermediateCerts     Optionally, an buffer containing an intermediate certificate
+ *                                  or a TLV encoded array of intermediate certificates
  *                                  to be included as a related certificate within the CASE
  *                                  certificate info structure.  When supplied, the intermediate
- *                                  certificate is expected to be encoded in Weave TLV form.
+ *                                  certificates are expected to be encoded in Weave TLV form.
  *                                  If NULL is given, the generated certificate info structure
  *                                  will not contain any related certificates.
- * @param[in] intermediateCertLen   The length in bytes of the encoded intermediate certificate.
+ * @param[in] intermediateCertsLen  The length in bytes of the encoded intermediate certificate
+ *                                  structure or TLV encoded array of intermediate certificates.
  *
  * @retval #WEAVE_NO_ERROR          If the operation succeeded.
  * @retval other                    Other Weave error codes related to the decoding of the
@@ -1146,7 +1151,7 @@ exit:
  */
 WEAVE_ERROR EncodeCASECertInfo(TLVWriter & writer,
         const uint8_t * entityCert, uint16_t entityCertLen,
-        const uint8_t * intermediateCert, uint16_t intermediateCertLen)
+        const uint8_t * intermediateCerts, uint16_t intermediateCertsLen)
 {
     WEAVE_ERROR err;
     TLVType container;
@@ -1160,21 +1165,47 @@ WEAVE_ERROR EncodeCASECertInfo(TLVWriter & writer,
     SuccessOrExit(err);
 
     // If an intermediate certificate has been supplied...
-    if (intermediateCert != NULL)
+    if (intermediateCerts != NULL)
     {
-        TLVType container2;
+        TLVReader reader;
 
-        // Start the list of RelatedCertificates with the CASE certificate info structure.
-        err = writer.StartContainer(ContextTag(kTag_CASECertificateInfo_RelatedCertificates), kTLVType_Path, container2);
+        reader.Init(intermediateCerts, intermediateCertsLen);
+
+        err = reader.Next();
         SuccessOrExit(err);
 
-        // Copy the supplied intermediate certificate into the RelatedCertificates list.
-        err = writer.CopyContainer(ProfileTag(kWeaveProfile_Security, kTag_WeaveCertificate), intermediateCert, intermediateCertLen);
-        SuccessOrExit(err);
+        // If single certificate structure is provided.
+        if (reader.GetType() == kTLVType_Structure)
+        {
+            TLVType container2;
 
-        // End the RelatedCertificates list.
-        err = writer.EndContainer(container2);
-        SuccessOrExit(err);
+            // Start the list of RelatedCertificates with the CASE certificate info structure.
+            err = writer.StartContainer(ContextTag(kTag_CASECertificateInfo_RelatedCertificates),
+                                        kTLVType_Path, container2);
+            SuccessOrExit(err);
+
+            // Copy the supplied intermediate certificate into the RelatedCertificates list.
+            err = writer.CopyContainer(ProfileTag(kWeaveProfile_Security, kTag_WeaveCertificate),
+                                       intermediateCerts, intermediateCertsLen);
+            SuccessOrExit(err);
+
+            // End the RelatedCertificates list.
+            err = writer.EndContainer(container2);
+            SuccessOrExit(err);
+        }
+        // If encoded array of certificates is provided.
+        else if (reader.GetType() == kTLVType_Array || reader.GetType() == kTLVType_Path)
+        {
+            err = writer.PutPreEncodedContainer(ContextTag(kTag_CASECertificateInfo_RelatedCertificates),
+                                                kTLVType_Path,
+                                                reader.GetReadPoint(),
+                                                reader.GetRemainingLength());
+            SuccessOrExit(err);
+        }
+        else
+        {
+            ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+        }
     }
 
     // End the CASE certificate info structure.
