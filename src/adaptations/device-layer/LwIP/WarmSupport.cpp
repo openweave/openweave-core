@@ -36,6 +36,9 @@
 #include <Weave/DeviceLayer/ThreadStackManager.h>
 #include <Weave/DeviceLayer/OpenThread/OpenThreadUtils.h>
 #include <openthread/ip6.h>
+#if WARM_CONFIG_SUPPORT_THREAD_ROUTING
+#include <openthread/border_router.h>
+#endif // WARM_CONFIG_SUPPORT_THREAD_ROUTING
 #endif // WARM_CONFIG_SUPPORT_THREAD
 
 
@@ -55,7 +58,10 @@ namespace Platform {
 
 WEAVE_ERROR Init(WarmFabricStateDelegate * inFabricStateDelegate)
 {
-    // Nothing to do.
+#if WARM_CONFIG_SUPPORT_THREAD_ROUTING
+    // Inform Warm of current state of thread router.
+    Warm::ThreadRoutingStateChange(kInterfaceStateUp);
+#endif // WARM_CONFIG_SUPPORT_THREAD_ROUTING
     return WEAVE_NO_ERROR;
 }
 
@@ -304,36 +310,18 @@ PlatformResult AddRemoveThreadAddress(InterfaceType inInterfaceType, const Inet:
 {
     otError otErr;
     otNetifAddress otAddress;
-    otBorderRouterConfig brConfig;
 
     memset(&otAddress, 0, sizeof(otAddress));
-
-    ThreadStackMgrImpl().LockThreadStack();
-
     otAddress.mAddress = ToOpenThreadIP6Address(inAddress);
     otAddress.mPrefixLength = 64;
     otAddress.mValid = true;
     otAddress.mPreferred = true;
 
-    brConfig.mConfigure = false;
-    brConfig.mDefaultRoute = false;
-    brConfig.mDhcp = false;
-    brConfig.mOnMesh = true;
-    brConfig.mPreference = 0;
-    brConfig.mPreferred = true;
-    brConfig.mPrefix.mPrefix = otAddress.mAddress;
-    brConfig.mPrefix.mLength = 64;
-    brConfig.mRloc16 = otThreadGetRloc16(ThreadStackMgrImpl().OTInstance());
-    brConfig.mSlaac = false;
-    brConfig.mStable = true;
+    ThreadStackMgrImpl().LockThreadStack();
 
     if (inAdd)
     {
         otErr = otIp6AddUnicastAddress(ThreadStackMgrImpl().OTInstance(), &otAddress);
-        if (otErr == OT_ERROR_NONE)
-        {
-            otErr = otBorderRouterAddOnMeshPrefix(ThreadStackMgrImpl().OTInstance(), &brConfig);
-        }
     }
     else
     {
@@ -346,13 +334,6 @@ PlatformResult AddRemoveThreadAddress(InterfaceType inInterfaceType, const Inet:
         if (otErr == OT_ERROR_NOT_FOUND)
         {
             WeaveLogProgress(DeviceLayer, "otIp6RemoveUnicastAddress: already removed");
-            otErr = OT_ERROR_NONE;
-        }
-
-        otErr = otBorderRouterRemoveOnMeshPrefix(ThreadStackMgrImpl().OTInstance(), &brConfig.mPrefix);
-        if (otErr == OT_ERROR_NOT_FOUND)
-        {
-            WeaveLogProgress(DeviceLayer, "otBorderRouterRemoveOnMeshPrefix: already removed");
             otErr = OT_ERROR_NONE;
         }
     }
@@ -385,12 +366,48 @@ PlatformResult AddRemoveThreadAddress(InterfaceType inInterfaceType, const Inet:
 
 PlatformResult StartStopThreadAdvertisement(InterfaceType inInterfaceType, const Inet::IPPrefix &inPrefix, bool inStart)
 {
-    if (inInterfaceType != kInterfaceTypeThread) { return kPlatformResultFailure; }
-    if ((inPrefix.Length & 7) != 0) { return kPlatformResultFailure; }
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    otError otErr;
+    otBorderRouterConfig brConfig;
 
-    // Thread Stack should attempt to become a router if params are set, so nothing special needed
+    if (inInterfaceType != kInterfaceTypeThread) { err = WEAVE_ERROR_INVALID_ARGUMENT; }
+    if ((inPrefix.Length & 7) != 0) { err = WEAVE_ERROR_INVALID_ADDRESS; }
+    SuccessOrExit(err);
 
-    return kPlatformResultSuccess;
+    ThreadStackMgrImpl().LockThreadStack();
+
+    brConfig.mConfigure = false;
+    brConfig.mDefaultRoute = false;
+    brConfig.mDhcp = false;
+    brConfig.mOnMesh = true;
+    brConfig.mPreference = 0;
+    brConfig.mPreferred = true;
+    brConfig.mPrefix.mLength = inPrefix.Length;
+    brConfig.mRloc16 = otThreadGetRloc16(ThreadStackMgrImpl().OTInstance());
+    brConfig.mSlaac = false;
+    brConfig.mStable = true;
+    memcpy(brConfig.mPrefix.mPrefix.mFields.m8, inPrefix.IPAddr.Addr, sizeof(brConfig.mPrefix.mPrefix.mFields));
+
+    if (inStart)
+    {
+        otErr = otBorderRouterAddOnMeshPrefix(ThreadStackMgrImpl().OTInstance(), &brConfig);
+    }
+    else
+    {
+        otErr = otBorderRouterRemoveOnMeshPrefix(ThreadStackMgrImpl().OTInstance(), &brConfig.mPrefix);
+        if (otErr == OT_ERROR_NOT_FOUND)
+        {
+            WeaveLogProgress(DeviceLayer, "otBorderRouterRemoveOnMeshPrefix: already removed");
+            otErr = OT_ERROR_NONE;
+        }
+    }
+
+    ThreadStackMgrImpl().UnlockThreadStack();
+
+    err = MapOpenThreadError(otErr);
+
+exit:
+    return (err == WEAVE_NO_ERROR) ? kPlatformResultSuccess : kPlatformResultFailure;
 }
 
 #endif // WARM_CONFIG_SUPPORT_THREAD_ROUTING
@@ -406,15 +423,17 @@ PlatformResult AddRemoveThreadRoute(InterfaceType inInterfaceType, const Inet::I
     int ot_priority = OT_ROUTE_PREFERENCE_HIGH;
     switch (inPriority)
     {
-        case kRoutePriorityLow:
-            ot_priority = OT_ROUTE_PREFERENCE_LOW;
-            break;
-        case kRoutePriorityMedium:
-            ot_priority = OT_ROUTE_PREFERENCE_MED;
-            break;
-        case kRoutePriorityHigh:
-            ot_priority = OT_ROUTE_PREFERENCE_HIGH;
-            break;
+    case kRoutePriorityLow:
+        ot_priority = OT_ROUTE_PREFERENCE_LOW;
+        break;
+    case kRoutePriorityHigh:
+        ot_priority = OT_ROUTE_PREFERENCE_HIGH;
+        break;
+    case kRoutePriorityMedium:
+        // Let's set route priority to medium by default.
+    default:
+        ot_priority = OT_ROUTE_PREFERENCE_MED;
+        break;
     }
 
     ThreadStackMgrImpl().LockThreadStack();

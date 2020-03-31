@@ -836,7 +836,7 @@ static PlatformResult ThreadAdvertisementAction(ActionType inAction, bool inActi
 {
     Inet::IPPrefix prefix;
 
-    MakePrefix(inGlobalId, 0, kGlobalULAPrefixLength, prefix);
+    MakePrefix(inGlobalId, kWeaveSubnetId_ThreadMesh, kThreadULAAddressPrefixLength, prefix);
 
     return Platform::StartStopThreadAdvertisement(kInterfaceTypeThread, prefix, inActivate);
 }
