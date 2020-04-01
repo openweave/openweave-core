@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google, LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -530,11 +531,11 @@ private:
 
 WEAVE_ERROR EncodeCASECertInfo(uint8_t * buf, uint16_t bufSize, uint16_t& certInfoLen,
         const uint8_t * entityCert, uint16_t entityCertLen,
-        const uint8_t * intermediateCert, uint16_t intermediateCertLen);
+        const uint8_t * intermediateCerts, uint16_t intermediateCertsLen);
 
 WEAVE_ERROR EncodeCASECertInfo(TLVWriter & writer,
         const uint8_t * entityCert, uint16_t entityCertLen,
-        const uint8_t * intermediateCert, uint16_t intermediateCertLen);
+        const uint8_t * intermediateCerts, uint16_t intermediateCertsLen);
 
 
 // Inline Methods
