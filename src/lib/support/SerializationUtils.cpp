@@ -998,12 +998,23 @@ exit:
 static WEAVE_ERROR FindNullifiedFieldsArray(void *aStructureData, const SchemaFieldDescriptor *aSchemaDescriptor, uint8_t *&aNullifiedFields)
 {
     uint32_t offset;
-    WEAVE_ERROR err;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     const FieldDescriptor *lastFieldDescriptor = &(aSchemaDescriptor->mFields[aSchemaDescriptor->mNumFieldDescriptorElements - 1]);
+    bool lastFieldIsArray = false;
 
-    err = GetArrayElementSize(offset, lastFieldDescriptor, lastFieldDescriptor->GetType());
-    SuccessOrExit(err);
-
+    if (aSchemaDescriptor->mNumFieldDescriptorElements >= 2)
+    {
+        lastFieldIsArray = (aSchemaDescriptor->mFields[aSchemaDescriptor->mNumFieldDescriptorElements - 2].GetType() == SerializedFieldTypeArray);
+    }
+    if (lastFieldIsArray)
+    {
+        offset = sizeof(void *);
+    }
+    else
+    {
+        err = GetArrayElementSize(offset, lastFieldDescriptor, lastFieldDescriptor->GetType());
+        SuccessOrExit(err);
+    }
     aNullifiedFields = static_cast<uint8_t *>(aStructureData) + lastFieldDescriptor->mOffset + offset;
 exit:
     return err;
