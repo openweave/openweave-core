@@ -768,6 +768,8 @@ private:
     /* Set to true if sink accepts subscriptionless notifications */
     bool mAcceptsSubscriptionlessNotifications;
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
+    friend class TestTdm;
 };
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE

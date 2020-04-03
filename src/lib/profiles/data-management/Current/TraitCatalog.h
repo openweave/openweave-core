@@ -118,11 +118,11 @@ public:
 
     virtual void Iterate(IteratorCallback aCallback, void * aContext) = 0;
 
-#if    WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE || WEAVE_CONFIG_ENABLE_WDM_CUSTOM_COMMAND_SENDER
     virtual WEAVE_ERROR GetInstanceId(TraitDataHandle aHandle, uint64_t &aInstanceId) const = 0;
 
     virtual WEAVE_ERROR GetResourceId(TraitDataHandle aHandle, ResourceIdentifier &aResourceId) const = 0;
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE || WEAVE_CONFIG_ENABLE_WDM_CUSTOM_COMMAND_SENDER
 };
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

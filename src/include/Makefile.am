@@ -610,6 +610,7 @@ $(nl_public_WeaveProfiles_source_dirstem)/data-management/SubscriptionClient.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/SubscriptionHandler.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/NotificationEngine.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Command.h \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/CommandSender.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/UpdateClient.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/UpdateEncoder.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/EventLogging.h		\
@@ -653,6 +654,7 @@ $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SubscriptionCl
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/SubscriptionHandler.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/NotificationEngine.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/Command.h \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/CommandSender.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/UpdateClient.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/UpdateEncoder.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/WdmManagedNamespace.h \

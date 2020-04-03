@@ -45,6 +45,7 @@ nl_WeaveProfiles_sources                                                        
     @top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp          \
     @top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp              \
     @top_builddir@/src/lib/profiles/data-management/Current/Command.cpp                 \
+    @top_builddir@/src/lib/profiles/data-management/Current/CommandSender.cpp           \
     @top_builddir@/src/lib/profiles/data-management/Current/UpdateClient.cpp            \
     @top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp           \
     @top_builddir@/src/lib/profiles/data-management/Current/EventLogging.cpp            \

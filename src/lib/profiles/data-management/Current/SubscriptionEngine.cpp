@@ -1304,7 +1304,7 @@ exit:
     aEC->Close();
 }
 
-#if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
+#if WDM_PUBLISHER_ENABLE_CUSTOM_COMMAND_HANDLER
 void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
                                          const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
                                          PacketBuffer * aPayload)
@@ -1522,7 +1522,7 @@ exit:
         aEC = NULL;
     }
 }
-#endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
+#endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMAND_HANDLER
 
 #if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
 WEAVE_ERROR SubscriptionEngine::AllocateRightSizedBuffer(PacketBuffer *& buf, const uint32_t desiredSize, const uint32_t minSize,

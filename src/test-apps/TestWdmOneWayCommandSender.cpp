@@ -71,6 +71,34 @@ static void ParseDestAddress();
 
 static TestWdmOneWayCommandSender gWdmOneWayCommandSender;
 
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
+namespace Platform {
+    // for unit tests, the dummy critical section is sufficient.
+    void CriticalSectionEnter()
+    {
+        return;
+    }
+
+    void CriticalSectionExit()
+    {
+        return;
+    }
+} // Platform
+} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // Profiles
+} // Weave
+} // nl
+
+nl::Weave::Profiles::DataManagement::SubscriptionEngine * nl::Weave::Profiles::DataManagement::SubscriptionEngine::GetInstance()
+{
+    static nl::Weave::Profiles::DataManagement::SubscriptionEngine gWdmSubscriptionEngine;
+    return &gWdmSubscriptionEngine;
+}
+
+
 TestWdmOneWayCommandSender * TestWdmOneWayCommandSender::GetInstance ()
 {
     return &gWdmOneWayCommandSender;
@@ -78,7 +106,6 @@ TestWdmOneWayCommandSender * TestWdmOneWayCommandSender::GetInstance ()
 
 TestWdmOneWayCommandSender::TestWdmOneWayCommandSender() :
     mExchangeMgr(NULL),
-    mEcCommand(NULL),
     mClientBinding(NULL)
 {
 }
@@ -111,6 +138,8 @@ WEAVE_ERROR TestWdmOneWayCommandSender::Init(WeaveExchangeManager *aExchangeMgr,
                     .Security_None()
                     .PrepareBinding();
 
+    mCommandSender.Init(mClientBinding, NULL, this);
+
     return err;
 }
 
@@ -124,107 +153,83 @@ WEAVE_ERROR TestWdmOneWayCommandSender::Shutdown(void)
         mClientBinding = NULL;
     }
 
+    mCommandSender.Close();
+
     return err;
 }
 
 WEAVE_ERROR TestWdmOneWayCommandSender::SendOneWayCommand(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    PacketBuffer *msgBuf = PacketBuffer::New();
-
-    static uint32_t commandType = TEST_COMMAND_TYPE;
+    PacketBuffer *msgBuf = NULL;
+    static CommandSender::SendParams sendParams = {
+        NULL,
+        ResourceIdentifier(ResourceIdentifier::RESOURCE_TYPE_RESERVED, ResourceIdentifier::SELF_NODE_ID),
+        Schema::Nest::Test::Trait::TestATrait::kWeaveProfileId,
+        SchemaVersionRange(TEST_SCHEMA_MAX_VER, TEST_SCHEMA_MIN_VER),
+        TEST_TRAIT_INSTANCE_ID,
+        TEST_COMMAND_TYPE,
+        (kCommandFlag_IsOneWay | kCommandFlag_ActionTimeValid | kCommandFlag_ExpiryTimeValid | kCommandFlag_InitiationTimeValid)
+    };
 
     WeaveLogDetail(DataManagement, "TestWdmOnewayCommandSender %s:", __func__);
 
-    VerifyOrExit((NULL != mClientBinding) && (NULL == mEcCommand), err = WEAVE_ERROR_INCORRECT_STATE);
-
-    VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
-
-    err = mClientBinding->NewExchangeContext(mEcCommand);
-    SuccessOrExit(err);
-
-    mEcCommand->AppState = this;
-    mEcCommand->OnMessageReceived = NULL;
-    mEcCommand->OnResponseTimeout = NULL;
-    mEcCommand->OnSendError = NULL;
-    mEcCommand->OnAckRcvd = NULL;
+    VerifyOrExit(NULL != mClientBinding, err = WEAVE_ERROR_INCORRECT_STATE);
 
     {
         nl::Weave::TLV::TLVWriter writer;
-        CustomCommand::Builder onewayCommand;
         uint64_t nowMicroSecs, deadline;
-
-        writer.Init(msgBuf);
-        err = onewayCommand.Init(&writer);
-        SuccessOrExit(err);
-
-        Path::Builder & path = onewayCommand.CreatePathBuilder();
-
-        path.ProfileID(Schema::Nest::Test::Trait::TestATrait::kWeaveProfileId,
-                       SchemaVersionRange(TEST_SCHEMA_MAX_VER, TEST_SCHEMA_MIN_VER)).InstanceID(TEST_TRAIT_INSTANCE_ID).EndOfPath();
-
-        SuccessOrExit(path.GetError());
-
-        // Test Command Type
-        onewayCommand.CommandType(commandType);
 
         err = System::Layer::GetClock_RealTime(nowMicroSecs);
         SuccessOrExit(err);
 
         deadline = nowMicroSecs + kCommandTimeoutMicroSecs;
 
-        onewayCommand.InitiationTimeMicroSecond(nowMicroSecs);
-
-        onewayCommand.ActionTimeMicroSecond(nowMicroSecs + kCommandTimeoutMicroSecs / 2);
-
-        onewayCommand.ExpiryTimeMicroSecond(deadline);
-
-        SuccessOrExit(err = onewayCommand.GetError());
+        sendParams.InitiationTimeMicroSecond = nowMicroSecs;
+        sendParams.ActionTimeMicroSecond = nowMicroSecs + kCommandTimeoutMicroSecs / 2;
+        sendParams.ExpiryTimeMicroSecond = deadline;
 
         // Add arguments here
         {
             uint32_t dummyUInt = 7;
             bool dummyBool = false;
             nl::Weave::TLV::TLVType dummyType = nl::Weave::TLV::kTLVType_NotSpecified;
-            err = writer.StartContainer(nl::Weave::TLV::ContextTag(CustomCommand::kCsTag_Argument), nl::Weave::TLV::kTLVType_Structure, dummyType);
+
+            msgBuf = PacketBuffer::New();
+            VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+            writer.Init(msgBuf);
+
+            err = writer.StartContainer(AnonymousTag, nl::Weave::TLV::kTLVType_Structure, dummyType);
             SuccessOrExit(err);
 
             err = writer.Put(nl::Weave::TLV::ContextTag(1), dummyUInt);
             SuccessOrExit(err);
+
             err = writer.PutBoolean(nl::Weave::TLV::ContextTag(2), dummyBool);
             SuccessOrExit(err);
 
             err = writer.EndContainer(dummyType);
             SuccessOrExit(err);
+
+            err = writer.Finalize();
+            SuccessOrExit(err);
         }
-
-
-        onewayCommand.EndOfCustomCommand();
-        SuccessOrExit(err = onewayCommand.GetError());
-
-        err = writer.Finalize();
-        SuccessOrExit(err);
-
-        err = mEcCommand->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_OneWayCommand,
-                                      msgBuf, 0);
-        msgBuf = NULL;
-        SuccessOrExit(err);
     }
 
-exit:
+    err = mCommandSender.SendCommand(msgBuf, NULL, sendParams);
+    SuccessOrExit(err);
 
+    msgBuf = NULL;
+
+exit:
     if (NULL != msgBuf)
     {
         PacketBuffer::Free(msgBuf);
         msgBuf = NULL;
     }
 
-    if (NULL != mEcCommand)
-    {
-        mEcCommand->Close();
-        mEcCommand = NULL;
-    }
-
+    mCommandSender.Close();
     return err;
 }
 

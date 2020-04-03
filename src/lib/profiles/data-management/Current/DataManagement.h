@@ -62,6 +62,7 @@
 #include <Weave/Profiles/data-management/MessageDef.h>
 #include <Weave/Profiles/data-management/SubscriptionEngine.h>
 #include <Weave/Profiles/data-management/Command.h>
+#include <Weave/Profiles/data-management/CommandSender.h>
 #include <Weave/Profiles/data-management/SubscriptionHandler.h>
 #include <Weave/Profiles/data-management/TraitData.h>
 #include <Weave/Profiles/data-management/TraitCatalog.h>

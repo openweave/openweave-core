@@ -494,7 +494,7 @@ private:
         kMaxNumSubscriptionHandlers = (WDM_MAX_NUM_SUBSCRIPTION_HANDLERS),
         kMaxNumPathGroups           = (WDM_PUBLISHER_MAX_NUM_PATH_GROUPS),
         kMaxNumPropertyPathHandles  = (WDM_PUBLISHER_MAX_NUM_PROPERTY_PATH_HANDLES),
-        kMaxNumCommandObjs          = (WDM_MAX_NUM_COMMAND_OBJECTS), ///< Max number of command objects this engine can accommodate
+        kMaxNumCommandObjs          = (WDM_MAX_NUM_COMMAND_HANDLER_OBJECTS), ///< Max number of command objects this engine can accommodate
     };
 
     Command mCommandObjs[kMaxNumCommandObjs];
@@ -528,12 +528,12 @@ private:
                                           const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
                                           PacketBuffer * aPayload);
 
-#if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
+#if WDM_PUBLISHER_ENABLE_CUSTOM_COMMAND_HANDLER
     static void OnCustomCommand(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
                                 const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
                                 PacketBuffer * aPayload);
 
-#endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
+#endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMAND_HANDLER
 
 #endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
 };

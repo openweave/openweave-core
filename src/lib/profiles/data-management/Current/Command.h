@@ -28,11 +28,21 @@
 
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Core/WeaveCore.h>
+#include <Weave/Profiles/data-management/Current/TraitCatalog.h>
 
 namespace nl {
 namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
+
+typedef enum CommandFlags
+{
+    kCommandFlag_MustBeVersionValid   = 0x0001,  /**< Set when the version field is valid */
+    kCommandFlag_InitiationTimeValid  = 0x0002,  /**< Set when the init time is valid */
+    kCommandFlag_ActionTimeValid      = 0x0004,  /**< Set when the action time is valid */
+    kCommandFlag_ExpiryTimeValid      = 0x0008,  /**< Set when the expiry time is valid */
+    kCommandFlag_IsOneWay             = 0x0010,  /**< Set when the command is one-way */
+} CommandFlags;
 
 /**
  *  @class Command

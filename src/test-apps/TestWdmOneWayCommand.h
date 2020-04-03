@@ -88,13 +88,17 @@ public:
 
 private:
     nl::Weave::WeaveExchangeManager *mExchangeMgr;
-    nl::Weave::ExchangeContext * mEcCommand;
     Binding *mClientBinding;
+    nl::Weave::Profiles::DataManagement::CommandSender mCommandSender;
 
     static void BindingEventCallback (void * const apAppState,
             const nl::Weave::Binding::EventType aEvent,
             const nl::Weave::Binding::InEventParam & aInParam,
             nl::Weave::Binding::OutEventParam & aOutParam);
+
+    static void CommandEventHandler(void * const aAppState, nl::Weave::Profiles::DataManagement::CommandSender::EventType aEvent,
+            const nl::Weave::Profiles::DataManagement::CommandSender::InEventParam &aInParam,
+            nl::Weave::Profiles::DataManagement::CommandSender::OutEventParam &aOutEventParam);
 };
 
 #endif // TEST_WDM_ONEWAY_COMMAND_H_

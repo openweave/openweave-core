@@ -80,7 +80,7 @@ static const Label sStatsStrings[nl::Weave::System::Stats::kNumEntries] =
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
     "WDM_NumSubscriptionHandlers",
 #endif
-#if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
+#if WDM_PUBLISHER_ENABLE_CUSTOM_COMMAND_HANDLER
     "WDM_NumCommands",
 #endif
 

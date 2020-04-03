@@ -171,6 +171,8 @@ private:
     static void PublisherEventCallback (void * const aAppState,
         SubscriptionHandler::EventID aEvent, const SubscriptionHandler::InEventParam & aInParam, SubscriptionHandler::OutEventParam & aOutParam);
 
+    static void CommandEventHandler(void * const aAppState, CommandSender::EventType aEvent, const CommandSender::InEventParam &aInParam, CommandSender::OutEventParam &aOutEventParam);
+
     // client side
     TestATraitDataSink mTestADataSink0;
     TestATraitDataSink mTestADataSink1;
@@ -291,12 +293,9 @@ private:
     };
     CustomCommandState mCmdState;
     nl::Weave::ExchangeContext * mEcCommand;
+    CommandSender mCommandSender;
     void Command_Send (void);
     void Command_End (const bool aAbort = false);
-    static void OnMessageReceivedForCustomCommand (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload);
-    static void HandleCustomCommandTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr);
 };
 
 static MockWdmSubscriptionResponderImpl gWdmSubscriptionResponder;
@@ -1037,319 +1036,127 @@ void MockWdmSubscriptionResponderImpl::HandlePublisherRelease()
 void MockWdmSubscriptionResponderImpl::Command_End(const bool aAbort)
 {
     WeaveLogDetail(DataManagement, "Responder %s: state: %d", __func__, mCmdState);
-
-    (void)mExchangeMgr->MessageLayer->SystemLayer->CancelTimer(HandleCustomCommandTimeout, this);
-
-    mCmdState = kCmdState_Idle;
-    if (NULL != mEcCommand)
-    {
-        // this might be needed, for the test infrastructure re-init this object multiple times
-        // ExchangeContext::Close would gracefully close this exchange, while ExchangeContext::Abort
-        // would forcefully reclaim all resources
-        if (aAbort)
-        {
-            mEcCommand->Abort();
-        }
-        else
-        {
-            mEcCommand->Close();
-        }
-        mEcCommand = NULL;
-    }
+    mCommandSender.Close(aAbort);
 }
 
-void MockWdmSubscriptionResponderImpl::HandleCustomCommandTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr)
+void MockWdmSubscriptionResponderImpl::CommandEventHandler(void * const aAppState, CommandSender::EventType aEvent, const CommandSender::InEventParam &aInParam, CommandSender::OutEventParam &aOutEventParam)
 {
-    MockWdmSubscriptionResponderImpl * const pResponder = reinterpret_cast<MockWdmSubscriptionResponderImpl *>(aAppState);
+    MockWdmSubscriptionResponderImpl *_this = static_cast<MockWdmSubscriptionResponderImpl *>(aAppState);
 
-    WeaveLogDetail(DataManagement, "Responder %s", __func__);
-
-    pResponder->Command_End(true);
-}
-
-void MockWdmSubscriptionResponderImpl::OnMessageReceivedForCustomCommand (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    MockWdmSubscriptionResponderImpl * pResponder = reinterpret_cast<MockWdmSubscriptionResponderImpl *>(aEC->AppState);
-    nl::Weave::Profiles::StatusReporting::StatusReport status;
-    enum
+    switch (aEvent)
     {
-        kMsgIdentified_Unknown        = 0,
-        kMsgIdentified_StatusReport   = 1,
-        kMsgIdentified_Response       = 2,
-        kMsgIdentified_InProgress     = 3,
-    } messageType = kMsgIdentified_Unknown;
-
-    WeaveLogDetail(DataManagement, "Responder %s: state: %d", __func__, pResponder->mCmdState);
-
-    VerifyOrExit(aEC == pResponder->mEcCommand, err = WEAVE_ERROR_INCORRECT_STATE);
-    VerifyOrExit(kCmdState_Idle != pResponder->mCmdState, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    if ((nl::Weave::Profiles::kWeaveProfile_Common == aProfileId) && (nl::Weave::Profiles::Common::kMsgType_StatusReport == aMsgType))
-    {
-        // Note that payload is not freed in this call to parse
-        err = nl::Weave::Profiles::StatusReporting::StatusReport::parse(aPayload, status);
-        SuccessOrExit(err);
-        messageType = kMsgIdentified_StatusReport;
-        WeaveLogError(DataManagement, "Received Status Report 0x%" PRIX32 " : 0x%" PRIX16, status.mProfileId, status.mStatusCode);
-    }
-    else if ((nl::Weave::Profiles::kWeaveProfile_WDM == aProfileId) && (kMsgType_CustomCommandResponse == aMsgType))
-    {
-        // command response, implies the request succeeded to some degree
-        messageType = kMsgIdentified_Response;
-    }
-    else if ((nl::Weave::Profiles::kWeaveProfile_WDM == aProfileId) && (kMsgType_InProgress == aMsgType))
-    {
-        messageType = kMsgIdentified_InProgress;
-    }
-    else
-    {
-        messageType = kMsgIdentified_Unknown;
-    }
-
-    switch (pResponder->mCmdState)
-    {
-    case kCmdState_Requesting:
-        if (kMsgIdentified_InProgress == messageType)
-        {
-            // in progress, indicates the other side has received the request and is working on it
-            // note we could have different time out settings after receiving this in progress message.
-            // it's up to each individual trait.
+        case CommandSender::kEvent_InProgressReceived:
             WeaveLogDetail(DataManagement, "Received In Progress message. Waiting for a response");
-            // there is no payload in "in progress" message, so there is nothing to parse
-            pResponder->mCmdState = kCmdState_Operating;
-            // do not close this EC when we leave this function
-            aEC = NULL;
             break;
-        }
-        // fall through intentional
-    case kCmdState_Operating:
-        if (kMsgIdentified_Response == messageType)
-        {
-            // command response, implies the request succeeded to some degree
-            WeaveLogDetail(DataManagement, "Response message, end");
-
-            nl::Weave::TLV::TLVReader reader;
-            reader.Init(aPayload);
-
-            err = reader.Next();
-            SuccessOrExit(err);
-
-            CustomCommandResponse::Parser response;
-            err = response.Init(reader);
-            SuccessOrExit(err);
-
-#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
-            // this function only print out all recognized properties in the response
-            // check the parser class to see what else is available
-            err = response.CheckSchemaValidity();
-            SuccessOrExit(err);
-#endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
-        }
-        else
-        {
-            if (kMsgIdentified_StatusReport == messageType)
-            {
-                // status report, implies the request failed
-                WeaveLogDetail(DataManagement, "Status Report, end");
-            }
-            else
-            {
-                // unexpected message
-                WeaveLogDetail(DataManagement, "Unexpected message, end");
-            }
-        }
-        // reset state and close the exchange
-        pResponder->Command_End();
-        // aEC has been closed/aborted as part of Command_End
-        aEC = NULL;
-        break;
-    default:
-        // this is probably dead code
-        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
-    }
-
-exit:
-    WeaveLogFunctError(err);
-
-    if (WEAVE_NO_ERROR != err)
-    {
-        pResponder->Command_End(true);
-        // aEC has been closed/aborted as part of Command_End
-        aEC = NULL;
-    }
-
-    if (NULL != aEC)
-    {
-        aEC->Abort();
-        aEC = NULL;
-    }
-
-    if (NULL != aPayload)
-    {
-        PacketBuffer::Free(aPayload);
-        aPayload = NULL;
+        case CommandSender::kEvent_StatusReportReceived:
+             WeaveLogError(DataManagement, "Received Status Report 0x%" PRIX32 " : 0x%" PRIX16, aInParam.StatusReportReceived.statusReport->mProfileId,
+                     aInParam.StatusReportReceived.statusReport->mStatusCode);
+             break;
+        case CommandSender::kEvent_CommunicationError:
+             WeaveLogError(DataManagement, "Communication Error: %d", aInParam.CommunicationError.error);
+             break;
+        case CommandSender::kEvent_ResponseReceived:
+             WeaveLogDetail(DataManagement, "Response message, end");
+             break;
+        case CommandSender::kEvent_DefaultCheck:
+             _this->mCommandSender.DefaultEventHandler(aAppState, aEvent, aInParam, aOutEventParam);
+             break;
     }
 }
 
 void MockWdmSubscriptionResponderImpl::Command_Send(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    PacketBuffer *msgBuf = PacketBuffer::New();
+    PacketBuffer *reqBuf = NULL;
+    TLVWriter writer;
     static uint32_t commandType = 1;
-    static uint32_t signatureType = 0; // static dummy signature.  Values: 0 == None, 1 -- Weave Signature, 2 -- Group Key Signature
 
     WeaveLogDetail(DataManagement, "Responder %s: state: %d", __func__, mCmdState);
 
     printf("<<< TestCaseId %u >>>\n", mTestCaseId);
 
-    VerifyOrExit((NULL != gBinding) && (kCmdState_Idle == mCmdState) && (NULL == mEcCommand), err = WEAVE_ERROR_INCORRECT_STATE);
-    VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
+    VerifyOrExit(NULL != gBinding, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    err = gBinding->NewExchangeContext(mEcCommand);
+    err = mCommandSender.Init(gBinding, CommandEventHandler, this);
     SuccessOrExit(err);
 
-    mEcCommand->AppState = this;
-    mEcCommand->OnMessageReceived = OnMessageReceivedForCustomCommand;
-    mEcCommand->OnResponseTimeout = NULL;
-    mEcCommand->OnSendError = NULL;
-    mEcCommand->OnAckRcvd = NULL;
-
     {
-        nl::Weave::TLV::TLVWriter writer;
-        CustomCommand::Builder request;
         uint64_t nowMicroSecs, deadline;
+        CommandSender::SendParams sendParams;
 
-        writer.Init(msgBuf);
-        err = request.Init(&writer);
-        SuccessOrExit(err);
-
-        Path::Builder & path = request.CreatePathBuilder();
+        memset(&sendParams, 0, sizeof(sendParams));
 
         if (mTestCaseId == kTestCase_ForwardCompatibleVersionedRequest) {
-            path.ProfileID(Schema::Nest::Test::Trait::TestATrait::kWeaveProfileId, SchemaVersionRange(4, 1)).InstanceID(1).EndOfPath();
+            sendParams.VersionRange.mMaxVersion = 4;
+            sendParams.VersionRange.mMinVersion = 1;
         }
         else if (mTestCaseId == kTestCase_IncompatibleVersionedCommandRequest) {
-            path.ProfileID(Schema::Nest::Test::Trait::TestATrait::kWeaveProfileId, SchemaVersionRange(4, 2)).InstanceID(1).EndOfPath();
+            sendParams.VersionRange.mMaxVersion = 4;
+            sendParams.VersionRange.mMinVersion = 2;
         }
         else {
-            path.ProfileID(Schema::Nest::Test::Trait::TestATrait::kWeaveProfileId).InstanceID(1).EndOfPath();
+            sendParams.VersionRange.mMaxVersion = 4;
+            sendParams.VersionRange.mMinVersion = 1;
         }
 
-        SuccessOrExit(path.GetError());
-
-        // Command Type: alternating
         commandType = (1 == commandType) ? 2 : 1;
-        request.CommandType(commandType);
-        request.MustBeVersion(mTestADataSink1.GetVersion());
 
-        // It's safe to bail out after a series of operation, for
-        // SubscriptionRequest::Builder would internally turn to NOP after error is logged
-        SuccessOrExit(err = request.GetError());
+        err = sendParams.PopulateTraitPath(&mSinkCatalog, &mTestADataSink0, commandType);
+        SuccessOrExit(err);
+
+        sendParams.MustBeVersion = mTestADataSink1.GetVersion();
+        nl::SetFlag(sendParams.Flags, CommandFlags::kCommandFlag_MustBeVersionValid);
 
         err = System::Layer::GetClock_RealTime(nowMicroSecs);
         SuccessOrExit(err);
 
         deadline = nowMicroSecs + kCommandTimeoutMicroSecs;
-        request.ExpiryTimeMicroSecond((int64_t)deadline);
+        sendParams.ExpiryTimeMicroSecond = deadline;
+        nl::SetFlag(sendParams.Flags, CommandFlags::kCommandFlag_ExpiryTimeValid);
 
-        SuccessOrExit(err = request.GetError());
-
-        // Add arguments here
         {
             uint32_t dummyUInt = 7;
             bool dummyBool = false;
             nl::Weave::TLV::TLVType dummyType = nl::Weave::TLV::kTLVType_NotSpecified;
-            err = writer.StartContainer(nl::Weave::TLV::ContextTag(CustomCommand::kCsTag_Argument), nl::Weave::TLV::kTLVType_Structure, dummyType);
+
+            reqBuf = PacketBuffer::New();
+            VerifyOrExit(reqBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+            writer.Init(reqBuf);
+
+            err = writer.StartContainer(AnonymousTag, nl::Weave::TLV::kTLVType_Structure, dummyType);
             SuccessOrExit(err);
 
-            err = writer.Put(nl::Weave::TLV::ContextTag(1), dummyUInt);
+            err = writer.Put(ContextTag(1), dummyUInt);
             SuccessOrExit(err);
             err = writer.PutBoolean(nl::Weave::TLV::ContextTag(2), dummyBool);
             SuccessOrExit(err);
 
             err = writer.EndContainer(dummyType);
             SuccessOrExit(err);
+
+            err = writer.Finalize();
+            SuccessOrExit(err);
         }
 
-        switch (signatureType)
-        {
-            case 0: // dummy signature -- No signature
-                WeaveLogDetail(DataManagement, "Command with no authenticator" );
-                break;
-            case 1: // dummy signature -- Weave signature
-                {
-                    nl::Weave::TLV::TLVType dummyType =  nl::Weave::TLV::kTLVType_NotSpecified;
-
-                    WeaveLogDetail(DataManagement, "Command with dummy WeaveSignature authenticator" );
-
-                    err = writer.StartContainer(nl::Weave::TLV::ProfileTag(nl::Weave::Profiles::kWeaveProfile_Security,  nl::Weave::Profiles::Security::kTag_WeaveSignature), nl::Weave::TLV::kTLVType_Structure, dummyType);
-                    SuccessOrExit(err);
-
-                    // dummy signature -- for now, just an algorithm specification
-                    err = writer.Put(nl::Weave::TLV::ContextTag(nl::Weave::Profiles::Security::kTag_WeaveSignature_SignatureAlgorithm), nl::Weave::ASN1::kOID_SigAlgo_ECDSAWithSHA256);
-                    SuccessOrExit(err);
-
-                    err = writer.EndContainer(dummyType);
-                    SuccessOrExit(err);
-                    break;
-                }
-            case 2: // dummy signature -- Group key signature
-                {
-                    nl::Weave::TLV::TLVType dummyType =  nl::Weave::TLV::kTLVType_NotSpecified;
-
-                    WeaveLogDetail(DataManagement, "Command with dummy Group Key Authenticator authenticator" );
-
-                    err = writer.StartContainer(nl::Weave::TLV::ProfileTag(nl::Weave::Profiles::kWeaveProfile_Security,  nl::Weave::Profiles::Security::kTag_GroupKeySignature), nl::Weave::TLV::kTLVType_Structure, dummyType);
-                    SuccessOrExit(err);
-
-                    // dummy signature -- for now, just an algorithm specification
-                    err = writer.Put(nl::Weave::TLV::ContextTag(nl::Weave::Profiles::Security::kTag_GroupKeySignature_SignatureAlgorithm), nl::Weave::ASN1::kOID_SigAlgo_HMACWithSHA256);
-                    SuccessOrExit(err);
-
-                    err = writer.EndContainer(dummyType);
-                    SuccessOrExit(err);
-                    break;
-                }
-        }
-
-        request.EndOfCustomCommand();
-        SuccessOrExit(err = request.GetError());
-
-        err = writer.Finalize();
+        err = mCommandSender.SendCommand(reqBuf, NULL, sendParams);
         SuccessOrExit(err);
 
-        if (commandType == 1)
-        {
-            signatureType = (signatureType + 1) % 3;
-        }
-
-
-        err = mEcCommand->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_CustomCommandRequest,
-            msgBuf, nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
-        msgBuf = NULL;
-        SuccessOrExit(err);
+        reqBuf = NULL;
     }
-
-    err = mExchangeMgr->MessageLayer->SystemLayer->StartTimer(5000, HandleCustomCommandTimeout, this);
-    SuccessOrExit(err);
-
-    mCmdState = kCmdState_Requesting;
 
 exit:
     WeaveLogFunctError(err);
 
-    if (NULL != msgBuf)
+    if (NULL != reqBuf)
     {
-        PacketBuffer::Free(msgBuf);
-        msgBuf = NULL;
+        PacketBuffer::Free(reqBuf);
+        reqBuf = NULL;
     }
 
     if (WEAVE_NO_ERROR != err)
     {
-        Command_End(true);
+        mCommandSender.Close(true);
     }
 }
 
