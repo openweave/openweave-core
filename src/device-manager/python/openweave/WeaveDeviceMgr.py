@@ -345,7 +345,7 @@ class _DeviceDescriptorStruct(Structure):
         ('Primary802154MACAddress', c_ubyte * 8),   # MAC address for primary 802.15.4 interface (big-endian, all zeros = not present)
         ('PrimaryWiFiMACAddress', c_ubyte * 6),     # MAC address for primary WiFi interface (big-endian, all zeros = not present)
         ('SerialNumber', c_char * 33),              # Serial number of device (nul terminated, 0 length = not present)
-        ('SoftwareVersion', c_char * 33),           # Version of software running on the device (nul terminated, 0 length = not present)
+        ('SoftwareVersion', c_char * 129),           # Version of software running on the device (nul terminated, 0 length = not present)
         ('RendezvousWiFiESSID', c_char * 33),       # ESSID for pairing WiFi network (nul terminated, 0 length = not present)
         ('PairingCode', c_char * 17),               # Device pairing code (nul terminated, 0 length = not present)
         ('PairingCompatibilityVersionMajor', c_uint16), # Pairing software compatibility major version
