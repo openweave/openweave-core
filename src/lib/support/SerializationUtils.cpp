@@ -1340,6 +1340,20 @@ WEAVE_ERROR DeallocateDeserializedStructure(void *aStructureData,
                                             SerializationContext *aContext/* = NULL*/)
 {
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
+    static const FieldDescriptor nakedByteString[] = { { NULL, 0, SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeByteString, 0), 1 } };
+    static const SchemaFieldDescriptor byteStringDescriptor =
+    {
+        .mNumFieldDescriptorElements = 1,
+        .mFields = nakedByteString,
+        .mSize = sizeof(SerializedByteString)
+    };
+    static const FieldDescriptor nakedUTF8String[] = { { NULL, 0, SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUTF8String, 0), 1 } };
+    static const SchemaFieldDescriptor utf8StringDescriptor =
+    {
+        .mNumFieldDescriptorElements = 1,
+        .mFields = nakedUTF8String,
+        .mSize = sizeof(char*)
+    };
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const FieldDescriptor *fieldPtr = aFieldDescriptors->mFields;
     const FieldDescriptor *endFieldPtr = &(aFieldDescriptors->mFields[aFieldDescriptors->mNumFieldDescriptorElements]);
@@ -1371,14 +1385,30 @@ WEAVE_ERROR DeallocateDeserializedStructure(void *aStructureData,
 
             case SerializedFieldTypeArray:
             {
+                const nl::SchemaFieldDescriptor *elementDescriptor;
                 // fieldPtr is telling us we have an array, but the
                 // elements reside at the next field.  Increment
                 // fieldPtr to get us to the elements, but leave
                 // currentFieldData where it is.
                 fieldPtr++;
 
+                // Byte strings and UTF8 strings are need special handling, as
+                // their definitions don't include a nested field descriptor
+                if (fieldPtr->GetType() == SerializedFieldTypeByteString)
+                {
+                    elementDescriptor = &byteStringDescriptor;
+                }
+                else if (fieldPtr->GetType() == SerializedFieldTypeUTF8String)
+                {
+                    elementDescriptor = &utf8StringDescriptor;
+                }
+                else
+                {
+                    elementDescriptor = fieldPtr->mNestedFieldDescriptors;
+                }
+
                 err = DeallocateDeserializedArray(currentFieldData,
-                                                  fieldPtr->mNestedFieldDescriptors,
+                                                  elementDescriptor,
                                                   aContext);
                 SuccessOrExit(err);
                 break;
@@ -1392,6 +1422,17 @@ WEAVE_ERROR DeallocateDeserializedStructure(void *aStructureData,
 
                 // Go ahead and free it here.
                 memMgmt->mem_free(str);
+                break;
+            }
+
+            case SerializedFieldTypeByteString:
+            {
+                SerializedByteString *str = ((SerializedByteString *)currentFieldData);
+
+                LogReadWrite("%s Freeing Byte String of '%d' bytes at 0x%x", "R", str->mLen, str->mBuf);
+
+                // Go ahead and free it here.
+                memMgmt->mem_free(str->mBuf);
                 break;
             }
 

@@ -1036,6 +1036,8 @@ static void CheckByteStringFieldType(nlTestSuite * inSuite, void * inContext)
 
     NL_TEST_ASSERT(inSuite, deserializedEv.byte_string.mLen == ev.byte_string.mLen);
     NL_TEST_ASSERT(inSuite, memcmp(deserializedEv.byte_string.mBuf, ev.byte_string.mBuf, ev.byte_string.mLen) == 0);
+
+    DeallocateDeserializedStructure(&deserializedEv, &ByteStringTestEventSchema, &serializationContext);
 }
 
 static void CheckByteStringArray(nlTestSuite * inSuite, void * inContext)
@@ -1080,6 +1082,8 @@ static void CheckByteStringArray(nlTestSuite * inSuite, void * inContext)
         NL_TEST_ASSERT(inSuite,
                        memcmp(deserializedEv.testArray.buf[i].mBuf, ev.testArray.buf[i].mBuf, ev.testArray.buf[i].mLen) == 0);
     }
+
+    DeallocateDeserializedStructure(&deserializedEv, &ByteStringArrayTestEventSchema, &serializationContext);
 }
 
 struct DebugLogContext
@@ -2150,6 +2154,8 @@ static void CheckNullableFieldsSimple(nlTestSuite * inSuite, void * inContext)
     NL_TEST_ASSERT(inSuite, deserializedEvN.teA == evN.teA);
     NL_TEST_ASSERT(inSuite, GET_FIELD_NULLIFIED_BIT(deserializedEvN.__nullified_fields__, 0));
     NL_TEST_ASSERT(inSuite, deserializedEvN.IsTeJPresent() == false);
+
+    nl::DeallocateEvent(&deserializedEvN, &serializationContext);
 }
 
 static void CheckNullableFieldsComplex(nlTestSuite * inSuite, void * inContext)
@@ -2336,6 +2342,8 @@ static void CheckNullableFieldsComplex(nlTestSuite * inSuite, void * inContext)
             NL_TEST_ASSERT(inSuite, teN_d.neJ.neB == teN_s.neJ.neB);
             NL_TEST_ASSERT(inSuite, teN_d.neJ.IsNeAPresent() == false);
         }
+
+        nl::DeallocateEvent(&teN_d, &serializationContext);
     }
 }
 
