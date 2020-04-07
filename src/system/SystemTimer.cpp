@@ -125,9 +125,7 @@ bool Timer::IsEarlierEpoch(const Timer::Epoch &inFirst, const Timer::Epoch &inSe
  */
 Error Timer::Start(uint32_t aDelayMilliseconds, OnCompleteFunct aOnComplete, void* aAppState)
 {
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
     Layer& lLayer = this->SystemLayer();
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
     WEAVE_SYSTEM_FAULT_INJECT(FaultInjection::kFault_TimeoutImmediate, aDelayMilliseconds = 0);
 
@@ -173,6 +171,9 @@ Error Timer::Start(uint32_t aDelayMilliseconds, OnCompleteFunct aOnComplete, voi
         lTimer->mNextTimer = this;
     }
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    lLayer.WakeSelect();
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     return WEAVE_SYSTEM_NO_ERROR;
 }
