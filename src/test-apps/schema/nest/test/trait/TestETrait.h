@@ -1,6 +1,6 @@
 
 /*
- *    Copyright (c) 2019 Google LLC.
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2016-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -121,6 +121,24 @@ inline bool NullableE::IsNeBPresent(void)
     return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 1));
 }
 #endif
+struct StructELarge
+{
+    uint32_t selA;
+    uint32_t selB;
+    uint32_t selC;
+    uint32_t selD;
+    uint32_t selF;
+    bool selG;
+
+    static const nl::SchemaFieldDescriptor FieldSchema;
+
+};
+
+struct StructELarge_array {
+    uint32_t num;
+    StructELarge *buf;
+};
+
 //
 // Events
 //
@@ -530,6 +548,94 @@ struct TestEEmptyEvent_array {
     TestEEmptyEvent *buf;
 };
 
+
+struct TestELargeArrayNullableEvent
+{
+    uint32_t telaneA;
+    void SetTelaneANull(void);
+    void SetTelaneAPresent(void);
+#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
+    bool IsTelaneAPresent(void);
+#endif
+    Schema::Nest::Test::Trait::TestETrait::StructELarge_array telaneB;
+    uint8_t __nullified_fields__[1/8 + 1];
+
+    static const nl::SchemaFieldDescriptor FieldSchema;
+
+    // Statically-known Event Struct Attributes:
+    enum {
+            kWeaveProfileId = (0x235aU << 16) | 0xfe06U,
+        kEventTypeId = 0x4U
+    };
+
+    static const nl::Weave::Profiles::DataManagement::EventSchema Schema;
+};
+
+struct TestELargeArrayNullableEvent_array {
+    uint32_t num;
+    TestELargeArrayNullableEvent *buf;
+};
+
+inline void TestELargeArrayNullableEvent::SetTelaneANull(void)
+{
+    SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0);
+}
+
+inline void TestELargeArrayNullableEvent::SetTelaneAPresent(void)
+{
+    CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 0);
+}
+
+#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
+inline bool TestELargeArrayNullableEvent::IsTelaneAPresent(void)
+{
+    return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0));
+}
+#endif
+
+struct TestESmallArrayNullableEvent
+{
+    uint32_t tesaneA;
+    void SetTesaneANull(void);
+    void SetTesaneAPresent(void);
+#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
+    bool IsTesaneAPresent(void);
+#endif
+    nl::SerializedFieldTypeBoolean_array  tesaneB;
+    uint8_t __nullified_fields__[1/8 + 1];
+
+    static const nl::SchemaFieldDescriptor FieldSchema;
+
+    // Statically-known Event Struct Attributes:
+    enum {
+            kWeaveProfileId = (0x235aU << 16) | 0xfe06U,
+        kEventTypeId = 0x5U
+    };
+
+    static const nl::Weave::Profiles::DataManagement::EventSchema Schema;
+};
+
+struct TestESmallArrayNullableEvent_array {
+    uint32_t num;
+    TestESmallArrayNullableEvent *buf;
+};
+
+inline void TestESmallArrayNullableEvent::SetTesaneANull(void)
+{
+    SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0);
+}
+
+inline void TestESmallArrayNullableEvent::SetTesaneAPresent(void)
+{
+    CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 0);
+}
+
+#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
+inline bool TestESmallArrayNullableEvent::IsTesaneAPresent(void)
+{
+    return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0));
+}
+#endif
 
 //
 // Enums

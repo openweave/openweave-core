@@ -901,13 +901,15 @@ static void CheckSchemaGeneratedLogging(nlTestSuite * inSuite, void * inContext)
     WEAVE_ERROR err;
     nl::Weave::Profiles::DataManagement::LoggingManagement & logMgmt =
         nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
-
     nl::Weave::Profiles::DataManagement::SampleTrait::Event ev;
     nl::Weave::Profiles::DataManagement::OpenCloseTrait::Event ev2;
     nl::StructureSchemaPointerPair appData;
     nl::Weave::TLV::TLVWriter outer, writer;
+    uint8_t beforeSpacer[128];
+    Schema::Nest::Test::Trait::TestETrait::TestELargeArrayNullableEvent telane = { 0 };
+    uint8_t afterSpacer[128];
     uint8_t sBuffer[256];
-
+    uint32_t sum1, sum2;
     InitializeEventLogging(context);
 
     uint32_t samples[6]    = { 0, 1, 2, 3, 4, 5 };
@@ -956,6 +958,54 @@ static void CheckSchemaGeneratedLogging(nlTestSuite * inSuite, void * inContext)
     {
         DoBDXUpload(context);
     }
+
+    memset(beforeSpacer, 0x00, sizeof(beforeSpacer));
+    memset(afterSpacer, 0x00, sizeof(afterSpacer));
+    appData.mStructureData = static_cast<void *>(&telane);
+    appData.mFieldSchema   = &Schema::Nest::Test::Trait::TestETrait::TestELargeArrayNullableEvent::FieldSchema;
+
+    telane.telaneA = 0;
+    telane.telaneB.num = 0;
+    telane.telaneB.buf = NULL;
+    telane.SetTelaneANull();
+    outer.Init(sBuffer, sizeof(sBuffer));
+
+    err = outer.OpenContainer(ProfileTag(0x0A00, 1), kTLVType_Structure, writer);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = SerializedDataToTLVWriterHelper(writer, kTag_EventData, &appData);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = writer.Finalize();
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = outer.CloseContainer(writer);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = outer.Finalize();
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    sum1 = outer.GetLengthWritten();
+
+    memset(beforeSpacer, 0xff, sizeof(beforeSpacer));
+    memset(afterSpacer, 0xff, sizeof(afterSpacer));
+    outer.Init(sBuffer, sizeof(sBuffer));
+
+    err = outer.OpenContainer(ProfileTag(0x0A00, 1), kTLVType_Structure, writer);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = SerializedDataToTLVWriterHelper(writer, kTag_EventData, &appData);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = writer.Finalize();
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = outer.CloseContainer(writer);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = outer.Finalize();
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    sum2 = outer.GetLengthWritten();
+    NL_TEST_ASSERT(inSuite, sum1 == sum2);
 }
 
 static void CheckByteStringFieldType(nlTestSuite * inSuite, void * inContext)
@@ -986,6 +1036,8 @@ static void CheckByteStringFieldType(nlTestSuite * inSuite, void * inContext)
 
     NL_TEST_ASSERT(inSuite, deserializedEv.byte_string.mLen == ev.byte_string.mLen);
     NL_TEST_ASSERT(inSuite, memcmp(deserializedEv.byte_string.mBuf, ev.byte_string.mBuf, ev.byte_string.mLen) == 0);
+
+    DeallocateDeserializedStructure(&deserializedEv, &ByteStringTestEventSchema, &serializationContext);
 }
 
 static void CheckByteStringArray(nlTestSuite * inSuite, void * inContext)
@@ -1030,6 +1082,8 @@ static void CheckByteStringArray(nlTestSuite * inSuite, void * inContext)
         NL_TEST_ASSERT(inSuite,
                        memcmp(deserializedEv.testArray.buf[i].mBuf, ev.testArray.buf[i].mBuf, ev.testArray.buf[i].mLen) == 0);
     }
+
+    DeallocateDeserializedStructure(&deserializedEv, &ByteStringArrayTestEventSchema, &serializationContext);
 }
 
 struct DebugLogContext
@@ -2100,6 +2154,8 @@ static void CheckNullableFieldsSimple(nlTestSuite * inSuite, void * inContext)
     NL_TEST_ASSERT(inSuite, deserializedEvN.teA == evN.teA);
     NL_TEST_ASSERT(inSuite, GET_FIELD_NULLIFIED_BIT(deserializedEvN.__nullified_fields__, 0));
     NL_TEST_ASSERT(inSuite, deserializedEvN.IsTeJPresent() == false);
+
+    nl::DeallocateEvent(&deserializedEvN, &serializationContext);
 }
 
 static void CheckNullableFieldsComplex(nlTestSuite * inSuite, void * inContext)
@@ -2286,6 +2342,8 @@ static void CheckNullableFieldsComplex(nlTestSuite * inSuite, void * inContext)
             NL_TEST_ASSERT(inSuite, teN_d.neJ.neB == teN_s.neJ.neB);
             NL_TEST_ASSERT(inSuite, teN_d.neJ.IsNeAPresent() == false);
         }
+
+        nl::DeallocateEvent(&teN_d, &serializationContext);
     }
 }
 

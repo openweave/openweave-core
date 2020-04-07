@@ -1,6 +1,6 @@
 
 /*
- *    Copyright (c) 2019 Google LLC.
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2016-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -258,6 +258,66 @@ const nl::Weave::Profiles::DataManagement::EventSchema TestEEmptyEvent::Schema =
     .mMinCompatibleDataSchemaVersion = 1,
 };
 
+const nl::FieldDescriptor TestELargeArrayNullableEventFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(TestELargeArrayNullableEvent, telaneA), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 1), 1
+    },
+
+    {
+        NULL, offsetof(TestELargeArrayNullableEvent, telaneB) + offsetof(Schema::Nest::Test::Trait::TestETrait::StructELarge_array, num), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeArray, 0), 2
+    },
+    {
+        &Schema::Nest::Test::Trait::TestETrait::StructELarge::FieldSchema, offsetof(TestELargeArrayNullableEvent, telaneB) + offsetof(Schema::Nest::Test::Trait::TestETrait::StructELarge_array, buf), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeStructure, 0), 2
+    },
+
+};
+
+const nl::SchemaFieldDescriptor TestELargeArrayNullableEvent::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(TestELargeArrayNullableEventFieldDescriptors)/sizeof(TestELargeArrayNullableEventFieldDescriptors[0]),
+    .mFields = TestELargeArrayNullableEventFieldDescriptors,
+    .mSize = sizeof(TestELargeArrayNullableEvent)
+};
+const nl::Weave::Profiles::DataManagement::EventSchema TestELargeArrayNullableEvent::Schema =
+{
+    .mProfileId = kWeaveProfileId,
+    .mStructureType = 0x4,
+    .mImportance = nl::Weave::Profiles::DataManagement::Production,
+    .mDataSchemaVersion = 2,
+    .mMinCompatibleDataSchemaVersion = 1,
+};
+
+const nl::FieldDescriptor TestESmallArrayNullableEventFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(TestESmallArrayNullableEvent, tesaneA), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 1), 1
+    },
+
+    {
+        NULL, offsetof(TestESmallArrayNullableEvent, tesaneB) + offsetof(nl::SerializedFieldTypeBoolean_array, num), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeArray, 0), 2
+    },
+    {
+        NULL, offsetof(TestESmallArrayNullableEvent, tesaneB) + offsetof(nl::SerializedFieldTypeBoolean_array, buf), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeBoolean, 0), 2
+    },
+
+};
+
+const nl::SchemaFieldDescriptor TestESmallArrayNullableEvent::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(TestESmallArrayNullableEventFieldDescriptors)/sizeof(TestESmallArrayNullableEventFieldDescriptors[0]),
+    .mFields = TestESmallArrayNullableEventFieldDescriptors,
+    .mSize = sizeof(TestESmallArrayNullableEvent)
+};
+const nl::Weave::Profiles::DataManagement::EventSchema TestESmallArrayNullableEvent::Schema =
+{
+    .mProfileId = kWeaveProfileId,
+    .mStructureType = 0x5,
+    .mImportance = nl::Weave::Profiles::DataManagement::Production,
+    .mDataSchemaVersion = 2,
+    .mMinCompatibleDataSchemaVersion = 1,
+};
+
 //
 // Event Structs
 //
@@ -303,6 +363,42 @@ const nl::SchemaFieldDescriptor NullableE::FieldSchema =
     .mNumFieldDescriptorElements = sizeof(NullableEFieldDescriptors)/sizeof(NullableEFieldDescriptors[0]),
     .mFields = NullableEFieldDescriptors,
     .mSize = sizeof(NullableE)
+};
+
+
+const nl::FieldDescriptor StructELargeFieldDescriptors[] =
+{
+    {
+        NULL, offsetof(StructELarge, selA), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 1
+    },
+
+    {
+        NULL, offsetof(StructELarge, selB), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 2
+    },
+
+    {
+        NULL, offsetof(StructELarge, selC), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 3
+    },
+
+    {
+        NULL, offsetof(StructELarge, selD), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 4
+    },
+
+    {
+        NULL, offsetof(StructELarge, selF), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 5
+    },
+
+    {
+        NULL, offsetof(StructELarge, selG), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeBoolean, 0), 6
+    },
+
+};
+
+const nl::SchemaFieldDescriptor StructELarge::FieldSchema =
+{
+    .mNumFieldDescriptorElements = sizeof(StructELargeFieldDescriptors)/sizeof(StructELargeFieldDescriptors[0]),
+    .mFields = StructELargeFieldDescriptors,
+    .mSize = sizeof(StructELarge)
 };
 
 } // namespace TestETrait
