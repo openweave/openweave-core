@@ -194,7 +194,7 @@ exit:
     _mFabricState.FabricId = 0;
 
     // Generate a unique node id for local Weave stack.
-    err = GenerateWeaveNodeId(_mFabricState.LocalNodeId);
+    err = ::nl::Weave::GenerateWeaveNodeId(_mFabricState.LocalNodeId);
     SuccessOrExit(err);
 
     // Configure the weave listening address, if one was provided
