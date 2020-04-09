@@ -36,16 +36,12 @@ ANDROID_HOME                    ?= $(ANDROID_ROOT)/android-sdk-linux-r23.0.2
 ANDROID_NDK_HOME                ?= $(ANDROID_ROOT)/android-ndk-r10
 ANDROID_API                     ?= $(ANDROID_RELEASE)
 ANDROID_ABI                     ?= armeabi-v7a arm64-v8a x86 x86_64
-ANDROID_STL                     ?= $(ANDROID_CXX)
+ANDROID_STL                     ?= libc++
 DEBUG                           ?= 0
 ENABLE_TARGETED_LISTEN          ?= 0
 
 # Deprecated -- Use ANDROID_API
 ANDROID_RELEASE                 ?= 22
-
-# Deprecated -- Use ANDROID_STL
-ANDROID_CXX                     ?= system
-
 
 #
 # Android C++ Runtime (STL) Selection
@@ -506,4 +502,4 @@ help:
 	$(ECHO) "                          NOTE: Support for armeabi is deprecated in later SDKs/NDKs."
 	$(ECHO) ""
 	$(ECHO) "  ANDROID_STL             Android NDK C++ runtime to build against.  Choices"
-	$(ECHO) "                          are libc++, gnustl and system (default: $(ANDROID_CXX))."
+	$(ECHO) "                          are libc++, gnustl and system (default: libc++)."
