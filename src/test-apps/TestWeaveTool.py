@@ -23,6 +23,7 @@
 #
 
 import os
+import platform
 import sys
 import unittest
 import tempfile
@@ -1126,6 +1127,16 @@ class TEST08_PrintSig(WeaveToolTestCase):
             self.assertRegexpMatches(remainingOutput, r'''(?m)^\s+r:\s+4D 0F C7 61 00 34 BF 6D 0F D1 B8 2B CD 8C 79 25\s*07 8A 1A 2A 8B D9 E1 A8 9C 5A D0 9C\s*$''')
             self.assertRegexpMatches(remainingOutput, r'''(?m)^\s+s:\s+2D 81 E4 D9 4E 76 69 89 7F FE 79 9E F5 52 14 61\s*9E 32 9F 46 9F FC 6C 7F A2 A5 86 4C\s*$''')
 
+def locateBrewOpenSSL():
+    opensslPath = None
+    if platform.system() == 'Darwin':
+        try:
+            brewPath = subprocess.check_output(["brew", "--prefix", "openssl"])
+            opensslPath = os.path.join(brewPath.rstrip(), "bin", "openssl")
+            rv = subprocess.call([opensslPath, "version"])
+        except Exception:
+            opensslPath = None
+    return opensslPath
             
 if __name__ == '__main__':
     
@@ -1167,11 +1178,18 @@ if __name__ == '__main__':
     
     # If not specified on the command line, locate the openssl tool in the user's PATH.
     if not args.opensslTool:
-        args.opensslTool = next(
-            (fileName for fileName in
-                (os.path.join(path, 'openssl') for path in os.environ["PATH"].split(os.pathsep))
-                if os.path.isfile(fileName) and os.access(fileName, os.X_OK)),
-            None)
+        # On MacOS, the base OS has switched to LibreSSL.  Given the
+        # preferred method for locating OpenSSL distribution for
+        # Weave, we use brew packages before attempting to locate the
+        # openssl in the user's path.
+        args.opensslTool = locateBrewOpenSSL()
+
+        if not args.opensslTool:
+            args.opensslTool = next(
+                (fileName for fileName in
+                 (os.path.join(path, 'openssl') for path in os.environ["PATH"].split(os.pathsep))
+                 if os.path.isfile(fileName) and os.access(fileName, os.X_OK)),
+                None)
     if not args.opensslTool or not os.path.isfile(args.opensslTool) or not os.access(args.opensslTool, os.X_OK):
         sys.stderr.write('ERROR: openssl tool not found\n')
         sys.exit(-1)
