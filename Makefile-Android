@@ -44,7 +44,7 @@ ENABLE_TARGETED_LISTEN          ?= 0
 ANDROID_RELEASE                 ?= 22
 
 # Deprecated -- Use ANDROID_STL
-ANDROID_CXX                     ?= system
+ANDROID_CXX                     ?= libc++
 
 
 #
