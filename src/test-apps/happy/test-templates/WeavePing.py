@@ -25,6 +25,7 @@
 
 import os
 import sys
+import re
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
@@ -205,21 +206,18 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
         # search for '%' e.g.  1/1(100.00%)
         loss_percentage = None
 
+        percentageRE = re.compile('\(([\.\d]+)%\)')
         for line in output.split("\n"):
-            if not "%" in line:
-                continue
-
-            for token in line.split():
-                if "%" in token:
-                    loss_percentage = token.strip().split("(")[1]
-                    loss_percentage = loss_percentage.translate(None, "()%")
+            m = percentageRE.search(line)
+            if m:
+                try:
+                    loss_percentage = 100 - float(m.group(1))
+                except Exception:
+                    print hred("Failed to parse %s", )
 
         if loss_percentage == None:
             # hmmm, we haven't found our line
             loss_percentage = 100
-        else:
-            loss_percentage = float(loss_percentage)
-            loss_percentage = 100 - loss_percentage
 
         if self.quiet == False:
             print "weave-ping from node %s (%s) to node %s (%s) : " % \
@@ -232,7 +230,7 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
                 print hred("%f%% packet loss" % (loss_percentage))
 
         return  loss_percentage # indicate the loss for each client
-    
+
 
     def __start_server_side(self):
         if self.no_service:
@@ -272,7 +270,7 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
 
         if self.interval != None:
             cmd += " --interval " + self.interval
-    
+
         cmd += " --count " + str(self.count)
 
         if self.tap:
