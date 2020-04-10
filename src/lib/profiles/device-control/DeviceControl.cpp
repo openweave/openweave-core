@@ -375,9 +375,6 @@ void DeviceControlServer::HandleResetConfigConnectionClose(WeaveConnection *aCon
 
     delegate->OnResetConfig(server->mResetFlags);
 
-    server->mFailSafeArmed = false;
-    server->mFailSafeToken = 0;
-
     server->mResetFlags = 0x0000;
 }
 
@@ -690,15 +687,7 @@ WEAVE_ERROR DeviceControlServer::HandleResetConfig(uint8_t *p, WeaveConnection *
             curCon->Shutdown();
         } else {
             err = mDelegate->OnResetConfig(resetFlags);
-            if (err == WEAVE_ERROR_NOT_IMPLEMENTED)
-            {
-                err = SendStatusReport(kWeaveProfile_DeviceControl, kStatusCode_UnsupportedFailSafeMode);
-                ExitNow();
-            }
             SuccessOrExit(err);
-
-            mFailSafeArmed = false;
-            mFailSafeToken = 0;
 
             err = SendSuccessResponse();
             SuccessOrExit(err);
