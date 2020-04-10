@@ -1140,9 +1140,9 @@ void MockWdmSubscriptionResponderImpl::Command_Send(void)
         }
 
         err = mCommandSender.SendCommand(reqBuf, NULL, sendParams);
-        SuccessOrExit(err);
-
         reqBuf = NULL;
+
+        SuccessOrExit(err);
     }
 
 exit:
