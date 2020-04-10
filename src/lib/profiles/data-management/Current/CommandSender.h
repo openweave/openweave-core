@@ -201,7 +201,7 @@ public:
 private:
     static void OnMessageReceived(nl::Weave::ExchangeContext *aEC, const nl::Weave::IPPacketInfo *aPktInfo, const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId, uint8_t aMsgType, nl::Weave::PacketBuffer *aPayload);
     static void OnResponseTimeout(nl::Weave::ExchangeContext *aEC);
-    static void OnSendError(nl::Weave::ExchangeContext *aEC, WEAVE_ERROR err, void *aMsgCtxt);
+    static void OnSendError(nl::Weave::ExchangeContext *aEC, WEAVE_ERROR sendError, void *aMsgCtxt);
 
     EventCallback mEventCallback;
     nl::Weave::Binding *mBinding = NULL;
@@ -233,7 +233,7 @@ private:
 struct CommandSender::SynchronizedTraitState
 {
     WEAVE_ERROR Init();
-    const bool HasDataCaughtUp(void);
+    bool HasDataCaughtUp(void);
 
 private:
     // If we dont' have a pre version, it means we're still in the act of subscribing after having received the command response.
