@@ -53,7 +53,7 @@ WEAVE_ERROR CommandSender::SynchronizedTraitState::Init()
     return WEAVE_NO_ERROR;
 }
 
-const bool CommandSender::SynchronizedTraitState::HasDataCaughtUp(void)
+bool CommandSender::SynchronizedTraitState::HasDataCaughtUp(void)
 {
     uint64_t dataSinkVersion;
 
@@ -403,17 +403,17 @@ void CommandSender::DefaultEventHandler(void *aAppState, EventType aEvent, const
     aOutParam.defaultHandlerCalled = true;
 }
 
-void CommandSender::OnSendError(ExchangeContext *aEC, WEAVE_ERROR error, void *aMsgCtxt)
+void CommandSender::OnSendError(ExchangeContext *aEC, WEAVE_ERROR sendError, void *aMsgCtxt)
 {
     CommandSender *_this = static_cast<CommandSender *>(aEC->AppState);
     InEventParam inParam;
     OutEventParam outParam;
-    WEAVE_ERROR err;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     VerifyOrExit(_this != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
     VerifyOrExit(_this->mEC != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    inParam.CommunicationError.error = error;
+    inParam.CommunicationError.error = sendError;
     _this->mEventCallback(_this->mAppState, kEvent_CommunicationError, inParam, outParam);
 
     // After error, let's close out the exchange
