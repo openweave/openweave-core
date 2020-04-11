@@ -646,7 +646,7 @@ event_id_t LoggingManagement::GetFirstEventID(ImportanceType inImportance)
 CircularEventBuffer * LoggingManagement::GetImportanceBuffer(ImportanceType inImportance) const
 {
     CircularEventBuffer * buf = mEventBuffer;
-    while (!buf->IsFinalDestinationForImportance(inImportance))
+    while (!((buf != NULL) && (buf->IsFinalDestinationForImportance(inImportance))))
     {
         buf = buf->mNext;
     }
