@@ -392,6 +392,10 @@ WEAVE_ERROR CommandSender::SendCommand(PacketBuffer *aRequestBuf, Binding *aBind
     aRequestBuf = NULL;
 
 exit:
+    if ((err != WEAVE_NO_ERROR) && (aRequestBuf != NULL))
+    {
+        PacketBuffer::Free(aRequestBuf);
+    }
 
     WeaveLogFunctError(err);
     return err;
