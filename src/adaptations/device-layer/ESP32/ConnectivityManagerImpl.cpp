@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -525,18 +526,19 @@ void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
         DriveServiceTunnelState();
     }
 
-#if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
+#if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING || WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
 
-    // Handle account pairing changes.
-    else if (event->Type == DeviceEventType::kAccountPairingChange)
-    {
-        // When account pairing successfully completes, if the tunnel to the
-        // service is subject to routing restrictions (imposed because at the time
-        // the tunnel was established the device was not paired to an account)
+    // Handle account pairing and device credentials changes.
+    else if (((event->Type == DeviceEventType::kAccountPairingChange) && event->AccountPairingChange.IsPairedToAccount) ||
+             ((event->Type == DeviceEventType::kOpDeviceCredentialsChange) && event->OpDeviceCredentialsChange.AreCredentialsProvisioned))
+        {
+        // When account pairing successfully completes or new device credentials
+        // provisioned, if the tunnel to the service is subject to routing restrictions
+        // (imposed because at the time the tunnel was established the device was
+        // not paired to an account or the device only had initial self-signed certificate)
         // then force the tunnel to close.  This will result in the tunnel being
         // re-established, which should lift the service-side restrictions.
-        if (event->AccountPairingChange.IsPairedToAccount &&
-            GetFlag(mFlags, kFlag_ServiceTunnelStarted) &&
+        if (GetFlag(mFlags, kFlag_ServiceTunnelStarted) &&
             ServiceTunnelAgent.IsTunnelRoutingRestricted())
         {
             WeaveLogProgress(DeviceLayer, "Restarting service tunnel to lift routing restrictions");
@@ -546,7 +548,7 @@ void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
         }
     }
 
-#endif // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
+#endif // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING || WEAVE_DEVICE_CONFIG_ENABLE_JUST_IN_TIME_PROVISIONING
 }
 
 void ConnectivityManagerImpl::_OnWiFiScanDone()
