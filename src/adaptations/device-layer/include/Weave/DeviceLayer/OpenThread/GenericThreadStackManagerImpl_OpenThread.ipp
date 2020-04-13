@@ -721,9 +721,9 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
     eventId = nl::LogEvent(&counterEvent);
     WeaveLogProgress(DeviceLayer, "OpenThread Telemetry Stats Event Id: %u", eventId);
 
+exit:
     Impl()->UnlockThreadStack();
 
-exit:
     return err;
 }
 
@@ -778,9 +778,9 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
     eventId = nl::LogEvent(&topologyEvent);
     WeaveLogProgress(DeviceLayer, "OpenThread Telemetry Stats Event Id: %u", eventId);
 
+exit:
     Impl()->UnlockThreadStack();
 
-exit:
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "GetAndLogThreadTopologyMinimal failed: %s", nl::ErrorStr(err));
@@ -986,9 +986,9 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
         WeaveLogProgress(DeviceLayer, "OpenThread Neighbor TopoEntry[%u] Event Id: %ld", i, eventId);
     }
 
+exit:
     Impl()->UnlockThreadStack();
 
-exit:
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "GetAndLogThreadTopologyFull failed: %s", nl::ErrorStr(err));
