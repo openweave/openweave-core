@@ -304,6 +304,7 @@ ac_cv_have_decl_clock_gettime=no \
 --disable-docs \
 --disable-java \
 --disable-python \
+--disable-installable-python-package \
 --disable-shared \
 --disable-tests \
 --disable-tools \
