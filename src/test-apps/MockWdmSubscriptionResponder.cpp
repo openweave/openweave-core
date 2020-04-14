@@ -737,7 +737,7 @@ void MockWdmSubscriptionResponderImpl::PublisherEventCallback (void * const aApp
                     aInParam.mSubscriptionEstablished.mHandler->GetBinding(),
                     responder, ClientEventCallback,
                     &(responder->mSinkCatalog), kResponseTimeoutMsec * 2);
-                VerifyOrExit(err == WEAVE_NO_ERROR, gBinding->Release());
+                SuccessOrExit(err);
 
                 // TODO: EVENT-DEMO
                 responder->mSubscriptionClient->InitiateCounterSubscription(
