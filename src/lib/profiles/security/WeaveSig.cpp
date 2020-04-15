@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -501,11 +502,46 @@ exit:
     return err;
 }
 
-// Takes an ECDSA signature in DER form and converts it to Weave form.
+// Takes an ECDSA signature in DER form and converts and copies values it to Weave form.
 // ECDSA-Sig-Value ::= SEQUENCE { r INTEGER, s INTEGER }
-WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, EncodedECDSASignature& sig)
+WEAVE_ERROR DecodeCopyECDSASignature_DER(const uint8_t * sigBuf, uint8_t sigLen, EncodedECDSASignature& sig)
 {
     WEAVE_ERROR err;
+    ASN1Reader reader;
+
+    reader.Init(sigBuf, sigLen);
+
+    // ECDSA-Sig-Value ::= SEQUENCE
+    ASN1_PARSE_ENTER_SEQUENCE {
+        // r INTEGER
+        ASN1_PARSE_ELEMENT(kASN1TagClass_Universal, kASN1UniversalTag_Integer);
+
+        VerifyOrExit(sig.R != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(sig.RLen >= reader.ValueLen, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+        memcpy(sig.R, const_cast<uint8_t *>(reader.Value), reader.ValueLen);
+        sig.RLen = reader.ValueLen;
+
+        // s INTEGER
+        ASN1_PARSE_ELEMENT(kASN1TagClass_Universal, kASN1UniversalTag_Integer);
+
+        VerifyOrExit(sig.S != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(sig.SLen >= reader.ValueLen, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+        memcpy(sig.S, const_cast<uint8_t *>(reader.Value), reader.ValueLen);
+        sig.SLen = reader.ValueLen;
+    } ASN1_EXIT_SEQUENCE;
+
+exit:
+    return err;
+}
+
+// Takes an ECDSA signature in DER form and converts it to Weave form.
+// ECDSA-Sig-Value ::= SEQUENCE { r INTEGER, s INTEGER }
+WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, TLVWriter& writer, uint64_t tag)
+{
+    WEAVE_ERROR err;
+    EncodedECDSASignature sig;
     ASN1Reader reader;
 
     reader.Init(sigBuf, sigLen);
@@ -521,20 +557,6 @@ WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sig
         sig.S = const_cast<uint8_t *>(reader.Value);
         sig.SLen = reader.ValueLen;
     } ASN1_EXIT_SEQUENCE;
-
-exit:
-    return err;
-}
-
-// Takes an ECDSA signature in DER form and converts it to Weave form.
-// ECDSA-Sig-Value ::= SEQUENCE { r INTEGER, s INTEGER }
-WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, TLVWriter& writer, uint64_t tag)
-{
-    WEAVE_ERROR err;
-    EncodedECDSASignature sig;
-
-    err = ConvertECDSASignature_DERToWeave(sigBuf, sigLen, sig);
-    SuccessOrExit(err);
 
     err = EncodeWeaveECDSASignature(writer, sig, tag);
     SuccessOrExit(err);

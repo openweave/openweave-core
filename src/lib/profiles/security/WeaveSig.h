@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -132,7 +133,7 @@ extern WEAVE_ERROR GenerateAndEncodeWeaveECDSASignature(TLVWriter& writer, uint6
 
 extern WEAVE_ERROR EncodeWeaveECDSASignature(TLVWriter& writer, EncodedECDSASignature& sig, uint64_t tag);
 extern WEAVE_ERROR DecodeWeaveECDSASignature(TLVReader& reader, EncodedECDSASignature& sig);
-extern WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, EncodedECDSASignature& sig);
+extern WEAVE_ERROR DecodeCopyECDSASignature_DER(const uint8_t * sigBuf, uint8_t sigLen, EncodedECDSASignature& sig);
 extern WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, TLVWriter& writer, uint64_t tag);
 extern WEAVE_ERROR InsertRelatedCertificatesIntoWeaveSignature(
                                         uint8_t *sigBuf, uint16_t sigLen, uint16_t sigBufLen,
