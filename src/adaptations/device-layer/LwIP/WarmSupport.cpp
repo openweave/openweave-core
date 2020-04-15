@@ -58,10 +58,7 @@ namespace Platform {
 
 WEAVE_ERROR Init(WarmFabricStateDelegate * inFabricStateDelegate)
 {
-#if WARM_CONFIG_SUPPORT_THREAD_ROUTING
-    // Inform Warm of current state of thread router.
-    Warm::ThreadRoutingStateChange(kInterfaceStateUp);
-#endif // WARM_CONFIG_SUPPORT_THREAD_ROUTING
+    // Nothing to do.
     return WEAVE_NO_ERROR;
 }
 
@@ -370,9 +367,8 @@ PlatformResult StartStopThreadAdvertisement(InterfaceType inInterfaceType, const
     otError otErr;
     otBorderRouterConfig brConfig;
 
-    if (inInterfaceType != kInterfaceTypeThread) { err = WEAVE_ERROR_INVALID_ARGUMENT; }
-    if ((inPrefix.Length & 7) != 0) { err = WEAVE_ERROR_INVALID_ADDRESS; }
-    SuccessOrExit(err);
+    VerifyOrExit(inInterfaceType == kInterfaceTypeThread, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit((inPrefix.Length & 7) == 0, err = WEAVE_ERROR_INVALID_ADDRESS);
 
     ThreadStackMgrImpl().LockThreadStack();
 
@@ -407,6 +403,21 @@ PlatformResult StartStopThreadAdvertisement(InterfaceType inInterfaceType, const
     err = MapOpenThreadError(otErr);
 
 exit:
+    if (err == WEAVE_NO_ERROR)
+    {
+#if WEAVE_PROGRESS_LOGGING
+        char ipAddrStr[INET6_ADDRSTRLEN];
+        inPrefix.IPAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
+        WeaveLogProgress(DeviceLayer, "OpenThread OnMesh Prefix %s: %s/%d",
+                 (inStart) ? "Added" : "Removed",
+                 ipAddrStr, inPrefix.Length);
+#endif // WEAVE_PROGRESS_LOGGING
+    }
+    else
+    {
+        WeaveLogError(DeviceLayer, "StartStopThreadAdvertisement() failed: %s", ::nl::ErrorStr(err));
+    }
+
     return (err == WEAVE_NO_ERROR) ? kPlatformResultSuccess : kPlatformResultFailure;
 }
 
@@ -416,7 +427,6 @@ exit:
 
 PlatformResult AddRemoveThreadRoute(InterfaceType inInterfaceType, const Inet::IPPrefix &inPrefix, RoutePriority inPriority, bool inAdd)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
     otError otErr;
     otExternalRouteConfig routeConfig;
 
@@ -454,9 +464,24 @@ PlatformResult AddRemoveThreadRoute(InterfaceType inInterfaceType, const Inet::I
         otErr = otBorderRouterRemoveRoute(ThreadStackMgrImpl().OTInstance(), &routeConfig.mPrefix);
     }
 
-    err = MapOpenThreadError(otErr);
     ThreadStackMgrImpl().UnlockThreadStack();
-    return (err == WEAVE_NO_ERROR) ? kPlatformResultSuccess : kPlatformResultFailure;
+
+    if (otErr == OT_ERROR_NONE)
+    {
+#if WEAVE_PROGRESS_LOGGING
+        char ipAddrStr[INET6_ADDRSTRLEN];
+        inPrefix.IPAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
+        WeaveLogProgress(DeviceLayer, "OpenThread Border Router Route %s: %s/%d",
+                 (inAdd) ? "Added" : "Removed",
+                 ipAddrStr, inPrefix.Length);
+#endif // WEAVE_PROGRESS_LOGGING
+    }
+    else
+    {
+        WeaveLogError(DeviceLayer, "AddRemoveThreadRoute() failed: %s", ::nl::ErrorStr(MapOpenThreadError(otErr)));
+    }
+
+    return (otErr == OT_ERROR_NONE) ? kPlatformResultSuccess : kPlatformResultFailure;
 }
 
 PlatformResult SetThreadRoutePriority(InterfaceType inInterfaceType, const Inet::IPPrefix &inPrefix, RoutePriority inPriority)

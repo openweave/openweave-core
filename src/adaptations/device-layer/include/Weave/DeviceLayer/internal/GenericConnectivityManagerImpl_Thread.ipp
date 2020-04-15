@@ -29,6 +29,10 @@
 #include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_Thread.h>
 #include <Warm/Warm.h>
 
+#if WARM_CONFIG_SUPPORT_THREAD_ROUTING
+#include <openthread/thread.h>
+#endif // WARM_CONFIG_SUPPORT_THREAD_ROUTING
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
@@ -62,6 +66,26 @@ void GenericConnectivityManagerImpl_Thread<ImplClass>::_OnPlatformEvent(const We
     {
         UpdateServiceConnectivity();
     }
+
+#if WARM_CONFIG_SUPPORT_THREAD_ROUTING
+    const bool threadRoleChanged = (event->Type == DeviceEventType::kThreadStateChange &&
+                                    event->ThreadStateChange.RoleChanged);
+    if (threadRoleChanged)
+    {
+        otDeviceRole role;
+        ThreadStackMgrImpl().LockThreadStack();
+        role = otThreadGetDeviceRole(ThreadStackMgrImpl().OTInstance());
+        ThreadStackMgrImpl().UnlockThreadStack();
+
+        bool isThreadRouter = (role == OT_DEVICE_ROLE_LEADER || role == OT_DEVICE_ROLE_ROUTER);
+
+        nl::Weave::Warm::InterfaceState interfaceState = isThreadRouter
+                                                         ? nl::Weave::Warm::kInterfaceStateUp
+                                                         : nl::Weave::Warm::kInterfaceStateDown;
+        Warm::ThreadRoutingStateChange(interfaceState);
+    }
+#endif // WARM_CONFIG_SUPPORT_THREAD_ROUTING
+
 }
 
 template<class ImplClass>
