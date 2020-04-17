@@ -62,6 +62,20 @@ void GenericConnectivityManagerImpl_Thread<ImplClass>::_OnPlatformEvent(const We
     {
         UpdateServiceConnectivity();
     }
+
+#if WARM_CONFIG_SUPPORT_THREAD_ROUTING
+    const bool threadRoleChanged = (event->Type == DeviceEventType::kThreadStateChange &&
+                                    event->ThreadStateChange.RoleChanged);
+    if (threadRoleChanged)
+    {
+        ConnectivityManager::ThreadDeviceType deviceType = ThreadStackMgr().GetThreadDeviceType();
+        nl::Weave::Warm::InterfaceState interfaceState = (deviceType == ConnectivityManager::ThreadDeviceType::kThreadDeviceType_Router)
+                                                         ? nl::Weave::Warm::kInterfaceStateUp
+                                                         : nl::Weave::Warm::kInterfaceStateDown;
+        Warm::ThreadRoutingStateChange(interfaceState);
+    }
+#endif // WARM_CONFIG_SUPPORT_THREAD_ROUTING
+
 }
 
 template<class ImplClass>
