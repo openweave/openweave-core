@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/time.h>
 
 #include <SystemLayer/SystemLayer.h>
 #include <SystemLayer/SystemError.h>
@@ -69,6 +70,7 @@ using DeviceDescription::IdentifyDeviceCriteria;
 extern "C" {
 typedef void * (*GetBleEventCBFunct)(void);
 typedef void (*ConstructBytesArrayFunct)(const uint8_t *dataBuf, uint32_t dataLen);
+typedef void (*LogMessageFunct)(uint64_t time, uint64_t timeUS, const char *moduleName, uint8_t category, const char *msg);
 }
 
 enum BleEventType
@@ -257,6 +259,7 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_Stack_Shutdown();
     NL_DLL_EXPORT const char *nl_Weave_Stack_ErrorToString(WEAVE_ERROR err);
     NL_DLL_EXPORT const char *nl_Weave_Stack_StatusReportToString(uint32_t profileId, uint16_t statusCode);
+    NL_DLL_EXPORT void nl_Weave_Stack_SetLogFunct(LogMessageFunct logFunct);
 #if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_Init();
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_Shutdown();
@@ -1217,13 +1220,92 @@ WEAVE_ERROR nl_Weave_Stack_Shutdown()
 
 const char *nl_Weave_Stack_ErrorToString(WEAVE_ERROR err)
 {
-        return nl::ErrorStr(err);
+    return nl::ErrorStr(err);
 }
 
 const char *nl_Weave_Stack_StatusReportToString(uint32_t profileId, uint16_t statusCode)
 {
     return nl::StatusReportStr(profileId, statusCode);
 }
+
+#if WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
+
+// A pointer to the python logging function.
+static LogMessageFunct sLogMessageFunct = NULL;
+
+// This function is called by the Weave logging code whenever a developer message
+// is logged.  It serves as glue to adapt the logging arguments to what is expected
+// by the python code.
+// NOTE that this function MUST be thread-safe.
+static void LogMessageToPython(uint8_t module, uint8_t category, const char *msg, va_list ap)
+{
+    if (IsCategoryEnabled(category))
+    {
+        // Capture the timestamp of the log message.
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+
+        // Get the module name
+        char moduleName[nlWeaveLoggingModuleNameLen + 1];
+        ::nl::Weave::Logging::GetModuleName(moduleName, module);
+
+        // Format the log message into a dynamic memory buffer, growing the
+        // buffer as needed to fit the message.
+        char * msgBuf = NULL;
+        size_t msgBufSize = 0;
+        size_t msgSize = 0;
+        constexpr size_t kInitialBufSize = 120;
+        do
+        {
+            va_list apCopy;
+            va_copy(apCopy, ap);
+
+            msgBufSize = max(msgSize+1, kInitialBufSize);
+            msgBuf = (char *)realloc(msgBuf, msgBufSize);
+            if (msgBuf == NULL)
+            {
+                return;
+            }
+
+            int res = vsnprintf(msgBuf, msgBufSize, msg, apCopy);
+            if (res < 0)
+            {
+                return;
+            }
+            msgSize = (size_t)res;
+
+            va_end(apCopy);
+        } while (msgSize >= msgBufSize);
+
+        // Call the configured python logging function.
+        sLogMessageFunct((int64_t)tv.tv_sec, (int64_t)tv.tv_usec, moduleName, category, msgBuf);
+
+        // Release the message buffer.
+        free(msgBuf);
+    }
+}
+
+void nl_Weave_Stack_SetLogFunct(LogMessageFunct logFunct)
+{
+    if (logFunct != NULL)
+    {
+        sLogMessageFunct = logFunct;
+        ::nl::Weave::Logging::SetLogFunct(LogMessageToPython);
+    }
+    else
+    {
+        sLogMessageFunct = NULL;
+        ::nl::Weave::Logging::SetLogFunct(NULL);
+    }
+}
+
+#else // WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
+
+void nl_Weave_Stack_SetLogFunct(LogMessageFunct logFunct)
+{
+}
+
+#endif // WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
 
 #if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 static void EngineEventCallback(void * const aAppState,

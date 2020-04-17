@@ -36,6 +36,7 @@
 #define WEAVELOGGING_H_
 
 #include <stdint.h>
+#include <stdarg.h>
 
 #include <Weave/Core/WeaveConfig.h>
 
@@ -186,16 +187,16 @@ enum LogCategory
     kLogCategory_Max            = kLogCategory_Retain
 };
 
-extern void Log(uint8_t module, uint8_t category, const char *msg, ...);
-extern uint8_t GetLogFilter(void);
-extern void SetLogFilter(uint8_t category);
-
 #ifndef WEAVE_ERROR_LOGGING
 #define WEAVE_ERROR_LOGGING 1
 #endif
 
 #ifndef WEAVE_LOG_FILTERING
 #define WEAVE_LOG_FILTERING 1
+#endif
+
+#ifndef WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
+#define WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION 1
 #endif
 
 #if WEAVE_ERROR_LOGGING
@@ -294,6 +295,7 @@ extern void SetLogFilter(uint8_t category);
 
 #define nlWeaveLoggingWeavePrefixLen 6
 #define nlWeaveLoggingModuleNameLen 3
+#define nlWeaveLoggingCategoryNameLen 8
 #define nlWeaveLoggingMessageSeparatorLen 2
 #define nlWeaveLoggingMessageTrailerLen 2
 #define nlWeaveLoggingTotalMessagePadding (nlWeaveLoggingWeavePrefixLen + \
@@ -303,9 +305,20 @@ extern void SetLogFilter(uint8_t category);
 
 extern void GetMessageWithPrefix(char *buf, uint8_t bufSize, uint8_t module, const char *msg);
 extern void GetModuleName(char *buf, uint8_t module);
-void PrintMessagePrefix(uint8_t module);
+extern void GetCategoryName(char *buf, uint8_t bufSize, uint8_t category);
+extern void PrintMessagePrefix(uint8_t module);
+extern void Log(uint8_t module, uint8_t category, const char *msg, ...);
+extern uint8_t GetLogFilter(void);
+extern void SetLogFilter(uint8_t category);
 
-#else
+#if WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
+
+typedef void (*LogMessageFunct)(uint8_t module, uint8_t category, const char *msg, va_list ap);
+extern void SetLogFunct(LogMessageFunct logFunct);
+
+#endif // WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
+
+#else // _WEAVE_USE_LOGGING
 
 static inline void GetMessageWithPrefix(char *buf, uint8_t bufSize, uint8_t module, const char *msg)
 {
@@ -323,7 +336,7 @@ static inline void GetModuleName(char *buf, uint8_t module)
 
 extern uint8_t gLogFilter;
 
-#define IsCategoryEnabled(CAT) ((CAT) <= gLogFilter)
+#define IsCategoryEnabled(CAT) ((CAT) <= ::nl::Weave::Logging::gLogFilter)
 
 #else // WEAVE_LOG_FILTERING
 
