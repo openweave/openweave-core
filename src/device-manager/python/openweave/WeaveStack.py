@@ -145,7 +145,7 @@ _LogMessageFunct                            = CFUNCTYPE(None, c_int64, c_int64, 
 
 @_singleton
 class WeaveStack(object):
-    def __init__(self):
+    def __init__(self, installDefaultLogHandler=True):
         self.networkLock = Lock()
         self.completeEvent = Event()
         self._weaveStackLib = None
@@ -157,28 +157,49 @@ class WeaveStack(object):
         # Locate and load the openweave shared library.
         self._loadLib()
 
-        # By default, configure the openweave library to log to a python logger object with the
-        # name 'openweave.WeaveStack'.  If this logger has not already been initialized by
-        # the application, automatically configure it to log to stdout. 
+        # Arrange to log output from the openweave library to a python logger object with the
+        # name 'openweave.WeaveStack'.  If desired, applications can override this behavior by
+        # setting self.logger to a different python logger object, or by calling setLogFunct()
+        # with their own logging function.
+        self.logger = logging.getLogger(__name__)
+        self.setLogFunct(self.defaultLogFunct)
+
+        # Determine if there are already handlers installed for the logger.  Python 3.5+
+        # has a method for this; on older versions the check has to be done manually.  
+        if hasattr(self.logger, 'hasHandlers'):
+            hasHandlers = self.logger.hasHandlers()
+        else:
+            hasHandlers = False
+            logger = self.logger
+            while logger is not None:
+                if len(logger.handlers) > 0:
+                    hasHandlers = True
+                    break
+                if not logger.propagate:
+                    break
+                logger = logger.parent
+
+        # If a logging handler has not already been initialized for 'openweave.WeaveStack',
+        # or any one of its parent loggers, automatically configure a handler to log to
+        # stdout.  This maintains compatibility with a number of applications which expect
+        # openweave log output to go to stdout by default.
         #
-        # Applications can override this behavior in any one the following ways:
-        #     - Setting self.logger to a different python logger object.
-        #     - Replacing the StreamHandler on self.logger with a different handler object.
-        #     - Setting a different Formatter object on the existing StreamHandler object.
-        #     - Reconfiguring the existing LogMessageFormatter object, e.g. to enable logging
-        #       of timestamps.
-        #     - Configuring openwave to call an application-specific logging function by
+        # This behavior can be overridden in a variety of ways:
+        #     - Initialize a different log handler before WeaveStack is initialized.
+        #     - Pass installDefaultLogHandler=False when initializing WeaveStack.
+        #     - Replace the StreamHandler on self.logger with a different handler object.
+        #     - Set a different Formatter object on the existing StreamHandler object.
+        #     - Reconfigure the existing WeaveLogFormatter object.
+        #     - Configure openweave to call an application-specific logging function by
         #       calling self.setLogFunct().
-        #     - Calling self.setLogFunct(None), which will configure the openweave library
+        #     - Call self.setLogFunct(None), which will configure the openweave library
         #       to log directly to stdout, bypassing python altogether.
         #
-        self.logger = logging.getLogger(__name__)
-        if len(self.logger.handlers) == 0:
+        if installDefaultLogHandler and not hasHandlers:
             logHandler = logging.StreamHandler(stream=sys.stdout)
             logHandler.setFormatter(WeaveLogFormatter())
             self.logger.addHandler(logHandler)
             self.logger.setLevel(logging.DEBUG)
-        self.setLogFunct(self.defaultLogFunct)
 
         def HandleComplete(appState, reqState):
             self.callbackRes = True
