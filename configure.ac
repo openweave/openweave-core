@@ -1359,6 +1359,10 @@ if test "${CONFIG_DEVICE_LAYER}" = 1; then
 fi
 
 
+# Check if the build host has pkg-config
+
+AC_PATH_PROG([PKG_CONFIG],[pkg-config])
+
 #
 # WoBle over Bluez Peripheral support
 #
@@ -2029,10 +2033,6 @@ AC_LANG_POP([C++])
 # supplied out of package.
 #
 AC_MSG_NOTICE([checking package dependencies])
-
-# Check if the build host has pkg-config
-
-AC_PATH_PROG([PKG_CONFIG],[pkg-config])
 
 #
 # CuRL
