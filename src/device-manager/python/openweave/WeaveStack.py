@@ -116,9 +116,9 @@ class LogCategory(object):
 
 class WeaveLogFormatter(logging.Formatter):
     '''A custom logging.Formatter for logging openweave library messages.'''
-    def __init__(self, datefmt=None, logModule=True, logLevel=False, logTimestamp=False, logMSecs=True):
+    def __init__(self, datefmt=None, logModulePrefix=False, logLevel=False, logTimestamp=False, logMSecs=True):
         fmt = '%(message)s'
-        if logModule:
+        if logModulePrefix:
             fmt = 'WEAVE:%(weave-module)s: ' + fmt
         if logLevel:
             fmt = '%(levelname)s:' + fmt
@@ -153,6 +153,7 @@ class WeaveStack(object):
         self.devMgr = None
         self.callbackRes = None
         self._activeLogFunct = None
+        self.addModulePrefixToLogMessage = True
 
         # Locate and load the openweave shared library.
         self._loadLib()
@@ -226,6 +227,8 @@ class WeaveStack(object):
         def logFunct(timestamp, timestampUSec, moduleName, logCat, message):
             moduleName = WeaveUtility.CStringToString(moduleName)
             message = WeaveUtility.CStringToString(message)
+            if self.addModulePrefixToLogMessage:
+                message = 'WEAVE:%s: %s' % (moduleName, message) 
             logLevel = LogCategory.categoryToLogLevel(logCat)
             msgAttrs = { 
                 'weave-module' : moduleName,
