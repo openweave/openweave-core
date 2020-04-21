@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2020 Google LLC.
  *    Copyright (c) 2014-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -182,7 +183,7 @@ uint64_t DecodedIPPacket::GetWeaveNodeIdFromAddr(const uint8_t *addr)
     {
         nodeId = ((static_cast<uint64_t>(addr[8] << 24 | addr[9] << 16 | addr[10] << 8 | addr[11]) << 32) |
                   static_cast<uint64_t>(addr[12] << 24 | addr[13] << 16 | addr[14] << 8 | addr[15]))
-                  & ~(0x0200000000000000ULL);
+                  ^ kEUI64_UL_Mask;
     }
 
     return nodeId;
