@@ -33,7 +33,7 @@ import shlex
 import base64
 import json
 import set_test_path
-
+import logging
 
 weaveDeviceMgrPath = os.environ['WEAVE_DEVICE_MGR_PATH']
 print 'weaveDeviceMgrPath is %s' % weaveDeviceMgrPath
@@ -474,6 +474,13 @@ class ExtendedOption (Option):
 
 
 if __name__ == '__main__':
+    
+    # Override the default logging for WeaveStack to include timestamps.
+    weaveStackLogger = logging.getLogger('openweave.WeaveStack')
+    logHandler = logging.StreamHandler(stream=sys.stdout)
+    logHandler.setFormatter(WeaveStack.WeaveLogFormatter(logTimestamp=True))
+    weaveStackLogger.addHandler(logHandler)
+    weaveStackLogger.setLevel(logging.DEBUG)
 
     devMgr = WeaveDeviceMgr.WeaveDeviceManager()
 

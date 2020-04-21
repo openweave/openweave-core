@@ -102,6 +102,34 @@ void GetModuleName(char *buf, uint8_t module)
     buf[nlWeaveLoggingModuleNameLen] = 0;
 }
 
+void GetCategoryName(char *buf, uint8_t bufSize, uint8_t category)
+{
+    const char *name;
+    switch (category)
+    {
+    case kLogCategory_None:
+        name = "none";
+        break;
+    case kLogCategory_Error:
+        name = "error";
+        break;
+    case kLogCategory_Progress:
+        name = "progress";
+        break;
+    case kLogCategory_Detail:
+        name = "detail";
+        break;
+    case kLogCategory_Retain:
+        name = "retain";
+        break;
+    default:
+        name = "unknown";
+        break;
+    }
+    strncpy(buf, name, bufSize);
+    buf[bufSize-1] = 0;
+}
+
 void GetMessageWithPrefix(char *buf, uint8_t bufSize, uint8_t module, const char *msg)
 {
     char moduleName[nlWeaveLoggingModuleNameLen + 1];
@@ -153,16 +181,59 @@ uint8_t gLogFilter = kLogCategory_Max;
 
 #endif // WEAVE_LOG_FILTERING
 
-#if !WEAVE_LOGGING_STYLE_EXTERNAL
+
 /*
  * Only enable an in-package implementation of the logging interface
  * if external logging was not requested. Within that, the package
  * supports either Android-style or C Standard I/O-style logging.
- *
- * In the event a "weak" variant is specified, i.e
- * WEAVE_LOGGING_STYLE_STDIO_WEAK, the in-package implementation will
- * be provided but with "weak" linkage
  */
+#if !WEAVE_LOGGING_STYLE_EXTERNAL
+
+#if WEAVE_LOGGING_STYLE_STDIO || WEAVE_LOGGING_STYLE_STDIO_WEAK
+
+static void DefaultLogMessage(uint8_t module, uint8_t category, const char *msg, va_list ap)
+{
+    if (IsCategoryEnabled(category))
+    {
+        PrintMessagePrefix(module);
+        vprintf(msg, ap);
+        printf("\n");
+    }
+}
+
+#elif WEAVE_LOGGING_STYLE_ANDROID
+
+static void DefaultLogMessage(uint8_t module, uint8_t category, const char *msg, va_list ap)
+{
+    if (IsCategoryEnabled(category))
+    {
+        char moduleName[nlWeaveLoggingModuleNameLen + 1];
+        GetModuleName(moduleName, module);
+
+        int priority = (category == kLogCategory_Error) ? ANDROID_LOG_ERROR : ANDROID_LOG_DEBUG;
+
+        __android_log_vprint(priority, moduleName, msg, v);
+    }
+}
+
+#else // WEAVE_LOGGING_STYLE_ANDROID
+
+#error "Unsupported Weave logging style!"
+
+#endif // WEAVE_LOGGING_STYLE_ANDROID
+
+#if WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
+static LogMessageFunct gLogFunct = DefaultLogMessage;
+#endif
+
+/* If so configured, apply weak linkage to the Log function.
+ */
+#if WEAVE_LOGGING_STYLE_STDIO_WEAK || WEAVE_LOGGING_WEAK_LOG_FUNCT
+#define __WEAVE_LOGGING_LINK_ATTRIBUTE __attribute__((weak))
+#else
+#define __WEAVE_LOGGING_LINK_ATTRIBUTE
+#endif
+
 
 /**
  * Log, to the platform-specified mechanism, the specified log
@@ -186,47 +257,27 @@ uint8_t gLogFilter = kLogCategory_Max;
  *                      correspond to the format specifiers in @a msg.
  *
  */
-
-#if WEAVE_LOGGING_STYLE_STDIO_WEAK
-#define __WEAVE_LOGGING_LINK_ATTRIBUTE __attribute__((weak))
-#else
-#define __WEAVE_LOGGING_LINK_ATTRIBUTE
-#endif
-
 NL_DLL_EXPORT __WEAVE_LOGGING_LINK_ATTRIBUTE void Log(uint8_t module, uint8_t category, const char *msg, ...)
 {
-    va_list v;
-
-    va_start(v, msg);
-
-    if (IsCategoryEnabled(category))
-    {
-
-#if WEAVE_LOGGING_STYLE_ANDROID
-
-        char moduleName[nlWeaveLoggingModuleNameLen + 1];
-        GetModuleName(moduleName, module);
-
-        int priority = (category == kLogCategory_Error) ? ANDROID_LOG_ERROR : ANDROID_LOG_DEBUG;
-
-        __android_log_vprint(priority, moduleName, msg, v);
-
-#elif WEAVE_LOGGING_STYLE_STDIO || WEAVE_LOGGING_STYLE_STDIO_WEAK
-
-        PrintMessagePrefix(module);
-        vprintf(msg, v);
-        printf("\n");
-
+    va_list ap;
+    va_start(ap, msg);
+#if WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
+    gLogFunct(module, category, msg, ap);
 #else
-
-#error "Undefined platform-specific implementation for non-externnal Weave logging style!"
-
-#endif /* WEAVE_LOGGING_STYLE_ANDROID */
-
-    }
-
-    va_end(v);
+    DefaultLogMessage(module, category, msg, ap);
+#endif
+    va_end(ap);
 }
+
+#if WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
+
+NL_DLL_EXPORT void SetLogFunct(LogMessageFunct logFunct)
+{
+    gLogFunct = (logFunct != NULL) ? logFunct : DefaultLogMessage;
+}
+
+#endif // WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
+
 #endif /* !WEAVE_LOGGING_STYLE_EXTERNAL */
 
 NL_DLL_EXPORT uint8_t GetLogFilter()

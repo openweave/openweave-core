@@ -36,6 +36,7 @@ import time
 import glob
 import platform
 import ast
+import logging
 from threading import Thread, Lock, Event
 from ctypes import *
 from .WeaveUtility import WeaveUtility
@@ -90,20 +91,115 @@ class DeviceError(WeaveStackException):
     def __str__(self):
         return "Device Error: " + self.message
 
+class LogCategory(object):
+    '''Debug logging categories used by openweave.'''
+    
+    # NOTE: These values must correspond to those used in the openweave C++ code.
+    Disabled    = 0
+    Error       = 1
+    Progress    = 2
+    Detail      = 3
+    Retain      = 4
+
+    @staticmethod
+    def categoryToLogLevel(cat):
+        if cat == LogCategory.Error:
+            return logging.ERROR
+        elif cat == LogCategory.Progress:
+            return logging.INFO
+        elif cat == LogCategory.Detail:
+            return logging.DEBUG
+        elif cat == LogCategory.Retain:
+            return logging.CRITICAL
+        else:
+            return logging.NOTSET
+
+class WeaveLogFormatter(logging.Formatter):
+    '''A custom logging.Formatter for logging openweave library messages.'''
+    def __init__(self, datefmt=None, logModule=True, logLevel=False, logTimestamp=False, logMSecs=True):
+        fmt = '%(message)s'
+        if logModule:
+            fmt = 'WEAVE:%(weave-module)s: ' + fmt
+        if logLevel:
+            fmt = '%(levelname)s:' + fmt
+        if datefmt is not None or logTimestamp:
+            fmt = '%(asctime)s ' + fmt
+        super(WeaveLogFormatter, self).__init__(fmt=fmt, datefmt=datefmt)
+        self.logMSecs = logMSecs
+        
+    def formatTime(self, record, datefmt=None):
+        timestamp = record.__dict__.get('timestamp', time.time())
+        timestamp = time.localtime(timestamp)
+        if datefmt is None:
+            datefmt = '%Y-%m-%d %H:%M:%S%z'
+        timestampStr = time.strftime('%Y-%m-%d %H:%M:%S%z')
+        if self.logMSecs:
+            timestampUS = record.__dict__.get('timestamp-usec', 0)
+            timestampStr = '%s.%03ld' % (timestampStr, timestampUS / 1000)
+        return timestampStr
+
+
 _CompleteFunct                              = CFUNCTYPE(None, c_void_p, c_void_p)
 _ErrorFunct                                 = CFUNCTYPE(None, c_void_p, c_void_p, c_ulong, POINTER(DeviceStatusStruct))
+_LogMessageFunct                            = CFUNCTYPE(None, c_int64, c_int64, c_char_p, c_uint8, c_char_p)
 
 @_singleton
 class WeaveStack(object):
-    def __init__(self):
+    def __init__(self, installDefaultLogHandler=True):
         self.networkLock = Lock()
         self.completeEvent = Event()
         self._weaveStackLib = None
         self._weaveDLLPath = None
         self.devMgr = None
         self.callbackRes = None
+        self._activeLogFunct = None
 
-        self._InitLib()
+        # Locate and load the openweave shared library.
+        self._loadLib()
+
+        # Arrange to log output from the openweave library to a python logger object with the
+        # name 'openweave.WeaveStack'.  If desired, applications can override this behavior by
+        # setting self.logger to a different python logger object, or by calling setLogFunct()
+        # with their own logging function.
+        self.logger = logging.getLogger(__name__)
+        self.setLogFunct(self.defaultLogFunct)
+
+        # Determine if there are already handlers installed for the logger.  Python 3.5+
+        # has a method for this; on older versions the check has to be done manually.  
+        if hasattr(self.logger, 'hasHandlers'):
+            hasHandlers = self.logger.hasHandlers()
+        else:
+            hasHandlers = False
+            logger = self.logger
+            while logger is not None:
+                if len(logger.handlers) > 0:
+                    hasHandlers = True
+                    break
+                if not logger.propagate:
+                    break
+                logger = logger.parent
+
+        # If a logging handler has not already been initialized for 'openweave.WeaveStack',
+        # or any one of its parent loggers, automatically configure a handler to log to
+        # stdout.  This maintains compatibility with a number of applications which expect
+        # openweave log output to go to stdout by default.
+        #
+        # This behavior can be overridden in a variety of ways:
+        #     - Initialize a different log handler before WeaveStack is initialized.
+        #     - Pass installDefaultLogHandler=False when initializing WeaveStack.
+        #     - Replace the StreamHandler on self.logger with a different handler object.
+        #     - Set a different Formatter object on the existing StreamHandler object.
+        #     - Reconfigure the existing WeaveLogFormatter object.
+        #     - Configure openweave to call an application-specific logging function by
+        #       calling self.setLogFunct().
+        #     - Call self.setLogFunct(None), which will configure the openweave library
+        #       to log directly to stdout, bypassing python altogether.
+        #
+        if installDefaultLogHandler and not hasHandlers:
+            logHandler = logging.StreamHandler(stream=sys.stdout)
+            logHandler.setFormatter(WeaveLogFormatter())
+            self.logger.addHandler(logHandler)
+            self.logger.setLevel(logging.DEBUG)
 
         def HandleComplete(appState, reqState):
             self.callbackRes = True
@@ -116,6 +212,49 @@ class WeaveStack(object):
         self.cbHandleComplete = _CompleteFunct(HandleComplete)
         self.cbHandleError = _ErrorFunct(HandleError)
         self.blockingCB = None # set by other modules(BLE) that require service by thread while thread blocks.
+
+        # Initialize the openweave library
+        res = self._weaveStackLib.nl_Weave_Stack_Init()
+        if (res != 0):
+            raise self._weaveStack.ErrorToException(res)
+
+    @property
+    def defaultLogFunct(self):
+        '''Returns a python callable which, when called, logs a message to the python logger object
+           currently associated with the WeaveStack object.
+           The returned function is suitable for passing to the setLogFunct() method.'''
+        def logFunct(timestamp, timestampUSec, moduleName, logCat, message):
+            moduleName = WeaveUtility.CStringToString(moduleName)
+            message = WeaveUtility.CStringToString(message)
+            logLevel = LogCategory.categoryToLogLevel(logCat)
+            msgAttrs = { 
+                'weave-module' : moduleName,
+                'timestamp' : timestamp,
+                'timestamp-usec' : timestampUSec
+            }
+            self.logger.log(logLevel, message, extra=msgAttrs)
+        return logFunct
+
+    def setLogFunct(self, logFunct):
+        '''Set the function used by the openweave library to log messages.
+           The supplied object must be a python callable that accepts the following
+           arguments:
+              timestamp (integer)
+              timestampUS (integer)
+              module name (encoded UTF-8 string)
+              log category (integer)
+              message (encoded UTF-8 string)
+           Specifying None configures the openweave library to log directly to stdout.'''
+        if logFunct is None:
+            logFunct = 0
+        if not isinstance(logFunct, _LogMessageFunct):
+            logFunct = _LogMessageFunct(logFunct)
+        with self.networkLock:
+            # NOTE: WeaveStack must hold a reference to the CFUNCTYPE object while it is
+            # set. Otherwise it may get garbage collected, and logging calls from the
+            # openweave library will fail.
+            self._activeLogFunct = logFunct
+            self._weaveStackLib.nl_Weave_Stack_SetLogFunct(logFunct)
 
     def Shutdown(self):
         self._weaveStack.Call(
@@ -208,7 +347,7 @@ class WeaveStack(object):
                 break
             dir = parent
 
-    def _InitLib(self):
+    def _loadLib(self):
         if (self._weaveStackLib == None):
             self._weaveStackLib = CDLL(self.LocateWeaveDLL())
             self._weaveStackLib.nl_Weave_Stack_Init.argtypes = [ ]
@@ -219,7 +358,5 @@ class WeaveStack(object):
             self._weaveStackLib.nl_Weave_Stack_StatusReportToString.restype = c_char_p
             self._weaveStackLib.nl_Weave_Stack_ErrorToString.argtypes = [ c_uint32 ]
             self._weaveStackLib.nl_Weave_Stack_ErrorToString.restype = c_char_p
-
-        res = self._weaveStackLib.nl_Weave_Stack_Init()
-        if (res != 0):
-            raise self._weaveStack.ErrorToException(res)
+            self._weaveStackLib.nl_Weave_Stack_SetLogFunct.argtypes = [ _LogMessageFunct ]
+            self._weaveStackLib.nl_Weave_Stack_SetLogFunct.restype = c_uint32
