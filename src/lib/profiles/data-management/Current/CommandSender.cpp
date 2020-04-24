@@ -235,7 +235,7 @@ WEAVE_ERROR CommandSender::SendCommand(nl::Weave::PacketBuffer *aPayload, nl::We
 WEAVE_ERROR CommandSender::SendCommand(PacketBuffer *aRequestBuf, Binding *aBinding, SendParams &aSendParams)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    Binding *binding = mBinding ? mBinding : aBinding;
+    Binding *binding = aBinding ? aBinding : mBinding;
     const uint8_t *appReqData;
     uint16_t appReqDataLen;
     uint16_t sendFlags = 0;
@@ -267,7 +267,7 @@ WEAVE_ERROR CommandSender::SendCommand(PacketBuffer *aRequestBuf, Binding *aBind
         kMaxCommandRequestHeaderSize = sizeof(headerEncoding)
     };
 
-    VerifyOrExit(mBinding != NULL || aBinding != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(binding != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(aSendParams.ProfileId != 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // If the user didn't pass in a request buffer that we can re-use to blit the header, allocate our own.
