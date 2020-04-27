@@ -576,6 +576,18 @@
 #define WEAVE_DEVICE_CONFIG_THREAD_CONNECTIVITY_TIMEOUT 30000
 #endif
 
+// -------------------- Misc Network Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_SYSTEM_MANAGED_NETWORK
+ *
+ * Enable support for system managed network
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_SYSTEM_MANAGED_NETWORK
+#define WEAVE_DEVICE_CONFIG_ENABLE_SYSTEM_MANAGED_NETWORK 0
+#endif
+
+
 // -------------------- Tunnel Configuration --------------------
 
 /**

@@ -49,6 +49,7 @@ __all__ = [ 'WeaveDeviceManager', 'NetworkInfo', 'DeviceDescriptor' ]
 
 NetworkType_WiFi                            = 1
 NetworkType_Thread                          = 2
+NetworkType_SystemManaged                   = 3
 
 WiFiMode_AdHoc                              = 1
 WiFiMode_Managed                            = 2
@@ -1301,6 +1302,8 @@ def NetworkTypeToString(val):
         return "WiFi"
     if (val == NetworkType_Thread):
         return "Thread"
+    if (val == NetworkType_SystemManaged):
+        return "SystemManaged"
     if (val != None):
         return "UNKNOWN (" + str(val)+ ")"
     return None
@@ -1313,6 +1316,8 @@ def ParseNetworkType(val):
         return NetworkType_WiFi
     if (val == "thread"):
         return NetworkType_Thread
+    if (val == "system"):
+        return NetworkType_SystemManaged
     raise Exception("Invalid network type: " + str(val))
 
 def WiFiModeToString(val):
