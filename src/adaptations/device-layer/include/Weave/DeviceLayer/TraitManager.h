@@ -129,7 +129,7 @@ protected:
     // No copy, move or assignment.
     TraitManager(const TraitManager &) = delete;
     TraitManager(const TraitManager &&) = delete;
-    TraitManager & operator=(const TraitManager &) = delete;
+    TraitManager & operator =(const TraitManager &) = delete;
 };
 
 inline TraitManager::ServiceSubscriptionMode TraitManager::GetServiceSubscriptionMode(void)

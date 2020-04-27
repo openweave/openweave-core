@@ -102,7 +102,7 @@ struct ESP32Config::Key
     const char * Namespace;
     const char * Name;
 
-    bool operator==(const Key & other) const;
+    bool operator ==(const Key & other) const;
 };
 
 inline bool ESP32Config::Key::operator==(const Key & other) const

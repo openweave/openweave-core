@@ -56,7 +56,7 @@ protected:
     // No copy, move or assignment.
     NetworkProvisioningServer(const NetworkProvisioningServer &) = delete;
     NetworkProvisioningServer(const NetworkProvisioningServer &&) = delete;
-    NetworkProvisioningServer & operator=(const NetworkProvisioningServer &) = delete;
+    NetworkProvisioningServer & operator =(const NetworkProvisioningServer &) = delete;
 };
 
 /**

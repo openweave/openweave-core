@@ -37,7 +37,7 @@
 #define MBEDTLS_ECDH_C
 #define MBEDTLS_ENTROPY_C
 #define MBEDTLS_SHA1_C
-#define MBEDTLS_SHA256_C 	
+#define MBEDTLS_SHA256_C
 #define MBEDTLS_TRNG_C
 #define MBEDTLS_CIPHER_MODE_CTR
 
@@ -93,7 +93,7 @@
  *
  * Enable hardware acceleration for the SHA-224 and SHA-256 cryptographic
  * hash algorithms.
- * Module: sl_crypto/src/crypto_sha.c 
+ * Module: sl_crypto/src/crypto_sha.c
  * Caller: library/mbedtls_md.c
  *         library/ssl_cli.c
  *         library/ssl_srv.c

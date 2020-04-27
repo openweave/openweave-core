@@ -46,4 +46,3 @@ WEAVE_ERROR Write(Key key, uint32_t value)
 } // Platform
 } // Weave
 } // nl
-

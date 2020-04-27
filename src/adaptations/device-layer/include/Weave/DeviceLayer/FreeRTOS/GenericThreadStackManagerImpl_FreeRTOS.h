@@ -91,4 +91,3 @@ extern template class GenericThreadStackManagerImpl_FreeRTOS<ThreadStackManagerI
 } // namespace nl
 
 #endif // GENERIC_THREAD_STACK_MANAGER_IMPL_FREERTOS_H
-

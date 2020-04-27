@@ -168,7 +168,7 @@ protected:
     // No copy, move or assignment.
     ConfigurationManager(const ConfigurationManager &) = delete;
     ConfigurationManager(const ConfigurationManager &&) = delete;
-    ConfigurationManager & operator=(const ConfigurationManager &) = delete;
+    ConfigurationManager & operator =(const ConfigurationManager &) = delete;
 };
 
 /**

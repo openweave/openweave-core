@@ -299,7 +299,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::GetEventState(int32_t& aEventS
 {
     int32_t event_state = 0;
 
-    switch(mState)
+    switch (mState)
     {
         case SoftwareUpdateManager::kState_Idle:
         case SoftwareUpdateManager::kState_ScheduledHoldoff:
@@ -703,7 +703,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::DriveState(SoftwareUpdateManag
 
     mState = aNextState;
 
-    switch(mState)
+    switch (mState)
     {
     case SoftwareUpdateManager::kState_Idle:
         {
@@ -1014,7 +1014,7 @@ void GenericSoftwareUpdateManagerImpl<ImplClass>::CheckImageIntegrity(void)
     inParam.Clear();
     outParam.Clear();
 
-    switch(mIntegritySpec.type)
+    switch (mIntegritySpec.type)
     {
         case kIntegrityType_SHA160:
             typeLength = kLength_SHA160;

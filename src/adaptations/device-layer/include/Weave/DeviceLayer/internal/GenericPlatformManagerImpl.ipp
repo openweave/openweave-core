@@ -496,4 +496,3 @@ void GenericPlatformManagerImpl<ImplClass>::HandleMessageLayerActivityChanged(bo
 } // namespace nl
 
 #endif // GENERIC_PLATFORM_MANAGER_IMPL_IPP
-

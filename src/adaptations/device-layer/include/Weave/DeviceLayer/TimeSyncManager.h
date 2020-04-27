@@ -125,7 +125,7 @@ protected:
     // No copy, move or assignment.
     TimeSyncManager(const TimeSyncManager &) = delete;
     TimeSyncManager(const TimeSyncManager &&) = delete;
-    TimeSyncManager & operator=(const TimeSyncManager &) = delete;
+    TimeSyncManager & operator =(const TimeSyncManager &) = delete;
 };
 
 inline TimeSyncManager::TimeSyncMode TimeSyncManager::GetMode()

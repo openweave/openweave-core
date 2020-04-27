@@ -330,7 +330,7 @@ protected:
     // No copy, move or assignment.
     SoftwareUpdateManager(const SoftwareUpdateManager &) = delete;
     SoftwareUpdateManager(const SoftwareUpdateManager &&) = delete;
-    SoftwareUpdateManager & operator=(const SoftwareUpdateManager &) = delete;
+    SoftwareUpdateManager & operator =(const SoftwareUpdateManager &) = delete;
 };
 
 /**

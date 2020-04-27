@@ -84,7 +84,7 @@ protected:
     // No copy, move or assignment.
     DeviceDescriptionServer(const DeviceDescriptionServer &) = delete;
     DeviceDescriptionServer(const DeviceDescriptionServer &&) = delete;
-    DeviceDescriptionServer & operator=(const DeviceDescriptionServer &) = delete;
+    DeviceDescriptionServer & operator =(const DeviceDescriptionServer &) = delete;
 };
 
 /**

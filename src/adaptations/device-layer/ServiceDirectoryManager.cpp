@@ -234,4 +234,3 @@ exit:
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
-
