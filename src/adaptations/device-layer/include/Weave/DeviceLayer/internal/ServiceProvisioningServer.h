@@ -102,7 +102,7 @@ protected:
     // No copy, move or assignment.
     ServiceProvisioningServer(const ServiceProvisioningServer &) = delete;
     ServiceProvisioningServer(const ServiceProvisioningServer &&) = delete;
-    ServiceProvisioningServer & operator=(const ServiceProvisioningServer &) = delete;
+    ServiceProvisioningServer & operator =(const ServiceProvisioningServer &) = delete;
 };
 
 inline ServiceProvisioningServer & ServiceProvisioningSvr()

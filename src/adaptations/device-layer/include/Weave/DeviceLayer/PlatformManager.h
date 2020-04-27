@@ -122,7 +122,7 @@ protected:
     // No copy, move or assignment.
     PlatformManager(const PlatformManager &) = delete;
     PlatformManager(const PlatformManager &&) = delete;
-    PlatformManager & operator=(const PlatformManager &) = delete;
+    PlatformManager & operator =(const PlatformManager &) = delete;
 };
 
 /**

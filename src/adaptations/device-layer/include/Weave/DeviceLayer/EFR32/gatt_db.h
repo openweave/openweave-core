@@ -39,4 +39,4 @@ extern const struct bg_gattdb_def bg_gattdb_data;
 }
 #endif
 
-#endif
+#endif // __GATT_DB_H

@@ -77,7 +77,7 @@ protected:
     // No copy, move or assignment.
     FabricProvisioningServer(const FabricProvisioningServer &) = delete;
     FabricProvisioningServer(const FabricProvisioningServer &&) = delete;
-    FabricProvisioningServer & operator=(const FabricProvisioningServer &) = delete;
+    FabricProvisioningServer & operator =(const FabricProvisioningServer &) = delete;
 };
 
 /**

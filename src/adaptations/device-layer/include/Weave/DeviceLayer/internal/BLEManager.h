@@ -75,7 +75,7 @@ protected:
     // No copy, move or assignment.
     BLEManager(const BLEManager &) = delete;
     BLEManager(const BLEManager &&) = delete;
-    BLEManager & operator=(const BLEManager &) = delete;
+    BLEManager & operator =(const BLEManager &) = delete;
 };
 
 /**
@@ -187,5 +187,3 @@ inline ::nl::Ble::BleLayer * BLEManager::GetBleLayer(void) const
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
 
 #endif // BLE_MANAGER_H
-
-

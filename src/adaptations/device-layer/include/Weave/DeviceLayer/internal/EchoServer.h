@@ -63,7 +63,7 @@ protected:
     // No copy, move or assignment.
     EchoServer(const EchoServer &) = delete;
     EchoServer(const EchoServer &&) = delete;
-    EchoServer & operator=(const EchoServer &) = delete;
+    EchoServer & operator =(const EchoServer &) = delete;
 };
 
 /**
