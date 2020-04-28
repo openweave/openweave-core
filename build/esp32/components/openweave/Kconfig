@@ -393,7 +393,14 @@ menu "OpenWeave Device Layer"
                 The priority of the Weave task.
                 
                 On the ESP32 platform this value is added to ESP_TASK_PRIO_MIN to determine the FreeRTOS priority value.
-        
+
+        config THREAD_TASK_STACK_SIZE
+            int "Thread Task Stack Size"
+            range 0 65535
+            default 8192
+            help
+                The size (in bytes) of the Thread task stack.
+
         config MAX_EVENT_QUEUE_SIZE
             int "Max Event Queue Size"
             range 0 65535
@@ -655,6 +662,19 @@ menu "OpenWeave Device Layer"
                 Specifies the maximum amount of time (in milliseconds) to wait for a response from a
                 Weave Time Sync server.
     
+    endmenu
+    
+    menu "Thread Options"
+
+        config WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+            bool "Enable Thread support (with external RCP)"
+            default n
+        
+        config WARM_CONFIG_SUPPORT_THREAD_ROUTING
+            bool "Enable Thread routing"
+            default n
+            depends on WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
     endmenu
     
     menu "Service Provisioning Options"

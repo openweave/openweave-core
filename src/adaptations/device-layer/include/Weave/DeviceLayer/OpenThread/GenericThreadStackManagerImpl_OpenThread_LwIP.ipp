@@ -248,7 +248,7 @@ void GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::UpdateThreadInter
                 uint8_t state = netif_ip6_addr_state(mNetIf, addrIdx);
                 if (state != IP6_ADDR_INVALID)
                 {
-                    IPAddress addr = IPAddress::FromLwIPAddr(*netif_ip6_addr(mNetIf, addrIdx));
+                    IPAddress addr = IPAddress::FromLwIPAddr(*netif_ip_addr6(mNetIf, addrIdx));
                     char addrStr[50];
                     addr.ToString(addrStr, sizeof(addrStr));
                     const char * typeStr;

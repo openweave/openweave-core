@@ -23,6 +23,9 @@
 
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
 #include <Weave/DeviceLayer/OpenThread/OpenThreadUtils.h>
 
 #include <openthread/error.h>
@@ -276,3 +279,5 @@ const char * OpenThreadRoleToStr(otDeviceRole role)
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD

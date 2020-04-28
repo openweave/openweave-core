@@ -26,6 +26,11 @@
 #else
 #include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoBLE.h>
 #endif
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_Thread.h>
+#else
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoThread.h>
+#endif
 #include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoThread.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelCommon.h>
@@ -64,7 +69,11 @@ class ConnectivityManagerImpl final
 #else
       public Internal::GenericConnectivityManagerImpl_NoBLE<ConnectivityManagerImpl>,
 #endif
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+      public Internal::GenericConnectivityManagerImpl_Thread<ConnectivityManagerImpl>
+#else
       public Internal::GenericConnectivityManagerImpl_NoThread<ConnectivityManagerImpl>
+#endif
 {
     using TunnelConnNotifyReasons = ::nl::Weave::Profiles::WeaveTunnel::WeaveTunnelConnectionMgr::TunnelConnNotifyReasons;
 
