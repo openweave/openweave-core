@@ -30,6 +30,7 @@
 
 #include "esp_event.h"
 #include "esp_wifi.h"
+#include "esp_system.h"
 
 #include <lwip/ip_addr.h>
 #include <lwip/netif.h>
@@ -941,8 +942,13 @@ void ConnectivityManagerImpl::UpdateInternetConnectivityState(void)
         if (netif != NULL && netif_is_up(netif) && netif_is_link_up(netif))
         {
             // Check if a DNS server is currently configured.  If so...
+#if ESP_IDF_VERSION_MAJOR > 3 || (ESP_IDF_VERSION_MAJOR == 3 && ESP_IDF_VERSION_MINOR >= 3)
+            const ip_addr_t* dnsServerAddr = dns_getserver(0);
+            if (!ip_addr_isany_val(*dnsServerAddr))
+#else
             ip_addr_t dnsServerAddr = dns_getserver(0);
             if (!ip_addr_isany_val(dnsServerAddr))
+#endif
             {
                 // If the station interface has been assigned an IPv4 address, and has
                 // an IPv4 gateway, then presume that the device has IPv4 Internet
