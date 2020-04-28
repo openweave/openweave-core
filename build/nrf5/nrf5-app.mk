@@ -274,14 +274,14 @@ endef
 flash-softdevice flash_softdevice :
 	@if test -z "$(SOFTDEVICE_IMAGE)"; then echo "SoftDevice image not found in $(SOFTDEVICE_IMAGE_DIR)"; false; fi
 	@echo "FLASH $(SOFTDEVICE_IMAGE)"
-	$(NO_ECHO)$(NRFJPROG) -f nrf52 --program $(SOFTDEVICE_IMAGE) --sectorerase
+	$(NO_ECHO)$(NRFJPROG) $(NRFJPROG_FLAGS) --program $(SOFTDEVICE_IMAGE) --sectorerase
 	@echo "RESET DEVICE"
-	$(NO_ECHO)$(NRFJPROG) -f nrf52 --reset
+	$(NO_ECHO)$(NRFJPROG) $(NRFJPROG_FLAGS) --reset
 
 # Erase device
 erase :
 	@echo "ERASE DEVICE"
-	$(NO_ECHO)$(NRFJPROG) -f nrf52 --eraseall
+	$(NO_ECHO)$(NRFJPROG) $(NRFJPROG_FLAGS) --eraseall
 
 # Clean build output
 clean ::
