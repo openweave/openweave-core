@@ -212,7 +212,7 @@ static void DefaultLogMessage(uint8_t module, uint8_t category, const char *msg,
 
         int priority = (category == kLogCategory_Error) ? ANDROID_LOG_ERROR : ANDROID_LOG_DEBUG;
 
-        __android_log_vprint(priority, moduleName, msg, v);
+        __android_log_vprint(priority, moduleName, msg, ap);
     }
 }
 
