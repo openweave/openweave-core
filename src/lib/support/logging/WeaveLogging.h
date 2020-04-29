@@ -109,6 +109,7 @@ enum LogModule
     kLogModule_DropcamLegacyPairing,
     kLogModule_EventLogging,
     kLogModule_Support,
+    kLogModule_Application,
 
     kLogModule_Max
 };
