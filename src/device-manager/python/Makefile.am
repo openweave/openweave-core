@@ -130,20 +130,20 @@ EXTRA_DIST +=										\
     $(NULL)
 
 .openweave-wheel: $(srcdir)/build-openweave-wheel.py weave-device-mgr _WeaveDeviceMgr.la $(shell find $(srcdir) -type f -name '*.py')
-	rm -f openweave-*.whl
+	rm -f *.whl
 	$(PYTHON) $(srcdir)/build-openweave-wheel.py
 	touch .openweave-wheel
 
 install-exec-local: .openweave-wheel
 	mkdir -p $(DESTDIR)$(pyexecdir)
-	rm -f $(DESTDIR)$(pyexecdir)/openweave-*.whl
-	cp openweave-*.whl $(DESTDIR)$(pyexecdir)
+	rm -f $(DESTDIR)$(pyexecdir)/*.whl
+	cp *.whl $(DESTDIR)$(pyexecdir)
 
 uninstall-local:
-	rm -f $(DESTDIR)$(pyexecdir)/openweave-*.whl
+	rm -f $(DESTDIR)$(pyexecdir)/*.whl
 
 clean-local:
-	rm -f .openweave-wheel openweave-*.whl
+	rm -f .openweave-wheel *.whl
 
 endif # WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE
 
