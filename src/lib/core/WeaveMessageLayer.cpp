@@ -2000,7 +2000,11 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
         // messages to other nodes, and to receive their replies, unless the outbound ephemeral UDP port
         // feature has been enabled.
         //
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+        const bool listenIPv4UDP = (listenIPv4 && listenUDP && !EphemeralUDPPortEnabled());
+#else
         const bool listenIPv4UDP = (listenIPv4 && listenUDP);
+#endif
         err = RefreshEndpoint(mIPv4UDP, listenIPv4UDP,
                 "Weave IPv4 UDP", kIPAddressType_IPv4, listenIPv4Addr, WEAVE_PORT, INET_NULL_INTERFACEID);
         SuccessOrExit(err);
@@ -2013,7 +2017,7 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
         // receive their replies.  It is only enabled when the outbound ephemeral UDP port feature has been
         // enabled.
         //
-        const bool listenIPv4EphemeralUDP = (listenIPv4UDP && EphemeralUDPPortEnabled());
+        const bool listenIPv4EphemeralUDP = (listenIPv4 && listenUDP && EphemeralUDPPortEnabled());
         err = RefreshEndpoint(mIPv4EphemeralUDP, listenIPv4EphemeralUDP,
                 "ephemeral IPv4 UDP", kIPAddressType_IPv4, listenIPv4Addr, 0, INET_NULL_INTERFACEID);
         SuccessOrExit(err);
@@ -2029,7 +2033,11 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
         // messages to other nodes, and to receive their replies, unless the outbound ephemeral UDP port
         // feature has been enabled.
         //
+#if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+        const bool listenIPv6UDP = (listenIPv6 && listenUDP && !EphemeralUDPPortEnabled());
+#else
         const bool listenIPv6UDP = (listenIPv6 && listenUDP);
+#endif
         err = RefreshEndpoint(mIPv6UDP, listenIPv6UDP,
                 "Weave IPv6 UDP", kIPAddressType_IPv6, listenIPv6Addr, WEAVE_PORT, listenIPv6Intf);
         SuccessOrExit(err);
@@ -2042,7 +2050,7 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
         // receive their replies.  It is only enabled when the outbound ephemeral UDP port feature has been
         // enabled.
         //
-        const bool listenIPv6EphemeralUDP = (listenIPv6UDP && EphemeralUDPPortEnabled());
+        const bool listenIPv6EphemeralUDP = (listenIPv6 && listenUDP && EphemeralUDPPortEnabled());
         err = RefreshEndpoint(mIPv6EphemeralUDP, listenIPv6EphemeralUDP,
                 "ephemeral IPv6 UDP", kIPAddressType_IPv6, listenIPv6Addr, 0, listenIPv6Intf);
         SuccessOrExit(err);
