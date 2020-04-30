@@ -1075,12 +1075,18 @@ const char *nl_Weave_DeviceManager_StatusReportToString(uint32_t profileId, uint
 
 uint8_t nl_Weave_DeviceManager_GetLogFilter()
 {
+#if _WEAVE_USE_LOGGING
     return nl::Weave::Logging::GetLogFilter();
+#else
+    return nl::Weave::Logging::kLogCategory_None;
+#endif
 }
 
 void nl_Weave_DeviceManager_SetLogFilter(uint8_t category)
 {
+#if _WEAVE_USE_LOGGING
     nl::Weave::Logging::SetLogFilter(category);
+#endif
 }
 
 WEAVE_ERROR nl_Weave_Stack_Init()
@@ -1228,7 +1234,7 @@ const char *nl_Weave_Stack_StatusReportToString(uint32_t profileId, uint16_t sta
     return nl::StatusReportStr(profileId, statusCode);
 }
 
-#if WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
+#if _WEAVE_USE_LOGGING && WEAVE_LOG_ENABLE_DYNAMIC_LOGING_FUNCTION
 
 // A pointer to the python logging function.
 static LogMessageFunct sLogMessageFunct = NULL;
