@@ -104,6 +104,7 @@ class NL_DLL_EXPORT TokenPairingServer : public WeaveServerBase
 {
 public:
     TokenPairingServer(void);
+    virtual ~TokenPairingServer(void) = default;
 
     WEAVE_ERROR Init(WeaveExchangeManager *exchangeMgr);
     WEAVE_ERROR Shutdown(void);

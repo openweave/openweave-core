@@ -126,7 +126,7 @@ namespace Profiles {
       // Con/destructors
       RetainedPacketBuffer(void);
       RetainedPacketBuffer(const RetainedPacketBuffer &aRetainedPacketBuffer);
-      ~RetainedPacketBuffer(void);
+      virtual ~RetainedPacketBuffer(void);
 
       RetainedPacketBuffer &operator =(const RetainedPacketBuffer &aRetainedPacketBuffer);
 
@@ -150,6 +150,8 @@ namespace Profiles {
   public:
     // constructor
     MessageIterator(System::PacketBuffer*);
+    virtual ~MessageIterator(void) = default;
+
     // reading and writing
     WEAVE_ERROR readByte(uint8_t*);
     WEAVE_ERROR read16(uint16_t*);
@@ -188,6 +190,7 @@ namespace Profiles {
   public:
     // constructor
     ReferencedString(void);
+    virtual ~ReferencedString(void) = default;
     // initializers
     WEAVE_ERROR init(uint16_t aLength, char* aString, System::PacketBuffer* aBuffer);
     WEAVE_ERROR init(uint16_t aLength, char* aString);
@@ -235,6 +238,7 @@ namespace Profiles {
     // constructor
 
     ReferencedTLVData(void);
+    virtual ~ReferencedTLVData(void) = default;
 
     // initializers
 

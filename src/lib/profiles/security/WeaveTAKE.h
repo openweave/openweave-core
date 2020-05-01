@@ -123,6 +123,8 @@ enum {
 class WeaveTAKEChallengerAuthDelegate
 {
 public:
+    virtual ~WeaveTAKEChallengerAuthDelegate(void) = default;
+
     // Rewind Identification Key Iterator.
     // Called to prepare for a new Identification Key search.
     virtual WEAVE_ERROR RewindIdentificationKeyIterator(void) = 0;
@@ -159,6 +161,8 @@ public:
 class WeaveTAKETokenAuthDelegate
 {
 public:
+    virtual ~WeaveTAKETokenAuthDelegate(void) = default;
+
     // Get the token Master key. size: kTokenMasterKeySize
     virtual WEAVE_ERROR GetTokenMasterKey(uint8_t *tokenMasterKey) const = 0;
 

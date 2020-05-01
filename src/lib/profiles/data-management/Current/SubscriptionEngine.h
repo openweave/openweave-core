@@ -49,6 +49,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 class IWeavePublisherLock
 {
 public:
+    virtual ~IWeavePublisherLock(void) = default;
     virtual WEAVE_ERROR Lock(void)   = 0;
     virtual WEAVE_ERROR Unlock(void) = 0;
 };
@@ -57,6 +58,7 @@ public:
 class IUpdateRequestDataElementAccessControlDelegate
 {
 public:
+    virtual ~IUpdateRequestDataElementAccessControlDelegate(void) = default;
     virtual WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath,
                                                const TraitCatalogBase<TraitDataSource> & aCatalog) = 0;
 };
@@ -386,6 +388,7 @@ private:
     {
     public:
         SubscriptionlessNotifyDataElementAccessControlDelegate(const WeaveMessageInfo * aMsgInfo) { mMsgInfo = aMsgInfo; }
+        virtual ~SubscriptionlessNotifyDataElementAccessControlDelegate(void) = default;
 
         WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath, const TraitCatalogBase<TraitDataSink> & aCatalog);
 
@@ -403,6 +406,7 @@ private:
     {
     public:
         UpdateRequestDataElementAccessControlDelegate(const WeaveMessageInfo * aMsgInfo) { mMsgInfo = aMsgInfo; }
+        virtual ~UpdateRequestDataElementAccessControlDelegate(void) = default;
 
         WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath, const TraitCatalogBase<TraitDataSource> & aCatalog);
 

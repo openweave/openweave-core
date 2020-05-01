@@ -184,6 +184,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
             public DMTransaction
         {
         public:
+            virtual ~View(void) = default;
             WEAVE_ERROR Init(DMClient *aClient,
                              ReferencedTLVData &aPathList,
                              uint16_t aTxnId,
@@ -215,6 +216,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
             public DMTransaction
         {
         public:
+            virtual ~Subscribe(void) = default;
             WEAVE_ERROR Init(DMClient *aClient,
                              const TopicIdentifier &aTopicId,
                              uint16_t aTxnId,
@@ -245,6 +247,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
             public DMTransaction
         {
         public:
+            virtual ~CancelSubscription(void) = default;
             WEAVE_ERROR Init(DMClient *aClient,
                              const TopicIdentifier &aTopicId,
                              uint16_t aTxnId,
@@ -271,6 +274,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
             public DMTransaction
         {
         public:
+            virtual ~Update(void) = default;
             WEAVE_ERROR Init(DMClient *aClient,
                              ReferencedTLVData &aDataList,
                              uint16_t aTxnId,

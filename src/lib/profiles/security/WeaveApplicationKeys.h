@@ -122,6 +122,7 @@ public:
 class NL_DLL_EXPORT GroupKeyStoreBase
 {
 public:
+    virtual ~GroupKeyStoreBase(void) = default;
 
     // Manage application group key material storage.
     virtual WEAVE_ERROR RetrieveGroupKey(uint32_t keyId, WeaveGroupKey& key) = 0;

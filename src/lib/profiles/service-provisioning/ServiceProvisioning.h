@@ -179,6 +179,7 @@ public:
 class ServiceProvisioningDelegate : public WeaveServerDelegateBase
 {
 public:
+    virtual ~ServiceProvisioningDelegate(void) = default;
     virtual WEAVE_ERROR HandleRegisterServicePairAccount(RegisterServicePairAccountMessage& msg) = 0;
     virtual WEAVE_ERROR HandleUpdateService(UpdateServiceMessage& msg) = 0;
     virtual WEAVE_ERROR HandleUnregisterService(uint64_t serviceId) = 0;
@@ -218,6 +219,7 @@ class NL_DLL_EXPORT ServiceProvisioningServer : public WeaveServerBase
 {
 public:
     ServiceProvisioningServer(void);
+    virtual ~ServiceProvisioningServer(void) = default;
 
     WEAVE_ERROR Init(WeaveExchangeManager *exchangeMgr);
     WEAVE_ERROR Shutdown(void);

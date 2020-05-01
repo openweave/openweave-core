@@ -76,6 +76,8 @@ private:
 class WeaveServerDelegateBase
 {
     friend class WeaveServerBase;
+public:
+    virtual ~WeaveServerDelegateBase(void) = default;
 
 protected:
     WeaveServerDelegateBase(void) { }

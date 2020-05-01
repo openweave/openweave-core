@@ -88,6 +88,7 @@ template <typename T>
 class TraitCatalogBase
 {
 public:
+    virtual ~TraitCatalogBase(void) = default;
     /**
      * Given a reader positioned at the Path::kCsTag_RootSection structure on a WDM path, parse that structure
      * and return the matching handle to the trait.

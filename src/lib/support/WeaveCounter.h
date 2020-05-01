@@ -40,7 +40,7 @@ class Counter
 {
 public:
     Counter(void) { };
-    ~Counter(void) { };
+    virtual ~Counter(void) { };
 
     /**
      *  @brief

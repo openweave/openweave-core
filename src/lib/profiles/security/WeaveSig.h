@@ -55,6 +55,8 @@ enum {
 class WeaveSignatureGeneratorBase
 {
 public:
+    virtual ~WeaveSignatureGeneratorBase(void) = default;
+
     enum
     {
         kFlag_None                                          = 0,
@@ -87,6 +89,7 @@ protected:
 class WeaveSignatureGenerator : public WeaveSignatureGeneratorBase
 {
 public:
+    virtual ~WeaveSignatureGenerator(void) = default;
     const uint8_t * PrivKey;
     uint16_t PrivKeyLen;
 

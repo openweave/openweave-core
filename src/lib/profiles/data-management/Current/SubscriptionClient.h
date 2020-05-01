@@ -56,6 +56,8 @@ typedef uint16_t TraitDataHandle;
 class IWeaveWDMMutex
 {
 public:
+    virtual ~IWeaveWDMMutex(void) = default;
+
     virtual void Lock(void)   = 0;
     virtual void Unlock(void) = 0;
 };

@@ -40,6 +40,8 @@ using ::nl::Weave::System::PacketBuffer;
 class NL_DLL_EXPORT BlePlatformDelegate
 {
 public:
+    virtual ~BlePlatformDelegate(void) = default;
+
     // Following APIs must be implemented by platform:
 
     // Subscribe to updates and indications on the specfied characteristic

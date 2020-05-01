@@ -47,6 +47,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 class IDataElementAccessControlDelegate
 {
 public:
+    virtual ~IDataElementAccessControlDelegate(void) = default;
     virtual WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath, const TraitCatalogBase<TraitDataSink> & aCatalog) = 0;
 };
 

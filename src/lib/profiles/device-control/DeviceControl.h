@@ -136,6 +136,7 @@ enum
 class DeviceControlDelegate : public WeaveServerDelegateBase
 {
 public:
+    virtual ~DeviceControlDelegate(void) = default;
     /**
      * Determine whether a server connection, if present, should be closed prior to
      * a configuration reset.
@@ -298,6 +299,7 @@ class NL_DLL_EXPORT DeviceControlServer : public WeaveServerBase
 {
 public:
     DeviceControlServer(void);
+    virtual ~DeviceControlServer(void) = default;
 
     WEAVE_ERROR Init(WeaveExchangeManager *exchangeMgr);
     WEAVE_ERROR Shutdown(void);

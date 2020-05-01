@@ -216,7 +216,7 @@ public:
 class WeaveCASEAuthDelegate
 {
 public:
-
+    virtual ~WeaveCASEAuthDelegate(void) = default;
 #if !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
 
     // ===== Abstract Interface methods

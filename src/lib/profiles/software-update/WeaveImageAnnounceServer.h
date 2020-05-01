@@ -43,6 +43,8 @@ namespace SoftwareUpdate {
 class IWeaveImageAnnounceServerDelegate
 {
 public:
+    virtual ~IWeaveImageAnnounceServerDelegate(void) = default;
+
     /// Delegate function called on Image Announce
     /**
      * Called by WeaveImageAnnounceServer when image announcement is received.

@@ -50,7 +50,7 @@ namespace CertProvisioning {
 class WeaveNodeOpAuthDelegate
 {
 public:
-
+    virtual ~WeaveNodeOpAuthDelegate(void) = default;
     // ===== Abstract Interface methods
 
     /**
@@ -93,7 +93,7 @@ public:
 class WeaveNodeMfrAttestDelegate
 {
 public:
-
+    virtual ~WeaveNodeMfrAttestDelegate(void) = default;
     // ===== Abstract Interface methods
 
     /**

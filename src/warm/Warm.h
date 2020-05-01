@@ -155,6 +155,8 @@ class WarmFabricStateDelegate
     : public FabricStateDelegate
 {
 public:
+    virtual ~WarmFabricStateDelegate(void) = default;
+
     /**
      *  This method is invoked by WeaveFabricState when joining/creating a new fabric.
      *

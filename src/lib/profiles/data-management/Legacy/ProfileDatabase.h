@@ -449,7 +449,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
     class ProfileDatabase
     {
     public:
-
+        virtual ~ProfileDatabase(void) = default;
         /**
          *  @class ProfileData
          *

@@ -108,6 +108,7 @@ inline bool IsNullPropertyPathHandle(PropertyPathHandle aHandle)
 class IPathFilter
 {
 public:
+    virtual ~IPathFilter(void) = default;
     virtual bool FilterPath(PropertyPathHandle aPathhandle) = 0;
 };
 
@@ -121,6 +122,7 @@ class UpdateDirtyPathFilter : public IPathFilter
 public:
     UpdateDirtyPathFilter(SubscriptionClient * apSubClient, TraitDataHandle traitDataHandle,
                           const TraitSchemaEngine * aSchemaEngine);
+    virtual ~UpdateDirtyPathFilter(void) = default;
     virtual bool FilterPath(PropertyPathHandle aPathhandle);
 
 private:
@@ -132,6 +134,7 @@ private:
 class IDirtyPathCut
 {
 public:
+    virtual ~IDirtyPathCut(void) = default;
     virtual WEAVE_ERROR CutPath(PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine) = 0;
 };
 
@@ -144,6 +147,7 @@ class UpdateDictionaryDirtyPathCut : public IDirtyPathCut
 {
 public:
     UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, UpdateEncoder * pEncoder);
+    virtual ~UpdateDictionaryDirtyPathCut(void) = default;
     virtual WEAVE_ERROR CutPath(PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine);
 
 private:
@@ -224,6 +228,7 @@ public:
             kSetDataEvent_DictionaryItemModifyEnd,
         };
 
+        virtual ~ISetDataDelegate(void) = default;
         /**
          * Given a path handle to a leaf node and a TLV reader, set the leaf data in the callee.
          *
@@ -264,6 +269,7 @@ public:
     class IGetDataDelegate
     {
     public:
+        virtual ~IGetDataDelegate(void) = default;
         /**
          * Given a path handle to a leaf node and a TLV writer, get the data from the callee.
          *

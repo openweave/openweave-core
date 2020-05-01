@@ -143,6 +143,7 @@ enum
 class WeaveKeyExportDelegate
 {
 public:
+    virtual ~WeaveKeyExportDelegate(void) = default;
 
     // ===== Abstract Interface methods
 

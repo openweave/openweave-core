@@ -90,7 +90,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
             friend class DMClient;
             friend class DMPublisher;
         public:
-
+            virtual ~DMTransaction(void) = default;
             void OnMsgReceived(const uint64_t &aResponderId, uint32_t aProfileId, uint8_t aMsgType, PacketBuffer *aMsg);
 
             /*

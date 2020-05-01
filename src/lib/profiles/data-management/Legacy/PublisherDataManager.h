@@ -60,7 +60,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
     class PublisherDataManager
     {
     public:
-
+        virtual ~PublisherDataManager(void) = default;
         /**
          *  @brief
          *    Indicate receipt of a view request.

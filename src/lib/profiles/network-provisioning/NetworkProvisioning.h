@@ -247,6 +247,7 @@ enum GetNetworkFlags
 class NetworkProvisioningDelegate : public WeaveServerDelegateBase
 {
 public:
+    virtual ~NetworkProvisioningDelegate(void) = default;
     NetworkProvisioningServer * Server;         /**< [READ ONLY] The server object to which this delegate is attached. */
 
    /**
@@ -400,6 +401,7 @@ class NL_DLL_EXPORT NetworkProvisioningServer : public WeaveServerBase
 {
 public:
     NetworkProvisioningServer(void);
+    virtual ~NetworkProvisioningServer(void) = default;
 
     WEAVE_ERROR Init(WeaveExchangeManager *exchangeMgr);
     WEAVE_ERROR Shutdown(void);

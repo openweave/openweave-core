@@ -449,6 +449,7 @@ class WeaveFabricState;
 class FabricStateDelegate
 {
 public:
+    virtual ~FabricStateDelegate(void) = default;
     /**
      * This method is called when WeaveFabricState joins or creates a new fabric.
      *

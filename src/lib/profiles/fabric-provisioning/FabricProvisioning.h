@@ -112,6 +112,8 @@ enum
 class FabricProvisioningDelegate : public WeaveServerDelegateBase
 {
 public:
+    virtual ~FabricProvisioningDelegate(void) = default;
+
     /**
      * Indicates that the device has created a new Fabric.
      *
@@ -181,6 +183,7 @@ class NL_DLL_EXPORT FabricProvisioningServer : public WeaveServerBase
 {
 public:
     FabricProvisioningServer(void);
+    virtual ~FabricProvisioningServer(void) = default;
 
     WEAVE_ERROR Init(WeaveExchangeManager *exchangeMgr);
     WEAVE_ERROR Shutdown(void);

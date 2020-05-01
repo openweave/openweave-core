@@ -59,7 +59,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
     class ClientDataManager
     {
     public:
-
+        virtual ~ClientDataManager(void) = default;
         /**
          *  @brief
          *    Confirm a failed view request.

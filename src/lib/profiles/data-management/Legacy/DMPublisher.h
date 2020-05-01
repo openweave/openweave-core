@@ -226,6 +226,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
         {
 
         public:
+            virtual ~Notify(void) = default;
             WEAVE_ERROR Init(DMPublisher *aPublisher,
                              const TopicIdentifier &aTopicId,
                              ReferencedTLVData &aDataList,
