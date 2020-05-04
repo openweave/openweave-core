@@ -384,7 +384,7 @@ TestATraitDataSource::TestATraitDataSource():
     tat = 1000;
     tau = -1000;
     tav = true;
-    tax = 800;
+    tax = 800.1;
 
     for (size_t i = 0; i < 4; i++) {
         tai_map[i] = 100 + i;
@@ -1061,7 +1061,7 @@ TestATraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aRe
             err = aReader.Get(tax);
             SuccessOrExit(err);
 
-            WeaveLogDetail(DataManagement, "<<  ta_x %d", tax);
+            WeaveLogDetail(DataManagement, "<<  ta_x %lf", tax);
             break;
 
         case TestATrait::kPropertyHandle_TaI_Value:
@@ -1302,7 +1302,7 @@ WEAVE_ERROR TestATraitDataSource::GetLeafData(PropertyPathHandle aLeafHandle, ui
             err = aWriter.Put(aTagToWrite, tax);
             SuccessOrExit(err);
 
-            WeaveLogDetail(DataManagement, ">>  ta_x %d", tax);
+            WeaveLogDetail(DataManagement, ">>  ta_x %lf", tax);
             break;
 
         case TestATrait::kPropertyHandle_TaI_Value:

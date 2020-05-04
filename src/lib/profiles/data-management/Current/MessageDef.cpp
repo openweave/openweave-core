@@ -1281,6 +1281,17 @@ DataElement::Parser::ParseData(nl::Weave::TLV::TLVReader & aReader, int aDepth) 
         break;
     }
 
+    case nl::Weave::TLV::kTLVType_FloatingPointNumber:
+    {
+        double value_fp;
+
+        err = aReader.Get(value_fp);
+        SuccessOrExit(err);
+
+        PRETTY_PRINT_SAMELINE("%lf, ", value_fp);
+        break;
+    }
+
     case nl::Weave::TLV::kTLVType_Boolean:
     {
         bool value_b;
