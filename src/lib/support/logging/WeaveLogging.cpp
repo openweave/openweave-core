@@ -87,6 +87,7 @@ static const char ModuleNames[] =
     "DLP"   // DropcamLegacyPairing
     "EVL"   // Event Logging
     "SPT"   // Support
+    "APP"   // Application
     ;
 
 #define ModuleNamesCount ((sizeof(ModuleNames) - 1) / nlWeaveLoggingModuleNameLen)
