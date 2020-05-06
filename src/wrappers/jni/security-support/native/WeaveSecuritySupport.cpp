@@ -134,3 +134,29 @@ jint WeaveSecuritySupport::getLibVersion(JNIEnv *env, jclass cls)
 } // namespace SecuritySupport
 } // namespace Weave
 } // namespace nl
+
+namespace nl {
+namespace Weave {
+namespace Platform {
+namespace PersistedStorage {
+
+/*
+* Dummy implementations of PersistedStorage platform methods. These aren't
+* used in the context of the Java DeviceManager, but are required to satisfy
+* the linker.
+*/
+
+WEAVE_ERROR Read(const char *aKey, uint32_t &aValue)
+{
+  return WEAVE_ERROR_NOT_IMPLEMENTED;
+}
+
+WEAVE_ERROR Write(const char *aKey, uint32_t aValue)
+{
+  return WEAVE_ERROR_NOT_IMPLEMENTED;
+}
+
+} // PersistentStorage
+} // Platform
+} // Weave
+}
