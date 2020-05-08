@@ -506,7 +506,6 @@ public:
     IPAddress ListenIPv6Addr;
 #endif
 
-
     WEAVE_ERROR Init(void);
     WEAVE_ERROR Init(nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase *groupKeyStore);
     WEAVE_ERROR Shutdown(void);
@@ -568,6 +567,18 @@ public:
     WEAVE_ERROR CheckMsgEncForAppGroup(const WeaveMessageInfo *msgInfo, uint32_t appGroupGlobalId, uint32_t rootKeyId, bool requireRotatingKey);
 #endif // WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
 
+    typedef void (*SessionEndCbFunct)(uint16_t keyId, uint64_t peerNodeId, void *context);
+
+    // Callback context provided by provisioning servers when registering with
+    // WeaveFabricState to be notified when session ends.
+    struct SessionEndCbCtxt
+    {
+        SessionEndCbFunct OnSessionRemoved;
+        void *context;
+        SessionEndCbCtxt *next;
+    };
+
+    WEAVE_ERROR RegisterSessionEndCallback(SessionEndCbCtxt *sessionEndCb);
 private:
     PeerIndexType PeerCount;
     MonotonicallyIncreasingCounter NextUnencUDPMsgId;
@@ -618,6 +629,11 @@ private:
     };
     // Record of all active shared session end nodes.
     SharedSessionEndNode SharedSessionsNodes[WEAVE_CONFIG_MAX_SHARED_SESSIONS_END_NODES];
+
+    // Linked list of registered modules to be notified when session closes
+    SessionEndCbCtxt *sessionEndCallbackList;
+
+    void NotifySessionEndSubscribers(uint16_t keyId, uint64_t peerNodeId);
 
     bool FindSharedSessionEndNode(uint64_t endNodeId, const WeaveSessionKey *sessionKey);
 

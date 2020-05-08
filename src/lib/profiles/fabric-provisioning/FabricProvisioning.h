@@ -187,6 +187,9 @@ public:
 
     void SetDelegate(FabricProvisioningDelegate *delegate);
 
+    // Check if the session is marked as privileged to retrieve fabric config information.
+    bool SessionHasFabricConfigAccessPrivilege(uint16_t keyId, uint64_t peerNodeId) const;
+
     virtual WEAVE_ERROR SendSuccessResponse(void);
     virtual WEAVE_ERROR SendStatusReport(uint32_t statusProfileId, uint16_t statusCode, WEAVE_ERROR sysError = WEAVE_NO_ERROR);
 
@@ -198,7 +201,27 @@ private:
     static void HandleClientRequest(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t profileId,
             uint8_t msgType, PacketBuffer *payload);
 
+    // Utility functions for managing registration with/notification from WeaveFabricState
+    // about whether the current security session is privileged to
+    // access fabric config information.
+    void GrantFabricConfigAccessPrivilege(uint16_t keyId, uint64_t peerNodeId);
+    void ClearFabricConfigAccessPrivilege(void);
+    static void HandleSessionEnd(uint16_t keyId, uint64_t peerNodeId, void *context);
+    WEAVE_ERROR RegisterSessionEndCallbackWithFabricState(void);
+
+    // Indicates the session that is privileged to
+    // retrieve fabric config information.
+    struct FabricConfigAccessSession
+    {
+        uint64_t PeerNodeId;
+        uint16_t SessionKeyId;
+    };
+    FabricConfigAccessSession mFabricConfigAccessSession;
+
+    nl::Weave::WeaveFabricState::SessionEndCbCtxt mSessionEndCbCtxt;
+
     FabricProvisioningServer(const FabricProvisioningServer&);   // not defined
+
 };
 
 

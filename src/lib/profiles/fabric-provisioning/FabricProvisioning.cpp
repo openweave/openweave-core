@@ -67,14 +67,22 @@ FabricProvisioningServer::FabricProvisioningServer()
  */
 WEAVE_ERROR FabricProvisioningServer::Init(WeaveExchangeManager *exchangeMgr)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
     FabricState = exchangeMgr->FabricState;
     ExchangeMgr = exchangeMgr;
     mDelegate = NULL;
     mCurClientOp = NULL;
+    memset(&mFabricConfigAccessSession, 0, sizeof(mFabricConfigAccessSession));
 
     // Register to receive unsolicited Service Provisioning messages from the exchange manager.
-    WEAVE_ERROR err =
+    err =
         ExchangeMgr->RegisterUnsolicitedMessageHandler(kWeaveProfile_FabricProvisioning, HandleClientRequest, this);
+    SuccessOrExit(err);
+
+    err = RegisterSessionEndCallbackWithFabricState();
+
+exit:
 
     return err;
 }
@@ -152,6 +160,55 @@ exit:
     return err;
 }
 
+/**
+ * Indicates if the session with the given node id and the session key id is
+ * authorized to retrieve fabric config information.
+ *
+ * @return Returns 'true' if the given peer is privileged, else
+ * 'false'.
+ */
+
+bool FabricProvisioningServer::SessionHasFabricConfigAccessPrivilege(uint16_t keyId, uint64_t peerNodeId) const
+{
+    return (peerNodeId == mFabricConfigAccessSession.PeerNodeId &&
+            keyId == mFabricConfigAccessSession.SessionKeyId);
+}
+
+void FabricProvisioningServer::GrantFabricConfigAccessPrivilege(uint16_t keyId, uint64_t peerNodeId)
+{
+    mFabricConfigAccessSession.PeerNodeId = peerNodeId;
+    mFabricConfigAccessSession.SessionKeyId = keyId;
+}
+
+void FabricProvisioningServer::ClearFabricConfigAccessPrivilege(void)
+{
+    memset(&mFabricConfigAccessSession, 0, sizeof(mFabricConfigAccessSession));
+}
+
+void FabricProvisioningServer::HandleSessionEnd(uint16_t keyId, uint64_t peerNodeId, void *context)
+{
+    FabricProvisioningServer *server = static_cast<FabricProvisioningServer *>(context);
+
+    // Clear the privileged session when notified of its removal by FabricState
+    if (server->SessionHasFabricConfigAccessPrivilege(keyId, peerNodeId))
+    {
+        server->ClearFabricConfigAccessPrivilege();
+    }
+}
+
+WEAVE_ERROR FabricProvisioningServer::RegisterSessionEndCallbackWithFabricState(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    mSessionEndCbCtxt.OnSessionRemoved = HandleSessionEnd;
+    mSessionEndCbCtxt.context = this;
+    mSessionEndCbCtxt.next = NULL;
+
+    err = FabricState->RegisterSessionEndCallback(&mSessionEndCbCtxt);
+
+    return err;
+}
+
 void FabricProvisioningServer::HandleClientRequest(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo,
                                                    uint32_t profileId, uint8_t msgType, PacketBuffer *msgBuf)
 {
@@ -209,6 +266,13 @@ void FabricProvisioningServer::HandleClientRequest(ExchangeContext *ec, const IP
         if (err != WEAVE_NO_ERROR)
             server->FabricState->ClearFabricState();
         SuccessOrExit(err);
+
+        if (msgInfo->EncryptionType != kWeaveEncryptionType_None &&
+            WeaveKeyId::IsSessionKey(msgInfo->KeyId))
+        {
+            // Authorize the current session for privileged access to secret fabric config information
+            server->GrantFabricConfigAccessPrivilege(msgInfo->KeyId, msgInfo->SourceNodeId);
+        }
 
         break;
 
@@ -310,6 +374,10 @@ exit:
 void FabricProvisioningDelegate::EnforceAccessControl(ExchangeContext *ec, uint32_t msgProfileId, uint8_t msgType,
         const WeaveMessageInfo *msgInfo, AccessControlResult& result)
 {
+#if WEAVE_CONFIG_REQUIRE_AUTH_FABRIC_PROV
+    FabricProvisioningServer *server = static_cast<FabricProvisioningServer *>(ec->AppState);
+#endif
+
     // If the result has not already been determined by a subclass...
     if (result == kAccessControlResult_NotDetermined)
     {
@@ -328,7 +396,9 @@ void FabricProvisioningDelegate::EnforceAccessControl(ExchangeContext *ec, uint3
 
         case kMsgType_LeaveFabric:
         case kMsgType_GetFabricConfig:
-            if (msgInfo->PeerAuthMode == kWeaveAuthMode_CASE_AccessToken)
+            if (msgInfo->PeerAuthMode == kWeaveAuthMode_CASE_AccessToken ||
+                (msgInfo->PeerAuthMode == kWeaveAuthMode_PASE_PairingCode && !IsPairedToAccount() &&
+                 server->SessionHasFabricConfigAccessPrivilege(msgInfo->KeyId, msgInfo->SourceNodeId)))
             {
                 result = kAccessControlResult_Accepted;
             }

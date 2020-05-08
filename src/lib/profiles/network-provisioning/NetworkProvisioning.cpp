@@ -66,6 +66,8 @@ NetworkProvisioningServer::NetworkProvisioningServer()
  */
 WEAVE_ERROR NetworkProvisioningServer::Init(WeaveExchangeManager *exchangeMgr)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
     ExchangeMgr = exchangeMgr;
     FabricState = exchangeMgr->FabricState;
     mCurOp = NULL;
@@ -73,10 +75,16 @@ WEAVE_ERROR NetworkProvisioningServer::Init(WeaveExchangeManager *exchangeMgr)
     mLastOpResult.StatusProfileId = kWeaveProfile_Common;
     mLastOpResult.StatusCode = Common::kStatus_Success;
     mLastOpResult.SysError = WEAVE_NO_ERROR;
+    memset(&mCredentialAccessSession, 0, sizeof(mCredentialAccessSession));
 
     // Register to receive unsolicited Network Provisioning messages from the exchange manager.
-    WEAVE_ERROR err =
+    err =
         ExchangeMgr->RegisterUnsolicitedMessageHandler(kWeaveProfile_NetworkProvisioning, HandleRequest, this);
+    SuccessOrExit(err);
+
+    err = RegisterSessionEndCallbackWithFabricState();
+
+exit:
 
     return err;
 }
@@ -196,6 +204,14 @@ WEAVE_ERROR NetworkProvisioningServer::SendAddNetworkComplete(uint32_t networkId
     VerifyOrExit(mDelegate != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(mCurOp != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
+    // Authorize the current session for privileged access to secret
+    // credential information.
+    if (mCurOp->EncryptionType != kWeaveEncryptionType_None &&
+        WeaveKeyId::IsSessionKey(mCurOp->KeyId))
+    {
+        GrantCredentialAccessPrivilege(mCurOp->KeyId, mCurOp->PeerNodeId);
+    }
+
     respBuf = PacketBuffer::NewWithAvailableSize(respLen);
     VerifyOrExit(respBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
@@ -306,6 +322,55 @@ exit:
     return err;
 }
 
+/**
+ * Indicates if the session with the given node id and the session key id is
+ * authorized to retrieve secret credential information.
+ *
+ * @return Returns 'true' if the given peer is privileged, else
+ * 'false'.
+ */
+
+bool NetworkProvisioningServer::SessionHasCredentialAccessPrivilege(uint16_t keyId, uint64_t peerNodeId) const
+{
+    return (peerNodeId == mCredentialAccessSession.PeerNodeId &&
+            keyId == mCredentialAccessSession.SessionKeyId);
+}
+
+void NetworkProvisioningServer::GrantCredentialAccessPrivilege(uint16_t keyId, uint64_t peerNodeId)
+{
+    mCredentialAccessSession.PeerNodeId = peerNodeId;
+    mCredentialAccessSession.SessionKeyId = keyId;
+}
+
+void NetworkProvisioningServer::ClearCredentialAccessPrivilege(void)
+{
+    memset(&mCredentialAccessSession, 0, sizeof(mCredentialAccessSession));
+}
+
+void NetworkProvisioningServer::HandleSessionEnd(uint16_t keyId, uint64_t peerNodeId, void *context)
+{
+    NetworkProvisioningServer *server = static_cast<NetworkProvisioningServer *>(context);
+
+    // Clear the privileged session when notified of its removal by FabricState
+    if (server->SessionHasCredentialAccessPrivilege(keyId, peerNodeId))
+    {
+        server->ClearCredentialAccessPrivilege();
+    }
+}
+
+WEAVE_ERROR NetworkProvisioningServer::RegisterSessionEndCallbackWithFabricState(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    mSessionEndCbCtxt.OnSessionRemoved = HandleSessionEnd;
+    mSessionEndCbCtxt.context = this;
+    mSessionEndCbCtxt.next = NULL;
+
+    err = FabricState->RegisterSessionEndCallback(&mSessionEndCbCtxt);
+
+    return err;
+}
+
 void NetworkProvisioningServer::HandleRequest(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t profileId,
         uint8_t msgType, PacketBuffer *payload)
 {
@@ -406,9 +471,11 @@ void NetworkProvisioningServer::HandleRequest(ExchangeContext *ec, const IPPacke
         // According to Weave Device Access Control Policy,
         // When servicing a GetNetworks message from a peer that has authenticated using PASE/PairingCode,
         // a device in an unpaired state must reject the message with an access denied error if the peer has
-        // set the IncludeCredentials flag.
+        // set the IncludeCredentials flag and the current session is not privileged to retrieve secret
+        // credentials.
         if (msgInfo->PeerAuthMode == kWeaveAuthMode_PASE_PairingCode && !delegate->IsPairedToAccount()
-                && (flags & kGetNetwork_IncludeCredentials) != 0)
+                && (flags & kGetNetwork_IncludeCredentials) != 0
+                && !server->SessionHasCredentialAccessPrivilege(msgInfo->KeyId, msgInfo->SourceNodeId))
         {
             server->SendStatusReport(kWeaveProfile_Common, Common::kStatus_AccessDenied);
             break;
