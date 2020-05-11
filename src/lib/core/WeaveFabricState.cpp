@@ -278,6 +278,8 @@ WEAVE_ERROR WeaveFabricState::Init(GroupKeyStoreBase *groupKeyStore)
 
 #endif
 
+    sessionEndCallbackList = NULL;
+
     State = kState_Initialized;
 
     return WEAVE_NO_ERROR;
@@ -381,6 +383,8 @@ WEAVE_ERROR WeaveFabricState::RemoveSessionKey(uint16_t keyId, uint64_t peerNode
     SuccessOrExit(err);
 
     RemoveSessionKey(sessionKey);
+
+    NotifySessionEndSubscribers(keyId, peerNodeId);
 
 exit:
     return err;
@@ -1310,6 +1314,59 @@ bool WeaveFabricState::FindOrAllocPeerEntry(uint64_t peerNodeId, bool allocEntry
     }
 
     return retVal;
+}
+
+/*
+ * This method is used by provisioning servers to register callbacks with the
+ * WeaveFabricState to be notified when the current session is closed.
+ *
+ * @param[in]  sessionEndCb       The context containing the callback function
+ *                                pointer.
+ *
+ * @retval WEAVE_ERROR            Weave error encountered.
+ *
+ */
+WEAVE_ERROR WeaveFabricState::RegisterSessionEndCallback(SessionEndCbCtxt *sessionEndCb)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    SessionEndCbCtxt *iter = sessionEndCallbackList;
+
+    VerifyOrExit(sessionEndCb, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    sessionEndCb->next = NULL;
+    if (sessionEndCallbackList == NULL)
+    {
+        sessionEndCallbackList = sessionEndCb;
+        ExitNow();
+    }
+
+    while (iter->next)
+    {
+        iter = iter->next;
+    }
+
+    iter->next = sessionEndCb;
+
+exit:
+    return err;
+}
+
+/*
+ * Notify the registered callbacks when the given session is closed and removed
+ * from the session table.
+ */
+void WeaveFabricState::NotifySessionEndSubscribers(uint16_t keyId, uint64_t peerNodeId)
+{
+    SessionEndCbCtxt *iter = sessionEndCallbackList;
+
+    while (iter)
+    {
+        if (iter->OnSessionRemoved)
+        {
+            iter->OnSessionRemoved(keyId, peerNodeId, iter->context);
+        }
+        iter = iter->next;
+    }
 }
 
 WEAVE_ERROR WeaveFabricState::GetPassword(uint8_t pwSrc, const char *& ps, uint16_t& pwLen)

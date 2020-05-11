@@ -429,7 +429,31 @@ private:
             uint8_t msgType, PacketBuffer *payload);
     WEAVE_ERROR SendCompleteWithNetworkList(uint8_t msgType, int8_t resultCount, PacketBuffer *resultTLV);
 
+    // Utility functions for managing registration with/notification from WeaveFabricState about whether the
+    // current security session is privileged to access network credential information.
+
+    // Check if the session is marked as privileged to retrieve secret
+    // credential information.
+    bool SessionHasCredentialAccessPrivilege(uint16_t keyId, uint64_t peerNodeId) const;
+
+    void GrantCredentialAccessPrivilege(uint16_t keyId, uint64_t peerNodeId);
+    void ClearCredentialAccessPrivilege(void);
+    static void HandleSessionEnd(uint16_t keyId, uint64_t peerNodeId, void *context);
+    WEAVE_ERROR RegisterSessionEndCallbackWithFabricState(void);
+
     NetworkProvisioningServer(const NetworkProvisioningServer&);   // not defined
+
+    // Indicates the session that is privileged to
+    // retrieve secret credential information.
+    struct CredentialAccessSession
+    {
+        uint64_t PeerNodeId;
+        uint16_t SessionKeyId;
+    };
+    CredentialAccessSession mCredentialAccessSession;
+
+    nl::Weave::WeaveFabricState::SessionEndCbCtxt mSessionEndCbCtxt;
+
 };
 
 } // namespace NetworkProvisioning
