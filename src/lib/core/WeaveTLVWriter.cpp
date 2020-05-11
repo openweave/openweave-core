@@ -1680,7 +1680,7 @@ WEAVE_ERROR TLVWriter::WriteElementHead(TLVElementType elemType, uint64_t tag, u
         else
         {
             if (elemType != kTLVElementType_EndOfContainer && mContainerType != kTLVType_NotSpecified
-                    && mContainerType != kTLVType_Array)
+                    && mContainerType != kTLVType_Array && mContainerType != kTLVType_Path)
                 return WEAVE_ERROR_INVALID_TLV_TAG;
 
             Write8(p, kTLVTagControl_Anonymous | elemType);
