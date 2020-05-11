@@ -75,7 +75,11 @@ typedef void (^WdmClientFailureBlock)(id owner, NSError * error);
 
 /**
  * Begins a flush of all trait data. The result of this operation can be observed through the CompletionHandler and
- * failureHandler
+ * failureHandler, when operation completes, onWdmClientFlushUpdateComplete is called, application would receive statusResultsList,
+ * if it is empty, it means success without failed path, if anything inside, the array member could be NLWdmClientFlushUpdateError(local client error)
+ * or NLWdmClientFlushUpdateDeviceStatus(remote device status), application can use the path and dataSink from the above member to clear
+ * particular data or skip the error if necessary. When operation fails, it usually means the operation cannot complete at all, for example
+ * communication or protocol issue, onWdmClientError would be called.
  */
 - (void)flushUpdate:(WdmClientCompletionBlock)completionHandler failure:(WdmClientFailureBlock)failureHandler;
 

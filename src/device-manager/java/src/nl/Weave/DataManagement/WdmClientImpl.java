@@ -27,11 +27,11 @@ import android.os.Build;
 import android.util.Log;
 import java.math.BigInteger;
 import java.util.EnumSet;
-import java.util.Random;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 
 public class WdmClientImpl implements WdmClient
 {
@@ -135,6 +135,16 @@ public class WdmClientImpl implements WdmClient
         mCompHandler = compHandler;
     }
 
+    public GenericTraitUpdatableDataSink getDataSink(long traitInstancePtr)
+    {
+        GenericTraitUpdatableDataSink trait = null;
+        if (mTraitMap != null) {
+          trait = mTraitMap.get(traitInstancePtr);
+        }
+
+        return trait;
+    }
+
     // ----- Protected Members -----
     protected void removeDataSinkRef(long traitInstancePtr)
     {
@@ -159,9 +169,9 @@ public class WdmClientImpl implements WdmClient
         requireCompletionHandler().onError(err);
     }
 
-    private void onFlushUpdateComplete()
+    private void onFlushUpdateComplete(Throwable[] exceptions)
     {
-        requireCompletionHandler().onFlushUpdateComplete();
+        requireCompletionHandler().onFlushUpdateComplete(exceptions, this);
     }
 
     private void onRefreshDataComplete()

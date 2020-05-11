@@ -254,6 +254,22 @@ void TraitPathStore::SetFailedTrait(TraitDataHandle aDataHandle)
     }
 }
 
+void TraitPathStore::RemoveItem(const TraitPath &aItem)
+{
+    for (size_t i = GetFirstValidItem(aItem.mTraitDataHandle);
+         i < GetPathStoreSize();
+         i = GetNextValidItem(i, aItem.mTraitDataHandle))
+    {
+        if (mStore[i].mTraitPath.mPropertyPathHandle == aItem.mPropertyPathHandle)
+        {
+            RemoveItemAt(i);
+            WeaveLogDetail(DataManagement, "Removing item %u t%u p%u", i,
+                           mStore[i].mTraitPath.mTraitDataHandle,
+                           mStore[i].mTraitPath.mPropertyPathHandle);
+        }
+    }
+}
+
 void TraitPathStore::RemoveItemAt(size_t aIndex)
 {
     VerifyOrDie(mNumItems > 0);

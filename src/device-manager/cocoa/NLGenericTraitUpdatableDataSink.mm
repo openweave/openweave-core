@@ -128,18 +128,18 @@ exit:
     return result;
 }
 
-static void handleGenericUpdatableDataSinkComplete(void * dataSink, void * reqState)
+static void onGenericUpdatableDataSinkComplete(void * dataSink, void * reqState)
 {
-    WDM_LOG_DEBUG(@"handleGenericUpdatableDataSinkComplete");
+    WDM_LOG_DEBUG(@"onGenericUpdatableDataSinkComplete");
 
     NLGenericTraitUpdatableDataSink * sink = (__bridge NLGenericTraitUpdatableDataSink *) reqState;
     [sink DispatchAsyncCompletionBlock:nil];
 }
 
-static void handleGenericUpdatableDataSinkError(
+static void onGenericUpdatableDataSinkError(
     void * dataSink, void * appReqState, WEAVE_ERROR code, nl::Weave::DeviceManager::DeviceStatus * devStatus)
 {
-    WDM_LOG_DEBUG(@"handleGenericUpdatableDataSinkError");
+    WDM_LOG_DEBUG(@"onGenericUpdatableDataSinkError with error code %d\n", code);
 
     NSError * error = nil;
     NSDictionary * userInfo = nil;
@@ -336,7 +336,7 @@ exit:
             _mFailureHandler = [failureHandler copy];
 
             WEAVE_ERROR err = _mWeaveCppGenericTraitUpdatableDataSink->RefreshData(
-                (__bridge void *) self, handleGenericUpdatableDataSinkComplete, handleGenericUpdatableDataSinkError);
+                (__bridge void *) self, onGenericUpdatableDataSinkComplete, onGenericUpdatableDataSinkError);
 
             if (WEAVE_NO_ERROR != err) {
                 [self DispatchAsyncDefaultFailureBlockWithCode:err];
@@ -364,11 +364,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->SetData([path UTF8String], val, isConditionalBool);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetSigned, ignore");
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
@@ -390,12 +385,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->SetData([path UTF8String], val, isConditionalBool);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetUnsigned, ignore");
-
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
@@ -417,11 +406,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->SetData([path UTF8String], val, isConditionalBool);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetDouble, ignore");
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
@@ -443,10 +427,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->SetBoolean([path UTF8String], valBool, isConditionalBool);
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetBoolean, ignore");
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
@@ -467,11 +447,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->SetString([path UTF8String], [val UTF8String], isConditionalBool);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetData, ignore");
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
@@ -493,11 +468,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->SetNull([path UTF8String], isConditionalBool);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetData, ignore");
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
@@ -521,11 +491,6 @@ exit:
             uint32_t valLen = (uint32_t)[val length];
             uint8_t * pVal = (uint8_t *) [val bytes];
             err = _mWeaveCppGenericTraitUpdatableDataSink->SetBytes([path UTF8String], pVal, valLen, isConditionalBool);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetBytes, ignore");
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
@@ -552,10 +517,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->SetStringArray([path UTF8String], stringVector, isConditionalBool);
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from SetStringArray, ignore");
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
@@ -620,13 +581,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetData([path UTF8String], result);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetSigned, ignore");
-
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-                result = 0;
-            }
         });
     }
 
@@ -653,13 +607,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetData([path UTF8String], result);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetUnsigned, ignore");
-
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-                result = 0;
-            }
         });
     }
 
@@ -686,13 +633,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetData([path UTF8String], result);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetDouble, ignore");
-
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-                result = 0;
-            }
         });
     }
 
@@ -719,12 +659,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetBoolean([path UTF8String], result);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetBoolean, ignore");
-
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
@@ -736,32 +670,29 @@ exit:
     return err;
 }
 
-- (NSString *)getString:(NSString *)path
+- (WEAVE_ERROR)getString:(NSString **)val path:(NSString *)path
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block nl::Weave::DeviceManager::BytesData bytesData;
-    NSString * result = nil;
+
     WDM_LOG_METHOD_SIG();
 
     VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // need this bracket to use Verify macros
     {
-        // we use sync so the result is immediately available to the caller upon return
+        // we use sync so the bytesData is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetBytes([path UTF8String], &bytesData);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetString, ignore");
-
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
-    result = [[NSString alloc] initWithBytes:bytesData.mpDataBuf length:bytesData.mDataLen encoding:NSUTF8StringEncoding];
 
 exit:
-    return result;
+    if ((WEAVE_NO_ERROR == err) && (NULL != val))
+    {
+        *val = [[NSString alloc] initWithBytes:bytesData.mpDataBuf length:bytesData.mDataLen encoding:NSUTF8StringEncoding];
+    }
+    return err;
 }
 
 - (WEAVE_ERROR)isNull:(BOOL *)val path:(NSString *)path;
@@ -779,12 +710,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->IsNull([path UTF8String], result);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from isNull, ignore");
-
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
@@ -796,64 +721,59 @@ exit:
     return err;
 }
 
-- (NSData *)getBytes:(NSString *)path
+- (WEAVE_ERROR)getBytes:(NSData **)val path:(NSString *)path
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block nl::Weave::DeviceManager::BytesData bytesData;
-    NSData * result = nil;
     WDM_LOG_METHOD_SIG();
 
     VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != val, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // need this bracket to use Verify macros
     {
-        // we use sync so the result is immediately available to the caller upon return
+        // we use sync so the bytesData is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetBytes([path UTF8String], &bytesData);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetBytes, ignore");
-
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
-    result = [NSData dataWithBytes:bytesData.mpDataBuf length:bytesData.mDataLen];
 exit:
-    return result;
+    if ((WEAVE_NO_ERROR == err) && (NULL != val))
+    {
+        *val = [NSData dataWithBytes:bytesData.mpDataBuf length:bytesData.mDataLen];
+    }
+
+    return err;
 }
 
-- (NSArray *)getStringArray:(NSString *)path
+- (WEAVE_ERROR)getStringArray:(NSMutableArray **)val path:(NSString *)path
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     __block std::vector<std::string> stringVector;
-    NSMutableArray * arrayOut = [[NSMutableArray alloc] init];
 
     WDM_LOG_METHOD_SIG();
 
     VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != val, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // need this bracket to use Verify macros
     {
-        // we use sync so the result is immediately available to the caller upon return
+        // we use sync so the stringVector is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             err = _mWeaveCppGenericTraitUpdatableDataSink->GetStringArray([path UTF8String], stringVector);
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetStringArray, ignore");
-
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-            }
         });
     }
 
-    for (auto iter = stringVector.begin(); iter < stringVector.end(); iter++) {
-        [arrayOut addObject:[NSString stringWithCString:iter->c_str() encoding:[NSString defaultCStringEncoding]]];
-    }
-
 exit:
-    return arrayOut;
+    if ((WEAVE_NO_ERROR == err) && (NULL != val))
+    {
+        *val = [[NSMutableArray alloc] init];
+        for (auto iter = stringVector.begin(); iter < stringVector.end(); iter++) {
+            [*val addObject:[NSString stringWithCString:iter->c_str() encoding:[NSString defaultCStringEncoding]]];
+        }
+    }
+    return err;
 }
 
 - (WEAVE_ERROR)getVersion:(uint64_t *)val
@@ -871,13 +791,6 @@ exit:
         // we use sync so the result is immediately available to the caller upon return
         dispatch_sync(_mWeaveWorkQueue, ^() {
             result = _mWeaveCppGenericTraitUpdatableDataSink->GetVersion();
-
-            if (err == WEAVE_ERROR_INCORRECT_STATE) {
-                WDM_LOG_DEBUG(@"Got incorrect state error from GetVersion, ignore");
-
-                err = WEAVE_NO_ERROR; // No exception, just return 0.
-                result = 0;
-            }
         });
     }
 
@@ -886,6 +799,26 @@ exit:
         *val = result;
     }
 
+    return err;
+}
+
+- (WEAVE_ERROR)deleteData:(NSString *)path
+{
+    __block WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    WDM_LOG_METHOD_SIG();
+
+    VerifyOrExit(NULL != _mWeaveCppGenericTraitUpdatableDataSink, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    // need this bracket to use Verify macros
+    {
+        // we use sync so the result is immediately available to the caller upon return
+        dispatch_sync(_mWeaveWorkQueue, ^() {
+            err = _mWeaveCppGenericTraitUpdatableDataSink->DeleteData([path UTF8String]);
+        });
+    }
+
+exit:
     return err;
 }
 

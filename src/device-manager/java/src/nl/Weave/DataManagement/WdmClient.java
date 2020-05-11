@@ -52,7 +52,12 @@ public interface WdmClient
 
     /**
      * Begins a flush of all trait data. The result of this operation can be observed through the {@link CompletionHandler}
-     * that has been assigned via {@link #setCompletionHandler}.
+     * that has been assigned via {@link #setCompletionHandler}.when operation completes, onFlushUpdateComplete is called,
+     * application would receive throwable exception list, if it is empty, it means success without failed path,
+     * if anything inside, the array member could be WdmClientFlushUpdateException(local client error)
+     * or WdmClientFlushUpdateDeviceException(remote device status), application can use the path and dataSink from the above member to clear
+     * particular data or skip the error if necessary. When operation fails, it usually means the operation cannot complete at all, for example
+     * communication or protocol issue, onError would be called.
      */
     public void beginFlushUpdate();
 
@@ -65,9 +70,11 @@ public interface WdmClient
     public CompletionHandler getCompletionHandler();
     public void setCompletionHandler(CompletionHandler compHandler);
 
+    public GenericTraitUpdatableDataSink getDataSink(long traitInstancePtr);
+
     public interface CompletionHandler
     {
-        void onFlushUpdateComplete();
+        void onFlushUpdateComplete(Throwable[] exceptions, WdmClient wdmClient);
         void onRefreshDataComplete();
         void onError(Throwable err);
     }

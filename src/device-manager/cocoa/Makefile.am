@@ -66,6 +66,8 @@ libNLWeaveDeviceManager_a_HEADERS        = \
     NLWdmClient.h                          \
     NLGenericTraitUpdatableDataSink.h      \
     NLResourceIdentifier.h                 \
+    NLWdmClientFlushUpdateError.h          \
+    NLWdmClientFlushUpdateDeviceStatusError.h       \
     $(NULL)
 
 noinst_HEADERS                           = \
@@ -75,8 +77,8 @@ noinst_HEADERS                           = \
     NLWeaveError_Protected.h               \
     NLWeaveDeviceManager_Protected.h       \
     NLWdmClient_Protected.h                \
-    NLGenericTraitUpdatableDataSink_Protected.h       \
     NLResourceIdentifier_Protected.h       \
+    NLGenericTraitUpdatableDataSink_Protected.h     \
     $(NULL)
 
 libNLWeaveDeviceManager_a_SOURCES        = \
@@ -102,6 +104,8 @@ libNLWeaveDeviceManager_a_SOURCES        = \
     NLWdmClient.mm                         \
     NLGenericTraitUpdatableDataSink.mm     \
     NLResourceIdentifier.mm                \
+    NLWdmClientFlushUpdateError.mm         \
+    NLWdmClientFlushUpdateDeviceStatusError.mm                \
     $(NULL)
 
 endif # WEAVE_WITH_COCOA

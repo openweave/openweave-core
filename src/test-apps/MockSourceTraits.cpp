@@ -166,6 +166,7 @@ LocaleCapabilitiesTraitDataSource::LocaleCapabilitiesTraitDataSource()
     memcpy(mLocales[0], "pl-PL", MAX_LOCALE_SIZE);
     memcpy(mLocales[1], "ja-JP", MAX_LOCALE_SIZE);
     memcpy(mLocales[2], "fr-FR", MAX_LOCALE_SIZE);
+    mNumLocales = 3;
 }
 
 void LocaleCapabilitiesTraitDataSource::Mutate()

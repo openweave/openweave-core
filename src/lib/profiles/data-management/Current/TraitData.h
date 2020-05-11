@@ -36,6 +36,10 @@
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Profiles/data-management/MessageDef.h>
 
+#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
+#include <string>
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
+
 namespace nl {
 namespace Weave {
 namespace Profiles {
@@ -356,6 +360,16 @@ public:
      * @retval other           Was unable to convert the handle to a TLV path
      */
     WEAVE_ERROR MapHandleToPath(PropertyPathHandle aHandle, nl::Weave::TLV::TLVWriter & aPathWriter) const;
+
+#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
+    /**
+     * Convert the path handle to a std string path
+     *
+     * @retval #WEAVE_NO_ERROR On success.
+     * @retval other           Was unable to convert the handle to a std string path
+     */
+    WEAVE_ERROR MapHandleToPath(PropertyPathHandle aHandle, std::string & aPathString) const;
+#endif //WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 
     /**
      * Given a path handle and a reader positioned on the corresponding data element, process the data buffer pointed to by the
@@ -793,6 +807,7 @@ public:
                                 bool & aIsNull, bool & aIsPresent) __OVERRIDE;
 
     WEAVE_ERROR SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional = false);
+    WEAVE_ERROR ClearUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle);
 
     void Lock(SubscriptionClient * apSubClient);
     void Unlock(SubscriptionClient * apSubClient);

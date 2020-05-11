@@ -38,5 +38,6 @@
 - (NSString *)statusReportToString:(NSUInteger)profileId statusCode:(NSInteger)statusCode;
 
 - (void)removeDataSinkRef:(long long)traitInstancePtr;
+- (NLGenericTraitUpdatableDataSink *)getDataSink:(long long)traitInstancePtr;
 
 @end

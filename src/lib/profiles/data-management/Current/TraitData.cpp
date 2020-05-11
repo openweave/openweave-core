@@ -37,6 +37,9 @@
 #include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Support/WeaveFaultInjection.h>
 #include <Weave/Support/RandUtils.h>
+#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
+#include <string>
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
@@ -238,6 +241,41 @@ WEAVE_ERROR TraitSchemaEngine::MapHandleToPath(PropertyPathHandle aHandle, TLVWr
 exit:
     return WEAVE_NO_ERROR;
 }
+
+#if WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
+WEAVE_ERROR TraitSchemaEngine::MapHandleToPath(PropertyPathHandle aHandle, std::string & aPathString) const
+{
+    // Use the tree depth specified by the schema to correctly size our path walk store
+    PropertyPathHandle pathWalkStore[mSchema.mTreeDepth];
+    uint32_t pathWalkDepth         = 0;
+    WEAVE_ERROR err                = WEAVE_NO_ERROR;
+    PropertyPathHandle curProperty = aHandle;
+
+    // Walk up the path till root and keep track of the handles encountered along the way.
+    while (curProperty != kRootPropertyPathHandle)
+    {
+        pathWalkStore[pathWalkDepth++] = curProperty;
+        curProperty                    = GetParent(curProperty);
+    }
+
+    // Write it into std string by reverse walking over the encountered handles starting from root, split tags with /
+    while (pathWalkDepth)
+    {
+        PropertyPathHandle curHandle = pathWalkStore[pathWalkDepth - 1];
+
+        if (pathWalkDepth > 0)
+        {
+            aPathString.append("/");
+        }
+        aPathString.append(std::to_string((uint8_t)GetTag(curHandle)));
+
+        pathWalkDepth--;
+    }
+
+exit:
+    return WEAVE_NO_ERROR;
+}
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
 
 uint64_t TraitSchemaEngine::GetTag(PropertyPathHandle aHandle) const
 {
@@ -1500,6 +1538,19 @@ WEAVE_ERROR TraitUpdatableDataSink::SetUpdated(SubscriptionClient * apSubClient,
 exit:
     return err;
 }
+
+WEAVE_ERROR TraitUpdatableDataSink::ClearUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(aPropertyHandle != kNullPropertyPathHandle, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = apSubClient->ClearUpdated(this, aPropertyHandle);
+
+exit:
+    return err;
+}
+
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 #if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
