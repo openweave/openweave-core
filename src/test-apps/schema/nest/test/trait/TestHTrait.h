@@ -186,6 +186,10 @@ struct StructDictionary
     uint32_t db;
     uint32_t dc;
 
+    bool operator ==(const StructDictionary& a) const {
+        return (memcmp(&a, this, sizeof(StructDictionary)) == 0);
+    }
+
     static const nl::SchemaFieldDescriptor FieldSchema;
 
 };

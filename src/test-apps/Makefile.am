@@ -356,11 +356,13 @@ check_PROGRAMS                                 = \
 if HAVE_CXX11
 check_PROGRAMS +=                                \
     TestTDM                                      \
+    TestTDMDictionary                            \
     $(NULL)
 endif
 
 check_PROGRAMS +=                                \
     TestTDM                                      \
+	TestTDMDictionary							 \
     TestPathStore                                \
     TestWdmUpdateEncoder                         \
     TestWdmUpdateResponse                        \
@@ -469,6 +471,7 @@ local_test_programs                            = \
 if HAVE_CXX11
 local_test_programs                           += \
     TestTDM                                      \
+    TestTDMDictionary                            \
     TestWDM                                      \
     $(NULL)
 endif
@@ -1220,6 +1223,20 @@ TestTDM_SOURCES                          = TestTDM.cpp \
 TestTDM_CPPFLAGS                         = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestTDM_LDFLAGS                          = $(AM_CPPFLAGS)
 TestTDM_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD)
+
+TestTDMDictionary_SOURCES                = TestTDMDictionary.cpp \
+                                           schema/nest/test/trait/TestHTrait.cpp \
+                                           schema/nest/test/trait/TestCTrait.cpp \
+                                           schema/nest/test/trait/TestBTrait.cpp \
+                                           schema/nest/test/trait/TestMismatchedCTrait.cpp \
+                                           schema/nest/test/trait/TestCommon.cpp \
+                                           MockMismatchedSchemaSinkAndSource.cpp \
+                                           TestPersistedStorageImplementation.cpp \
+                                           MockTestBTrait.cpp
+
+TestTDMDictionary_CPPFLAGS              = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
+TestTDMDictionary_LDFLAGS               = $(AM_CPPFLAGS)
+TestTDMDictionary_LDADD                 = libWeaveTestCommon.a $(COMMON_LDADD)
 endif
 
 TestWDM_SOURCES                          = TestWdm.cpp

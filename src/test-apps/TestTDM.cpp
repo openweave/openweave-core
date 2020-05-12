@@ -65,6 +65,116 @@ using namespace nl;
 using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles::DataManagement;
 
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/identity.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
+
+using namespace boost::multi_index;
+
+template <class KeyT, class ValueT>
+class WdmDictionary {
+public:
+    struct Item {
+        Item(uint16_t dictKey) { _dict_key = dictKey; }
+
+        bool operator<(const Item& i1) const {
+            return (_logical_key < i1._logical_key);
+        }
+
+        ValueT _data;
+        uint16_t _dict_key;
+        KeyT _logical_key;
+    };
+
+    struct map_key{};
+    struct logical_key{};
+
+    typedef multi_index_container<
+        Item,
+        indexed_by<
+            ordered_unique<tag<map_key>, member<Item, uint16_t, &Item::_dict_key> >,
+            ordered_unique<tag<logical_key>, member<Item, KeyT, &Item::_logical_key> >
+        >
+    > Container;
+
+    typedef typename Container::template index<map_key>::type DictKeyTableType;
+    typedef typename Container::template index<logical_key>::type LogicalKeyTableType;
+    typedef typename Container::template index<logical_key>::type::iterator LogicalKeyTableTypeIterator;
+
+    void ModifyItem(uint16_t dictKey, std::function<void(Item&)> func);
+    DictKeyTableType& GetDictKeyTable() { return _container.template get<map_key>(); }
+    LogicalKeyTableType& GetLogicalKeyTable() {  return _container.template get<logical_key>(); }
+
+    void ItemsAdded(WdmDictionary& stagedContainer, std::function<void(LogicalKeyTableTypeIterator&)> func);
+    void ItemsRemoved(WdmDictionary& stagedContainer, std::function<void(LogicalKeyTableTypeIterator&)> func);
+    void ItemsModified(WdmDictionary& stagedContainer, std::function<void(LogicalKeyTableTypeIterator&, LogicalKeyTableTypeIterator&)> func);
+
+private: 
+    Container _container;
+};
+
+template <typename KeyT, typename ValueT>
+void WdmDictionary<KeyT, ValueT>::ModifyItem(uint16_t dictKey, std::function<void(Item &)> func)
+{
+    Item item = Item(dictKey);
+    DictKeyTableType& mapkey_tbl = _container.template get<map_key>();
+    mapkey_tbl.modify(mapkey_tbl.insert(item).first, [&func](Item &d) {
+        func(d);
+    });
+}
+
+template <typename KeyT, typename ValueT>
+void WdmDictionary<KeyT, ValueT>::ItemsAdded(WdmDictionary& stagedContainer, std::function<void(LogicalKeyTableTypeIterator&)> func)
+{
+    Container addedItems;
+    LogicalKeyTableType &addedItemsLogicalTbl = addedItems.template get<logical_key>();
+
+    std::set_difference(stagedContainer.GetLogicalKeyTable().begin(), stagedContainer.GetLogicalKeyTable().end(), 
+                        GetLogicalKeyTable().begin(), GetLogicalKeyTable().end(),
+                        std::inserter(addedItemsLogicalTbl, addedItemsLogicalTbl.begin()));
+
+    for (auto it = addedItemsLogicalTbl.begin(); it != addedItemsLogicalTbl.end(); it++) {
+        func(it);
+    }
+}
+
+template <typename KeyT, typename ValueT>
+void WdmDictionary<KeyT, ValueT>::ItemsRemoved(WdmDictionary& stagedContainer, std::function<void(LogicalKeyTableTypeIterator&)> func)
+{
+    Container removedItems;
+    LogicalKeyTableType &removedItemsLogicalTbl = removedItems.template get<logical_key>();
+
+    std::set_difference(GetLogicalKeyTable().begin(), GetLogicalKeyTable().end(),
+                        stagedContainer.GetLogicalKeyTable().begin(), stagedContainer.GetLogicalKeyTable().end(), 
+                        std::inserter(removedItemsLogicalTbl, removedItemsLogicalTbl.begin()));
+
+    for (auto it = removedItemsLogicalTbl.begin(); it != removedItemsLogicalTbl.end(); it++) {
+        func(it);
+    }
+}
+
+template <typename KeyT, typename ValueT>
+void WdmDictionary<KeyT, ValueT>::ItemsModified(WdmDictionary& stagedContainer, std::function<void(LogicalKeyTableTypeIterator&, LogicalKeyTableTypeIterator&)> func)
+{
+    Container modifiedItems;
+    LogicalKeyTableType &modifiedItemsTbl = modifiedItems.template get<logical_key>();
+
+    std::set_intersection(stagedContainer.GetLogicalKeyTable().begin(), stagedContainer.GetLogicalKeyTable().end(), 
+                        GetLogicalKeyTable().begin(), GetLogicalKeyTable().end(),
+                        std::inserter(modifiedItemsTbl, modifiedItemsTbl.begin()));
+
+    for (auto it = modifiedItemsTbl.begin(); it != modifiedItemsTbl.end(); it++) {
+        auto it1 = GetLogicalKeyTable().find(it->_logical_key);
+        auto it2 = stagedContainer.GetLogicalKeyTable().find(it->_logical_key);
+
+        if (!(it1->_data == it2->_data)) {
+            func(it1, it2);
+        }
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // System/Platform definitions
