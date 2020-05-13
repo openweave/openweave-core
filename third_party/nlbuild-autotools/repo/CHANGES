@@ -1,3 +1,96 @@
+1.7.3 (2020-05-11)
+
+        * Addressed an issue in which NL_ENABLE_COVERAGE,
+          NL_ENABLE_DEBUG, and NL_ENABLE_OPTIMIZATION failed to
+          correctly transform their respective flags when the values
+          they control are satisfied from the configuration cache.
+
+1.7.2 (2020-04-22)
+
+        * Incorporated changes to refactor makedirs to use sentinel
+          files rather than forced phony targets. Renamed makedirs
+          (MAKEDIRS and MAKEDIRS_TARGETS) to foreign dependencies
+          (NLFOREIGN_SUBDIR_DEPENDENCIES and
+          NLFOREIGN_FILE_DEPENDENCIES).
+
+        * Added foreign dependency examples to the project skeleton.
+
+        * Addressed an issue to allow nl-check-file-with-subroutine to
+          tolerate parallel builds.
+
+        * Addressed shellcheck and other minor issues with
+          bootstrap-configure.
+
+1.7.1 (2020-04-15)
+
+        * Addressed an issue in which the use of MAKDIRS and
+          MAKEDIRS_TARGETS resulted in undesireable target rebuilds.
+
+1.7.0 (2020-04-14)
+
+        * Added support for project-global targets and target
+          subdirectories that can be used to allow for "build from
+          anywhere plus dependencies" functionality that does not
+          first require a top-level build.
+
+        * Added jobs support for tools/packages/build to take
+          advantage of multi-CPUs/-cores when available.
+
+1.6.24 (2020-04-08)
+
+        * Ensure that 'coverage-recursive' is included in the
+          canonical set of known recursive targets such that
+          dependency rules like "$(RECURSIVE_TARGETS):
+          $(lib_LIBRARIES)" work correctly.
+
+1.6.23 (2020-04-07)
+
+        * Collapse generate-coverage-report and
+          generate-coverage-report-with-filter into a single function.
+
+1.6.22 (2020-04-07)
+
+        * Suppress non-failure diagnostic output from bootstrap tool actions
+          unless there is failure status from those actions or the
+          verbose flag has been asserted.
+
+        * Ensure failure status from bootstrap tool actions is
+          captured and passed to invoking processes.
+
+1.6.21 (2020-03-30)
+
+        * Allow examples/bootstrap may be run from anywhere.
+
+        * Added AUTHORS.md.
+
+1.6.20 (2020-03-26)
+
+        * Ensure that several scripts that use bashisms specify bash
+          for the shebang. Additionally, invoke bash through env to
+          maximize downrev shell compatibility.
+
+        * Add tools/host/... to .gitignore.
+
+1.6.19 (2020-03-18)
+
+        * Fix awk invocation error in tools/packages/build triggered by
+          'make tools'.
+
+1.6.18 (2020-03-18)
+
+        * Address a typo in bootstrap scripts introduced in 1.6.17.
+
+1.6.17 (2020-03-17)
+
+        * Avoid potential disagreement among srcdir and abs_srcdir for
+          bootstrap scripts.
+
+        * Address shellcheck warnings.
+
+1.6.16 (2020-01-23)
+
+        * Allow absolute paths in PRETTY_FILES.
+
 1.6.15 (2019-12-06)
 
         * Remove redundant libtool m4 libraries.
