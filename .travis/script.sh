@@ -60,11 +60,11 @@ gcc_check_happy()
 case "${BUILD_TARGET}" in
 
     linux-auto-clang)
-        ./configure && make && make check
+        ./configure -C && make && make check
         ;;
 
     linux-auto-gcc-check)
-        ./configure --enable-coverage && make && make check
+        ./configure -C --enable-coverage && make && make check
         ;;
 
     linux-auto-gcc-check-happy)
@@ -76,13 +76,13 @@ case "${BUILD_TARGET}" in
         ;;
 
     linux-lwip-clang)
-        ./configure --with-target-network=lwip --with-lwip=internal --disable-java && make
+        ./configure -C --with-target-network=lwip --with-lwip=internal --disable-java && make
         ;;
 
     linux-lwip-gcc-check)
         # Note, LwIP requires sudo prior to running 'make check' to ensure the appropriate TUN and bridge interfaces
         # may be created.
-        ./configure --enable-coverage --with-target-network=lwip --with-lwip=internal --disable-java && make && sudo make check
+        ./configure -C --enable-coverage --with-target-network=lwip --with-lwip=internal --disable-java && make && sudo make check
         ;;
 
     osx-auto-clang)
@@ -102,11 +102,11 @@ case "${BUILD_TARGET}" in
         ;;
 
     linux-auto-*-distcheck)
-        ./configure && make distcheck
+        ./configure -C && make distcheck
         ;;
 
     linux-auto-*-lint)
-        ./configure && make pretty-check
+        ./configure -C && make pretty-check
         ;;
 
     *)

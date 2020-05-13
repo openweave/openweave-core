@@ -1,4 +1,5 @@
 #
+#    Copyright (c) Project openweave-core Authors
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -259,7 +260,7 @@ AMFILES = src/system/SystemLayer.am			\
 #
 define configure-action
 $(ECHO) "  CONFIG   $(ABI_CONFIG_TUPLE_$(1))..."
-(cd $(BuildPath)/$(ABI_CONFIG_TUPLE_$(1)) && $(AbsTopSourceDir)/configure \
+(cd $(BuildPath)/$(ABI_CONFIG_TUPLE_$(1)) && $(AbsTopSourceDir)/configure -C \
 CPP="$(CPP)" CC="$(CC)" CXX="$(CXX)" OBJC="$(OBJC)" OBJCXX="$(OBJCXX)" AR="$(AR)" RANLIB="$(RANLIB)" NM="$(NM)" STRIP="$(STRIP)" \
 INSTALL="$(INSTALL) $(INSTALLFLAGS)" \
 CPPFLAGS="$(CPPFLAGS)" \
