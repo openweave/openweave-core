@@ -2919,13 +2919,9 @@ WEAVE_ERROR SubscriptionClient::ClearUpdated(TraitUpdatableDataSink * aDataSink,
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitDataHandle dataHandle;
-    const TraitSchemaEngine * schemaEngine;
-    bool needToSetUpdateRequiredVersion = false;
     bool isTraitInstanceInUpdate = false;
 
     LockUpdateMutex();
-
-    schemaEngine = aDataSink->GetSchemaEngine();
 
     err = mDataSinkCatalog->Locate(aDataSink, dataHandle);
     SuccessOrExit(err);
