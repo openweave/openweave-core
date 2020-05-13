@@ -39,6 +39,5 @@
            statusReport:(NSString *)statusReport
                    path:(NSString *)path
                dataSink:(NLGenericTraitUpdatableDataSink *)dataSink;
-- (NSInteger)translateErrorCode;
 
 @end

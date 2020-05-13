@@ -248,7 +248,6 @@ WEAVE_ERROR TraitSchemaEngine::MapHandleToPath(PropertyPathHandle aHandle, std::
     // Use the tree depth specified by the schema to correctly size our path walk store
     PropertyPathHandle pathWalkStore[mSchema.mTreeDepth];
     uint32_t pathWalkDepth         = 0;
-    WEAVE_ERROR err                = WEAVE_NO_ERROR;
     PropertyPathHandle curProperty = aHandle;
 
     // Walk up the path till root and keep track of the handles encountered along the way.
@@ -272,7 +271,6 @@ WEAVE_ERROR TraitSchemaEngine::MapHandleToPath(PropertyPathHandle aHandle, std::
         pathWalkDepth--;
     }
 
-exit:
     return WEAVE_NO_ERROR;
 }
 #endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL
