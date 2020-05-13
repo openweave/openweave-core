@@ -486,10 +486,15 @@ A null value is encoded as follows:
 |===
 |Revision |Date |Modified By |Description
 |5|2020-05-08|Jay Logue|Renamed path type to list and clarified text in corresponding section.
+
 Added section on canonical ordering of tags.
+
 Added section describing anonymous tags.
+
 Clarified descriptions of structure and array types.
+
 Clarified encoding of floating point values with reference to RFC-4506.
+
 Moved revision history to end of document.
 |4|2013-05-20|Jay Logue|Fixed incorrect control byte value for end of container encoding.
 |3|2013-04-22|Jay Logue|Renamed dictionary to structure.
