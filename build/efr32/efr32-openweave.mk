@@ -1,4 +1,5 @@
 #
+#   Copyright (c) Project openweave-core Authors
 #   Copyright (c) 2019 Google LLC.
 #   All rights reserved.
 #
@@ -197,7 +198,7 @@ define OpenWeaveBuildRules
 .PHONY : config-weave .check-config-weave build-weave install-weave clean-weave
 
 .check-config-weave : | $(OPENWEAVE_OUTPUT_DIR)
-	$(NO_ECHO)echo $(OPENWEAVE_ROOT)/configure $(OPENWEAVE_CONFIGURE_OPTIONS) > $(OPENWEAVE_OUTPUT_DIR)/config.args.tmp; \
+	$(NO_ECHO)echo $(OPENWEAVE_ROOT)/configure -C $(OPENWEAVE_CONFIGURE_OPTIONS) > $(OPENWEAVE_OUTPUT_DIR)/config.args.tmp; \
 	(test -r $(OPENWEAVE_OUTPUT_DIR)/config.args && cmp -s $(OPENWEAVE_OUTPUT_DIR)/config.args.tmp $(OPENWEAVE_OUTPUT_DIR)/config.args) || \
 	    mv $(OPENWEAVE_OUTPUT_DIR)/config.args.tmp $(OPENWEAVE_OUTPUT_DIR)/config.args; \
 	 rm -f $(OPENWEAVE_OUTPUT_DIR)/config.args.tmp;
@@ -211,7 +212,7 @@ $(OPENWEAVE_ROOT)/configure : $(OPENWEAVE_ROOT)/configure.ac
 
 $(OPENWEAVE_OUTPUT_DIR)/config.status : $(OPENWEAVE_ROOT)/configure $(OPENWEAVE_OUTPUT_DIR)/config.args
 	@echo "$(HDR_PREFIX)CONFIGURE OPENWEAVE..."
-	$(NO_ECHO)(cd $(OPENWEAVE_OUTPUT_DIR) && $(OPENWEAVE_ROOT)/configure $(OPENWEAVE_CONFIGURE_OPTIONS))
+	$(NO_ECHO)(cd $(OPENWEAVE_OUTPUT_DIR) && $(OPENWEAVE_ROOT)/configure -C $(OPENWEAVE_CONFIGURE_OPTIONS))
 
 config-weave : $(OPENWEAVE_OUTPUT_DIR)/config.status | $(OPENTHREAD_PREREQUISITE)
 
