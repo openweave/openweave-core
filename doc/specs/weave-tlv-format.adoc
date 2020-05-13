@@ -202,7 +202,7 @@ corresponding length and value fields are encoded. In the case of
 Booleans and the null value, the element type field also encodes the
 value itself.
 
-[cols="^1,^1,^1,^1,^1,^1,^1,^1,<8",options="header"]
+[cols="^1,^1,^1,^1,^1,^1,^1,^1,<8"]
 |===
 8+h|Control Byte
 .3+h|Description
@@ -264,7 +264,7 @@ follows:
 The tag control field identifies the form of tag assigned to the element
 (including none) as well as the encoding of the tag bytes.
 
-[cols="^1,^1,^1,^1,^1,^1,^1,^1,<8",options="header"]
+[cols="^1,^1,^1,^1,^1,^1,^1,^1,<8"]
 |===
 8+h|Control Byte
 .3+h|Description
