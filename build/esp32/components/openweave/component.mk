@@ -1,4 +1,5 @@
 #
+#    Copyright (c) Project openweave-core Authors
 #    Copyright (c) 2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -144,7 +145,7 @@ COMPONENT_OWNCLEANTARGET 	 = 1
 
 .PHONY : check-config-args-updated
 check-config-args-updated : | $(OUTPUT_DIR)
-	echo $(OPENWEAVE_ROOT)/configure $(CONFIGURE_OPTIONS) > $(OUTPUT_DIR)/config.args.tmp; \
+	echo $(OPENWEAVE_ROOT)/configure -C $(CONFIGURE_OPTIONS) > $(OUTPUT_DIR)/config.args.tmp; \
 	(test -r $(OUTPUT_DIR)/config.args && cmp -s $(OUTPUT_DIR)/config.args.tmp $(OUTPUT_DIR)/config.args) || \
 	    mv $(OUTPUT_DIR)/config.args.tmp $(OUTPUT_DIR)/config.args; \
 	rm -f $(OUTPUT_DIR)/config.args.tmp;
@@ -158,7 +159,7 @@ $(OPENWEAVE_ROOT)/configure : $(OPENWEAVE_ROOT)/configure.ac
 
 $(OUTPUT_DIR)/config.status : $(OPENWEAVE_ROOT)/configure $(OUTPUT_DIR)/config.args
 	echo "CONFIGURE OPENWEAVE..."
-	(cd $(OUTPUT_DIR) && $(OPENWEAVE_ROOT)/configure $(CONFIGURE_OPTIONS))
+	(cd $(OUTPUT_DIR) && $(OPENWEAVE_ROOT)/configure -C $(CONFIGURE_OPTIONS))
 
 configure-weave : $(OUTPUT_DIR)/config.status
 
