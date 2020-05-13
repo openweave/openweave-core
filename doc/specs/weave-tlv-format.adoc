@@ -202,11 +202,12 @@ corresponding length and value fields are encoded. In the case of
 Booleans and the null value, the element type field also encodes the
 value itself.
 
-[cols="^1,^1,^1,^1,^1,^1,^1,^1,<8",options="header"]
+[cols="^1,^1,^1,^1,^1,^1,^1,^1,<8"]
 |===
-3+|
-5+|Element Type
-|
+8+h|Control Byte
+.3+h|Description
+3+h|Tag Control
+5+h|Element Type
 h|7
 h|6
 h|5
@@ -215,39 +216,38 @@ h|3
 h|2
 h|1
 h|0
-h|Description
-| | | |0|0|0|0|0|Signed Integer, 1-byte value
-| | | |0|0|0|0|1|Signed Integer, 2-byte value
-| | | |0|0|0|1|0|Signed Integer, 4-byte value
-| | | |0|0|0|1|1|Signed Integer, 8-byte value
-| | | |0|0|1|0|0|Unsigned Integer, 1-byte value
-| | | |0|0|1|0|1|Unsigned Integer, 2-byte value
-| | | |0|0|1|1|0|Unsigned Integer, 4-byte value
-| | | |0|0|1|1|1|Unsigned Integer, 8-byte value
-| | | |0|1|0|0|0|Boolean False
-| | | |0|1|0|0|1|Boolean True
-| | | |0|1|0|1|0|Floating Point Number, 4-byte value
-| | | |0|1|0|1|1|Floating Point Number, 8-byte value
-| | | |0|1|1|0|0|UTF-8 String, 1-byte length
-| | | |0|1|1|0|1|UTF-8 String, 2-byte length
-| | | |0|1|1|1|0|UTF-8 String, 4-byte length
-| | | |0|1|1|1|1|UTF-8 String, 8-byte length
-| | | |1|0|0|0|0|Byte String, 1-byte length
-| | | |1|0|0|0|1|Byte String, 2-byte length
-| | | |1|0|0|1|0|Byte String, 4-byte length
-| | | |1|0|0|1|1|Byte String, 8-byte length
-| | | |1|0|1|0|0|Null
-| | | |1|0|1|0|1|Structure
-| | | |1|0|1|1|0|Array
-| | | |1|0|1|1|1|List
-| | | |1|1|0|0|0|End of Container
-| | | |1|1|0|0|1|Reserved
-| | | |1|1|0|1|0|Reserved
-| | | |1|1|0|1|1|Reserved
-| | | |1|1|1|0|0|Reserved
-| | | |1|1|1|0|1|Reserved
-| | | |1|1|1|1|0|Reserved
-| | | |1|1|1|1|1|Reserved
+|x|x|x|0|0|0|0|0|Signed Integer, 1-byte value
+|x|x|x|0|0|0|0|1|Signed Integer, 2-byte value
+|x|x|x|0|0|0|1|0|Signed Integer, 4-byte value
+|x|x|x|0|0|0|1|1|Signed Integer, 8-byte value
+|x|x|x|0|0|1|0|0|Unsigned Integer, 1-byte value
+|x|x|x|0|0|1|0|1|Unsigned Integer, 2-byte value
+|x|x|x|0|0|1|1|0|Unsigned Integer, 4-byte value
+|x|x|x|0|0|1|1|1|Unsigned Integer, 8-byte value
+|x|x|x|0|1|0|0|0|Boolean False
+|x|x|x|0|1|0|0|1|Boolean True
+|x|x|x|0|1|0|1|0|Floating Point Number, 4-byte value
+|x|x|x|0|1|0|1|1|Floating Point Number, 8-byte value
+|x|x|x|0|1|1|0|0|UTF-8 String, 1-byte length
+|x|x|x|0|1|1|0|1|UTF-8 String, 2-byte length
+|x|x|x|0|1|1|1|0|UTF-8 String, 4-byte length
+|x|x|x|0|1|1|1|1|UTF-8 String, 8-byte length
+|x|x|x|1|0|0|0|0|Byte String, 1-byte length
+|x|x|x|1|0|0|0|1|Byte String, 2-byte length
+|x|x|x|1|0|0|1|0|Byte String, 4-byte length
+|x|x|x|1|0|0|1|1|Byte String, 8-byte length
+|x|x|x|1|0|1|0|0|Null
+|x|x|x|1|0|1|0|1|Structure
+|x|x|x|1|0|1|1|0|Array
+|x|x|x|1|0|1|1|1|List
+|x|x|x|1|1|0|0|0|End of Container
+|x|x|x|1|1|0|0|1|Reserved
+|x|x|x|1|1|0|1|0|Reserved
+|x|x|x|1|1|0|1|1|Reserved
+|x|x|x|1|1|1|0|0|Reserved
+|x|x|x|1|1|1|0|1|Reserved
+|x|x|x|1|1|1|1|0|Reserved
+|x|x|x|1|1|1|1|1|Reserved
 |===
 
 For types that have varying length or value fields, the bottom two bits
@@ -264,11 +264,12 @@ follows:
 The tag control field identifies the form of tag assigned to the element
 (including none) as well as the encoding of the tag bytes.
 
-[cols="^1,^1,^1,^1,^1,^1,^1,^1,<8",options="header"]
+[cols="^1,^1,^1,^1,^1,^1,^1,^1,<8"]
 |===
-3+|Tag Control
-5+|
-|
+8+h|Control Byte
+.3+h|Description
+3+h|Tag Control
+5+h|Element Type
 h|7
 h|6
 h|5
@@ -277,15 +278,14 @@ h|3
 h|2
 h|1
 h|0
-h|Description
-|0|0|0| | | | | |Anonymous, 0 bytes
-|0|0|1| | | | | |Context-specific Tag, 1 byte
-|0|1|0| | | | | |Common Profile Tag, 2 bytes
-|0|1|1| | | | | |Common Profile Tag, 4 bytes
-|1|0|0| | | | | |Implicit Profile Tag, 2 bytes
-|1|0|1| | | | | |Implicit Profile Tag, 4 bytes
-|1|1|0| | | | | |Fully-qualified Tag, 6 bytes
-|1|1|1| | | | | |Fully-qualified Tag, 8 bytes
+|0|0|0|x|x|x|x|x|Anonymous, 0 bytes
+|0|0|1|x|x|x|x|x|Context-specific Tag, 1 byte
+|0|1|0|x|x|x|x|x|Common Profile Tag, 2 bytes
+|0|1|1|x|x|x|x|x|Common Profile Tag, 4 bytes
+|1|0|0|x|x|x|x|x|Implicit Profile Tag, 2 bytes
+|1|0|1|x|x|x|x|x|Implicit Profile Tag, 4 bytes
+|1|1|0|x|x|x|x|x|Fully-qualified Tag, 6 bytes
+|1|1|1|x|x|x|x|x|Fully-qualified Tag, 8 bytes
 |===
 
 == Tag Encoding
