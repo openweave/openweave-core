@@ -40,6 +40,7 @@ EXTRA_DIST                                      = \
     specs/wdm-next-protocol.pdf                   \
     specs/weave-glossary.pdf                      \
     specs/weave-tlv-format.adoc                   \
+    specs/weave-tlv-format.pdf                    \
     weave-architecture.pdf                        \
     $(NULL)
 
