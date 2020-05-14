@@ -267,7 +267,7 @@ WEAVE_ERROR CommandSender::SendCommand(PacketBuffer *aRequestBuf, Binding *aBind
         kMaxCommandRequestHeaderSize = sizeof(headerEncoding)
     };
 
-    VerifyOrExit(binding != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(binding != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
     VerifyOrExit(aSendParams.ProfileId != 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // If the user didn't pass in a request buffer that we can re-use to blit the header, allocate our own.
