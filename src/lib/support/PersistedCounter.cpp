@@ -73,6 +73,20 @@ exit:
 }
 
 WEAVE_ERROR
+PersistedCounter::SetValue(uint32_t value)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    err = WriteStartValue(value + mEpoch);
+    SuccessOrExit(err);
+
+    mCounterValue = mStartingCounterValue = value;
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR
 PersistedCounter::Advance(void)
 {
     return IncrementCount();
