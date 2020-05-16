@@ -198,7 +198,7 @@ WEAVE_ERROR VerifyRSASignature(OID sigAlgoOID,
     shaNID = ShaNIDFromSigAlgoOID(sigAlgoOID);
     VerifyOrExit(shaNID != NID_undef, err = WEAVE_ERROR_UNSUPPORTED_SIGNATURE_TYPE);
 
-    certBuf = BIO_new_mem_buf(certDER, certDERLen);
+    certBuf = BIO_new_mem_buf(reinterpret_cast<void*>(const_cast<uint8_t*>(certDER)), certDERLen);
     VerifyOrExit(certBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     cert = d2i_X509_bio(certBuf, NULL);
