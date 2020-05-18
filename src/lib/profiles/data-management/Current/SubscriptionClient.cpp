@@ -2576,6 +2576,7 @@ void SubscriptionClient::OnUpdateResponse(WEAVE_ERROR aReason, nl::Weave::Profil
         if (IsStatusListPresent)
         {
             err = statusList.Next();
+            SuccessOrExit(err);
 
             err = statusList.GetProfileIDAndStatusCode(&profileID, &statusCode);
             SuccessOrExit(err);
