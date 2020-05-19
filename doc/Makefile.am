@@ -39,6 +39,7 @@ EXTRA_DIST                                      = \
     specs/using-cddl-to-model-weave-tlv-structured-data.pdf \
     specs/wdm-next-protocol.pdf                   \
     specs/weave-glossary.pdf                      \
+    specs/weave-tlv-format.adoc                   \
     specs/weave-tlv-format.pdf                    \
     weave-architecture.pdf                        \
     $(NULL)
