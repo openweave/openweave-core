@@ -878,10 +878,10 @@ WEAVE_ERROR TLVWriter::VPutStringF(uint64_t tag, const char *fmt, va_list ap)
     // no facilities for splitting the stream across multiple buffers,
     // just write however much fits in the current buffer.
     // assume conservative tag length at this time (8 bytes)
-    size_t headerLen = (1 + 8 + (1 << static_cast<uint8_t>(lenFieldSize)) + 1); // 1 : control byte, 8 : tag length, stringLen + 1 for null termination
-    VerifyOrExit(mRemainingLen >= headerLen, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+    size_t elementHeadLen = (1 + 8 + (1 << static_cast<uint8_t>(lenFieldSize)) + 1); // 1 : control byte, 8 : tag length, stringLen + 1 for null termination
+    VerifyOrExit(mRemainingLen >= elementHeadLen, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
 
-    maxLen =  mRemainingLen - headerLen;
+    maxLen =  mRemainingLen - elementHeadLen;
     if (maxLen < dataLen)
         dataLen = maxLen;
 #endif
