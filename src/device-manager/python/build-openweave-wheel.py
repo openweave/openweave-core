@@ -29,11 +29,19 @@ import shutil
 import getpass
 from setuptools import setup
 from wheel.bdist_wheel import bdist_wheel
+import argparse
 import platform
+
+
+parser = argparse.ArgumentParser(description='build the pip package for openweave using openweave components generated during the build and python source code')
+parser.add_argument('--package_name', default='openweave', help='configure the python package name')
+
+args = parser.parse_args()
 
 owDLLName = '_WeaveDeviceMgr.so'
 deviceManagerShellName = 'weave-device-mgr.py'
 deviceManagerShellInstalledName = os.path.splitext(deviceManagerShellName)[0]
+packageName = args.package_name
 
 # Record the current directory at the start of execution.
 curDir = os.curdir
@@ -66,7 +74,7 @@ try:
 
     # Make a copy of the openweave package in the tmp directory and ensure the copied
     # directory is writable.
-    owPackageDir = os.path.join(tmpDir, 'openweave')
+    owPackageDir = os.path.join(tmpDir, packageName)
     if os.path.isdir(owPackageDir):
         shutil.rmtree(owPackageDir)
     shutil.copytree(os.path.join(srcDir, 'openweave'), owPackageDir)
@@ -151,7 +159,7 @@ try:
     # Invoke the setuptools 'bdist_wheel' command to generate a wheel containing
     # the OpenWeave python packages, shared libraries and scripts.
     setup(
-        name='openweave',
+        name=packageName,
         version=owPackageVer,
         description='Python-base APIs and tools for OpenWeave.',
         long_description=buildDescription,
@@ -166,13 +174,13 @@ try:
         ],
         python_requires='>=2.7',
         packages=[
-            'openweave'                     # Arrange to install a package named "openweave"
+            packageName                     # Arrange to install a package named "openweave"
         ],
         package_dir={
             '':tmpDir,                      # By default, look in the tmp directory for packages/modules to be included.
         },
         package_data={
-            'openweave':[
+            packageName:[
                 owDLLName                   # Include the wrapper DLL as package data in the "openweave" package.
             ]
         },
