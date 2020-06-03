@@ -836,7 +836,7 @@ WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16
         err = reader.EnterContainer(container2);
         SuccessOrExit(err);
 
-        while ((err = reader.Next(kTLVType_UnsignedInteger, kTLVTagControl_Anonymous)) == WEAVE_NO_ERROR)
+        while ((err = reader.Next(kTLVType_UnsignedInteger, AnonymousTag)) == WEAVE_NO_ERROR)
         {
             uint64_t altNodeId;
 
