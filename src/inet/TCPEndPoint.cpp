@@ -1844,7 +1844,10 @@ void TCPEndPoint::HandleDataSent(uint16_t lenSent)
     if (IsConnected())
     {
         // Consume data off the head of the send queue equal to the amount of data being acknowledged.
-        mSendQueue = mSendQueue->Consume(lenSent);
+        if (mSendQueue)
+        {
+            mSendQueue = mSendQueue->Consume(lenSent);
+        }
 
 #if INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
         // Only change the UserTimeout timer if lenSent > 0,

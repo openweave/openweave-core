@@ -333,7 +333,7 @@ PacketBuffer* PacketBuffer::Consume(uint16_t aConsumeLength)
 {
     PacketBuffer* lPacket = this;
 
-    while (lPacket != NULL && aConsumeLength > 0)
+    while (aConsumeLength > 0)
     {
         const uint16_t kLength = lPacket->DataLength();
 
@@ -341,6 +341,10 @@ PacketBuffer* PacketBuffer::Consume(uint16_t aConsumeLength)
         {
             lPacket = PacketBuffer::FreeHead(lPacket);
             aConsumeLength -= kLength;
+            if (lPacket == NULL)
+            {
+                break;
+            }
         }
         else
         {
