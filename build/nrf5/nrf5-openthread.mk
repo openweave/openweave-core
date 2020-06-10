@@ -23,28 +23,28 @@
 
 #
 #   This makefile is intended to work in conjunction with the nrf5-app.mk
-#   makefile to build the OpenWeave example applications on Nordic platforms. 
+#   makefile to build the OpenWeave example applications on Nordic platforms.
 #   nRF5 applications should include this file in their top level Makefile
 #   after including nrf5-app.mk and nrf5-openweave.mk.  E.g.:
 #
 #       PROJECT_ROOT = $(realpath .)
 #
 #       BUILD_SUPPORT_DIR = $(PROJECT_ROOT)/third_party/openweave-core/build/nrf5
-#       
+#
 #       include $(BUILD_SUPPORT_DIR)/nrf5-app.mk
 #       include $(BUILD_SUPPORT_DIR)/nrf5-openweave.mk
 #       include $(BUILD_SUPPORT_DIR)/nrf5-openthread.mk
 #
 #       PROJECT_ROOT := $(realpath .)
-#       
+#
 #       APP := openweave-nrf52840-bringup
-#       
+#
 #       SRCS = \
 #           $(PROJECT_ROOT)/main.cpp \
 #           ...
 #
 #       $(call GenerateBuildRules)
-#       
+#
 
 
 # ==================================================
@@ -54,13 +54,16 @@
 # OpenThread source root directory
 OPENTHREAD_ROOT ?= $(PROJECT_ROOT)/third_party/openthread
 
+# Minimal OpenThread API version number required
+OPENTHREAD_API_VERSION_MINIMAL ?= 0
+
 # Target for which OpenThread will be built.
 OPENTHREAD_TARGET = nrf52840
 
 # Archtecture for which OpenThread will be built.
 OPENTHREAD_HOST_ARCH = arm-none-eabi
 
-# Directory into which the OpenThread build system will place its output. 
+# Directory into which the OpenThread build system will place its output.
 OPENTHREAD_OUTPUT_DIR = $(OUTPUT_DIR)/openthread
 
 # Directory containing OpenThread libraries.
@@ -73,7 +76,7 @@ OPENTHREAD_LIB_DIR = $(if $(filter-out 0, $(USE_PREBUILT_OPENTHREAD)), \
 OPENTHREAD_PREREQUISITE = $(if $(filter-out 0, $(USE_PREBUILT_OPENTHREAD)),,install-thread)
 
 # Name of OpenThread's platform config file.  By default, this is set to
-# the nRF5-specific file found in OpenThread's examples directory.  
+# the nRF5-specific file found in OpenThread's examples directory.
 # Applications can override this to force inclusion of their own configuration
 # file. However, in most cases, the application-specified file should include
 # the Nordic file to ensure that OpenThread is configured properly for the
@@ -82,24 +85,33 @@ OPENTHREAD_PROJECT_CONFIG = openthread-core-$(OPENTHREAD_TARGET)-config.h
 
 # Additional header files needed by the Nordic port of OpenThread
 # but not installed automatically by OpenThread's build system.
-OPENTHREAD_PLATFORM_HEADERS = \
+OPENTHREAD_PLATFORM_HEADERS = $(OPENTHREAD_ROOT)/examples/platforms/openthread-system.h
+
+ifeq ($(OPENTHREAD_API_VERSION_MINIMAL),0)
+OPENTHREAD_PLATFORM_HEADERS += \
     $(OPENTHREAD_ROOT)/examples/platforms/$(OPENTHREAD_TARGET)/platform-fem.h \
     $(OPENTHREAD_ROOT)/examples/platforms/$(OPENTHREAD_TARGET)/platform-softdevice.h \
     $(OPENTHREAD_ROOT)/examples/platforms/$(OPENTHREAD_TARGET)/openthread-core-$(OPENTHREAD_TARGET)-config.h \
-    $(OPENTHREAD_ROOT)/examples/platforms/openthread-system.h
 
+else
+OPENTHREAD_PLATFORM_HEADERS += \
+    $(OPENTHREAD_ROOT)/examples/platforms/nrf528xx/src/platform-fem.h \
+    $(OPENTHREAD_ROOT)/examples/platforms/nrf528xx/src/platform-softdevice.h \
+    $(OPENTHREAD_ROOT)/examples/platforms/nrf528xx/$(OPENTHREAD_TARGET)/openthread-core-$(OPENTHREAD_TARGET)-config.h \
+
+endif
 
 # ==================================================
 # Build options
 # ==================================================
 
-# Use the prebuilt OpenThread libraries included in the Nordic nRF5 SDK instead of 
+# Use the prebuilt OpenThread libraries included in the Nordic nRF5 SDK instead of
 # building OpenThread from source.
 #
 # NOTE: Due to the lack of multi-threading support in Nordic's port of OpenThread
 # (in particular, in the crypto code) it is currently not possible to build a working
 # OpenWeave application that uses the prebuilt OpenThread libraries.
-# 
+#
 USE_PREBUILT_OPENTHREAD ?= 0
 
 # ==================================================
@@ -124,10 +136,24 @@ OPENTHREAD_DEFINES = \
     MBEDTLS_USER_CONFIG_FILE='"nrf52840-mbedtls-config.h"' \
     OPENTHREAD_PROJECT_CORE_CONFIG_FILE='"$(OPENTHREAD_PROJECT_CONFIG)"'
 
+ifneq ($(OPENTHREAD_API_VERSION_MINIMAL),0)
+OPENTHREAD_DEFINES += \
+    MBEDTLS_THREADING_C \
+    MBEDTLS_THREADING_ALT \
+
+STD_DEFINES += \
+    MBEDTLS_THREADING_C \
+    MBEDTLS_THREADING_ALT \
+
+endif
+
 OPENTHREAD_INC_DIRS = \
     $(OPENTHREAD_ROOT)/examples/platforms/$(OPENTHREAD_TARGET) \
+    $(OPENTHREAD_ROOT)/examples/platforms/nrf528xx/$(OPENTHREAD_TARGET) \
     $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/crypto \
     $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/nrf_cc310/include \
+    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/nrf_security/include/software-only-threading \
+    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/nrf_security/mbedtls_plat_config \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk \
     $(NRF5_SDK_ROOT)/external/freertos/config \
     $(NRF5_SDK_ROOT)/external/freertos/portable/CMSIS/nrf52 \
@@ -180,7 +206,7 @@ endif
 
 
 # ==================================================
-# Adjustments to standard build settings to 
+# Adjustments to standard build settings to
 #   incorporate OpenThread into the application.
 # ==================================================
 
@@ -196,13 +222,17 @@ STD_INC_DIRS_PREBUILT = \
     $(NRF5_SDK_ROOT)/external/openthread/include \
     $(NRF5_SDK_ROOT)/external/openthread/project/$(OPENTHREAD_TARGET) \
     $(NRF5_SDK_ROOT)/external/openthread/include/openthread/platform/mbedtls
-#    $(NRF5_SDK_ROOT)/external/nrf_cc310/include
+
 STD_INC_DIRS_BUILT = \
     $(OPENTHREAD_OUTPUT_DIR)/include \
+    $(OPENTHREAD_ROOT)/include \
+    $(OPENTHREAD_ROOT)/src/core \
     $(OPENTHREAD_ROOT)/third_party/mbedtls \
     $(OPENTHREAD_ROOT)/third_party/mbedtls/repo/include \
-    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/crypto
-#    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/nrf_cc310/include  
+    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/crypto \
+    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/nrf_security/include/software-only-threading \
+    $(OPENTHREAD_ROOT)/third_party/NordicSemiconductor/libraries/nrf_security/mbedtls_plat_config \
+
 STD_INC_DIRS += $(if $(filter-out 0, $(USE_PREBUILT_OPENTHREAD)), \
     $(STD_INC_DIRS_PREBUILT), \
     $(STD_INC_DIRS_BUILT))
@@ -213,15 +243,20 @@ STD_LDFLAGS += \
     -L$(OPENTHREAD_LIB_DIR) \
     -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib
 
-# Add OpenThread libraries to standard libraries list. 
+# Add OpenThread libraries to standard libraries list.
 STD_LIBS += \
-    -lopenthread-diag \
     -lopenthread-ftd \
     -lopenthread-platform-utils \
     -lopenthread-nrf52840-softdevice-sdk \
     -lnordicsemi-nrf52840-radio-driver-softdevice \
     -lmbedcrypto
-    
+
+ifeq ($(OPENTHREAD_API_VERSION_MINIMAL),0)
+STD_LIBS += -lopenthread-diag
+else
+STD_LIBS += -lopenthread-$(OPENTHREAD_TARGET)-transport
+endif
+
 # Add the appropriate OpenThread target as a prerequisite to all application
 # compilation targets to ensure that OpenThread gets built and its header
 # files installed prior to compiling any dependent source files.
@@ -229,13 +264,16 @@ STD_COMPILE_PREREQUISITES += $(OPENTHREAD_PREREQUISITE)
 
 # Add the OpenThread libraries as prerequisites for linking the application.
 STD_LINK_PREREQUISITES += \
-    $(OPENTHREAD_LIB_DIR)/libopenthread-diag.a \
     $(OPENTHREAD_LIB_DIR)/libopenthread-ftd.a \
     $(OPENTHREAD_LIB_DIR)/libopenthread-platform-utils.a \
     $(OPENTHREAD_LIB_DIR)/libmbedcrypto.a \
     $(OPENTHREAD_LIB_DIR)/libopenthread-nrf52840-softdevice-sdk.a \
     $(OPENTHREAD_LIB_DIR)/libnordicsemi-nrf52840-radio-driver-softdevice.a
 
+ifeq ($(OPENTHREAD_API_VERSION_MINIMAL),0)
+STD_LINK_PREREQUISITES += \
+    $(OPENTHREAD_LIB_DIR)/libopenthread-diag.a
+endif
 
 # ==================================================
 # Late-bound build rules for OpenThread
@@ -244,7 +282,7 @@ STD_LINK_PREREQUISITES += \
 ifneq ($(USE_PREBUILT_OPENTHREAD),1)
 
 # Add OpenThreadBuildRules to the list of late-bound build rules that
-# will be evaluated when GenerateBuildRules is called. 
+# will be evaluated when GenerateBuildRules is called.
 LATE_BOUND_RULES += OpenThreadBuildRules
 
 # Rules for configuring, building and installing OpenThread from source.
@@ -301,14 +339,14 @@ define TargetHelp +=
 
 
   bootstrap-thread      Run the OpenThread bootstrap script.
-  
+
   config-thread         Run the OpenThread configure script.
-  
+
   build-thread          Build the OpenThread libraries.
-  
-  install-thread        Install OpenThread libraries and headers in 
+
+  install-thread        Install OpenThread libraries and headers in
                         build output directory for use by application.
-  
+
   clean-thread          Clean all build outputs produced by the OpenThread
                         build process.
 endef
