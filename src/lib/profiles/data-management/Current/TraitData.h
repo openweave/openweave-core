@@ -914,6 +914,9 @@ public:
     bool mRootIsDirty;
 #endif
 
+    // Set current version of the data in this source.
+    void SetVersion(uint64_t version) { mVersion = version; }
+
 protected: // IGetDataDelegate
     /*
      * Defaults to calling GetLeafData if aHandle is a leaf. DataSources
@@ -936,9 +939,6 @@ protected: // IGetDataDelegate
         return WEAVE_ERROR_INVALID_ARGUMENT;
     }
 #endif
-
-    // Set current version of the data in this source.
-    void SetVersion(uint64_t version) { mVersion = version; }
 
     // Increment current version of the data in this source.
     void IncrementVersion(void);
