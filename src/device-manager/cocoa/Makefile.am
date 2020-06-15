@@ -68,6 +68,7 @@ libNLWeaveDeviceManager_a_HEADERS        = \
     NLResourceIdentifier.h                 \
     NLWdmClientFlushUpdateError.h          \
     NLWdmClientFlushUpdateDeviceStatusError.h       \
+    NLWirelessRegConfig.h                  \
     $(NULL)
 
 noinst_HEADERS                           = \
@@ -79,6 +80,7 @@ noinst_HEADERS                           = \
     NLWdmClient_Protected.h                \
     NLResourceIdentifier_Protected.h       \
     NLGenericTraitUpdatableDataSink_Protected.h     \
+    NLWirelessRegConfig_Protected.h                  \
     $(NULL)
 
 libNLWeaveDeviceManager_a_SOURCES        = \
@@ -106,6 +108,7 @@ libNLWeaveDeviceManager_a_SOURCES        = \
     NLResourceIdentifier.mm                \
     NLWdmClientFlushUpdateError.mm         \
     NLWdmClientFlushUpdateDeviceStatusError.mm                \
+    NLWirelessRegConfig.mm                  \
     $(NULL)
 
 endif # WEAVE_WITH_COCOA

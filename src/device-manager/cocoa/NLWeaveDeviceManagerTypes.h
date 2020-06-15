@@ -40,6 +40,15 @@ typedef NS_ENUM(NSInteger, NLNetworkType) {
 
 };
 
+// WiFi WirelessOperatingLocation
+//
+typedef NS_ENUM(NSInteger, NLWirelessOperatingLocation) {
+    kNLWirelessOperatingLocation_NotSpecified = 0x00,
+    kNLWirelessOperatingLocation_Unknown = 0x01,
+    kNLWirelessOperatingLocation_Indoors = 0x02,
+    kNLWirelessOperatingLocation_Outdoors = 0x03
+};
+
 // WiFi Operating Modes
 //
 typedef NS_ENUM(NSInteger, NLWiFiMode) {
