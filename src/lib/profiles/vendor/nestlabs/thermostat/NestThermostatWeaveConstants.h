@@ -104,7 +104,7 @@ enum {
     kStatus_DeviceAlreadyPaired = 0x0002, /**< The device is already paired to a Nest account */
     kStatus_BatteriesNeeded     = 0x0003,
     kStatus_HvacActive          = 0x0004,
-    kStatus_WifiBlackout        = 0x0005,
+    kStatus_WiFiBlackout        = 0x0005,
 };
 
 /**
