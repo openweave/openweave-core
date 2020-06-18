@@ -1,6 +1,7 @@
 /*
  *
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2018-2020 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,6 +44,7 @@
 #include <Weave/Profiles/device-description/DeviceDescription.h>
 #import "NLIdentifyDeviceCriteria_Protected.h"
 #import "Base64Encoding.h"
+#import "NLWirelessRegConfig_Protected.h"
 
 static void onIdentifyDeviceComplete(nl::Weave::DeviceManager::WeaveDeviceManager * deviceMgr, void * appReqState,
     const nl::Weave::DeviceManager::DeviceDescription::WeaveDeviceDescriptor * devdesc);
@@ -384,11 +386,11 @@ exit:
     return err;
 }
 
-- (WEAVE_ERROR)GetDeviceMgrPtr:(long long*)deviceMgrPtr
+- (WEAVE_ERROR)GetDeviceMgrPtr:(long long *)deviceMgrPtr
 {
     __block WEAVE_ERROR err = WEAVE_NO_ERROR;
     WDM_LOG_METHOD_SIG();
-    *deviceMgrPtr = (long long)_mWeaveCppDM;
+    *deviceMgrPtr = (long long) _mWeaveCppDM;
 
     return err;
 }
@@ -472,14 +474,14 @@ static void onWeaveError(nl::Weave::DeviceManager::WeaveDeviceManager * deviceMg
                     errorCode:devStatus->SystemErrorCode
                  statusReport:[dm statusReportToString:devStatus->StatusProfileId statusCode:devStatus->StatusCode]];
         requestError = NLWeaveRequestError_ProfileStatusError;
-        userInfo = @{ @"WeaveRequestErrorType" : @(requestError), @"errorInfo" : statusError };
+        userInfo = @{@"WeaveRequestErrorType" : @(requestError), @"errorInfo" : statusError};
 
         WDM_LOG_DEBUG(@"%@: status error: %@", dm.name, userInfo);
     } else {
         NLWeaveError * weaveError = [[NLWeaveError alloc] initWithWeaveError:code
                                                                       report:[NSString stringWithUTF8String:nl::ErrorStr(code)]];
         requestError = NLWeaveRequestError_WeaveError;
-        userInfo = @{ @"WeaveRequestErrorType" : @(requestError), @"errorInfo" : weaveError };
+        userInfo = @{@"WeaveRequestErrorType" : @(requestError), @"errorInfo" : weaveError};
     }
 
     error = [NSError errorWithDomain:@"com.nest.error" code:code userInfo:userInfo];
@@ -1078,6 +1080,78 @@ static void onGetCameraAuthDataComplete(
 
             // do not change _mRequestName, as we're rejecting this request
             [self DispatchAsyncFailureBlock:WEAVE_ERROR_INCORRECT_STATE taskName:taskName handler:failureHandler];
+        }
+    });
+}
+
+static void onGetWirelessRegulatoryConfigComplete(nl::Weave::DeviceManager::WeaveDeviceManager * deviceMgr, void * reqState,
+    const nl::Weave::Profiles::NetworkProvisioning::WirelessRegConfig * regConfig)
+{
+    WDM_LOG_DEBUG(@"onGetWirelessRegulatoryConfigComplete");
+
+    NLWeaveDeviceManager * dm = (__bridge NLWeaveDeviceManager *) reqState;
+    // ignore the pointer to C++ device manager
+    (void) deviceMgr;
+
+    [dm DispatchAsyncCompletionBlock:[NLWirelessRegConfig createUsing:regConfig]];
+}
+
+- (void)getWirelessRegulatoryConfig:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock
+{
+    WDM_LOG_METHOD_SIG();
+
+    NSString * taskName = @"GetWirelessRegulatoryConfig";
+
+    // we use async for the results are sent back to caller via async means also
+    dispatch_async(_mWeaveWorkQueue, ^() {
+        if (nil == _mRequestName) {
+            _mRequestName = taskName;
+            _mCompletionHandler = completionBlock;
+            _mFailureHandler = failureBlock;
+
+            WEAVE_ERROR err = _mWeaveCppDM->GetWirelessRegulatoryConfig(
+                (__bridge void *) self, onGetWirelessRegulatoryConfigComplete, onWeaveError);
+
+            if (WEAVE_NO_ERROR != err) {
+                [self DispatchAsyncDefaultFailureBlockWithCode:err];
+            }
+        } else {
+            WDM_LOG_ERROR(@"%@: Attemp to %@ while we're still executing %@, ignore", _name, taskName, _mRequestName);
+
+            // do not change _mRequestName, as we're rejecting this request
+            [self DispatchAsyncFailureBlock:WEAVE_ERROR_INCORRECT_STATE taskName:taskName handler:failureBlock];
+        }
+    });
+}
+
+- (void)setWirelessRegulatoryConfig:(NLWirelessRegConfig *)nlWirelessRegConfig
+                         completion:(WDMCompletionBlock)completionBlock
+                            failure:(WDMFailureBlock)failureBlock
+{
+    WDM_LOG_METHOD_SIG();
+
+    NSString * taskName = @"SetWirelessRegulatoryConfig";
+
+    // we use async for the results are sent back to caller via async means also
+    dispatch_async(_mWeaveWorkQueue, ^() {
+        if (nil == _mRequestName) {
+            _mRequestName = taskName;
+            _mCompletionHandler = completionBlock;
+            _mFailureHandler = failureBlock;
+
+            nl::Weave::Profiles::NetworkProvisioning::WirelessRegConfig wirelessRegConfig =
+                [nlWirelessRegConfig toWirelessRegConfig];
+
+            WEAVE_ERROR err = _mWeaveCppDM->SetWirelessRegulatoryConfig(
+                &wirelessRegConfig, (__bridge void *) self, HandleSimpleOperationComplete, onWeaveError);
+            if (WEAVE_NO_ERROR != err) {
+                [self DispatchAsyncDefaultFailureBlockWithCode:err];
+            }
+        } else {
+            WDM_LOG_ERROR(@"%@: Attemp to %@ while we're still executing %@, ignore", _name, taskName, _mRequestName);
+
+            // do not change _mRequestName, as we're rejecting this request
+            [self DispatchAsyncFailureBlock:WEAVE_ERROR_INCORRECT_STATE taskName:taskName handler:failureBlock];
         }
     });
 }

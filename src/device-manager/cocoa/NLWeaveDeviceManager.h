@@ -1,6 +1,7 @@
 /*
  *
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2018-2020 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +28,7 @@
 #import "NLWeaveErrorCodes.h"
 #import "NLIdentifyDeviceCriteria.h"
 #import "NLNetworkInfo.h"
+#import "NLWirelessRegConfig.h"
 #import "NLServiceInfo.h"
 
 typedef void (^WDMCompletionBlock)(id owner, id data);
@@ -186,6 +188,12 @@ typedef void (^WDMFailureBlock)(id owner, NSError * error);
     \defgroup NetworkProvisioning Network Provisioning
     @{
  */
+
+- (void)getWirelessRegulatoryConfig:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
+
+- (void)setWirelessRegulatoryConfig:(NLWirelessRegConfig *)nlWirelessRegConfig
+                         completion:(WDMCompletionBlock)completionBlock
+                            failure:(WDMFailureBlock)failureBlock;
 
 - (void)scanNetworks:(NLNetworkType)networkType
           completion:(WDMCompletionBlock)completionBlock
