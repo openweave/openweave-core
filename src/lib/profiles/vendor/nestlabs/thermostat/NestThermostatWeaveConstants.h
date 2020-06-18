@@ -102,6 +102,9 @@ enum {
  enum {
     kStatus_ServiceUnreachable  = 0x0001, /**< Cannot contact the Service to retrieve the Legacy Entry Key */
     kStatus_DeviceAlreadyPaired = 0x0002, /**< The device is already paired to a Nest account */
+    kStatus_BatteriesNeeded     = 0x0003,
+    kStatus_HvacActive          = 0x0004,
+    kStatus_WiFiBlackout        = 0x0005,
 };
 
 /**
