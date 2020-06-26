@@ -166,17 +166,12 @@ class ServiceAccountManager(object):
             self.host = self.host.replace('home.', '')
 
         if not self.username:
-            self.username = "test-it+pairing1@nestlabs.com"
-            emsg = "ServiceAccountManager: using default weave_service_username %s." % (
-                self.username)
-            self.logger.debug(emsg)
+            emsg = "ServiceAccountManager: please provide username"
+            raise ValueError(emsg)
 
         if not self.password:
-            # Check if service password is set
-            self.password = "nest-egg123"
-            emsg = "ServiceAccountManager: using default weave_service_password %s." % (
-                self.password)
-            self.logger.debug(emsg)
+            emsg = "ServiceAccountManager: please provide password"
+            raise ValueError(emsg)
 
         self.params = json.dumps(
             {'email': self.username, 'username': self.username, 'password': self.password})
