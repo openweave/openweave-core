@@ -1403,10 +1403,50 @@ void WeaveConnection::HandleDataReceived(TCPEndPoint *endPoint, PacketBuffer *da
         msgInfo.InPacketInfo = &packetInfo;
         msgInfo.InCon = con;
 
-        // Attempt to parse an message from the head of the received data.
+        // Attempt to parse an message from the head of the received queue.
         err = msgLayer->DecodeMessageWithLength(data, con->PeerNodeId, con, &msgInfo, &payload, &payloadLen, &frameLen);
 
-        // If the data buffer contains only part of a message...
+        // If the initial buffer in the receive queue is not big enough to hold the entirety of
+        // the incoming message...
+        if (err == WEAVE_ERROR_MESSAGE_TOO_LONG)
+        {
+            // The Weave message decoding logic expects message data to be in contiguous memory.
+            // Therefore, if the packet buffer containing the initial portion of the message is
+            // not big enough to hold the entirety of the message, the data must be moved into
+            // a new buffer that is big enough.
+            //
+            // This situation can arise, for example, when when a TCP segment arrives containing
+            // part of a Weave message and the underlying network interface chooses to place the
+            // packet into a buffer that is smaller than the Weave message.
+            //
+            // Note that the logic here implies that when a system runs low on buffers, message
+            // reception can fail for lack of an appropriately sized buffer, resulting in the TCP
+            // connection being aborted.  The only way to avoid this is for the underlying network
+            // interface to always place packets into buffers that are big enough to hold the
+            // maximum size Weave message. If such a buffer is not available when a packet comes
+            // in, the network interface can simply discard the packet, resulting in the peer
+            // retransmitting it and the system recovering gracefully once the buffer pressure
+            // subsides.
+
+            // Attempt to allocate a buffer big enough to hold the entire message.  Fail with
+            // WEAVE_ERROR_MESSAGE_TOO_LONG if no such buffer is available.
+            PacketBuffer * newBuf = PacketBuffer::NewWithAvailableSize(0, frameLen);
+            if (newBuf == NULL)
+            {
+                break;
+            }
+
+            // Prepend the new buffer to the receive queue and copy the received message data into
+            // the new buffer, discarding the original buffer(s).
+            newBuf->AddToEnd(data);
+            data = newBuf;
+            data->CompactHead();
+
+            // Try again to decode the message.
+            continue;
+        }
+
+        // If the initial buffer in the receive queue contains only part of the next message...
         if (err == WEAVE_ERROR_MESSAGE_INCOMPLETE)
         {
             // If there are more buffers in the queue, move as much data as possible into the head buffer
