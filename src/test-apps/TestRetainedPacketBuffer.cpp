@@ -50,6 +50,23 @@ static void PacketBufferFree(System::PacketBuffer *&aBuffer)
     }
 }
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_PBUF_FROM_CUSTOM_POOLS
+
+#define NL_TEST_ASSERT_NO_BUFFERS_IN_USE(suite) \
+do { \
+    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPBUF_POOL_LARGE] == 0); \
+    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPBUF_POOL_MEDIUM] == 0); \
+    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPBUF_POOL_SMALL] == 0); \
+} while (0)
+
+#else // WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_PBUF_FROM_CUSTOM_POOLS
+
+#define NL_TEST_ASSERT_NO_BUFFERS_IN_USE(suite) \
+    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0)
+
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_PBUF_FROM_CUSTOM_POOLS
+
+
 /**
  *  Test default construction and, implictly, destruction
  *
@@ -258,7 +275,7 @@ static void CheckRetainAllocatedBufferWithImplicitRelease(nlTestSuite *inSuite, 
 
     // Assert that the buffer has been released to the pool, as expected.
 
-    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0);
+    NL_TEST_ASSERT_NO_BUFFERS_IN_USE(inSuite);
 }
 
 /**
@@ -313,7 +330,7 @@ static void CheckRetainAllocatedBufferWithExplicitRelease(nlTestSuite *inSuite, 
 
     // Assert that the buffer has been released to the pool, as expected.
 
-    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0);
+    NL_TEST_ASSERT_NO_BUFFERS_IN_USE(inSuite);
 }
 
 /**
@@ -404,7 +421,7 @@ static void CheckCopyConstructionWithAllocatedBufferImplicitTargetImplicitSource
 
     // Assert that the buffer has been released to the pool, as expected.
 
-    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0);
+    NL_TEST_ASSERT_NO_BUFFERS_IN_USE(inSuite);
 }
 
 /**
@@ -497,7 +514,7 @@ static void CheckCopyConstructionWithAllocatedBufferImplicitTargetExplicitSource
 
     // Assert that the buffer has been released to the pool, as expected.
 
-    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0);
+    NL_TEST_ASSERT_NO_BUFFERS_IN_USE(inSuite);
 }
 
 /**
@@ -604,7 +621,7 @@ static void CheckCopyConstructionWithAllocatedBufferExplicitTargetImplicitSource
 
     // Assert that the buffer has been released to the pool, as expected.
 
-    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0);
+    NL_TEST_ASSERT_NO_BUFFERS_IN_USE(inSuite);
 }
 
 /**
@@ -710,7 +727,7 @@ static void CheckCopyConstructionWithAllocatedBufferExplicitTargetExplicitSource
 
     // Assert that the buffer has been released to the pool, as expected.
 
-    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0);
+    NL_TEST_ASSERT_NO_BUFFERS_IN_USE(inSuite);
 }
 
 /**
@@ -803,7 +820,7 @@ static void CheckAssignmentWithAllocatedBufferImplicitTargetImplicitSourceReleas
 
     // Assert that the buffer has been released to the pool, as expected.
 
-    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0);
+    NL_TEST_ASSERT_NO_BUFFERS_IN_USE(inSuite);
 }
 
 /**
@@ -898,7 +915,7 @@ static void CheckAssignmentWithAllocatedBufferImplicitTargetExplicitSourceReleas
 
     // Assert that the buffer has been released to the pool, as expected.
 
-    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0);
+    NL_TEST_ASSERT_NO_BUFFERS_IN_USE(inSuite);
 }
 
 /**
@@ -1007,7 +1024,7 @@ static void CheckAssignmentWithAllocatedBufferExplicitTargetImplicitSourceReleas
 
     // Assert that the buffer has been released to the pool, as expected.
 
-    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0);
+    NL_TEST_ASSERT_NO_BUFFERS_IN_USE(inSuite);
 }
 
 /**
@@ -1115,7 +1132,7 @@ static void CheckAssignmentWithAllocatedBufferExplicitTargetExplicitSourceReleas
 
     // Assert that the buffer has been released to the pool, as expected.
 
-    NL_TEST_ASSERT(inSuite, System::Stats::GetResourcesInUse()[System::Stats::kSystemLayer_NumPacketBufs] == 0);
+    NL_TEST_ASSERT_NO_BUFFERS_IN_USE(inSuite);
 }
 
 static const nlTest sTests[] = {

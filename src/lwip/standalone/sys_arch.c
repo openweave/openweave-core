@@ -662,9 +662,8 @@ void ppp_trace(int level, const char *format, ...)
 }
 #endif
 
-#if LWIP_DEBUG
+#ifdef LWIP_DEBUG
 
 unsigned char gLwIP_DebugFlags = 0;
-
 
 #endif

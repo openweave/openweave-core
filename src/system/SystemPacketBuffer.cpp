@@ -439,7 +439,6 @@ PacketBuffer* PacketBuffer::NewWithAvailableSize(uint16_t aReservedSize, size_t 
 {
     const size_t lReservedSize = static_cast<size_t>(aReservedSize);
     const size_t lAllocSize = lReservedSize + aAvailableSize;
-    const size_t lBlockSize = WEAVE_SYSTEM_PACKETBUFFER_HEADER_SIZE + lAllocSize;
     PacketBuffer* lPacket;
 
     WEAVE_SYSTEM_FAULT_INJECT(FaultInjection::kFault_PacketBufferNew, return NULL);
@@ -452,14 +451,12 @@ PacketBuffer* PacketBuffer::NewWithAvailableSize(uint16_t aReservedSize, size_t 
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 
-    lPacket = static_cast<PacketBuffer*>(pbuf_alloc(PBUF_RAW, lBlockSize, PBUF_POOL));
+    lPacket = static_cast<PacketBuffer*>(pbuf_alloc(PBUF_RAW, lAllocSize, PBUF_POOL));
 
     SYSTEM_STATS_UPDATE_LWIP_PBUF_COUNTS();
 
 #else // !WEAVE_SYSTEM_CONFIG_USE_LWIP
 #if WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC
-
-    static_cast<void>(lBlockSize);
 
     LOCK_BUF_POOL();
 
@@ -473,6 +470,8 @@ PacketBuffer* PacketBuffer::NewWithAvailableSize(uint16_t aReservedSize, size_t 
     UNLOCK_BUF_POOL();
 
 #else // !WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC
+
+    const size_t lBlockSize = WEAVE_SYSTEM_PACKETBUFFER_HEADER_SIZE + lAllocSize;
 
     lPacket = reinterpret_cast<PacketBuffer*>(malloc(lBlockSize));
     SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kSystemLayer_NumPacketBufs);

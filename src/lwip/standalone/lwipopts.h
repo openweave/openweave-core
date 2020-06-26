@@ -63,17 +63,10 @@
 #define MEM_USE_POOLS                  (0)
 
 /**
- * Do not use custom memory pools for specific, named LwIP objects, sourced
- * from lwippools.h.
- */
-#define MEM_USE_CUSTOM_POOLS           (MEM_USE_POOLS)
-
-/**
  * MEMP_NUM_NETBUF: the number of struct netbufs.
  * (only needed if you use the sequential API, like api_lib.c)
  */
 #define MEMP_NUM_NETBUF                (PBUF_POOL_SIZE)
-
 
 /**
  * MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP segments.
@@ -82,14 +75,112 @@
 #define MEMP_NUM_TCP_SEG               (TCP_SND_QUEUELEN+1)
 
 /**
- * PBUF_POOL_SIZE: the number of buffers in the pbuf pool.
- *
- * This is just a default designed to be overriden by the FreeRTOS.mk makefile
- * To perform this override, define the makefile variable LWIP_NUM_PACKET_BUFFERS_IN_POOL
+ * LWIP_PBUF_FROM_CUSTOM_POOLS: Enable the use of variable-sized pbuf pools.
  */
+#ifndef LWIP_PBUF_FROM_CUSTOM_POOLS
+#define LWIP_PBUF_FROM_CUSTOM_POOLS         (1)
+#endif // LWIP_PBUF_FROM_CUSTOM_POOLS
+
+/**
+ * PBUF_POOL_BUFSIZE: Payload size of default pbuf buffer.
+ *
+ * For the Weave standalone LwIP build, this is sized to accommodate the largest
+ * possible standard Ethernet frame (Ethernet header + 1500 bytes of payload),
+ * plus any additional bytes needed for a link encapsulation header (which is 0
+ * in the default case).
+ */
+#ifndef PBUF_POOL_BUFSIZE
+#define PBUF_POOL_BUFSIZE              (LWIP_MEM_ALIGN_SIZE(PBUF_LINK_ENCAPSULATION_HLEN + PBUF_LINK_HLEN + ETHERNET_MTU))
+#endif // PBUF_POOL_BUFSIZE
+
+/**
+ * PBUF_POOL_SIZE: Number of buffers in the default pbuf pool.
+ *
+ * When #LWIP_PBUF_FROM_CUSTOM_POOLS is enabled, the default buffer pool is
+ * not used, and hence this value is set to zero.
+ */
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+#define PBUF_POOL_SIZE                 (0)
+#else // LWIP_PBUF_FROM_CUSTOM_POOLS
 #ifndef PBUF_POOL_SIZE
 #define PBUF_POOL_SIZE                 (10)
-#endif
+#endif // PBUF_POOL_SIZE
+#endif //LWIP_PBUF_FROM_CUSTOM_POOLS
+
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+
+/**
+ * PBUF_POOL_BUFSIZE_LARGE: Payload size of largest pbuf buffer.
+ *
+ * The specified size must match #PBUF_POOL_BUFSIZE.
+ */
+#define PBUF_POOL_BUFSIZE_LARGE        (PBUF_POOL_BUFSIZE)
+
+/**
+ * PBUF_POOL_BUFSIZE_MEDIUM: Payload size of medium pbuf buffer.
+ */
+#ifndef PBUF_POOL_BUFSIZE_MEDIUM
+#define PBUF_POOL_BUFSIZE_MEDIUM       (600)
+#endif // PBUF_POOL_BUFSIZE_MEDIUM
+
+/**
+ * PBUF_POOL_BUFSIZE_SMALL: Payload size of small pbuf buffer.
+ */
+#ifndef PBUF_POOL_BUFSIZE_SMALL
+#define PBUF_POOL_BUFSIZE_SMALL        (200)
+#endif // PBUF_POOL_BUFSIZE_SMALL
+
+/**
+ * PBUF_POOL_SIZE_LARGE: Number of buffers in the large pbuf pool.
+ */
+#ifndef PBUF_POOL_SIZE_LARGE
+#define PBUF_POOL_SIZE_LARGE           (5)
+#endif // PBUF_POOL_SIZE_LARGE
+
+/**
+ * PBUF_POOL_SIZE_MEDIUM: Number of buffers in the medium pbuf pool.
+ */
+#ifndef PBUF_POOL_SIZE_MEDIUM
+#define PBUF_POOL_SIZE_MEDIUM          (5)
+#endif // PBUF_POOL_SIZE_MEDIUM
+
+/**
+ * PBUF_POOL_SIZE_SMALL: Number of buffers in the small pbuf pool.
+ */
+#ifndef PBUF_POOL_SIZE_SMALL
+#define PBUF_POOL_SIZE_SMALL           (5)
+#endif // PBUF_POOL_SIZE_SMALL
+
+/**
+ * PBUF_CUSTOM_POOL_IDX_START: memp pool number for the pool containing the smallest
+ * pbuf buffer.
+ *
+ * Note this value must be numerically >= #PBUF_CUSTOM_POOL_IDX_END
+ */
+#define PBUF_CUSTOM_POOL_IDX_START     (MEMP_PBUF_POOL_SMALL)
+
+/**
+ * PBUF_CUSTOM_POOL_IDX_END: memp pool number for the pool containing the largest
+ * pbuf buffer.
+ *
+ * Note this value must be numerically <= #PBUF_CUSTOM_POOL_IDX_START
+ */
+#define PBUF_CUSTOM_POOL_IDX_END       (MEMP_PBUF_POOL_LARGE)
+
+#endif // LWIP_PBUF_FROM_CUSTOM_POOLS
+
+/**
+ * MEMP_USE_CUSTOM_POOLS: Enable use of custom memory pools defined in lwippools.h.
+ * Required if LWIP_PBUF_FROM_CUSTOM_POOLS is enabled.
+ */
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+#undef MEMP_USE_CUSTOM_POOLS
+#define MEMP_USE_CUSTOM_POOLS          (1)
+#else // LWIP_PBUF_FROM_CUSTOM_POOLS
+#ifndef MEMP_USE_CUSTOM_POOLS
+#define MEMP_USE_CUSTOM_POOLS          (0)
+#endif // MEMP_USE_CUSTOM_POOLS
+#endif // LWIP_PBUF_FROM_CUSTOM_POOLS
 
 /*
  * IP_REASS_MAX_PBUFS: Total maximum amount of pbufs waiting to be reassembled.
@@ -119,43 +210,28 @@
 #define MEMP_NUM_REASSDATA              0
 #endif
 
-#define PAYLOAD_MTU                    (1500)
+/**
+ * ETHERNET_MTU: MTU for standard Ethernet.
+ */
+#define ETHERNET_MTU                   (1500)
 
 /**
- * TCP_MSS: TCP Maximum segment size. (default is 536, a conservative default,
- * you might want to increase this.)
+ * TCP_MSS: TCP Maximum segment size.
+ *
  * For the receive side, this MSS is advertised to the remote side
  * when opening a connection. For the transmit size, this MSS sets
  * an upper limit on the MSS advertised by the remote host.
+ *
+ * Set to the default value for IPv4, which is the default IPv4 MTU
+ * minus the IP and TCP header sizes (576 - 20 - 20 = 536).
  */
-#define TCP_MSS                        (1152)
-
-/**
- * PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. The default is
- * designed to accomodate single full size link-layer frame in one pbuf, including
- * the link-layer header and any link-layer encapsulation header, and the pbuf
- * structure itself.
- */
-
-#define PBUF_POOL_BUFSIZE                                                                 \
-    LWIP_MEM_ALIGN_SIZE(PAYLOAD_MTU + PBUF_LINK_ENCAPSULATION_HLEN + PBUF_LINK_HLEN)    + \
-    LWIP_MEM_ALIGN_SIZE(sizeof(struct pbuf) + 1)
+#define TCP_MSS                        (536)
 
 /**
  * TCP_SND_BUF: TCP sender buffer space (bytes).
  * must be at least as much as (2 * TCP_MSS) for things to work smoothly
  */
 #define TCP_SND_BUF                    (6 * TCP_MSS)
-
-/**
- * ETH_PAD_SIZE: the header space required preceeding the of each pbuf in the pbuf pool. The default is
- * designed to accomodate single full size TCP frame in one pbuf, including
- * TCP_MSS, IP header, and link header.
- *
- * This is zero since the role has been taken over by SUB_ETHERNET_HEADER_SPACE as ETH_PAD_SIZE was not always obeyed
- */
-#define ETH_PAD_SIZE                   (0)
-
 
 
 /**
@@ -384,45 +460,61 @@
 #endif 
 
 /**
- * Debug printing
- * By default enable debug printing for debug build, but set level to off
- * This allows user to change any desired debug level to on.
+ * MEMP_OVERFLOW_CHECK: memp overflow protection
+ *
+ * IMPORTANT: A bug in older versions of LwIP will trigger unit test failures whenever
+ * #MEMP_OVERFLOW_CHECK is enabled.  This bug was fixed in upstream LwIP in commit 2fd2b68,
+ * but remains in the openweave third_party version.
  */
+#define MEMP_OVERFLOW_CHECK            ( 0 )
+
+
+/*
+ * LwIP Logging
+ *
+ * By default, enable LwIP debug logging for debug builds, using a global
+ * flag (gLwIP_DebugFlags) to control the level.  This allows the user to
+ * control LwIP logging output from the command line.
+ */
+
+#ifdef DEBUG
+#define LWIP_DEBUG
+#endif
+
 #ifdef LWIP_DEBUG
 
-#define MEMP_OVERFLOW_CHECK            ( 1 )
 #define MEMP_SANITY_CHECK              ( 1 )
 
-#define MEM_DEBUG        LWIP_DBG_OFF
-#define MEMP_DEBUG       LWIP_DBG_OFF
-#define PBUF_DEBUG       LWIP_DBG_ON
-#define API_LIB_DEBUG    LWIP_DBG_ON
-#define API_MSG_DEBUG    LWIP_DBG_ON
-#define TCPIP_DEBUG      LWIP_DBG_ON
-#define NETIF_DEBUG      LWIP_DBG_ON
-#define SOCKETS_DEBUG    LWIP_DBG_ON
-#define DEMO_DEBUG       LWIP_DBG_ON
-#define IP_DEBUG         LWIP_DBG_ON
-#define IP6_DEBUG        LWIP_DBG_ON
-#define IP_REASS_DEBUG   LWIP_DBG_ON
-#define RAW_DEBUG        LWIP_DBG_ON
-#define ICMP_DEBUG       LWIP_DBG_ON
-#define UDP_DEBUG        LWIP_DBG_ON
-#define TCP_DEBUG        LWIP_DBG_ON
-#define TCP_INPUT_DEBUG  LWIP_DBG_ON
-#define TCP_OUTPUT_DEBUG LWIP_DBG_ON
-#define TCP_RTO_DEBUG    LWIP_DBG_ON
-#define TCP_CWND_DEBUG   LWIP_DBG_ON
-#define TCP_WND_DEBUG    LWIP_DBG_ON
-#define TCP_FR_DEBUG     LWIP_DBG_ON
-#define TCP_QLEN_DEBUG   LWIP_DBG_ON
-#define TCP_RST_DEBUG    LWIP_DBG_ON
-#define PPP_DEBUG        LWIP_DBG_OFF
+#define MEM_DEBUG                       LWIP_DBG_OFF
+#define MEMP_DEBUG                      LWIP_DBG_OFF
+#define PBUF_DEBUG                      LWIP_DBG_ON
+#define API_LIB_DEBUG                   LWIP_DBG_ON
+#define API_MSG_DEBUG                   LWIP_DBG_ON
+#define TCPIP_DEBUG                     LWIP_DBG_ON
+#define NETIF_DEBUG                     LWIP_DBG_ON
+#define SOCKETS_DEBUG                   LWIP_DBG_ON
+#define DEMO_DEBUG                      LWIP_DBG_ON
+#define IP_DEBUG                        LWIP_DBG_ON
+#define IP6_DEBUG                       LWIP_DBG_ON
+#define IP_REASS_DEBUG                  LWIP_DBG_ON
+#define RAW_DEBUG                       LWIP_DBG_ON
+#define ICMP_DEBUG                      LWIP_DBG_ON
+#define UDP_DEBUG                       LWIP_DBG_ON
+#define TCP_DEBUG                       LWIP_DBG_ON
+#define TCP_INPUT_DEBUG                 LWIP_DBG_ON
+#define TCP_OUTPUT_DEBUG                LWIP_DBG_ON
+#define TCP_RTO_DEBUG                   LWIP_DBG_ON
+#define TCP_CWND_DEBUG                  LWIP_DBG_ON
+#define TCP_WND_DEBUG                   LWIP_DBG_ON
+#define TCP_FR_DEBUG                    LWIP_DBG_ON
+#define TCP_QLEN_DEBUG                  LWIP_DBG_ON
+#define TCP_RST_DEBUG                   LWIP_DBG_ON
+#define PPP_DEBUG                       LWIP_DBG_OFF
 
 extern unsigned char gLwIP_DebugFlags;
 #define LWIP_DBG_TYPES_ON gLwIP_DebugFlags
 
-#endif
+#endif // LWIP_DEBUG
 
 /**
  * The WICED definition of PBUF_POOL_BUFSIZE includes a number of
