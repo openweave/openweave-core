@@ -197,7 +197,7 @@ TapInterface_low_level_output(struct netif *netif, struct pbuf *buf)
     if (buf->tot_len > buf->len)
     {
         // Allocate a buffer from the buffer pool. Fail if none available.
-        outBuf = pbuf_alloc(PBUF_RAW, buf->tot_len + PBUF_LINK_ENCAPSULATION_HLEN, PBUF_POOL);
+        outBuf = pbuf_alloc(PBUF_RAW, buf->tot_len, PBUF_POOL);
         if (outBuf == NULL)
         {
             fprintf(stderr, "TapInterface: Failed to allocate buffer\n");
@@ -212,9 +212,6 @@ TapInterface_low_level_output(struct netif *netif, struct pbuf *buf)
             retval = ERR_BUF;
             goto done;
         }
-
-        // Reserve the space needed by WICED for its buffer management.
-        pbuf_header(outBuf, -PBUF_LINK_ENCAPSULATION_HLEN);
 
         // Copy output data to the new buffer.
         retval = pbuf_copy(outBuf, buf);
@@ -278,7 +275,7 @@ TapInterface_low_level_input(TapInterface *tapif, struct netif *netif)
     snmp_add_ifinoctets(netif, len);
 
     /* We allocate a pbuf chain of pbufs from the pool. */
-    p = pbuf_alloc(PBUF_LINK, len, PBUF_POOL);
+    p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
 
     if (p != NULL) {
         /* We iterate over the pbuf chain until we have read the entire
