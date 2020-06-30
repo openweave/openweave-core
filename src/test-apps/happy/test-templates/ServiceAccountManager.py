@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #    Copyright (c) 2020 Google LLC.
 #    Copyright (c) 2015-2017 Nest Labs, Inc.
@@ -26,6 +26,7 @@
 
 from __future__ import print_function
 
+from __future__ import absolute_import
 import future
 
 import json
@@ -98,7 +99,7 @@ class ServiceClient(object):
         for response in stub.Observe(request, 999999, self._auth_metadata):
             for resource_meta in response.resource_metas:
                 if 'USER' in resource_meta.resource_id:
-                    return resource_meta.resource_id.encode('utf-8')
+                    return resource_meta.resource_id
             if not response.initial_resource_metas_continue:
                 break
 
@@ -262,7 +263,7 @@ class ServiceAccountManager(object):
         self.__pre_check()
 
         self.cmd = ' --account-id %s --pairing-token %s --service-config %s --init-data \'%s\'' % (self.accountid, self.sessionJSON[
-                                                                                                   'weave']['pairing_token'], self.sessionJSON['weave']['service_config'], json.dumps(self.initial_data).encode("UTF-8"))
+                                                                                                   'weave']['pairing_token'], self.sessionJSON['weave']['service_config'], json.dumps(self.initial_data))
 
         print("Weave Access Token:")
 

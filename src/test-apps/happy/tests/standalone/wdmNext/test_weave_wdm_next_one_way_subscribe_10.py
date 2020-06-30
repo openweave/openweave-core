@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -24,6 +24,8 @@
 #       C06: One way Subscribe: Root path. Null Version. Idle. Publisher aborts
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 import set_test_path
 from weave_wdm_next_test_base import weave_wdm_next_test_base
@@ -55,8 +57,8 @@ class test_weave_wdm_next_one_way_subscribe_10(weave_wdm_next_test_base):
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
         wdm_next_args['test_case_name'] = ['C06: One way Subscribe: Root path, Null Version, Idle, Publisher Abort']
-        print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test C06"
+        print('test file: ' + self.__class__.__name__)
+        print("weave-wdm-next test C06")
         super(test_weave_wdm_next_one_way_subscribe_10, self).weave_wdm_next_test_base(wdm_next_args)
 
 

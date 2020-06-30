@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2019 Google, LLC.
@@ -24,9 +24,12 @@
 #       parts of state setup that relate to Weave plugin.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import json
 from happy.State import State
 from happy.utils.IP import IP
+from six.moves import range
 
 options = {}
 options["quiet"] = False
@@ -59,74 +62,74 @@ class WeaveState(State):
 
     def getWeaveRecord(self, state=None):
         state = self.getState(state)
-        if "weave" not in state.keys():
+        if "weave" not in list(state.keys()):
             state["weave"] = {}
         return state["weave"]
 
     def getFabricRecord(self, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "fabric" not in weave_record.keys():
+        if "fabric" not in list(weave_record.keys()):
             weave_record["fabric"] = {}
         return weave_record["fabric"]
 
     def getWeaveNodeRecord(self, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "node" not in weave_record.keys():
+        if "node" not in list(weave_record.keys()):
             weave_record["node"] = {}
         return weave_record["node"]
 
     def getTunnelRecord(self, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "tunnel" not in weave_record.keys():
+        if "tunnel" not in list(weave_record.keys()):
             weave_record["tunnel"] = {}
         return weave_record["tunnel"]
 
     def getWeaveNetworks(self, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "network" not in weave_record.keys():
+        if "network" not in list(weave_record.keys()):
             weave_record["network"] = {}
         return weave_record["network"]
 
     def getFabricId(self, state=None):
         fabric_record = self.getFabricRecord(state)
-        if "id" not in fabric_record.keys():
+        if "id" not in list(fabric_record.keys()):
             return None
         fabid = fabric_record["id"]
         return "%x" % (int(fabid, 16))
 
     def getTunnelGatewayNodeId(self, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "tunnel" not in weave_record.keys():
+        if "tunnel" not in list(weave_record.keys()):
             return None
-        if "gateway" not in weave_record["tunnel"].keys():
+        if "gateway" not in list(weave_record["tunnel"].keys()):
             return None
         return weave_record["tunnel"]["gateway"]
 
     def getTunnelServiceNodeId(self, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "tunnel" not in weave_record.keys():
+        if "tunnel" not in list(weave_record.keys()):
             return None
-        if "service" not in weave_record["tunnel"].keys():
+        if "service" not in list(weave_record["tunnel"].keys()):
             return None
         return weave_record["tunnel"]["service"]
 
     def getTunnelServiceDir(self, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "tunnel" not in weave_record.keys():
+        if "tunnel" not in list(weave_record.keys()):
             return None
-        if "service_dir" not in weave_record["tunnel"].keys():
+        if "service_dir" not in list(weave_record["tunnel"].keys()):
             return None
         return weave_record["tunnel"]["service_dir"]
 
     def getFabricGlobalPrefix(self, state=None):
         fabric_record = self.getFabricRecord(state)
-        if "global_prefix" not in fabric_record.keys():
+        if "global_prefix" not in list(fabric_record.keys()):
             return None
         return fabric_record["global_prefix"]
 
     def getWeaveNodes(self, state=None):
         nodes_record = self.getWeaveNodeRecord(state)
-        return nodes_record.keys()
+        return list(nodes_record.keys())
 
     def getWeaveNodeIds(self, state=None):
         nodes_record = self.getWeaveNodeRecord(state)
@@ -134,25 +137,25 @@ class WeaveState(State):
 
     def getNodeWeaveRecord(self, node_id=None, state=None):
         nodes_record = self.getWeaveNodeRecord(state)
-        if node_id not in nodes_record.keys():
+        if node_id not in list(nodes_record.keys()):
             return {}
         return nodes_record[node_id]
 
     def getWeaveNodeID(self, node_id=None, state=None):
         node_record = self.getNodeWeaveRecord(node_id, state)
-        if "weave_node_id" not in node_record.keys():
+        if "weave_node_id" not in list(node_record.keys()):
             return None
         return node_record["weave_node_id"]
 
     def getWeaveNodeIID(self, node_id=None, state=None):
         node_record = self.getNodeWeaveRecord(node_id, state)
-        if "iid" not in node_record.keys():
+        if "iid" not in list(node_record.keys()):
             return None
         return node_record["iid"]
 
     def getWeaveNodeEUI64(self, node_id=None, state=None):
         node_record = self.getNodeWeaveRecord(node_id, state)
-        if "eui64" not in node_record.keys():
+        if "eui64" not in list(node_record.keys()):
             return None
         return node_record["eui64"]
 
@@ -170,23 +173,23 @@ class WeaveState(State):
 
     def getWeaveNetworkIds(self, state=None):
         networks_record = self.getWeaveNetworks(state)
-        return networks_record.keys()
+        return list(networks_record.keys())
 
     def getWeaveNetworkRecord(self, network_id=None, state=None):
         networks_record = self.getWeaveNetworks(state)
-        if network_id not in networks_record.keys():
+        if network_id not in list(networks_record.keys()):
             return {}
         return networks_record[network_id]
 
     def getWeaveNetworkGatewayIds(self, network_id=None, state=None):
         network_record = self.getWeaveNetworkRecord(network_id, state)
-        if "gateway" not in network_record.keys():
+        if "gateway" not in list(network_record.keys()):
             return []
-        return network_record["gateway"].keys()
+        return list(network_record["gateway"].keys())
 
     def getServiceWeaveID(self, service, node_id=None, state=None):
         endpoints = self.getServiceEndpoints()
-        if service not in endpoints.keys():
+        if service not in list(endpoints.keys()):
             return None
         return endpoints[service]["id"]
 
@@ -331,7 +334,7 @@ class WeaveState(State):
 
     def getSerialNum(self, node_id=None, state=None):
         node_record = self.getNodeWeaveRecord(node_id, state)
-        if "serial_num" not in node_record.keys():
+        if "serial_num" not in list(node_record.keys()):
             return None
         return node_record["serial_num"]
 
@@ -357,31 +360,31 @@ class WeaveState(State):
 
     def removeTunnel(self, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "tunnel" in weave_record.keys():
+        if "tunnel" in list(weave_record.keys()):
             del weave_record["tunnel"]
 
     def removeFabric(self, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "fabric" in weave_record.keys():
+        if "fabric" in list(weave_record.keys()):
             del weave_record["fabric"]
 
     def removeWeaveNode(self, node, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "node" in weave_record.keys():
+        if "node" in list(weave_record.keys()):
             node_record = weave_record['node']
-            if node in node_record.keys():
+            if node in list(node_record.keys()):
                 del node_record[node]
                 if len(node_record) == 0:
                     self.removeWeaveNodes(state)
 
     def removeWeaveNodes(self, state=None):
         weave_record = self.getWeaveRecord(state)
-        if "node" in weave_record.keys():
+        if "node" in list(weave_record.keys()):
             del weave_record["node"]
 
     def removeWeaveGateway(self, network_id, state=None):
         network_record = self.getWeaveNetworkRecord(network_id, state)
-        if "gateway" in network_record.keys():
+        if "gateway" in list(network_record.keys()):
             del network_record["gateway"]
 
     def __str__(self):
@@ -398,20 +401,20 @@ class WeaveState(State):
         if self.quiet:
             return
 
-        print "State Name: weave"
-        print
+        print("State Name: weave")
+        print()
 
         weave_nodes = self.getWeaveNodeRecord()
         node_format = "%-10s%15s%20s%16s"
-        print node_format % ("NODES", "Name", "Weave Node Id", "Pairing Code")
+        print(node_format % ("NODES", "Name", "Weave Node Id", "Pairing Code"))
 
         for node in sorted(weave_nodes.keys()):
             node_record = weave_nodes[node]
-            print node_format % ("", node, node_record.get('weave_node_id', 'None'), node_record.get('pairing_code', 'None'))
-        print
+            print(node_format % ("", node, node_record.get('weave_node_id', 'None'), node_record.get('pairing_code', 'None')))
+        print()
 
         fabric_record = self.getFabricRecord()
         fabric_format = "%-10s%15s%24s"
-        print fabric_format % ("FABRIC", "Fabric Id", "Global Prefix")
-        print fabric_format % ("", fabric_record.get('id', ""), fabric_record.get('global_prefix', ""))
-        print
+        print(fabric_format % ("FABRIC", "Fabric Id", "Global Prefix"))
+        print(fabric_format % ("", fabric_record.get('id', ""), fabric_record.get('global_prefix', "")))
+        print()

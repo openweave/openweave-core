@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeaveBDX class that tests Weave BDX among Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -421,25 +423,25 @@ class WeaveBDX(HappyNode, HappyNetwork, WeaveTest):
 
         if self.quiet == False:
             if self.download:
-                print "weave-bdx from server v%s %s (%s) to client v%s %s (%s) : " % \
+                print("weave-bdx from server v%s %s (%s) to client v%s %s (%s) : " % \
                     (self.server_version, self.server_node_id, self.server_ip,
-                     self.client_version, self.client_node_id, self.client_ip)
+                     self.client_version, self.client_node_id, self.client_ip))
                 if transfer_done:
-                    print hgreen("downloaded")
+                    print(hgreen("downloaded"))
                 else:
-                    print hred("not downloaded")
+                    print(hred("not downloaded"))
             else:
-                print "weave-bdx from client %s (%s) to server %s (%s) : " % \
+                print("weave-bdx from client %s (%s) to server %s (%s) : " % \
                     (self.client_node_id, self.client_ip,
-                    self.server_node_id, self.server_ip)
+                    self.server_node_id, self.server_ip))
                 if transfer_done:
-                    print hgreen("uploaded")
+                    print(hgreen("uploaded"))
                 else:
-                    print hred("not uploaded")
+                    print(hred("not uploaded"))
             if leak_detected:
-                print hred("resource leak detected in the client's ouput")
+                print(hred("resource leak detected in the client's ouput"))
             if parser_error:
-                print hred("parser error in the client's output")
+                print(hred("parser error in the client's output"))
 
 
         pass_test = transfer_done and not leak_detected and not parser_error
@@ -449,9 +451,9 @@ class WeaveBDX(HappyNode, HappyNetwork, WeaveTest):
             parser_error, leak_detected = WeaveUtilities.scan_for_leaks_and_parser_errors(server_output)
             if self.quiet == False:
                 if leak_detected:
-                    print hred("resource leak detected in the server's ouput")
+                    print(hred("resource leak detected in the server's ouput"))
                 if parser_error:
-                    print hred("parser error in the server's output")
+                    print(hred("parser error in the server's output"))
 
         pass_test = pass_test and not parser_error and not leak_detected
 

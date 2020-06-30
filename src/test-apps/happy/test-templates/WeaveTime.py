@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeaveTime class that tests Weave Time sync among Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -243,24 +245,24 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
             if coordinator_leak_detected:
                 found_leaks.append("coordinator")
 
-            print "weave-time test among server %s (%s), client %s (%s), coordinator %s (%s) with %s mode: " % \
+            print("weave-time test among server %s (%s), client %s (%s), coordinator %s (%s) with %s mode: " % \
                         (self.server_node_id, self.server_ip,
                          self.client_node_id, self.client_ip,
-                         self.coordinator_node_id, self.coordinator_ip, self.mode)
+                         self.coordinator_node_id, self.coordinator_ip, self.mode))
         else:
-            print "weave-time test among server %s (%s), client %s (%s) with %s mode: " % \
+            print("weave-time test among server %s (%s), client %s (%s) with %s mode: " % \
                         (self.server_node_id, self.server_ip,
-                         self.client_node_id, self.client_ip, self.mode)
+                         self.client_node_id, self.client_ip, self.mode))
 
         if self.quiet == False:
             if parser_errors:
-                print hred("Parser errors on " + str(parser_errors))
+                print(hred("Parser errors on " + str(parser_errors)))
             if found_leaks:
-                print hred("Found leaks on " + str(found_leaks))
+                print(hred("Found leaks on " + str(found_leaks)))
             if pass_test:
-                print hgreen("Time sync succeeded")
+                print(hgreen("Time sync succeeded"))
             else:
-                print hred("Time sync failed")
+                print(hred("Time sync failed"))
 
         return pass_test and not parser_errors and not found_leaks
 

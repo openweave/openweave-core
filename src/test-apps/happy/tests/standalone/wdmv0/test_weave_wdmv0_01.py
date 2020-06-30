@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #       Copyright (c) 2015-2017  Nest Labs, Inc.
 #       All rights reserved.
@@ -21,6 +21,8 @@
 #       Calls Weave WDMv0 Test between nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -43,7 +45,7 @@ class test_weave_wdmv0_01(unittest.TestCase):
     def setUp(self):
         self.tap = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
             self.tap = "wpan0"
@@ -87,9 +89,9 @@ class test_weave_wdmv0_01(unittest.TestCase):
     def __process_result(self, nodeA, nodeB, value, data):
 
         if value:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
         else:
-            print hred("Failed")
+            print(hred("Failed"))
             raise ValueError("Weave WDMv0 Test Failed")
 
 

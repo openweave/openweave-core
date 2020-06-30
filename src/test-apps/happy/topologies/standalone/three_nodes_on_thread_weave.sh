@@ -19,6 +19,7 @@
 
 # Steps to manually build three_nodes_on_thread_happy.json
 
+export PATH=$PATH:$(dirname $(readlink -f "$0"))/../../bin
 happy-node-add node01
 happy-node-add node02
 happy-node-add node03

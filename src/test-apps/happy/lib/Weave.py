@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2015-2017 Nest Labs, Inc.
@@ -22,6 +22,7 @@
 #       Implements Weave class that wraps around standalone Weave code library.
 #
 
+from __future__ import absolute_import
 import os
 import sys
 
@@ -45,13 +46,13 @@ class Weave(WeaveState):
 
     def __check_weave_path(self):
         # Pick weave path from configuration
-        if "weave_path" in self.configuration.keys():
+        if "weave_path" in list(self.configuration.keys()):
             self.weave_happy_conf_path = self.configuration["weave_path"]
             emsg = "Found weave path: %s." % (self.weave_happy_conf_path)
             self.logger.debug("[localhost] Weave: %s" % (emsg))
 
         # Check if Weave build path is set
-        if "abs_builddir" in os.environ.keys():
+        if "abs_builddir" in list(os.environ.keys()):
             self.weave_build_path = os.environ['abs_builddir']
             emsg = "Found weave abs_builddir: %s." % (self.weave_build_path)
             self.logger.debug("[localhost] Weave: %s" % (emsg))
@@ -87,17 +88,17 @@ class Weave(WeaveState):
             return cmd_path
 
     def __setup_weave_cert_path(self):
-        if "weave_cert_path" in self.configuration.keys():
+        if "weave_cert_path" in list(self.configuration.keys()):
             self.weave_cert_path = self.configuration['weave_cert_path']
             self.weave_cert_path = os.path.expandvars(self.weave_cert_path)
             self.weave_cert_path.rstrip('/')
 
-        elif "abs_top_srcdir" in os.environ.keys():
+        elif "abs_top_srcdir" in list(os.environ.keys()):
                 emsg = "Found weave source path: %s" % os.environ['abs_top_srcdir']
                 self.logger.debug("[localhost] Weave: %s" % (emsg))
                 self.weave_cert_path = os.environ['abs_top_srcdir'].rstrip('/') + '/certs/development'
 
-        elif "WEAVE_HOME" in os.environ.keys():
+        elif "WEAVE_HOME" in list(os.environ.keys()):
                 emsg = "Found weave source path: %s" % os.environ['WEAVE_HOME']
                 self.logger.debug("[localhost] Weave: %s" % (emsg))
                 self.weave_cert_path = '${WEAVE_HOME}/certs/development'

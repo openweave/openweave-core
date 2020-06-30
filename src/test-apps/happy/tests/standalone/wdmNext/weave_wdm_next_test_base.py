@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Calls Weave WDM base test class between nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import re
@@ -48,17 +50,17 @@ class weave_wdm_next_test_base(unittest.TestCase):
         self.wdm_option = None
         self.options = None
 
-        if "WDM_CLIENT_LIVENESS_CHECK_PERIOD" in os.environ.keys():
+        if "WDM_CLIENT_LIVENESS_CHECK_PERIOD" in list(os.environ.keys()):
             self.wdm_client_liveness_check_period = int(os.environ["WDM_CLIENT_LIVENESS_CHECK_PERIOD"])
         else:
             self.wdm_client_liveness_check_period = None
 
-        if "WDM_SERVER_LIVENESS_CHECK_PERIOD" in os.environ.keys():
+        if "WDM_SERVER_LIVENESS_CHECK_PERIOD" in list(os.environ.keys()):
             self.wdm_server_liveness_check_period = int(os.environ["WDM_SERVER_LIVENESS_CHECK_PERIOD"])
         else:
             self.wdm_server_liveness_check_period = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
             self.tap = "wpan0"
@@ -126,7 +128,7 @@ class weave_wdm_next_test_base(unittest.TestCase):
 
             for pair in pairs_of_nodes:
                 if pair[0] == pair[1]:
-                    print "Skip weave-wdm test on client and server running on the same node."
+                    print("Skip weave-wdm test on client and server running on the same node.")
                     continue
                 value, data = self.__run_wdm_test_between(pair[0], pair[1])
                 self.__process_result(pair[0], pair[1], value, data)
@@ -182,7 +184,7 @@ class weave_wdm_next_test_base(unittest.TestCase):
         return (wdm_stress_check, stress_failures)
 
     def __process_result(self, nodeA, nodeB, value, data):
-        print "weave-wdm-next %s from " % self.wdm_option + nodeA + " to " + nodeB + " "
+        print("weave-wdm-next %s from " % self.wdm_option + nodeA + " to " + nodeB + " ")
         data = data[0]
         test_results = []
         wdm_stress_check = value
@@ -251,7 +253,7 @@ class weave_wdm_next_test_base(unittest.TestCase):
         self.__output_test_result(output_file_name, output_data)
 
         self.assertTrue(wdm_stress_check, "\nwdm_stress_check is False\n\n" + "\n\t".join(stress_failures))
-        print hgreen("Passed")
+        print(hgreen("Passed"))
 
     def __output_test_result(self, file_path, output_data):
         options = plugins.testrail.TestrailResultOutput.option()

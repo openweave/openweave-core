@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,7 @@
 #       Implements WeaveTest class that provides generic Weave testing features.
 #
 
+from __future__ import absolute_import
 import os
 import random
 import sys
@@ -38,6 +39,7 @@ import happy.HappyProcessStop
 import happy.HappyProcessStrace
 import happy.HappyProcessWait
 import happy.State
+from six.moves import range
 
 gready_to_service_events_str = "Weave Node ready to service events"
 
@@ -45,7 +47,7 @@ class WeaveTest(Weave):
     def __init__(self):
         self.ready_to_service_events_str = gready_to_service_events_str
         Weave.__init__(self)
-        if "JITTER_DISTRIBUTION_CURVE" in os.environ.keys():
+        if "JITTER_DISTRIBUTION_CURVE" in list(os.environ.keys()):
             self.jitter_distribution_curve = int(os.environ["JITTER_DISTRIBUTION_CURVE"])
         else:
             self.jitter_distribution_curve = None
@@ -120,7 +122,7 @@ class WeaveTest(Weave):
                 delayTimeSec = fibonacci_numbers[1]
             else:
                 jitter_distribution_curve -= 2
-                for i in xrange(jitter_distribution_curve):
+                for i in range(jitter_distribution_curve):
                     fibonacci_numbers.append(fibonacci_numbers[i+1]+fibonacci_numbers[i])
                 delayTimeSec = random.choice(fibonacci_numbers)
             self.logger.debug("Test Delay %d seconds" % delayTimeSec)

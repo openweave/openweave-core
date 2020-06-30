@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2018-2019 Google LLC.
@@ -22,6 +22,8 @@
 #       Calls Weave Inet Multicast test among sender and receiver nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -36,7 +38,7 @@ import WeaveUtilities
 
 class test_weave_inet_multicast_01(unittest.TestCase):
     def setUp(self):
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.using_lwip = True
         else:
             self.using_lwip = False
@@ -220,12 +222,12 @@ class test_weave_inet_multicast_01(unittest.TestCase):
     def __process_result(self, configuration, interface, network, transport, value, data):
         nodes = len(configuration['sender']) + len(configuration['receivers'])
 
-        print "Inet multicast test using %sIPv%s w/ device interface: %s (w/%s LwIP) with %u nodes:" % ("UDP/" if transport == "udp" else "", network, "<none>" if interface == None else interface, "" if self.using_lwip else "o", nodes),
+        print("Inet multicast test using %sIPv%s w/ device interface: %s (w/%s LwIP) with %u nodes:" % ("UDP/" if transport == "udp" else "", network, "<none>" if interface == None else interface, "" if self.using_lwip else "o", nodes), end=' ')
 
         if value:
-            print hgreen("PASSED")
+            print(hgreen("PASSED"))
         else:
-            print hred("FAILED")
+            print(hred("FAILED"))
             raise ValueError("Weave Inet Multicast Test Failed")
 
 

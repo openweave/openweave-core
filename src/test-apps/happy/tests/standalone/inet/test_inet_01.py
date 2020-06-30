@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2018-2019 Google LLC.
@@ -23,6 +23,8 @@
 #       Calls Weave Inet test between nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -37,7 +39,7 @@ import WeaveUtilities
 
 class test_weave_inet_01(unittest.TestCase):
     def setUp(self):
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.using_lwip = True
         else:
             self.using_lwip = False
@@ -163,12 +165,12 @@ class test_weave_inet_01(unittest.TestCase):
 
 
     def __process_result(self, sender, receiver, interface, network, transport, prefix, tx_size, rx_tx_length, value, data):
-        print "Inet test using %sIPv%s w/ device interface %s (w/%s LwIP) %s with %u/%u size/length:" % ("UDP/" if transport == "udp" else "TCP/" if transport == "tcp" else "", network, "<none>" if interface == None else interface, "" if self.using_lwip else "o", sender + " to " + receiver + " w/ prefix " + prefix, tx_size, rx_tx_length),
+        print("Inet test using %sIPv%s w/ device interface %s (w/%s LwIP) %s with %u/%u size/length:" % ("UDP/" if transport == "udp" else "TCP/" if transport == "tcp" else "", network, "<none>" if interface == None else interface, "" if self.using_lwip else "o", sender + " to " + receiver + " w/ prefix " + prefix, tx_size, rx_tx_length), end=' ')
 
         if value:
-            print hgreen("PASSED")
+            print(hgreen("PASSED"))
         else:
-            print hred("FAILED")
+            print(hred("FAILED"))
             raise ValueError("Weave Inet Test Failed")
 
 

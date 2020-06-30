@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #       Copyright (c) 2015-2017  Nest Labs, Inc.
 #       All rights reserved.
@@ -21,6 +21,8 @@
 #       Executes Weave Tunnel tests between nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -37,7 +39,7 @@ class test_weave_tunnel_03(unittest.TestCase):
     def setUp(self):
         self.tap = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.json"
             self.tap = "wpan0"
@@ -68,8 +70,8 @@ class test_weave_tunnel_03(unittest.TestCase):
 
     def test_weave_tunnel(self):
         # TODO: Once LwIP bugs are fixed, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")        
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+            print(hred("WARNING: Test skipped due to LwIP-based network cofiguration!"))        
             return
 
         # topology has nodes: ThreadNode, BorderRouter, onhub and cloud
@@ -82,34 +84,34 @@ class test_weave_tunnel_03(unittest.TestCase):
     def __process_result(self, value, data):
 
         if value == True:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
         else:
-            print hred("Failed")
+            print(hred("Failed"))
 
         try:
             self.assertTrue(value == True, "%s == True %%" % (str(value)))
-        except AssertionError, e:
-            print str(e)
-            print "Captured experiment result:"
+        except AssertionError as e:
+            print(str(e))
+            print("Captured experiment result:")
 
             data = data[0]
 
-            print "Border gateway Output: "
+            print("Border gateway Output: ")
             for line in data["gateway_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
-            print "Service Output: "
+            print("Service Output: ")
             for line in data["service_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
             if self.show_strace:
-                print "Service Strace: "
+                print("Service Strace: ")
                 for line in data["service_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
-                print "Client Strace: "
+                print("Client Strace: ")
                 for line in data["gateway_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
         if value != True:
             raise ValueError("Failure in Weave Tunnel Tests")

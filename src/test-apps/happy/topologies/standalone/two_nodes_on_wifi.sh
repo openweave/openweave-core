@@ -18,7 +18,7 @@
 #
 
 # Steps to manually build two_nodes_on_wifi.json
-
+export PATH=$PATH:$(dirname $(readlink -f "$0"))/../../bin
 happy-node-add 00-WifiNode-Tx
 happy-node-add 01-WifiNode-Rx
 

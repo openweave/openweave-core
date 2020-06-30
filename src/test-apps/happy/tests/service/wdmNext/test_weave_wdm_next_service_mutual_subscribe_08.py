@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #       M08: Stress Mutual Subscribe: Root path. Null Version. Idle. Publisher in initiator aborts
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
@@ -47,8 +49,8 @@ class test_weave_wdm_next_service_mutual_subscribe_08(weave_wdm_next_test_servic
         wdm_next_args['test_tag'] = self.__class__.__name__
         wdm_next_args['test_case_name'] = ['Wdm-NestService-F04: Mutual Subscribe: Root path. Null Version. Idle. Publisher in initiator aborts',
                                            'Wdm-NestService-M08: Stress Mutual Subscribe: Root path. Null Version. Idle. Publisher in initiator aborts']
-        print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test F04 and M08"
+        print('test file: ' + self.__class__.__name__)
+        print("weave-wdm-next test F04 and M08")
         super(test_weave_wdm_next_service_mutual_subscribe_08, self).weave_wdm_next_test_service_base(wdm_next_args)
 
 

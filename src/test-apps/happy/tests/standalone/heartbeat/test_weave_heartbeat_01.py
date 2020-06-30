@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Calls Weave Heartbeat between nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -39,7 +41,7 @@ class test_weave_heartbeat_01(unittest.TestCase):
     def setUp(self):
         self.tap = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
             self.tap = "wpan0"
@@ -80,7 +82,7 @@ class test_weave_heartbeat_01(unittest.TestCase):
 
         for pair in pairs_of_nodes:
             if pair[0] == pair[1]:
-                print "Skip Heartbeat test on client and server running on the same node."
+                print("Skip Heartbeat test on client and server running on the same node.")
                 continue
 
             value, data = self.__run_heartbeat_test_between(pair[0], pair[1])
@@ -88,35 +90,35 @@ class test_weave_heartbeat_01(unittest.TestCase):
 
 
     def __process_result(self, nodeA, nodeB, value, data):
-        print "heartbeat from " + nodeA + " to " + nodeB + " ",
+        print("heartbeat from " + nodeA + " to " + nodeB + " ", end=' ')
 
         if value == self.count:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
         else:
-            print hred("Failed")
+            print(hred("Failed"))
 
         try:
             self.assertTrue(value == self.count, "%d != %d" % (value, self.count))
-        except AssertionError, e:
-            print str(e)
-            print "Captured experiment result:"
+        except AssertionError as e:
+            print(str(e))
+            print("Captured experiment result:")
 
-            print "Client Output: "
+            print("Client Output: ")
             for line in data["client_output"].split("\n"):
-               print "\t" + line
+               print("\t" + line)
 
-            print "Server Output: "
+            print("Server Output: ")
             for line in data["server_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
             if self.show_strace == True:
-                print "Server Strace: "
+                print("Server Strace: ")
                 for line in data["server_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
-                print "Client Strace: "
+                print("Client Strace: ")
                 for line in data["client_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
         if value != self.count:
             raise ValueError("Weave Heartbeat Failed")

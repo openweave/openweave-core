@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2016-2017 Nest Labs, Inc.
@@ -25,6 +25,7 @@
 #       bridge that acts like a hub.
 #
 
+from __future__ import absolute_import
 import os
 import sys
 

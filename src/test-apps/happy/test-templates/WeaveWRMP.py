@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeaveWRMP class that tests Weave Echo among Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -178,13 +180,13 @@ class WeaveWRMP(HappyNode, HappyNetwork, WeaveTest):
                 break
 
         if self.quiet == False:
-            print "weave-wrmp from node %s (%s) to node %s (%s) : " % \
+            print("weave-wrmp from node %s (%s) to node %s (%s) : " % \
                 (self.client_node_id, self.client_ip,
-                 self.server_node_id, self.server_ip),
+                 self.server_node_id, self.server_ip), end=' ')
             if pass_test:
-                print hgreen("PASSED")
+                print(hgreen("PASSED"))
             else:
-                print hred("FAILED")
+                print(hred("FAILED"))
 
         return (pass_test, client_output)
 

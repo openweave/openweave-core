@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2017 Nest Labs, Inc.
@@ -26,6 +26,8 @@
 #          connectivity while faults are injected.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -45,6 +47,8 @@ import WeaveTunnelStop
 import WeaveUtilities
 from WeaveTest import WeaveTest
 import plugins.plaid.Plaid as Plaid
+from six.moves import range
+from functools import reduce
 
 
 gFaultopts = WeaveUtilities.FaultInjectionOptions(nodes=["gateway", "service"])
@@ -54,7 +58,7 @@ class test_weave_tunnel_faults(unittest.TestCase):
     def setUp(self):
         self.tap = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.json"
             self.tap = "wpan0"
@@ -98,8 +102,8 @@ class test_weave_tunnel_faults(unittest.TestCase):
 
     def test_weave_tunnel(self):
         # TODO: Once LwIP bugs are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+            print(hred("WARNING: Test skipped due to LwIP-based network cofiguration!"))
             return
 
         # topology has nodes: ThreadNode, BorderRouter, onhub and cloud
@@ -118,7 +122,7 @@ class test_weave_tunnel_faults(unittest.TestCase):
 
         # Run ping test
         for i in range(10):
-            print "  running weave-ping between 'ThreadNode' and 'cloud' (iteration:%s/10)" %(str(i+1))
+            print("  running weave-ping between 'ThreadNode' and 'cloud' (iteration:%s/10)" %(str(i+1)))
             value_ping, data_ping = self.__run_ping_test_between("ThreadNode", "cloud", use_case=False, test_tag = test_tag, use_plaid=self.use_plaid)
             if not value_ping: # 0 == SUCCESS:
                 # we're done, no need for more iterations.
@@ -153,19 +157,19 @@ class test_weave_tunnel_faults(unittest.TestCase):
             for fault_config in fault_configs:
                 auth = "CASE" if use_case else "None"
                 test_tag = "_" + auth + "_" + str(num_tests) + "_" + node + "_" + fault_config
-                print "tag: " + test_tag
+                print("tag: " + test_tag)
 
                 if self.use_plaid:
                     self.__start_plaid_server()
 
                 # Start tunnel
-                print "  starting tunnel between 'BorderRouter' and 'cloud'"
+                print("  starting tunnel between 'BorderRouter' and 'cloud'")
                 value_start, data_start_tunnel = self.__start_tunnel_between("BorderRouter", "cloud", use_case=use_case, num_iterations = 3, faults = {node: fault_config}, test_tag = test_tag, use_plaid=self.use_plaid)
 
                 for i in range(15):
                     # Note that when running on plaid this loop only executes ~3 iterations in what is a minute of virtual time
                     # Without plaid, the number of iterations required is much more
-                    print "  running weave-ping between 'ThreadNode' and 'cloud' (iteration:%s/15)" %(str(i+1))
+                    print("  running weave-ping between 'ThreadNode' and 'cloud' (iteration:%s/15)" %(str(i+1)))
                     value_ping, data_ping = self.__run_ping_test_between("ThreadNode", "cloud", use_case=False, test_tag = test_tag, use_plaid=self.use_plaid)
                     if not value_ping: # 0 == SUCCESS:
                         # we're done, no need for more iterations.
@@ -177,11 +181,11 @@ class test_weave_tunnel_faults(unittest.TestCase):
                     gw_value, gw_output = wt.get_test_output("BorderRouter", "WEAVE-GATEWAY-TUNNEL" + test_tag, quiet=True)
                     if self.__is_tunnel_up(gw_output):
                         break
-                    print "  *** waiting for tunnel to recover *** (%s/15 seconds)" %(str(i+1))
+                    print("  *** waiting for tunnel to recover *** (%s/15 seconds)" %(str(i+1)))
                     time.sleep(1)
 
                 # Stop tunnel
-                print "  stopping tunnel between 'BorderRouter' and 'cloud'"
+                print("  stopping tunnel between 'BorderRouter' and 'cloud'")
                 value_stop, data_stop_tunnel = self.__stop_tunnel_between("BorderRouter", "cloud", test_tag = test_tag)
 
                 if self.use_plaid:
@@ -189,20 +193,20 @@ class test_weave_tunnel_faults(unittest.TestCase):
 
                 results = self.__process_tunnel_results("BorderRouter", value_stop, data_stop_tunnel, value_ping, data_ping, test_tag=test_tag)
 
-                success = reduce(lambda x, y: x and y, results.values())
+                success = reduce(lambda x, y: x and y, list(results.values()))
                 if not success:
-                    print hred("  Failed + [" + test_tag + "]")
+                    print(hred("  Failed + [" + test_tag + "]"))
                     num_failed_tests += 1
                     failed_tests.append(test_tag)
                 else:
-                    print hgreen("  Passed [" + test_tag + "]")
+                    print(hgreen("  Passed [" + test_tag + "]"))
                 num_tests += 1
 
-        print "  executed %d cases" % num_tests
-        print "  failed %d cases:" % num_failed_tests
+        print("  executed %d cases" % num_tests)
+        print("  failed %d cases:" % num_failed_tests)
         if num_failed_tests > 0:
             for failed in failed_tests:
-                print "    " + failed
+                print("    " + failed)
         self.assertEqual(num_failed_tests, 0, "The above tests failed")
 
 
@@ -263,37 +267,37 @@ class test_weave_tunnel_faults(unittest.TestCase):
     def __process_ping_result(self, nodeA, nodeB, value, data):
         num_pings = int(gOptions["num_pings"])
 
-        print "ping from " + nodeA + " to " + nodeB + " ",
+        print("ping from " + nodeA + " to " + nodeB + " ", end=' ')
 
         data = data[0]
 
         if value > num_pings + 1:
-            print hred("Failed")
+            print(hred("Failed"))
         else:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
 
         try:
             self.assertTrue(value < num_pings + 1, "%s < %s %%" % (str(value), num_pings))
-        except AssertionError, e:
-            print str(e)
-            print "Captured experiment result:"
+        except AssertionError as e:
+            print(str(e))
+            print("Captured experiment result:")
 
-            print "Client Output: "
+            print("Client Output: ")
             for line in data["client_output"].split("\n"):
-               print "\t" + line
+               print("\t" + line)
 
-            print "Server Output: "
+            print("Server Output: ")
             for line in data["server_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
             if self.show_strace == True:
-                print "Server Strace: "
+                print("Server Strace: ")
                 for line in data["server_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
-                print "Client Strace: "
+                print("Client Strace: ")
                 for line in data["client_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
         if value > num_pings + 1:
             raise ValueError("Weave Ping over Weave Tunnel Failed")
@@ -310,21 +314,21 @@ class test_weave_tunnel_faults(unittest.TestCase):
 
         # at the end of the test, 'tunnel_up' should be True
         if not tunnel_up:
-            print hred("  Tunnel start: Failed   [" + test_tag + "]")
+            print(hred("  Tunnel start: Failed   [" + test_tag + "]"))
 
         if ping_value != 0:  # loss_percentage == 0
-            print hred("  Ping test: Failed [" + test_tag + "]")
+            print(hred("  Ping test: Failed [" + test_tag + "]"))
 
         if gw_parser_error is True:
-            print hred("  gateway parser error  [" + test_tag + "]")
+            print(hred("  gateway parser error  [" + test_tag + "]"))
 
         if gw_leak_detected is True:
-            print hred("  gateway leak detected [" + test_tag + "]+")
+            print(hred("  gateway leak detected [" + test_tag + "]+"))
 
         if service_parser_error is True:
-            print hred("service parser error")
+            print(hred("service parser error"))
         if service_leak_detected is True:
-            print hred("service resource leak detected")
+            print(hred("service resource leak detected"))
 
         result = {}
         result["tunnel_up"] = tunnel_up
@@ -389,13 +393,13 @@ class test_weave_tunnel_faults(unittest.TestCase):
         self.plaid.startPlaidServerProcess()
 
         emsg = "plaid-server should be running."
-        print "test_weave_tunnel_faults: %s" % (emsg)
+        print("test_weave_tunnel_faults: %s" % (emsg))
 
     def __stop_plaid_server(self):
         self.plaid.stopPlaidServerProcess()
 
         emsg = "plaid-server should not be running any longer."
-        print "test_weave_tunnel_faults: %s" % (emsg)
+        print("test_weave_tunnel_faults: %s" % (emsg))
 
 if __name__ == "__main__":
     help_str = """usage:
@@ -411,15 +415,15 @@ if __name__ == "__main__":
         opts, args = getopt.getopt(sys.argv[1:], "h", longopts)
 
     except getopt.GetoptError as err:
-        print help_str
-        print hred(str(err))
+        print(help_str)
+        print(hred(str(err)))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     opts = gFaultopts.process_opts(opts)
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print help_str
+            print(help_str)
             sys.exit(0)
 
         elif o in ("--disable-case"):

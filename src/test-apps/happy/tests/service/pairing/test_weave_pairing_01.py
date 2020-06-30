@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -26,6 +26,8 @@
 #       and ThreadNode register to NestService.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import re
 import sys
@@ -40,6 +42,8 @@ import WeaveTunnelStop
 import plugins.testrail.TestrailResultOutput
 
 from topologies.dynamic.thread_wifi_ap_internet_configurable_topology import thread_wifi_ap_internet_configurable_topology
+from six.moves import range
+from six.moves import zip
 
 TEST_OPTION_QUIET = True
 TESTRAIL_SECTION_NAME = "Weave pairing between Mock-Client and Real-Service"
@@ -54,7 +58,7 @@ class test_weave_pairing_01(unittest.TestCase):
         self.quiet = TEST_OPTION_QUIET
         self.options = None
 
-        if "weave_service_address" in os.environ.keys():
+        if "weave_service_address" in list(os.environ.keys()):
             if "unstable" not in os.environ["weave_service_address"]:
                 found = re.search('.(\w+).nestlabs.com', os.environ["weave_service_address"])
                 self.tier = found.group(1)
@@ -66,7 +70,7 @@ class test_weave_pairing_01(unittest.TestCase):
 
         fabric_seed = os.environ.get("FABRIC_SEED", DEFAULT_FABRIC_SEED)
 
-        if "FABRIC_OFFSET" in os.environ.keys():
+        if "FABRIC_OFFSET" in list(os.environ.keys()):
             self.fabric_id = format(int(fabric_seed, 16) + int(os.environ["FABRIC_OFFSET"]), 'x').zfill(5)
         else:
             self.fabric_id = fabric_seed
@@ -86,7 +90,7 @@ class test_weave_pairing_01(unittest.TestCase):
         self.initial_device_index = int(os.environ.get("INITIAL_DEVICE_INDEX", "1"))
 
         # TODO: Once LwIP bugs for tunnel are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.tap = True
             self.tap_id = "wpan0"
             return
@@ -108,7 +112,7 @@ class test_weave_pairing_01(unittest.TestCase):
                                                                           initial_device_index=self.initial_device_index)
             self.topology.createTopology()
         else:
-            print "topology set up not required"
+            print("topology set up not required")
 
         self.show_strace = False
 
@@ -135,8 +139,8 @@ class test_weave_pairing_01(unittest.TestCase):
 
     def test_weave_pairing(self):
         # TODO: Once LwIP bugs are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")            
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+            print(hred("WARNING: Test skipped due to LwIP-based network cofiguration!"))            
             return
 
         # topology has nodes: ThreadNode, BorderRouter, onhub and NestService instance
@@ -187,28 +191,28 @@ class test_weave_pairing_01(unittest.TestCase):
     def __process_result(self, nodeA, nodeB, value, data):
         success = True
         for result, device_output, device_strace, device_info in zip(value, data['devices_output'], data['devices_strace'], data['devices_info']):
-            print "Service provision from " + device_info['resource']['id']+ " to real NestService using " + nodeB + " ",
+            print("Service provision from " + device_info['resource']['id']+ " to real NestService using " + nodeB + " ", end=' ')
 
             if result is True:
-                print hgreen("Passed")
+                print(hgreen("Passed"))
             else:
                 success = False
-                print hred("Failed")
+                print(hred("Failed"))
 
             try:
                 self.assertTrue(value, "result %s == True %%" % (str(result)))
-            except AssertionError, e:
-                print str(e)
-                print "Captured experiment result:"
+            except AssertionError as e:
+                print(str(e))
+                print("Captured experiment result:")
 
-                print "Device Output: "
+                print("Device Output: ")
                 for line in device_output.split("\n"):
-                   print "\t" + line
+                   print("\t" + line)
 
                 if self.show_strace == True:
-                    print " Device Strace: "
+                    print(" Device Strace: ")
                     for line in device_strace.split("\n"):
-                        print "\t" + line
+                        print("\t" + line)
 
             test_results = []
 

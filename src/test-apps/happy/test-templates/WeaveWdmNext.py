@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2017 Nest Labs, Inc.
@@ -22,6 +22,8 @@
 #       Implementes WeaveWdmNext Next class that tests Weave WDM Next among Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import re
 import sys
@@ -36,6 +38,7 @@ from happy.HappyNetwork import HappyNetwork
 from WeaveTest import WeaveTest
 import WeaveUtilities
 import plugins.plaid.Plaid as Plaid
+from functools import reduce
 
 options = { "clients": None,
             "server": None,
@@ -320,7 +323,7 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         if self.wdm_option == "view":
             self.wdm_client_option = " --wdm-simple-view-client"
             self.wdm_server_option = " --wdm-simple-view-server"
-            print "view disabled"
+            print("view disabled")
             sys.exit(1)
         elif self.wdm_option == "one_way_subscribe":
             self.wdm_client_option = " --wdm-one-way-sub-client"
@@ -351,17 +354,17 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
             result["no_server_leak_detected"] = not server_leak_detected
 
         if self.quiet is False:
-            print "weave-wdm-next %s from node %s (%s) to node %s (%s) : "\
-                  % (self.wdm_option, client_info["client_node_id"], client_info["client_ip"], self.server_node_id, self.server_ip)
+            print("weave-wdm-next %s from node %s (%s) to node %s (%s) : "\
+                  % (self.wdm_option, client_info["client_node_id"], client_info["client_ip"], self.server_node_id, self.server_ip))
 
             if client_parser_error is True:
-                print hred("client parser error")
+                print(hred("client parser error"))
             if client_leak_detected is True:
-                print hred("client_resource leak detected")
+                print(hred("client_resource leak detected"))
             if server_parser_error is True:
-                print hred("server parser error")
+                print(hred("server parser error"))
             if server_leak_detected is True:
-                print hred("server resource leak detected")
+                print(hred("server resource leak detected"))
 
         return result
 
@@ -572,11 +575,11 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
 
         if False:
             try:
-                print "cmd = \n" + cmd
-                print "sleeping..."
+                print("cmd = \n" + cmd)
+                print("sleeping...")
                 time.sleep(60*60)
             except:
-                print "sleep interrupted"
+                print("sleep interrupted")
 
         if self.use_plaid:
             custom_env = self.plaid.getPlaidClientLibEnv(client_info["client_node_id"])
@@ -646,7 +649,7 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
 
             success_dic = self.__process_results(client_output_data, server_output_data, client_info)
 
-            success = reduce(lambda x, y: x and y, success_dic.values())
+            success = reduce(lambda x, y: x and y, list(success_dic.values()))
 
 
             data = {}

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #       The server in the mean time modifies its trait instance once.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import getopt
 import sys
 import unittest
@@ -77,8 +79,8 @@ class test_weave_wdm_next_oneway_subscribe_faults(weave_wdm_next_test_base):
         wdm_next_args['client_faults'] = None
         wdm_next_args['server_faults'] = None
 
-        print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test one way with faults"
+        print('test file: ' + self.__class__.__name__)
+        print("weave-wdm-next test one way with faults")
 
         super(test_weave_wdm_next_oneway_subscribe_faults, self).weave_wdm_next_test_base(wdm_next_args)
 
@@ -102,7 +104,7 @@ class test_weave_wdm_next_oneway_subscribe_faults(weave_wdm_next_test_base):
         
             for fault_config in fault_configs:
                 wdm_next_args['test_tag'] = base_test_tag + "_" + str(num_tests) + "_" + node + "_" + fault_config
-                print wdm_next_args['test_tag']
+                print(wdm_next_args['test_tag'])
                 if node == 'client':
                     wdm_next_args['client_faults'] = fault_config
                     wdm_next_args['server_faults'] = None
@@ -128,15 +130,15 @@ if __name__ == "__main__":
         opts, args = getopt.getopt(sys.argv[1:], "h", longopts)
 
     except getopt.GetoptError as err:
-        print help_str
-        print hred(str(err))
+        print(help_str)
+        print(hred(str(err)))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     opts = gFaultopts.process_opts(opts)
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print help_str
+            print(help_str)
             sys.exit(0)
 
     sys.argv = [sys.argv[0]]

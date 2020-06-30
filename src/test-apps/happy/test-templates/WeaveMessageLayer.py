@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implementes WeaveMessageLayer class that tests Weave MessageLayer among Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -148,15 +150,15 @@ class WeaveMessageLayer(HappyNode, HappyNetwork, WeaveTest):
             total_count = line.split("message ")[1]
 
         if self.quiet == False:
-            print "weave-messagelayer test from node %s (%s) to node %s (%s) : " % \
+            print("weave-messagelayer test from node %s (%s) to node %s (%s) : " % \
                 (self.client_node_id, self.client_ip,
-                 self.server_node_id, self.server_ip),
+                 self.server_node_id, self.server_ip), end=' ')
 
             if total_count == str(self.count):
-                print hgreen("succeed!")
+                print(hgreen("succeed!"))
                 result = True
             else:
-                print hred("failed!") 
+                print(hred("failed!")) 
                 result = False
         return (result, output)
 

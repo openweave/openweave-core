@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #
 # This is WIP
 
+from __future__ import absolute_import
+from __future__ import print_function
 import getopt
 import sys
 import unittest
@@ -431,7 +433,7 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
                 return False
 
         wdm_next_args['test_tag'] = self.base_test_tag + "_" + str(self.num_tests) + "_" + scenario + "_" + conditionality + "_" + fault_config
-        print wdm_next_args['test_tag']
+        print(wdm_next_args['test_tag'])
         wdm_next_args['client_faults'] = fault_config
         wdm_next_args['client_update_conditionality'] = conditionality
 
@@ -500,8 +502,8 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
 
             node = 'client'
 
-            print 'test file: ' + self.__class__.__name__
-            print "weave-wdm-next test update with faults"
+            print('test file: ' + self.__class__.__name__)
+            print("weave-wdm-next test update with faults")
             super(test_weave_wdm_next_service_update_faults, self).weave_wdm_next_test_service_base(wdm_next_args)
 
         self.num_tests = 0
@@ -516,8 +518,8 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
         if (scenarios[0] == None):
             scenarios = gScenarios
 
-        print "scenarios: " + str(scenarios)
-        print "conditionalities: " + str(conditionalities)
+        print("scenarios: " + str(scenarios))
+        print("conditionalities: " + str(conditionalities))
 
         results = []
 
@@ -532,7 +534,7 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
             if not self.configure_test(scenario, conditionality):
                 continue
 
-            print "Testing: " + scenario + " " + conditionality
+            print("Testing: " + scenario + " " + conditionality)
 
             self.assertTrue(len(self.wdm_next_args["client_log_check"]) > 0, "will not run a test without log checks")
 
@@ -545,12 +547,12 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
                 num_failures = num_failures + 1
                 pass
             results.append(result + " " + scenario + " " + conditionality)
-            print results[-1]
+            print(results[-1])
             self.num_tests += 1
 
-        print "Executed " + str(self.num_tests) + " tests; " + str(num_failures) + " failures"
+        print("Executed " + str(self.num_tests) + " tests; " + str(num_failures) + " failures")
         if (results):
-            print "\n".join(results)
+            print("\n".join(results))
 
 
 
@@ -568,22 +570,22 @@ if __name__ == "__main__":
         opts, args = getopt.getopt(sys.argv[1:], "h", longopts)
 
     except getopt.GetoptError as err:
-        print help_str
-        print hred(str(err))
+        print(help_str)
+        print(hred(str(err)))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print help_str
+            print(help_str)
             sys.exit(0)
         if o in ("--conditionality"):
             if not (a in gConditionalities):
-                print help_str
+                print(help_str)
                 sys.exit(0)
             gOpts["conditionality"] = a
         if o in ("--scenario"):
             if not (a in gScenarios):
-                print help_str
+                print(help_str)
                 sys.exit(0)
             gOpts["scenario"] = a
 

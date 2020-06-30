@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Run Weave Service Directory Profile between a client and service.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -43,7 +45,7 @@ gOptions = { "fault-injection": False }
 
 class test_service_directory_01(unittest.TestCase):
     def setUp(self):
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.use_lwip = True
             topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.sh"
@@ -91,7 +93,7 @@ class test_service_directory_01(unittest.TestCase):
 
                 for fault_config in fault_configs:
                     test_tag = "_" + str(num_tests) + "_" + node + "_" + fault_config
-                    print "tag: " + test_tag
+                    print("tag: " + test_tag)
                     value, data = self.__run_service_directory_test_between("BorderRouter", "cloud", num_iterations = 3,
                                                                             faults = {node: fault_config}, test_tag = test_tag)
                     if not value:
@@ -100,11 +102,11 @@ class test_service_directory_01(unittest.TestCase):
                         self.assertTrue(value);
                     num_tests += 1
 
-        print "executed %d cases" % num_tests
-        print "failed %d cases:" % num_failed_tests
+        print("executed %d cases" % num_tests)
+        print("failed %d cases:" % num_failed_tests)
         if num_failed_tests > 0:
             for failed in failed_tests:
-                print "    " + failed
+                print("    " + failed)
         self.assertEqual(num_failed_tests, 0, "Something failed")
 
 
@@ -150,15 +152,15 @@ if __name__ == "__main__":
         opts, args = getopt.getopt(sys.argv[1:], "h", longopts)
 
     except getopt.GetoptError as err:
-        print help_str
-        print hred(str(err))
+        print(help_str)
+        print(hred(str(err)))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     opts = gFaultopts.process_opts(opts)
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print help_str
+            print(help_str)
             sys.exit(0)
 
         elif o in ("--fault-injection"):

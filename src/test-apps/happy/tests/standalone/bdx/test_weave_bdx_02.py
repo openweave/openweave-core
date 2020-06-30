@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       This file calls Weave BDX-v1 test between nodes with offset parameter.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import filecmp
 import itertools
 import os
@@ -38,12 +40,13 @@ import WeaveStateLoad
 import WeaveStateUnload
 import WeaveBDX
 import WeaveUtilities
+from six.moves import range
 
 class test_weave_bdx_02(unittest.TestCase):
     def setUp(self):
         self.tap = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
             self.tap = "wpan0"
@@ -102,37 +105,37 @@ class test_weave_bdx_02(unittest.TestCase):
     def __process_result(self, nodeA, nodeB, value, data, direction, copy_size):
 
         if direction == "download":
-            print "bdx download of " + str(copy_size) + "B from " + nodeA + " to " + nodeB + " ",
+            print("bdx download of " + str(copy_size) + "B from " + nodeA + " to " + nodeB + " ", end=' ')
         else:
-            print "bdx upload of " + str(copy_size) + "B from " + nodeB + " to " + nodeA + " ",
+            print("bdx upload of " + str(copy_size) + "B from " + nodeB + " to " + nodeA + " ", end=' ')
 
         if value:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
         else:
-            print hred("Failed")
+            print(hred("Failed"))
 
         try:
             self.assertTrue(value == True, "File Copied: " + str(value))
-        except AssertionError, e:
-            print str(e)
-            print "Captured experiment result:"
+        except AssertionError as e:
+            print(str(e))
+            print("Captured experiment result:")
 
-            print "Client Output: "
+            print("Client Output: ")
             for line in data["client_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
-            print "Server Output: "
+            print("Server Output: ")
             for line in data["server_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
             if self.show_strace:
-                print "Server Strace: "
+                print("Server Strace: ")
                 for line in data["server_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
-                print "Client Strace: "
+                print("Client Strace: ")
                 for line in data["client_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
         if not value:
             raise ValueError("Weave BDX Failed")
@@ -207,7 +210,7 @@ class test_weave_bdx_02(unittest.TestCase):
         receive_file_path = receive_path + "/" + file_name
 
         if not os.path.exists(receive_file_path):
-            print "A copy of a file does not exists"
+            print("A copy of a file does not exists")
             return False
 
         return filecmp.cmp(expected_file_path, receive_file_path)

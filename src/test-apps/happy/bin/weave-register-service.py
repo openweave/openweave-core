@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -28,6 +28,7 @@
 
 from __future__ import print_function
 
+from __future__ import absolute_import
 import getopt
 import logging
 import logging.handlers

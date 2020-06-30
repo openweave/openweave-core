@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -27,6 +27,8 @@
 # - the onhub router is connected to the Internet
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import getopt
 import os
 import set_test_path
@@ -35,6 +37,7 @@ import happy.HappyTopologyMgr
 import lib.WeaveTopologyMgr
 import sys
 import uuid
+from six.moves import range
 
 
 default_quiet = False
@@ -163,7 +166,7 @@ class thread_wifi_ap_internet_configurable_topology(object):
         self.topology.HappyStateDelete(quiet=self.quiet)
 
     def getISPPrefix(self):
-        if "weave_service_address" in os.environ.keys():
+        if "weave_service_address" in list(os.environ.keys()):
             prefix = os.environ['weave_service_address'].split(".")[-3][0:3]
         else:
             prefix = "test"
@@ -177,8 +180,8 @@ if __name__ == "__main__":
             ["help", "action=", "quiet", "fabric_id=", "customized_eui64_seed=", "tap=", "cellular", "mobile", "device_numbers=", "initial_device_index=", "enable_random_fabric"])
 
     except getopt.GetoptError as err:
-        print thread_wifi_ap_internet_configurable_topology.__doc__
-        print hred(str(err))
+        print(thread_wifi_ap_internet_configurable_topology.__doc__)
+        print(hred(str(err)))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     for o, a in opts:
@@ -219,11 +222,11 @@ if __name__ == "__main__":
             assert False, "unhandled option"
 
     if "action" not in options:
-        print thread_wifi_ap_internet_configurable_topology.__doc__
+        print(thread_wifi_ap_internet_configurable_topology.__doc__)
         sys.exit(0)
 
     if options["action"] not in ["create", "destroy"]:
-        print thread_wifi_ap_internet_configurable_topology.__doc__
+        print(thread_wifi_ap_internet_configurable_topology.__doc__)
         sys.exit(0)
 
     if ("fabric_id" in options) and ("customized_eui64_seed" in options):
@@ -231,7 +234,7 @@ if __name__ == "__main__":
         customized_eui64_seed = options["customized_eui64_seed"]
 
     else:
-        print thread_wifi_ap_internet_configurable_topology.__doc__
+        print(thread_wifi_ap_internet_configurable_topology.__doc__)
         sys.exit(0)
 
     if "device_numbers" in options:

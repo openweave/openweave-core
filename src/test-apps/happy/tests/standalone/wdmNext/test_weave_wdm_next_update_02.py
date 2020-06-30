@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -26,6 +26,8 @@
 #       and receives notification and status report
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 import set_test_path
 from weave_wdm_next_test_base import weave_wdm_next_test_base
@@ -67,8 +69,8 @@ class test_weave_wdm_next_update_02(weave_wdm_next_test_base):
         wdm_next_args['server_log_check'] = [('Send Update Response with profileId 0x0 statusCode 0x0', wdm_next_args['test_client_iterations'] * wdm_next_args['client_update_num_mutations'])]
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
         wdm_next_args['test_case_name'] = ['Update 02: Client creates mutual subscription, sends unconditional update request to publisher, and receives notification and status report']
-        print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next update test 02"
+        print('test file: ' + self.__class__.__name__)
+        print("weave-wdm-next update test 02")
         super(test_weave_wdm_next_update_02, self).weave_wdm_next_test_base(wdm_next_args)
 
 

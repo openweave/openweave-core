@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -24,6 +24,8 @@
 #       Tunnel tests between border-gateway and a service.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -36,7 +38,6 @@ from happy.HappyNode import HappyNode
 import happy.HappyNodeRoute
 import happy.HappyNetworkAddress
 
-import WeaveTunnelStop
 from WeaveTest import WeaveTest
 
 
@@ -172,10 +173,10 @@ class WeaveTunnelTest(HappyNode, HappyNetwork, WeaveTest):
                         testName = str
 
                 if "'FAILED'" in line:
-                    print hred(testName + ":" + " FAILED ")
+                    print(hred(testName + ":" + " FAILED "))
                     pass_test = False
                 if "'PASSED'" in line:
-                    print hgreen(testName + ":" + " PASSED ")
+                    print(hgreen(testName + ":" + " PASSED "))
 
 
         return (pass_test, client_output)

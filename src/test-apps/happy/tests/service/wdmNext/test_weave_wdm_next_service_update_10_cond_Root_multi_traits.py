@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -26,6 +26,8 @@
 #           StatusReport
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
@@ -66,8 +68,8 @@ class test_weave_wdm_next_service_update_10_cond_Root_multi_traits(weave_wdm_nex
 
         wdm_next_args['test_tag'] = self.__class__.__name__
         wdm_next_args['test_case_name'] = ['Wdm-NestService-O10: Client creates a mutual subscription, sends one UpdateRequest to the publisher with 4 full traits, and receives a StatusReport']
-        print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test O10"
+        print('test file: ' + self.__class__.__name__)
+        print("weave-wdm-next test O10")
         super(test_weave_wdm_next_service_update_10_cond_Root_multi_traits, self).weave_wdm_next_test_service_base(wdm_next_args)
 
 

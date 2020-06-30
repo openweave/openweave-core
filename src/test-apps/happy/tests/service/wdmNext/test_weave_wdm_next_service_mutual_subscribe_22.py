@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #       M33: Stress Mutual Subscribe: Initiator Continuous Events. Client in initiator cancels
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
@@ -50,8 +52,8 @@ class test_weave_wdm_next_service_mutual_subscribe_22(weave_wdm_next_test_servic
         wdm_next_args['test_tag'] = self.__class__.__name__
         wdm_next_args['test_case_name'] = ['Wdm-NestService-I09: Mutual Subscribe: Root path. Initiator Continuous Events. Mutate data in initiator. Client in initiator cancels',
                                            'Wdm-NestService-M33: Stress Mutual Subscribe: Root path. Initiator Continuous Events. Client in initiator cancels']
-        print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test I09 and M33"
+        print('test file: ' + self.__class__.__name__)
+        print("weave-wdm-next test I09 and M33")
         super(test_weave_wdm_next_service_mutual_subscribe_22, self).weave_wdm_next_test_service_base(wdm_next_args)
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #    Copyright (c) 2017 Nest Labs, Inc.
 #    All rights reserved.
@@ -24,6 +24,8 @@
 #          client -> (TimeSyncRequest) -> Tunnel -> Service Router
 #          client <- (TimeSyncResponse) <- Tunnel <- Service Router
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import re
@@ -61,7 +63,7 @@ class test_weave_time_01(unittest.TestCase):
         self.device_numbers = int(os.environ.get("DEVICE_NUMBERS", 3))
         fabric_seed = os.environ.get("FABRIC_SEED", DEFAULT_FABRIC_SEED)
 
-        if "FABRIC_OFFSET" in os.environ.keys():
+        if "FABRIC_OFFSET" in list(os.environ.keys()):
             self.fabric_id = format(int(fabric_seed, 16) + int(os.environ["FABRIC_OFFSET"]), 'x').zfill(5)
         else:
             self.fabric_id = fabric_seed
@@ -70,7 +72,7 @@ class test_weave_time_01(unittest.TestCase):
         self.customized_eui64_seed = self.eui64_prefix + self.fabric_id[0:2] + ':' + self.fabric_id[2:4] + ':' + self.fabric_id[4:]
 
         # TODO: Once LwIP bugs for tunnel are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.tap = True
             self.tap_id = "wpan0"
             return
@@ -88,7 +90,7 @@ class test_weave_time_01(unittest.TestCase):
 
             self.topology.createTopology()
         else:
-            print "topology set up not required"
+            print("topology set up not required")
 
         self.show_strace = False
 
@@ -182,15 +184,15 @@ class test_weave_time_01(unittest.TestCase):
         found = re.search(condition, data["client_output"])
         if found:
             success = True
-            print hgreen("Passed")
+            print(hgreen("Passed"))
         else:
             success = False
-            print hred("Failed")
-            print "Captured experiment result:"
+            print(hred("Failed"))
+            print("Captured experiment result:")
 
-            print "Client Output: "
+            print("Client Output: ")
             for line in data["client_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
         test_results = []
 

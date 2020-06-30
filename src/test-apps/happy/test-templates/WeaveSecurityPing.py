@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implementes WeaveiSecurityPing class that tests Weave Security Ping(CASE, PASE) among Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -270,7 +272,7 @@ class WeaveSecurityPing(HappyNode, HappyNetwork, WeaveTest):
             for token in line.split():
                 if "%" in token:
                     loss_percentage = token.strip().split("(")[1]
-                    loss_percentage = loss_percentage.translate(None, "()%")
+                    loss_percentage = loss_percentage.translate(str.maketrans(dict.fromkeys("()%")))
 
         if loss_percentage == None:
             # hmmm, we haven't found our line
@@ -280,14 +282,14 @@ class WeaveSecurityPing(HappyNode, HappyNetwork, WeaveTest):
             loss_percentage = 100 - loss_percentage
 
         if self.quiet == False:
-            print "weave-security-ping from node %s (%s) to node %s (%s) : " % \
+            print("weave-security-ping from node %s (%s) to node %s (%s) : " % \
                 (self.client_node_id, self.client_ip,
-                 self.server_node_id, self.server_ip),
+                 self.server_node_id, self.server_ip), end=' ')
 
             if loss_percentage == 0:
-                print hgreen("%d%% packet loss" % (loss_percentage))
+                print(hgreen("%d%% packet loss" % (loss_percentage)))
             else:
-                print hred("%d%% packet loss" % (loss_percentage))
+                print(hred("%d%% packet loss" % (loss_percentage)))
 
         return (loss_percentage, output) # indicate the loss for each client
 

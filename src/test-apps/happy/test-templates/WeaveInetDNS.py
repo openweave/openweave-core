@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeaveInet class that tests Weave Inet Layer among Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -134,7 +136,7 @@ class WeaveInetDNS(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --tap-device " + self.tap_if + " -a " + node_ip + " --ipv4-gateway " + self.ipv4_gateway + \
                     " --dns-server " + self.dns
 
-        print "dns check command : {}".format(cmd)
+        print("dns check command : {}".format(cmd))
         self.start_weave_process(self.node_id, cmd, self.node_process_tag, sync_on_output=self.ready_to_service_events_str)
 
 

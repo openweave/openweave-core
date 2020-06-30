@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2017 Nest Labs, Inc.
@@ -23,6 +23,8 @@
 #       and private keys for test Weave devices and service endpoints.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import glob
 import re
@@ -204,7 +206,7 @@ class WeaveCerts():
             id = match.groups()[0]
             file_type = match.groups()[1]
 
-            if id not in self.device_certs.keys():
+            if id not in list(self.device_certs.keys()):
                 self.device_certs[id] = {}
             self.device_certs[id][file_type] = abs_path
 
@@ -264,10 +266,10 @@ if __name__ == '__main__':
     if device_certs:
         node_id = random.choice(list(device_certs))
         node_cert = device_certs[node_id]
-        print "id: %s\ncert: %s\nkey: %s" % (node_id, node_cert['cert'], node_cert['key'])
-        print node_id, ": ", json.dumps(node_cert, indent=4)
+        print("id: %s\ncert: %s\nkey: %s" % (node_id, node_cert['cert'], node_cert['key']))
+        print(node_id, ": ", json.dumps(node_cert, indent=4))
 
     se_certs = weave_certs.getServiceEndpointCerts()
     if se_certs:
         tunnel_cert = se_certs["tunnel"]
-        print "tunnel: ", json.dumps(tunnel_cert, indent=4)
+        print("tunnel: ", json.dumps(tunnel_cert, indent=4))

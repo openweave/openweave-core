@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #       Copyright (c) 2015-2017  Nest Labs, Inc.
 #       All rights reserved.
@@ -22,6 +22,8 @@
 #       1. ping test: ThreadNode -> BorderRouter (border gw) -> tunnel + case -> cloud
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -41,7 +43,7 @@ class test_weave_tunnel_04(unittest.TestCase):
     def setUp(self):
         self.tap = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.json"
             self.tap = "wpan0"
@@ -76,8 +78,8 @@ class test_weave_tunnel_04(unittest.TestCase):
 
     def test_weave_tunnel(self):
         # TODO: Once LwIP bugs are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+            print(hred("WARNING: Test skipped due to LwIP-based network cofiguration!"))
             return
 
         # topology has nodes: ThreadNode, BorderRouter, onhub and cloud
@@ -135,37 +137,37 @@ class test_weave_tunnel_04(unittest.TestCase):
 
 
     def __process_result(self, nodeA, nodeB, value, data):
-        print "ping from " + nodeA + " to " + nodeB + " ",
+        print("ping from " + nodeA + " to " + nodeB + " ", end=' ')
 
         if value > 11:
-            print hred("Failed")
+            print(hred("Failed"))
         else:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
 
         try:
             self.assertTrue(value < 11, "%s < 11 %%" % (str(value)))
-        except AssertionError, e:
-            print str(e)
-            print "Captured experiment result:"
+        except AssertionError as e:
+            print(str(e))
+            print("Captured experiment result:")
 
             data = data[0]
 
-            print "Client Output: "
+            print("Client Output: ")
             for line in data["client_output"].split("\n"):
-               print "\t" + line
+               print("\t" + line)
 
-            print "Server Output: "
+            print("Server Output: ")
             for line in data["server_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
             if self.show_strace == True:
-                print "Server Strace: "
+                print("Server Strace: ")
                 for line in data["server_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
-                print "Client Strace: "
+                print("Client Strace: ")
                 for line in data["client_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
         if value > 11:
             raise ValueError("Weave Ping over Weave Tunnel Failed")

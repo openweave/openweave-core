@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #       detection, fault-injection, etc)
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import re
 import pprint
@@ -36,6 +38,7 @@ import plugins.plaid.Plaid as Plaid
 
 
 from happy.Utils import *
+from six.moves import range
 
 def scan_for_leaks_and_parser_errors(test_output):
     parser_error = False
@@ -122,14 +125,14 @@ def validate_counters(keys, counters, node_name):
             missing.append(key)
     if missing:
         msg = "The happy sequence did not cover " + str(missing) + " on " + node_name
-        print hred(msg)
+        print(hred(msg))
         raise ValueError(msg)
     return True
 
 
 def test_parse_fault_injection_counters():
 
-    print "test_parse_fault_injection_counters"
+    print("test_parse_fault_injection_counters")
 
     test_output = '''
         WDMClient_NumCancelInUse:       0
@@ -162,14 +165,14 @@ def test_parse_fault_injection_counters():
               counters["WeaveSys_TimeoutImmediate"] == str(0)
 
     if result:
-        print "passed"
+        print("passed")
     else:
-        print "failed"
+        print("failed")
 
 
 def test_scan_for_resource_leak():
 
-    print "test_scan_for_resource_leak"
+    print("test_scan_for_resource_leak")
 
     test_output = '''
     some log line
@@ -199,7 +202,7 @@ def test_scan_for_resource_leak():
     result = "failed"
     if leak_detected:
         result = "passed"
-    print "Test 1: " + result
+    print("Test 1: " + result)
 
     test_output = '''
     some log line
@@ -211,7 +214,7 @@ def test_scan_for_resource_leak():
     if scan_result == None:
         result = "passed"
 
-    print "Test 2: " + result
+    print("Test 2: " + result)
 
     test_output = '''
     some log line
@@ -224,10 +227,10 @@ def test_scan_for_resource_leak():
     if leak_detected == False:
         result = "passed"
 
-    print "Test 3: " + result
+    print("Test 3: " + result)
 
 def test_scan_for_leaks_and_parser_errors():
-    print "test_scan_for_leaks_and_parser_errors"
+    print("test_scan_for_leaks_and_parser_errors")
 
     test_output = '''
     some log line
@@ -256,7 +259,7 @@ def test_scan_for_leaks_and_parser_errors():
     result = "failed"
     if leak_detected and not parser_error:
         result = "passed"
-    print result
+    print(result)
 
 
 class FaultInjectionOptions:
@@ -289,27 +292,27 @@ class FaultInjectionOptions:
         return: a copy of the list of options minus the fault-injection options
         """
         ret_opts = []
-	for o, a in opts:
-	    if o in ("--faultid"):
-		self.configuration["faultid"] = a
-	    elif o in ("--faultskip"):
-		self.configuration["faultskip"] = int(a)
-	    elif o in ("--failonly"):
-		if a in self.nodes:
-		    self.configuration["failonly"] = a
-		else:
-		    print self.help_string
-		    sys.exit(1)
-            elif o in ("--group"):
-                num = int(a)
-                if num <= 0:
-                    print self.help_string
+        for o, a in opts:
+            if o in ("--faultid"):
+                self.configuration["faultid"] = a
+            elif o in ("--faultskip"):
+                self.configuration["faultskip"] = int(a)
+            elif o in ("--failonly"):
+                if a in self.nodes:
+                    self.configuration["failonly"] = a
+                else:
+                    print(self.help_string)
                     sys.exit(1)
-                self.configuration["group"] = num
+            elif o in ("--group"):
+                    num = int(a)
+                    if num <= 0:
+                        print(self.help_string)
+                        sys.exit(1)
+                    self.configuration["group"] = num
             elif o in ("--numgroups"):
                 num = int(a)
                 if num < 0:
-                    print self.help_string
+                    print(self.help_string)
                     sys.exit(1)
                 self.configuration["numgroups"] = num
             elif o in ("--nofaults"):
@@ -318,11 +321,11 @@ class FaultInjectionOptions:
                 ret_opts.append((o, a))
 
         if (self.configuration["group"] != None) != (self.configuration["numgroups"] != None):
-            print self.help_string
+            print(self.help_string)
             sys.exit(1)
 
         if (self.configuration["group"] and self.configuration["group"] > self.configuration["numgroups"]):
-            print self.help_string
+            print(self.help_string)
             sys.exit(1)
 
         return ret_opts
@@ -391,7 +394,7 @@ class FaultInjectionOptions:
             fault_counters = parse_fault_injection_counters(outputlog)
             fault_instance_parameters = self.parse_fault_instance_parameters(outputlog)
 
-            print node + ' fault counters: '
+            print(node + ' fault counters: ')
             pprint.pprint(fault_counters)
 
             if fault_ids[0] == None:
@@ -426,18 +429,18 @@ class FaultInjectionOptions:
 
 
     def __get_skip_range(self, fault_counter_value):
-	skip_range = range(fault_counter_value)
-	if self.configuration['faultskip'] is not None:
-	    skip_range = [ self.configuration['faultskip'] ]
+        skip_range = list(range(fault_counter_value))
+        if self.configuration['faultskip'] is not None:
+            skip_range = [ self.configuration['faultskip'] ]
 
-	return skip_range
+        return skip_range
 
 def cleanup_after_exception():
-    print "Deleting Happy state.."
+    print("Deleting Happy state..")
     opts = happy.HappyStateDelete.option()
     state_delete = happy.HappyStateDelete.HappyStateDelete(opts)
     state_delete.run()
-    print "Happy state deleted."
+    print("Happy state deleted.")
 
 
 def run_unittest():
@@ -467,13 +470,13 @@ def run_unittest():
         unittest.main()
 
     except KeyboardInterrupt:
-        print "\n\nWeaveUtilities.run_unittest caught KeyboardInterrupt"
+        print("\n\nWeaveUtilities.run_unittest caught KeyboardInterrupt")
         cleanup_after_exception()
         raise
 
     except SystemExit as e:
         if e.args[0] not in [0, False]:
-            print "\n\nWeaveUtilities.run_unittest caught some kind of test error or failure"
+            print("\n\nWeaveUtilities.run_unittest caught some kind of test error or failure")
             cleanup_after_exception()
         raise e
     finally:

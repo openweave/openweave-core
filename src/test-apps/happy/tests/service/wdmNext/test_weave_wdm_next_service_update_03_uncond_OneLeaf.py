@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -24,6 +24,8 @@
 #       O01: Update: Client send update request to publisher, and receive status report
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
@@ -57,8 +59,8 @@ class test_weave_wdm_next_service_update_03_uncond_OneLeaf(weave_wdm_next_test_s
 
         wdm_next_args['test_tag'] = self.__class__.__name__
         wdm_next_args['test_case_name'] = ['Wdm-NestService-O03: Client creates mutual subscription, sends an unconditional UpdateRequest to publisher, and receives a StatusReport']
-        print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test O03"
+        print('test file: ' + self.__class__.__name__)
+        print("weave-wdm-next test O03")
         super(test_weave_wdm_next_service_update_03_uncond_OneLeaf, self).weave_wdm_next_test_service_base(wdm_next_args)
 
 

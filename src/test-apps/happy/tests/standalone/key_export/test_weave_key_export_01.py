@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2017 Nest Labs, Inc.
@@ -22,6 +22,8 @@
 #       Calls Key Export Protocol between nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -73,48 +75,48 @@ class test_weave_key_export_01(unittest.TestCase):
             return
 
         #                                                nodeA,    nodeB,    udp,  tcp,   wrmp,  key_id,    sign_msfs, test_tag
-        print "Start Key Export over UDP"
+        print("Start Key Export over UDP")
         value, data = self.__run_key_export_test_between("node01", "node02", True, False, False, 0x00010400, True, "_KEY_EXPORT_UDP")
         self.__process_result("node01", "node02", value, data)
 
-        print "Start Key Export over UDP + WRMP"
+        print("Start Key Export over UDP + WRMP")
         value, data = self.__run_key_export_test_between("node01", "node02", True, False, True, 0x00010400, True, "_KEY_EXPORT_UDP_WRMP")
         self.__process_result("node01", "node02", value, data)
 
-        print "Start Key Export over TCP"
+        print("Start Key Export over TCP")
         value, data = self.__run_key_export_test_between("node01", "node02", False, True, False, 0x00010400, True, "_KEY_EXPORT_TCP")
         self.__process_result("node01", "node02", value, data)
 
     def __process_result(self, nodeA, nodeB, value, data):
-        print " " + nodeA + " requested key export from " + nodeB + " ",
+        print(" " + nodeA + " requested key export from " + nodeB + " ", end=' ')
 
         if value > 0:
-            print hred("Failed")
+            print(hred("Failed"))
         else:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
 
         try:
             self.assertTrue(value == 0, "%s > 0 %%" % (str(value)))
-        except AssertionError, e:
-            print str(e)
-            print "Captured experiment result:"
+        except AssertionError as e:
+            print(str(e))
+            print("Captured experiment result:")
 
-            print "Client Output: "
+            print("Client Output: ")
             for line in data["client_output"].split("\n"):
-               print "\t" + line
+               print("\t" + line)
 
-            print "Server Output: "
+            print("Server Output: ")
             for line in data["server_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
             if self.show_strace == True:
-                print "Server Strace: "
+                print("Server Strace: ")
                 for line in data["server_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
-                print "Client Strace: "
+                print("Client Strace: ")
                 for line in data["client_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
         if value > 0:
             raise ValueError("Weave Key Export Failed")

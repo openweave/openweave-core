@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -27,6 +27,8 @@
 #       Also available: fault-injection (enabled via command-line option)
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import getopt
@@ -49,7 +51,7 @@ class test_weave_time_01(unittest.TestCase):
     def setUp(self):
         self.tap = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
             self.tap = "wpan0"
@@ -143,8 +145,8 @@ class test_weave_time_01(unittest.TestCase):
             fault_configs = gFaultOpts.generate_fault_config_list(node, output_logs[node], restart) 
 
             for fault_config in fault_configs:
-                test_tag = "_" + "_".join([str(x) for x in num_tests, node, fault_config])
-                print "tag: ", test_tag
+                test_tag = "_" + "_".join([str(x) for x in (num_tests, node, fault_config)])
+                print("tag: ", test_tag)
 
                 if self.use_plaid:
                     # print "starting plaid server"
@@ -165,24 +167,24 @@ class test_weave_time_01(unittest.TestCase):
 
                 num_tests += 1
 
-        print "executed %d cases" % num_tests
-        print "failed %d cases:" % num_failed_tests
+        print("executed %d cases" % num_tests)
+        print("failed %d cases:" % num_failed_tests)
         if num_failed_tests > 0:
             for failed in failed_tests:
-                print "    " + failed
+                print("    " + failed)
         self.assertEqual(num_failed_tests, 0, "Something failed")
 
 
     def __process_result(self, nodeA, nodeB, nodeC, mode, value):
-        print "time sync test among client:" + nodeA + \
+        print("time sync test among client:" + nodeA + \
               ", coordinator:" + nodeB + ", server:" + nodeC + \
-              ", sync mode:" + mode
+              ", sync mode:" + mode)
 
         if value:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
             failed = False
         else:
-            print hred("Failed")
+            print(hred("Failed"))
             failed = True
 
         return failed
@@ -239,15 +241,15 @@ if __name__ == "__main__":
         opts, args = getopt.getopt(sys.argv[1:], "hfm:", longopts)
 
     except getopt.GetoptError as err:
-        print help_str
-        print hred(str(err))
+        print(help_str)
+        print(hred(str(err)))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     opts = gFaultOpts.process_opts(opts)
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print help_str
+            print(help_str)
             sys.exit(0)
 
         elif o in ("-m", "--syncmode"):

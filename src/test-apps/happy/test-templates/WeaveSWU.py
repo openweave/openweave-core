@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeaveSWU class that tests Weave SWU among two Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 
 from happy.ReturnMsg import ReturnMsg
@@ -245,13 +247,13 @@ class WeaveSWU(HappyNode, HappyNetwork, WeaveTest):
                 break
 
         if self.quiet == False:
-            print "weave-swu from server %s (%s) to client %s (%s) : " % \
+            print("weave-swu from server %s (%s) to client %s (%s) : " % \
                 (self.server_node_id, self.server_ip,
-                 self.client_node_id, self.client_ip)
+                 self.client_node_id, self.client_ip))
             if pass_test:
-                print hgreen("SWU interaction is completed")
+                print(hgreen("SWU interaction is completed"))
             else:
-                print hred("SWU interaction is not completed")
+                print(hred("SWU interaction is not completed"))
 
         return (pass_test, client_output)
 

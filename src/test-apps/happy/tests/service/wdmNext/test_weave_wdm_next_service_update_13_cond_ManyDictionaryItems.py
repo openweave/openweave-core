@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -24,6 +24,8 @@
 #       O13: Update: Client sends an update request to the publisher with a large number of DataElements.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
@@ -60,8 +62,8 @@ class test_weave_wdm_next_service_update_13_cond_ManyDictionaryItems(weave_wdm_n
 
         wdm_next_args['test_tag'] = self.__class__.__name__
         wdm_next_args['test_case_name'] = ['Wdm-NestService-O13: Client creates a mutual subscription, sends a conditional UpdateRequest to publisher with many dictionary items']
-        print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test O13"
+        print('test file: ' + self.__class__.__name__)
+        print("weave-wdm-next test O13")
         super(test_weave_wdm_next_service_update_13_cond_ManyDictionaryItems, self).weave_wdm_next_test_service_base(wdm_next_args)
 
 

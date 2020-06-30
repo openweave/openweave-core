@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #       The command is executed by instantiating and running WeaveSecurityPing class.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import getopt
 import sys
 import set_test_path
@@ -41,13 +43,13 @@ if __name__ == "__main__":
                          "CASE", "PASE", "group-key", "group-key-id=", "quiet", "tap=",
                          "server_faults=", "client_faults="])
 	except getopt.GetoptError as err:
-		print WeaveSecurityPing.WeaveSecurityPing.__doc__
-		print hred(str(err))
+		print(WeaveSecurityPing.WeaveSecurityPing.__doc__)
+		print(hred(str(err)))
                 sys.exit(hred("%s: Failed server parse arguments." % (__file__)))
 
 	for o, a in opts:
 		if o in ("-h", "--help"):
-			print WeaveSecurityPing.WeaveSecurityPing.__doc__
+			print(WeaveSecurityPing.WeaveSecurityPing.__doc__)
 			sys.exit(0)
 
 		elif o in ("-q", "--quiet"):
