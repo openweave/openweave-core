@@ -49,7 +49,7 @@ DIST_SUBDIRS                                 = \
 # of the 'distclean' target. Consequently, we conditionally include
 # them in DIST_SUBDIRS on invocation of 'distclean-recursive'
 
-distclean-recursive: DIST_SUBDIRS += $(BLUEZ_SUBDIRS) $(NLASSERT_SUBDIRS) $(NLFAULTINJECTION_SUBDIRS) $(NLIO_SUBDIRS) $(NLUNIT_TEST_SUBDIRS)
+distclean-recursive: DIST_SUBDIRS += $(BLUEZ_SUBDIRS) $(QCBOR_SUBDIRS) $(NLASSERT_SUBDIRS) $(NLFAULTINJECTION_SUBDIRS) $(NLIO_SUBDIRS) $(NLUNIT_TEST_SUBDIRS)
 
 # Always build (e.g. for 'make all') these subdirectories.
 #
@@ -58,6 +58,7 @@ distclean-recursive: DIST_SUBDIRS += $(BLUEZ_SUBDIRS) $(NLASSERT_SUBDIRS) $(NLFA
 # the third-party packages listed in repos.conf>=internal
 
 SUBDIRS                                      = \
+    $(QCBOR_SUBDIRS)                           \
     android/platform-system/core-mincrypt      \
     $(BLUEZ_SUBDIRS)                           \
     micro-ecc                                  \

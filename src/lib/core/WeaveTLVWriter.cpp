@@ -175,6 +175,9 @@ void TLVWriter::Init(uint8_t *buf, uint32_t maxLen)
     ImplicitProfileId = kProfileIdNotSpecified;
     GetNewBuffer = NULL;
     FinalizeBuffer = NULL;
+
+    lMutableBuf = (UsefulBuf){ buf, maxLen};
+    QCBOREncode_Init(&lEncodeContext, lMutableBuf);
 }
 
 /**
@@ -206,6 +209,9 @@ void TLVWriter::Init(PacketBuffer *buf, uint32_t maxLen)
     ImplicitProfileId = kProfileIdNotSpecified;
     GetNewBuffer = NULL;
     FinalizeBuffer = FinalizePacketBuffer;
+
+    lMutableBuf = (UsefulBuf){ buf->Start(), buf->DataLength()};
+    QCBOREncode_Init(&lEncodeContext, lMutableBuf);
 }
 
 /**
@@ -250,7 +256,14 @@ void TLVWriter::Init(PacketBuffer *buf, uint32_t maxLen, bool allowDiscontiguous
  */
 uint32_t TLVWriter::GetLengthWritten()
 {
-    return mLenWritten;
+    return lEncodedSize;
+    //return mLenWritten;
+}
+
+const uint8_t * TLVWriter::GetUsefulBufferStart()
+{
+    return (const uint8_t * )lEncodeContext.OutBuf.UB.ptr;
+    //return mLenWritten;
 }
 
 /**
@@ -271,10 +284,15 @@ uint32_t TLVWriter::GetLengthWritten()
 WEAVE_ERROR TLVWriter::Finalize()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    err = QCBOREncode_FinishGetSize(&lEncodeContext, &lEncodedSize);
+    return err;
+
+    /*
     if (IsContainerOpen())
         return WEAVE_ERROR_TLV_CONTAINER_OPEN;
     if (FinalizeBuffer != NULL)
         err = FinalizeBuffer(*this, mBufHandle, mBufStart, mWritePoint - mBufStart);
+    */
     return err;
 }
 
@@ -306,7 +324,17 @@ WEAVE_ERROR TLVWriter::Finalize()
  */
 WEAVE_ERROR TLVWriter::PutBoolean(uint64_t tag, bool v)
 {
-    return WriteElementHead((v) ? kTLVElementType_BooleanTrue : kTLVElementType_BooleanFalse, tag, 0);
+    if (mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_AddBoolToMapN(&lEncodeContext, tag, v);
+    }
+    else
+    {
+        QCBOREncode_AddTag(&lEncodeContext, tag);
+        QCBOREncode_AddBool(&lEncodeContext, v);
+    }
+
+    return QCBOREncode_GetErrorState(&lEncodeContext);
 }
 
 /**
@@ -372,10 +400,12 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint8_t v)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint8_t v, bool preserveSize)
 {
+    /*
     if (preserveSize)
         return WriteElementHead(kTLVElementType_UInt8, tag, v);
     else
-        return Put(tag, v);
+     */
+    return Put(tag, v);
 }
 
 /**
@@ -391,10 +421,12 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint16_t v)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint16_t v, bool preserveSize)
 {
+    /*
     if (preserveSize)
         return WriteElementHead(kTLVElementType_UInt16, tag, v);
     else
-        return Put(tag, v);
+     */
+    return Put(tag, v);
 }
 
 /**
@@ -410,10 +442,12 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint32_t v)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint32_t v, bool preserveSize)
 {
+    /*
     if (preserveSize)
         return WriteElementHead(kTLVElementType_UInt32, tag, v);
     else
-        return Put(tag, v);
+     */
+    return Put(tag, v);
 }
 
 /**
@@ -421,6 +455,18 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint32_t v, bool preserveSize)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint64_t v)
 {
+    if (mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_AddUInt64ToMapN(&lEncodeContext, tag, v);
+    }
+    else
+    {
+        QCBOREncode_AddTag(&lEncodeContext, tag);
+        QCBOREncode_AddUInt64(&lEncodeContext, v);
+    }
+
+    return QCBOREncode_GetErrorState(&lEncodeContext);
+    /*
     TLVElementType elemType;
     if (v <= UINT8_MAX)
         elemType = kTLVElementType_UInt8;
@@ -431,6 +477,7 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint64_t v)
     else
         elemType = kTLVElementType_UInt64;
     return WriteElementHead(elemType, tag, v);
+     */
 }
 
 /**
@@ -438,10 +485,12 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint64_t v)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, uint64_t v, bool preserveSize)
 {
+    /*
     if (preserveSize)
         return WriteElementHead(kTLVElementType_UInt64, tag, v);
     else
-        return Put(tag, v);
+     */
+    return Put(tag, v);
 }
 
 /**
@@ -507,10 +556,12 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, int8_t v)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, int8_t v, bool preserveSize)
 {
+    /*
     if (preserveSize)
         return WriteElementHead(kTLVElementType_Int8, tag, v);
     else
-        return Put(tag, v);
+     */
+    return Put(tag, v);
 }
 
 /**
@@ -526,10 +577,12 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, int16_t v)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, int16_t v, bool preserveSize)
 {
+    /*
     if (preserveSize)
         return WriteElementHead(kTLVElementType_Int16, tag, v);
     else
-        return Put(tag, v);
+     */
+    return Put(tag, v);
 }
 
 /**
@@ -545,10 +598,12 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, int32_t v)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, int32_t v, bool preserveSize)
 {
+    /*
     if (preserveSize)
         return WriteElementHead(kTLVElementType_Int32, tag, v);
     else
-        return Put(tag, v);
+    */
+    return Put(tag, v);
 }
 
 /**
@@ -556,6 +611,18 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, int32_t v, bool preserveSize)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, int64_t v)
 {
+    if (mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_AddInt64ToMapN(&lEncodeContext, tag, v);
+    }
+    else
+    {
+        QCBOREncode_AddTag(&lEncodeContext, tag);
+        QCBOREncode_AddInt64(&lEncodeContext, v);
+    }
+
+    return QCBOREncode_GetErrorState(&lEncodeContext);
+    /*
     TLVElementType elemType;
     if (v >= INT8_MIN && v <= INT8_MAX)
         elemType = kTLVElementType_Int8;
@@ -566,6 +633,7 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, int64_t v)
     else
         elemType = kTLVElementType_Int64;
     return WriteElementHead(elemType, tag, v);
+     */
 }
 
 /**
@@ -573,10 +641,12 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, int64_t v)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, int64_t v, bool preserveSize)
 {
+    /*
     if (preserveSize)
         return WriteElementHead(kTLVElementType_Int64, tag, v);
     else
-        return Put(tag, v);
+     */
+    return Put(tag, v);
 }
 
 /**
@@ -584,6 +654,19 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, int64_t v, bool preserveSize)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, float v)
 {
+    if (mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_AddDoubleToMapN(&lEncodeContext, tag, v);
+    }
+    else
+    {
+        QCBOREncode_AddTag(&lEncodeContext, tag);
+        QCBOREncode_AddDouble(&lEncodeContext, v);
+    }
+
+    return QCBOREncode_GetErrorState(&lEncodeContext);
+
+    /*
     union
     {
         float f;
@@ -591,6 +674,7 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, float v)
     } cvt;
     cvt.f = v;
     return WriteElementHead(kTLVElementType_FloatingPointNumber32, tag, cvt.u32);
+     */
 }
 
 /**
@@ -621,6 +705,18 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, float v)
  */
 WEAVE_ERROR TLVWriter::Put(uint64_t tag, double v)
 {
+    if (mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_AddDoubleToMapN(&lEncodeContext, tag, v);
+    }
+    else
+    {
+        QCBOREncode_AddTag(&lEncodeContext, tag);
+        QCBOREncode_AddDouble(&lEncodeContext, v);
+    }
+
+    return QCBOREncode_GetErrorState(&lEncodeContext);
+    /*
     union
     {
         double d;
@@ -628,6 +724,7 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, double v)
     } cvt;
     cvt.d = v;
     return WriteElementHead(kTLVElementType_FloatingPointNumber64, tag, cvt.u64);
+     */
 }
 
 /**
@@ -659,7 +756,24 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, double v)
  */
 WEAVE_ERROR TLVWriter::PutBytes(uint64_t tag, const uint8_t *buf, uint32_t len)
 {
+    UsefulBufC usefulBuf;
+    usefulBuf.ptr = buf;
+    usefulBuf.len = len;
+
+    if (mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_AddBytesToMapN(&lEncodeContext, tag, usefulBuf);
+    }
+    else
+    {
+        QCBOREncode_AddTag(&lEncodeContext, tag);
+        QCBOREncode_AddBytes(&lEncodeContext, usefulBuf);
+    }
+
+    return QCBOREncode_GetErrorState(&lEncodeContext);
+    /*
     return WriteElementWithData(kTLVType_ByteString, tag, (const uint8_t *) buf, len);
+     */
 }
 
 /**
@@ -722,7 +836,18 @@ WEAVE_ERROR TLVWriter::PutString(uint64_t tag, const char *buf)
  */
 WEAVE_ERROR TLVWriter::PutString(uint64_t tag, const char *buf, uint32_t len)
 {
-    return WriteElementWithData(kTLVType_UTF8String, tag, (const uint8_t *) buf, len);
+    if (mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_AddSZStringToMapN(&lEncodeContext, tag, buf);
+    }
+    else
+    {
+        QCBOREncode_AddTag(&lEncodeContext, tag);
+        QCBOREncode_AddSZString(&lEncodeContext, buf);
+    }
+
+    return QCBOREncode_GetErrorState(&lEncodeContext);
+    //return WriteElementWithData(kTLVType_UTF8String, tag, (const uint8_t *) buf, len);
 }
 
 /**
@@ -772,6 +897,7 @@ WEAVE_ERROR TLVWriter::PutString(uint64_t tag, const char *buf, uint32_t len)
  *               `WriteElementHead` or `GetNewBuffer` -- failed, their
  *               error is immediately forwarded up the call stack.
  */
+/*
 WEAVE_ERROR TLVWriter::PutStringF(uint64_t tag, const char *fmt, ...)
 {
     WEAVE_ERROR err;
@@ -785,7 +911,7 @@ WEAVE_ERROR TLVWriter::PutStringF(uint64_t tag, const char *fmt, ...)
 
     return err;
 }
-
+*/
 
 #if CONFIG_HAVE_VCBPRINTF
 // We have a variant of the printf function that takes a callback that
@@ -846,6 +972,7 @@ void TLVWriter::WeaveTLVWriterPutcharCB(uint8_t c, void *appState)
  *               `WriteElementHead` or `GetNewBuffer` -- failed, their
  *               error is immediately forwarded up the call stack.
  */
+ /*
 WEAVE_ERROR TLVWriter::VPutStringF(uint64_t tag, const char *fmt, va_list ap)
 {
     va_list aq;
@@ -968,7 +1095,7 @@ exit:
 
     return err;
 }
-
+*/
 
 /**
  * Encodes a TLV null value.
@@ -997,7 +1124,17 @@ exit:
  */
 WEAVE_ERROR TLVWriter::PutNull(uint64_t tag)
 {
-    return WriteElementHead(kTLVElementType_Null, tag, 0);
+    if (mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_AddNULLToMapN(&lEncodeContext, tag);
+    }
+    else
+    {
+        QCBOREncode_AddTag(&lEncodeContext, tag);
+        QCBOREncode_AddNULL(&lEncodeContext);
+    }
+
+    return QCBOREncode_GetErrorState(&lEncodeContext);
 }
 
 /**
@@ -1196,6 +1333,40 @@ WEAVE_ERROR TLVWriter::OpenContainer(uint64_t tag, TLVType containerType, TLVWri
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    containerWriter.mBufStart = mBufStart;
+    containerWriter.mMaxLen = mMaxLen;
+    containerWriter.lEncodeContext = lEncodeContext;
+    containerWriter.mContainerType = containerType;
+    containerWriter.lMutableBuf = lMutableBuf;
+
+    if (containerType == kTLVType_Structure)
+    {
+        if (containerWriter.mContainerType == kTLVType_Structure)
+        {
+            QCBOREncode_OpenMapInMapN(&(containerWriter.lEncodeContext), tag);
+        }
+        else
+        {
+            QCBOREncode_AddTag(&(containerWriter.lEncodeContext), tag);
+            QCBOREncode_OpenMap(&(containerWriter.lEncodeContext));
+        }
+    }
+    else if (containerType == kTLVType_Path || containerType == kTLVType_Array)
+    {
+        //array or path
+        if (containerWriter.mContainerType == kTLVType_Structure)
+        {
+            QCBOREncode_OpenArrayInMapN(&(containerWriter.lEncodeContext), tag);
+        }
+        else
+        {
+            QCBOREncode_AddTag(&(containerWriter.lEncodeContext), tag);
+            QCBOREncode_OpenArray(&(containerWriter.lEncodeContext));
+        }
+    }
+
+    return QCBOREncode_GetErrorState(&containerWriter.lEncodeContext);
+    /*
     VerifyOrExit(TLVTypeIsContainer(containerType), err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
     if (IsCloseContainerReserved())
@@ -1228,7 +1399,7 @@ WEAVE_ERROR TLVWriter::OpenContainer(uint64_t tag, TLVType containerType, TLVWri
     containerWriter.FinalizeBuffer = FinalizeBuffer;
 
     SetContainerOpen(true);
-
+    */
 exit:
     return err;
 }
@@ -1267,6 +1438,22 @@ exit:
  */
 WEAVE_ERROR TLVWriter::CloseContainer(TLVWriter& containerWriter)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (containerWriter.mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_CloseMap(&(containerWriter.lEncodeContext));
+    }
+    else
+    {
+        QCBOREncode_CloseArray(&(containerWriter.lEncodeContext));
+    }
+
+    lEncodeContext = containerWriter.lEncodeContext;
+    lMutableBuf = containerWriter.lMutableBuf;
+
+    return QCBOREncode_GetErrorState(&(containerWriter.lEncodeContext));
+    /*
     if (!TLVTypeIsContainer(containerWriter.mContainerType))
         return WEAVE_ERROR_INCORRECT_STATE;
 
@@ -1288,6 +1475,49 @@ WEAVE_ERROR TLVWriter::CloseContainer(TLVWriter& containerWriter)
     containerWriter.Init((uint8_t *) NULL, 0);
 
     return WriteElementHead(kTLVElementType_EndOfContainer, AnonymousTag, 0);
+     */
+}
+
+WEAVE_ERROR TLVWriter::CloseContainerWithoutRecoverPreContext(TLVWriter& containerWriter)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (containerWriter.mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_CloseMap(&(containerWriter.lEncodeContext));
+    }
+    else
+    {
+        QCBOREncode_CloseArray(&(containerWriter.lEncodeContext));
+    }
+
+    //lEncodeContext = containerWriter.lEncodeContext;
+    //lMutableBuf = containerWriter.lMutableBuf;
+
+    return QCBOREncode_GetErrorState(&(containerWriter.lEncodeContext));
+    /*
+    if (!TLVTypeIsContainer(containerWriter.mContainerType))
+        return WEAVE_ERROR_INCORRECT_STATE;
+
+    if (containerWriter.IsContainerOpen())
+        return WEAVE_ERROR_TLV_CONTAINER_OPEN;
+
+    mBufHandle = containerWriter.mBufHandle;
+    mBufStart = containerWriter.mBufStart;
+    mWritePoint = containerWriter.mWritePoint;
+    mRemainingLen = containerWriter.mRemainingLen;
+    mLenWritten += containerWriter.mLenWritten;
+
+    if (IsCloseContainerReserved())
+        mMaxLen += kEndOfContainerMarkerSize;
+
+    SetContainerOpen(false);
+
+    // Reset the container writer so that it can't accidentally be used again.
+    containerWriter.Init((uint8_t *) NULL, 0);
+
+    return WriteElementHead(kTLVElementType_EndOfContainer, AnonymousTag, 0);
+     */
 }
 
 /**
@@ -1335,6 +1565,37 @@ WEAVE_ERROR TLVWriter::StartContainer(uint64_t tag, TLVType containerType, TLVTy
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    if (containerType == kTLVType_Structure)
+    {
+        if (mContainerType == kTLVType_Structure)
+        {
+            QCBOREncode_OpenMapInMapN(&lEncodeContext, tag);
+        }
+        else
+        {
+            QCBOREncode_AddTag(&lEncodeContext, tag);
+            QCBOREncode_OpenMap(&lEncodeContext);
+        }
+    }
+    else if (containerType == kTLVType_Path || containerType == kTLVType_Array)
+    {
+        //array or path
+        if (mContainerType == kTLVType_Structure)
+        {
+            QCBOREncode_OpenArrayInMapN(&lEncodeContext, tag);
+        }
+        else
+        {
+            QCBOREncode_AddTag(&lEncodeContext, tag);
+            QCBOREncode_OpenArray(&lEncodeContext);
+        }
+    }
+
+    outerContainerType = mContainerType;
+    mContainerType = containerType;
+
+    return QCBOREncode_GetErrorState(&lEncodeContext);
+/*
     VerifyOrExit(TLVTypeIsContainer(containerType), err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
     if (IsCloseContainerReserved())
@@ -1356,7 +1617,7 @@ WEAVE_ERROR TLVWriter::StartContainer(uint64_t tag, TLVType containerType, TLVTy
     mContainerType = containerType;
 
     SetContainerOpen(false);
-
+*/
 exit:
     return err;
 }
@@ -1397,15 +1658,29 @@ exit:
  */
 WEAVE_ERROR TLVWriter::EndContainer(TLVType outerContainerType)
 {
-    if (!TLVTypeIsContainer(mContainerType))
-        return WEAVE_ERROR_INCORRECT_STATE;
+    //if (!TLVTypeIsContainer(mContainerType))
+    //    return WEAVE_ERROR_INCORRECT_STATE;
+
+    if (mContainerType == kTLVType_Structure)
+    {
+        QCBOREncode_CloseMap(&lEncodeContext);
+    }
+    else
+    {
+        //Array or Path
+        QCBOREncode_CloseArray(&lEncodeContext);
+    }
 
     mContainerType = outerContainerType;
 
+    /*
     if (IsCloseContainerReserved())
         mMaxLen += kEndOfContainerMarkerSize;
 
     return WriteElementHead(kTLVElementType_EndOfContainer, AnonymousTag, 0);
+    */
+    return QCBOREncode_GetErrorState(&lEncodeContext);
+
 }
 
 /**
@@ -1565,6 +1840,7 @@ WEAVE_ERROR TLVWriter::CopyContainer(uint64_t tag, TLVReader& container)
     TLVType containerType, outerContainerType;
     const uint8_t *containerStart;
 
+    //lEncodeContext = container.lEncodeContext;
     containerType = container.GetType();
 
     err = container.EnterContainer(outerContainerType);

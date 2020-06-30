@@ -157,6 +157,9 @@ void TLVReader::Init(const uint8_t *data, uint32_t dataLen)
     ImplicitProfileId = kProfileIdNotSpecified;
     AppData = NULL;
     GetNextBuffer = NULL;
+    QCBORDecode_Init(&DCtx,
+                     (UsefulBufC){data, dataLen},
+                     QCBOR_DECODE_MODE_NORMAL);
 }
 
 /**
@@ -183,6 +186,9 @@ void TLVReader::Init(PacketBuffer *buf, uint32_t maxLen)
     ImplicitProfileId = kProfileIdNotSpecified;
     AppData = NULL;
     GetNextBuffer = NULL;
+    QCBORDecode_Init(&DCtx,
+                     (UsefulBufC){buf->Start(), buf->DataLength()},
+                     QCBOR_DECODE_MODE_NORMAL);
 }
 
 /**
@@ -223,6 +229,9 @@ void TLVReader::Init(PacketBuffer *buf, uint32_t maxLen, bool allowDiscontiguous
     {
         GetNextBuffer = NULL;
     }
+    QCBORDecode_Init(&DCtx,
+                     (UsefulBufC){buf->Start(), buf->DataLength()},
+                     QCBOR_DECODE_MODE_NORMAL);
 }
 
 /**
@@ -252,6 +261,10 @@ void TLVReader::Init(const TLVReader &aReader)
     ImplicitProfileId = aReader.ImplicitProfileId;
     AppData           = aReader.AppData;
     GetNextBuffer     = aReader.GetNextBuffer;
+
+    QCBORDecode_Init(&DCtx,
+                     (UsefulBufC){mReadPoint, mMaxLen},
+                     QCBOR_DECODE_MODE_NORMAL);
 }
 
 /**
@@ -262,6 +275,7 @@ void TLVReader::Init(const TLVReader &aReader)
  */
 TLVType TLVReader::GetType() const
 {
+    /*
     TLVElementType elemType = ElementType();
     if (elemType == kTLVElementType_EndOfContainer)
         return kTLVType_NotSpecified;
@@ -270,6 +284,36 @@ TLVType TLVReader::GetType() const
     if (elemType == kTLVElementType_NotSpecified || elemType >= kTLVElementType_Null)
         return (TLVType) elemType;
     return (TLVType) (elemType & ~kTLVTypeSizeMask);
+    */
+    uint8_t type = Item.uDataType;
+    if (type == QCBOR_TYPE_NONE)
+        return kTLVType_NotSpecified;
+    else if (type == QCBOR_TYPE_INT64)
+        return kTLVType_SignedInteger;
+    else if (type == QCBOR_TYPE_UINT64)
+        return kTLVType_UnsignedInteger;
+    else if (type == QCBOR_TYPE_ARRAY)
+        return kTLVType_Array;
+    else if (type == QCBOR_TYPE_MAP)
+        return kTLVType_Structure;
+    else if (type == QCBOR_TYPE_BYTE_STRING)
+        return kTLVType_UTF8String;
+    else if (type == QCBOR_TYPE_TEXT_STRING)
+        return kTLVType_ByteString;
+    else if (type == QCBOR_TYPE_FALSE)
+        return kTLVType_Boolean;
+    else if (type == QCBOR_TYPE_TRUE)
+        return kTLVType_Boolean;
+    else if (type == QCBOR_TYPE_NULL)
+        return kTLVType_Null;
+    else if (type == QCBOR_TYPE_UNDEF)
+        return kTLVType_NotSpecified;
+    else if (type == QCBOR_TYPE_FLOAT)
+        return kTLVType_FloatingPointNumber;
+    else if (type == QCBOR_TYPE_DOUBLE)
+        return kTLVType_FloatingPointNumber;
+    else
+        return kTLVType_NotSpecified;
 }
 
 /**
@@ -310,7 +354,24 @@ uint16_t TLVReader::GetControlByte() const
  */
 uint64_t TLVReader::GetTag() const
 {
-    return mElemTag;
+    // from qcbor_encode.h, in QCBOREncode_AddDoubleToMap or QCBOREncode_AddDoubleToMapN we see label/tag/key are szLabel are const char * or int64
+    // but from qcbor_decode.h, we see label are UsefulBufC, int64_t, uint64_t. we choose Item.label.uint64. The above way can only be used to get
+    // tag inside struct/map container. For tag inside array/list and outermost, app needs to decode it by itself using the below way too store tag in puTags via QCBORDecode_GetNextWithTags function
+    // uint64_t puTags[64];
+    // QCBORTagListOut Out = {0, 64, puTags};
+    // QCBORDecode_GetNextWithTags(&DCtx, &Item, &Out)
+    // For tag list, it seems it can allow up to 64 tags.
+
+    if (mContainerType == kTLVElementType_Structure)
+    {
+        return Item.label.uint64;
+    }
+    else
+    {
+        return puTags[0];
+    }
+
+    // return mElemTag;
 }
 
 /**
@@ -368,7 +429,7 @@ WEAVE_ERROR TLVReader::Get(bool& v)
  */
 WEAVE_ERROR TLVReader::Get(int8_t& v)
 {
-    uint64_t v64 = 0;
+    int64_t v64 = 0;
     WEAVE_ERROR err = Get(v64);
     v = v64;
     return err;
@@ -389,7 +450,7 @@ WEAVE_ERROR TLVReader::Get(int8_t& v)
  */
 WEAVE_ERROR TLVReader::Get(int16_t& v)
 {
-    uint64_t v64 = 0;
+    int64_t v64 = 0;
     WEAVE_ERROR err = Get(v64);
     v = v64;
     return err;
@@ -410,7 +471,7 @@ WEAVE_ERROR TLVReader::Get(int16_t& v)
  */
 WEAVE_ERROR TLVReader::Get(int32_t& v)
 {
-    uint64_t v64 = 0;
+    int64_t v64 = 0;
     WEAVE_ERROR err = Get(v64);
     v = v64;
     return err;
@@ -431,9 +492,16 @@ WEAVE_ERROR TLVReader::Get(int32_t& v)
  */
 WEAVE_ERROR TLVReader::Get(int64_t& v)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    if (Item.uDataType == QCBOR_TYPE_INT64)
+    {
+        v = Item.val.int64;
+    }
+    /*
     uint64_t v64 = 0;
     WEAVE_ERROR err = Get(v64);
     v = v64;
+     */
     return err;
 }
 
@@ -517,6 +585,12 @@ WEAVE_ERROR TLVReader::Get(uint32_t& v)
  */
 WEAVE_ERROR TLVReader::Get(uint64_t& v)
 {
+    if (Item.uDataType == QCBOR_TYPE_UINT64)
+    {
+        v = Item.val.uint64;
+    }
+
+    /*
     switch (ElementType())
     {
     case kTLVElementType_Int8:
@@ -538,6 +612,7 @@ WEAVE_ERROR TLVReader::Get(uint64_t& v)
     default:
         return WEAVE_ERROR_WRONG_TLV_TYPE;
     }
+    */
     return WEAVE_NO_ERROR;
 }
 
@@ -553,6 +628,11 @@ WEAVE_ERROR TLVReader::Get(uint64_t& v)
  */
 WEAVE_ERROR TLVReader::Get(double& v)
 {
+    if (Item.uDataType == QCBOR_TYPE_DOUBLE)
+    {
+        v = Item.val.dfnum;
+    }
+    /*
     switch (ElementType())
     {
     case kTLVElementType_FloatingPointNumber32:
@@ -580,6 +660,7 @@ WEAVE_ERROR TLVReader::Get(double& v)
     default:
         return WEAVE_ERROR_WRONG_TLV_TYPE;
     }
+     */
     return WEAVE_NO_ERROR;
 }
 
@@ -607,6 +688,15 @@ WEAVE_ERROR TLVReader::Get(double& v)
  */
 WEAVE_ERROR TLVReader::GetBytes(uint8_t *buf, uint32_t bufSize)
 {
+    if (Item.uDataType == QCBOR_TYPE_BYTE_STRING || Item.uDataType == QCBOR_TYPE_TEXT_STRING)
+    {
+        if (buf != NULL && bufSize >= Item.val.string.len)
+        {
+            memcpy(buf, Item.val.string.ptr, Item.val.string.len);
+        }
+    }
+
+    /*
     if (!TLVTypeIsString(ElementType()))
         return WEAVE_ERROR_WRONG_TLV_TYPE;
 
@@ -618,7 +708,7 @@ WEAVE_ERROR TLVReader::GetBytes(uint8_t *buf, uint32_t bufSize)
         return err;
 
     mElemLenOrVal = 0;
-
+    */
     return WEAVE_NO_ERROR;
 }
 
@@ -646,15 +736,19 @@ WEAVE_ERROR TLVReader::GetBytes(uint8_t *buf, uint32_t bufSize)
  */
 WEAVE_ERROR TLVReader::GetString(char *buf, uint32_t bufSize)
 {
+
+    /*
     if (!TLVTypeIsString(ElementType()))
         return WEAVE_ERROR_WRONG_TLV_TYPE;
 
     if ((mElemLenOrVal + 1) > bufSize)
         return WEAVE_ERROR_BUFFER_TOO_SMALL;
-
     buf[mElemLenOrVal] = 0;
+    */
 
+    buf[bufSize - 1] = 0;
     return GetBytes((uint8_t *) buf, bufSize - 1);
+
 }
 
 /**
@@ -843,6 +937,7 @@ WEAVE_ERROR TLVReader::GetDataPtr(const uint8_t *& data)
  */
 WEAVE_ERROR TLVReader::OpenContainer(TLVReader& containerReader)
 {
+    /*
     TLVElementType elemType = ElementType();
     if (!TLVTypeIsContainer(elemType))
         return WEAVE_ERROR_INCORRECT_STATE;
@@ -858,9 +953,10 @@ WEAVE_ERROR TLVReader::OpenContainer(TLVReader& containerReader)
     containerReader.ImplicitProfileId = ImplicitProfileId;
     containerReader.AppData = AppData;
     containerReader.GetNextBuffer = GetNextBuffer;
-
-    SetContainerOpen(true);
-
+    */
+    containerReader.DCtx = DCtx;
+    containerReader.Item = Item;
+    containerReader.mContainerType =  GetType();
     return WEAVE_NO_ERROR;
 }
 
@@ -899,6 +995,7 @@ WEAVE_ERROR TLVReader::OpenContainer(TLVReader& containerReader)
  */
 WEAVE_ERROR TLVReader::CloseContainer(TLVReader& containerReader)
 {
+    /*
     WEAVE_ERROR err;
 
     if (!IsContainerOpen())
@@ -917,6 +1014,10 @@ WEAVE_ERROR TLVReader::CloseContainer(TLVReader& containerReader)
     mLenRead = containerReader.mLenRead;
     mMaxLen = containerReader.mMaxLen;
     ClearElementState();
+    */
+    DCtx = containerReader.DCtx;
+    Item = containerReader.Item;
+    SetContainerOpen(false);
 
     return WEAVE_NO_ERROR;
 }
@@ -948,6 +1049,7 @@ WEAVE_ERROR TLVReader::CloseContainer(TLVReader& containerReader)
  */
 WEAVE_ERROR TLVReader::EnterContainer(TLVType& outerContainerType)
 {
+    /*
     TLVElementType elemType = ElementType();
     if (!TLVTypeIsContainer(elemType))
         return WEAVE_ERROR_INCORRECT_STATE;
@@ -956,8 +1058,12 @@ WEAVE_ERROR TLVReader::EnterContainer(TLVType& outerContainerType)
     mContainerType = (TLVType) elemType;
 
     ClearElementState();
-    SetContainerOpen(false);
+    */
 
+    if (!TLVTypeIsContainer(GetType()))
+        return WEAVE_ERROR_INCORRECT_STATE;
+    mContainerType = GetType();
+    outerContainerType = mContainerType;
     return WEAVE_NO_ERROR;
 }
 
@@ -999,6 +1105,7 @@ WEAVE_ERROR TLVReader::EnterContainer(TLVType& outerContainerType)
  */
 WEAVE_ERROR TLVReader::ExitContainer(TLVType outerContainerType)
 {
+    /*
     WEAVE_ERROR err;
 
     err = SkipToEndOfContainer();
@@ -1007,7 +1114,8 @@ WEAVE_ERROR TLVReader::ExitContainer(TLVType outerContainerType)
 
     mContainerType = outerContainerType;
     ClearElementState();
-
+    */
+    mContainerType = outerContainerType;
     return WEAVE_NO_ERROR;
 }
 
@@ -1036,12 +1144,17 @@ WEAVE_ERROR TLVReader::ExitContainer(TLVType outerContainerType)
  */
 WEAVE_ERROR TLVReader::VerifyEndOfContainer()
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    if (Item.uNestingLevel != Item.uNextNestLevel)
+        err = WEAVE_ERROR_UNEXPECTED_TLV_ELEMENT;
+    return err;
+    /*
     WEAVE_ERROR err = Next();
     if (err == WEAVE_END_OF_TLV)
         return WEAVE_NO_ERROR;
     if (err == WEAVE_NO_ERROR)
         return WEAVE_ERROR_UNEXPECTED_TLV_ELEMENT;
-    return err;
+        */
 }
 
 /**
@@ -1093,7 +1206,12 @@ TLVType TLVReader::GetContainerType() const
  */
 WEAVE_ERROR TLVReader::Next()
 {
-    WEAVE_ERROR err;
+    puTags[0] = 0;
+    OutTag = {0, 4, puTags};
+    return QCBORDecode_GetNextWithTags(&DCtx, &Item, &OutTag);
+    // return QCBORDecode_GetNext(&DCtx, &Item);
+    /*
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVElementType elemType = ElementType();
 
     err = Skip();
@@ -1107,8 +1225,9 @@ WEAVE_ERROR TLVReader::Next()
     elemType = ElementType();
     if (elemType == kTLVElementType_EndOfContainer)
         return WEAVE_END_OF_TLV;
-
     return WEAVE_NO_ERROR;
+    */
+
 }
 
 /**
@@ -1144,10 +1263,12 @@ WEAVE_ERROR TLVReader::Next(TLVType expectedType, uint64_t expectedTag)
     WEAVE_ERROR err = Next();
     if (err != WEAVE_NO_ERROR)
         return err;
+    /*
     if (GetType() != expectedType)
         return WEAVE_ERROR_WRONG_TLV_TYPE;
     if (mElemTag != expectedTag)
         return WEAVE_ERROR_UNEXPECTED_TLV_ELEMENT;
+    */
     return WEAVE_NO_ERROR;
 }
 
@@ -1174,6 +1295,8 @@ WEAVE_ERROR TLVReader::Next(TLVType expectedType, uint64_t expectedTag)
  */
 WEAVE_ERROR TLVReader::Skip()
 {
+    WEAVE_ERROR err = Next();
+    /*
     WEAVE_ERROR err;
     TLVElementType elemType = ElementType();
 
@@ -1199,7 +1322,13 @@ WEAVE_ERROR TLVReader::Skip()
 
         ClearElementState();
     }
+    */
+    return WEAVE_NO_ERROR;
+}
 
+WEAVE_ERROR TLVReader::Finalize(void)
+{
+    QCBORDecode_Finish(&DCtx);
     return WEAVE_NO_ERROR;
 }
 
@@ -1552,10 +1681,41 @@ exit:
  */
 TLVElementType TLVReader::ElementType() const
 {
+    uint8_t type = Item.uDataType;
+    if (type == QCBOR_TYPE_NONE)
+        return kTLVElementType_NotSpecified;
+    else if (type == QCBOR_TYPE_INT64)
+        return kTLVElementType_Int64;
+    else if (type == QCBOR_TYPE_UINT64)
+        return kTLVElementType_UInt64;
+    else if (type == QCBOR_TYPE_ARRAY)
+        return kTLVElementType_Array;
+    else if (type == QCBOR_TYPE_MAP)
+        return kTLVElementType_Structure;
+    else if (type == QCBOR_TYPE_BYTE_STRING)
+        return kTLVElementType_ByteString_8ByteLength;
+    else if (type == QCBOR_TYPE_TEXT_STRING)
+        return kTLVElementType_UTF8String_8ByteLength;
+    else if (type == QCBOR_TYPE_FALSE)
+        return kTLVElementType_BooleanFalse;
+    else if (type == QCBOR_TYPE_TRUE)
+        return kTLVElementType_BooleanTrue;
+    else if (type == QCBOR_TYPE_NULL)
+        return kTLVElementType_Null;
+    else if (type == QCBOR_TYPE_UNDEF)
+        return kTLVElementType_NotSpecified;
+    else if (type == QCBOR_TYPE_FLOAT)
+        return kTLVElementType_FloatingPointNumber32;
+    else if (type == QCBOR_TYPE_DOUBLE)
+        return kTLVElementType_FloatingPointNumber64;
+    else
+        return kTLVElementType_NotSpecified;
+/*
     if (mControlByte == (uint16_t) kTLVControlByte_NotSpecified)
         return kTLVElementType_NotSpecified;
     else
         return (TLVElementType) (mControlByte & kTLVTypeMask);
+*/
 }
 
 WEAVE_ERROR TLVReader::GetNextPacketBuffer(TLVReader& reader, uintptr_t& bufHandle, const uint8_t *& bufStart,

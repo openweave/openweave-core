@@ -2295,6 +2295,57 @@ AC_SUBST(NLIO_SUBDIRS, [${maybe_nlio_dirstem}])
 AM_CONDITIONAL([WEAVE_WITH_NLIO_INTERNAL], [test "${nl_with_nlio}" = "internal"])
 
 #
+# Qcbor
+#
+
+NL_WITH_PACKAGE(
+    [Qcbor],
+    [QCbor],
+    [qcbor],
+    [],
+    [
+        # At this point, the internal Qcbor package will be neither
+        # configured nor built, so the normal checks we undertake for an
+        # external package cannot be run here. Simply set the appropriate
+        # variables and trust all will be well.
+
+        QCBOR_CPPFLAGS="-I\${abs_top_srcdir}/third_party/qcbor/repo/inc"
+        QCBOR_LDFLAGS="-L${ac_pwd}/third_party/qcbor"
+        QCBOR_LIBS="-lqcbor"
+    ],
+    [
+        # Check for required Qcbor headers.
+
+        AC_CHECK_HEADERS([qcbor.h],
+        [],
+        [
+            AC_MSG_ERROR(The qcbor header "$ac_header" is required but cannot be found.)
+        ])
+    ]
+)
+
+# Depending on whether qcbor has been configured for an internal
+# location, its directory stem within this package needs to be set
+# accordingly. In addition, if the location is internal, then we need
+# to attempt to pull it down using the bootstrap makefile.
+
+
+maybe_qcbor_dirstem="qcbor"
+qcbor_dirstem="third_party/${maybe_qcbor_dirstem}/repo"
+
+AC_MSG_NOTICE([attempting to create internal ${qcbor_dirstem}])
+
+${MAKE-make} -C ${srcdir} -f Makefile-bootstrap ${qcbor_dirstem}
+
+if test $? -ne 0; then
+    AC_MSG_ERROR([failed to create ${qcbor_dirstem}. Please check your network connection or the correctness of 'repos.conf'])
+fi
+
+
+AC_SUBST(QCBOR_SUBDIRS, [${maybe_qcbor_dirstem}])
+AM_CONDITIONAL([WEAVE_WITH_QCBOR_INTERNAL], [test "${nl_with_qcbor}" == "internal"])
+
+#
 # Nlassert
 #
 
@@ -2683,6 +2734,12 @@ CPPFLAGS="${CPPFLAGS} ${NLIO_CPPFLAGS}"
 LDFLAGS="${LDFLAGS} ${NLIO_LDFLAGS}"
 LIBS="${LIBS} ${NLIO_LIBS}"
 
+# Add any qcbor CPPFLAGS, LDFLAGS, and LIBS
+
+CPPFLAGS="${CPPFLAGS} ${QCBOR_CPPFLAGS}"
+LDFLAGS="${LDFLAGS} ${QCBOR_LDFLAGS}"
+LIBS="${LIBS} ${QCBOR_LIBS}"
+
 # Add any nlassert CPPFLAGS, LDFLAGS, and LIBS
 
 CPPFLAGS="${CPPFLAGS} ${NLASSERT_CPPFLAGS}"
@@ -2730,6 +2787,10 @@ if test "${nl_with_nlio}" = "internal"; then
 AC_CONFIG_SUBDIRS([third_party/nlio/repo])
 fi
 
+
+AC_CONFIG_SUBDIRS([third_party/qcbor/repo])
+
+
 if test "${nl_with_nlassert}" = "internal"; then
 AC_CONFIG_SUBDIRS([third_party/nlassert/repo])
 fi
@@ -2753,6 +2814,7 @@ third_party/android/platform-system/core-mincrypt/Makefile
 third_party/micro-ecc/Makefile
 third_party/openssl/Makefile
 third_party/openssl-jpake/Makefile
+third_party/qcbor/Makefile
 src/Makefile
 src/include/Makefile
 src/ble/Makefile
@@ -2878,6 +2940,10 @@ AC_MSG_NOTICE([
   Nlio compile flags                               : ${NLIO_CPPFLAGS:--}
   Nlio link flags                                  : ${NLIO_LDFLAGS:--}
   Nlio link libraries                              : ${NLIO_LIBS:--}
+  Qcbor source                                     : ${nl_with_qcbor}
+  Qcbor compile flags                              : ${QCBOR_CPPFLAGS:--}
+  Qcbor link flags                                 : ${QCBOR_LDFLAGS:--}
+  Qcbor link libraries                             : ${QCBOR_LIBS:--}
   Nlassert source                                  : ${nl_with_nlassert:--}
   Nlassert compile flags                           : ${NLASSERT_CPPFLAGS:--}
   Nlassert link flags                              : ${NLASSERT_LDFLAGS:--}

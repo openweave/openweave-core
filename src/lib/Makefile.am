@@ -44,6 +44,7 @@ libWeave_a_CPPFLAGS                  =                        \
     $(nl_InetLayer_CPPFLAGS)                                  \
     $(LWIP_CPPFLAGS)                                          \
     $(SOCKETS_CPPFLAGS)                                       \
+    $(QCBOR_CPPFLAGS)                                       \
     $(NULL)
 
 if WEAVE_CONFIG_CUSTOM_BUILTIN_SCHEMA_INCLUDE

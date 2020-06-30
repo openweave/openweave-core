@@ -36,6 +36,8 @@
 #include "WeaveTLVTags.h"
 #include "WeaveTLVTypes.h"
 
+#include <qcbor.h>
+
 // forward declaration of the PacketBuffer class used within the header.
 namespace nl {
 namespace Weave {
@@ -152,6 +154,12 @@ public:
             uint32_t& bufLen);
     GetNextBufferFunct GetNextBuffer;
 
+    QCBORDecodeContext DCtx;
+    QCBORItem          Item;
+    uint64_t           puTags[16];
+    QCBORTagListOut    OutTag;
+    WEAVE_ERROR Finalize (void);
+
 protected:
     uint64_t mElemTag;
     uint64_t mElemLenOrVal;
@@ -249,8 +257,10 @@ public:
     WEAVE_ERROR PutBytes(uint64_t tag, const uint8_t *buf, uint32_t len);
     WEAVE_ERROR PutString(uint64_t tag, const char *buf);
     WEAVE_ERROR PutString(uint64_t tag, const char *buf, uint32_t len);
+/*
     WEAVE_ERROR PutStringF(uint64_t tag, const char *fmt, ...);
     WEAVE_ERROR VPutStringF(uint64_t tag, const char *fmt, va_list ap);
+*/
     WEAVE_ERROR PutNull(uint64_t tag);
     WEAVE_ERROR CopyElement(TLVReader& reader);
     WEAVE_ERROR CopyElement(uint64_t tag, TLVReader& reader);
@@ -259,6 +269,8 @@ public:
     WEAVE_ERROR EndContainer(TLVType outerContainerType);
     WEAVE_ERROR OpenContainer(uint64_t tag, TLVType containerType, TLVWriter& containerWriter);
     WEAVE_ERROR CloseContainer(TLVWriter& containerWriter);
+    WEAVE_ERROR CloseContainerWithoutRecoverPreContext(TLVWriter& containerWriter);
+
     WEAVE_ERROR PutPreEncodedContainer(uint64_t tag, TLVType containerType, const uint8_t *data, uint32_t dataLen);
     WEAVE_ERROR CopyContainer(TLVReader& container);
     WEAVE_ERROR CopyContainer(uint64_t tag, TLVReader& container);
@@ -288,6 +300,11 @@ public:
     static WEAVE_ERROR FinalizeInetBuffer(TLVWriter& writer, uintptr_t bufHandle, uint8_t *bufStart, uint32_t dataLen);
 #endif // WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
+    UsefulBuf           lMutableBuf;
+    QCBOREncodeContext  lEncodeContext;
+    size_t              lEncodedSize;
+    QCBORError          lError;
+    const uint8_t * GetUsefulBufferStart();
 protected:
     uintptr_t mBufHandle;
     uint8_t *mBufStart;

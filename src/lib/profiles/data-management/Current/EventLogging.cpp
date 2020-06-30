@@ -121,10 +121,11 @@ WEAVE_ERROR PlainTextWriter(TLVWriter & ioWriter, uint8_t inDataTag, void * appD
     err = ioWriter.PutString(nl::Weave::TLV::ContextTag(kTag_Region), context->mRegion);
     SuccessOrExit(err);
 
+    /*
     err = ioWriter.VPutStringF(nl::Weave::TLV::ContextTag(kTag_Message), reinterpret_cast<const char *>(context->mFmt),
                                context->mArgs);
     SuccessOrExit(err);
-
+    */
     err = ioWriter.EndContainer(outer);
     SuccessOrExit(err);
 
