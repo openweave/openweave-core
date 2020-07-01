@@ -195,6 +195,30 @@ enum
     kTag_Args  = 2  ///< An array of arguments to be sent along with the token message.
 };
 
+/**
+ * @brief
+ *  Tags for persisting events
+ */
+enum
+{
+    kTagNum_SerializedEventState                    = 1,
+    kTagNum_SerializedEventSet                      = 2,
+    kTag_PersistEvent_ImportanceLevel               = 3,
+    kTag_PersistEvent_EventData                     = 4,
+    kTag_PersistEvent_FirstEventId                  = 5,
+    kTag_PersistEvent_LastEventId                   = 6,
+    kTag_PersistEvent_FirstEventTimestamp           = 7,
+    kTag_PersistEvent_LastEventTimestamp            = 8,
+    kTag_PersistEvent_EventIdCounter                = 9
+
+#if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
+    ,
+    kTag_PersistEvent_FirstEventUTCTimestamp        = 10,
+    kTag_PersistEvent_LastEventUTCTimestamp         = 11,
+    kTag_PersistEvent_UTCInitialized                = 12
+#endif
+};
+
 } // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 } // namespace Profiles
 } // namespace Weave

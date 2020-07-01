@@ -222,6 +222,7 @@ public:
     // *** See WeaveTLVWriter.cpp file for API documentation ***
 
     void Init(uint8_t *buf, uint32_t maxLen);
+    void InitMalloced(uint8_t *& outBuf, uint32_t initialBufSize = 256, uint32_t maxLen = 0xFFFFFFFFUL);
     void Init(PacketBuffer *buf, uint32_t maxLen = 0xFFFFFFFFUL);
     void Init(PacketBuffer *buf, uint32_t maxLen, bool allowDiscontiguousBuffers);
 
@@ -247,6 +248,8 @@ public:
     WEAVE_ERROR Put(uint64_t tag, double v);
     WEAVE_ERROR PutBoolean(uint64_t tag, bool v);
     WEAVE_ERROR PutBytes(uint64_t tag, const uint8_t *buf, uint32_t len);
+    WEAVE_ERROR StartPutBytes(uint64_t tag, uint32_t totalLen);
+    WEAVE_ERROR ContinuePutBytes(const uint8_t *buf, uint32_t len);
     WEAVE_ERROR PutString(uint64_t tag, const char *buf);
     WEAVE_ERROR PutString(uint64_t tag, const char *buf, uint32_t len);
     WEAVE_ERROR PutStringF(uint64_t tag, const char *fmt, ...);
@@ -282,6 +285,9 @@ public:
     // PacketBuffers.
     static WEAVE_ERROR GetNewPacketBuffer(TLVWriter& writer, uintptr_t& bufHandle, uint8_t *& bufStart, uint32_t& bufLen);
     static WEAVE_ERROR FinalizePacketBuffer(TLVWriter& writer, uintptr_t bufHandle, uint8_t *bufStart, uint32_t dataLen);
+
+    // Implementations of the GetNewBufferFunct that support writing into a dynamic buffer
+    static WEAVE_ERROR GetNewBuffer_Malloced(TLVWriter& writer, uintptr_t& bufHandle, uint8_t *& bufStart, uint32_t& bufLen);
 
 #if WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
     static WEAVE_ERROR GetNewInetBuffer(TLVWriter& writer, uintptr_t& bufHandle, uint8_t *& bufStart, uint32_t& bufLen);

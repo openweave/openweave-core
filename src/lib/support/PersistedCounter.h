@@ -81,6 +81,13 @@ public:
      */
     WEAVE_ERROR AdvanceEpochRelative(uint32_t aValue);
 
+    /**
+     *  @brief
+     *    This is used to set the event counter from persisted events
+     *
+     */
+    WEAVE_ERROR SetValue(uint32_t value);
+
 private:
     /**
      *  @brief

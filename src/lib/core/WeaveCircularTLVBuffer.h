@@ -70,6 +70,8 @@ public:
     inline size_t AvailableDataLength(void) const { return mQueueSize - mQueueLength; };
     inline size_t GetQueueSize(void) const { return mQueueSize; };
     inline uint8_t *GetQueue(void) const { return mQueue; };
+    inline void SetQueueHead(uint8_t *aQueueHead) { mQueueHead = aQueueHead; };
+    inline void SetQueueLength(size_t aQueueLength) { mQueueLength = aQueueLength; };
 
     WEAVE_ERROR EvictHead(void);
 

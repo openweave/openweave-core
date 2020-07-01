@@ -32,6 +32,7 @@
 #include <Weave/Core/WeaveEncoding.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Support/CodeUtils.h>
+#include <stdlib.h>
 
 namespace nl {
 namespace Weave {
@@ -175,6 +176,30 @@ void TLVWriter::Init(uint8_t *buf, uint32_t maxLen)
     ImplicitProfileId = kProfileIdNotSpecified;
     GetNewBuffer = NULL;
     FinalizeBuffer = NULL;
+}
+
+/**
+ * Initializes a TLVWriter object to write into a dynamic buffer.
+ *
+ * @param[in]   buf     A reference to a pointer that will receive the allocated buffer.
+ * @param[in]   maxLen  The maximum number of bytes that should be written to the output buffer.
+ * @param[in]   initialBufSize
+ *                      The initial number of bytes that should be allocated to the buffer.
+ */
+void TLVWriter::InitMalloced(uint8_t *& outBuf, uint32_t initialBufSize, uint32_t maxLen)
+{
+    mBufHandle = (uintptr_t)&outBuf;
+    mBufStart = mWritePoint = outBuf = (uint8_t *)malloc(initialBufSize);
+    mMaxLen = maxLen;
+    mRemainingLen = initialBufSize;
+    mLenWritten = 0;
+    mContainerType = kTLVType_NotSpecified;
+    SetContainerOpen(false);
+    SetCloseContainerReserved(true);
+
+    ImplicitProfileId = kProfileIdNotSpecified;
+    FinalizeBuffer = NULL;
+    GetNewBuffer = GetNewBuffer_Malloced;
 }
 
 /**
@@ -660,6 +685,77 @@ WEAVE_ERROR TLVWriter::Put(uint64_t tag, double v)
 WEAVE_ERROR TLVWriter::PutBytes(uint64_t tag, const uint8_t *buf, uint32_t len)
 {
     return WriteElementWithData(kTLVType_ByteString, tag, (const uint8_t *) buf, len);
+}
+
+/**
+ * Encodes a TLV byte string in multiple chunks. This should be used with ContinuePutBytes.
+ *
+ * @param[in]   tag             The TLV tag to be encoded with the value, or @p AnonymousTag if the
+ *                              value should be encoded without a tag.  Tag values should be
+ *                              constructed with one of the tag definition functions ProfileTag(),
+ *                              ContextTag() or CommonTag().
+ * @param[in]   totalLen        The total number of bytes to be encoded.
+ *
+ * @retval #WEAVE_NO_ERROR      If the method succeeded.
+ * @retval #WEAVE_ERROR_TLV_CONTAINER_OPEN
+ *                              If a container writer has been opened on the current writer and not
+ *                              yet closed.
+ * @retval #WEAVE_ERROR_INVALID_TLV_TAG
+ *                              If the specified tag value is invalid or inappropriate in the context
+ *                              in which the value is being written.
+ * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL
+ *                              If writing the value would exceed the limit on the maximum number of
+ *                              bytes specified when the writer was initialized.
+ * @retval #WEAVE_ERROR_NO_MEMORY
+ *                              If an attempt to allocate an output buffer failed due to lack of
+ *                              memory.
+ * @retval other                Other Weave or platform-specific errors returned by the configured
+ *                              GetNewBuffer() or FinalizeBuffer() functions.
+ *
+ */
+WEAVE_ERROR TLVWriter::StartPutBytes(uint64_t tag, uint32_t totalLen)
+{
+    TLVFieldSize lenFieldSize;
+    TLVType type = kTLVType_ByteString;
+
+    if (totalLen <= UINT8_MAX)
+        lenFieldSize = kTLVFieldSize_1Byte;
+    else if (totalLen <= UINT16_MAX)
+        lenFieldSize = kTLVFieldSize_2Byte;
+    else
+        lenFieldSize = kTLVFieldSize_4Byte;
+
+    WEAVE_ERROR err = WriteElementHead((TLVElementType) (type | lenFieldSize), tag, totalLen);
+
+    return err;
+}
+
+/**
+ * Encodes a TLV byte string value. This should be used with StartPutBytes.
+ *
+ * @param[in]   buf             A pointer to a buffer containing the bytes string to be encoded.
+ * @param[in]   len             The number of bytes to be encoded.
+ *
+ * @retval #WEAVE_NO_ERROR      If the method succeeded.
+ * @retval #WEAVE_ERROR_TLV_CONTAINER_OPEN
+ *                              If a container writer has been opened on the current writer and not
+ *                              yet closed.
+ * @retval #WEAVE_ERROR_INVALID_TLV_TAG
+ *                              If the specified tag value is invalid or inappropriate in the context
+ *                              in which the value is being written.
+ * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL
+ *                              If writing the value would exceed the limit on the maximum number of
+ *                              bytes specified when the writer was initialized.
+ * @retval #WEAVE_ERROR_NO_MEMORY
+ *                              If an attempt to allocate an output buffer failed due to lack of
+ *                              memory.
+ * @retval other                Other Weave or platform-specific errors returned by the configured
+ *                              GetNewBuffer() or FinalizeBuffer() functions.
+ *
+ */
+WEAVE_ERROR TLVWriter::ContinuePutBytes(const uint8_t *buf, uint32_t len)
+{
+    return WriteData(buf, len);
 }
 
 /**
@@ -1872,6 +1968,32 @@ WEAVE_ERROR TLVWriter::GetNewPacketBuffer(TLVWriter& writer, uintptr_t& bufHandl
         bufStart = NULL;
         bufLen = 0;
     }
+
+    return WEAVE_NO_ERROR;
+}
+
+/**
+ * An implementation of a TLVWriter GetNewBuffer function for writing to a dynamic buffer.
+ *
+ * The GetNewBuffer_Malloced() function supplies new output space to a TLVWriter by doubling
+ * the size of the underlying dynamic buffer as needed to store the encoding.  The function
+ * is designed to be assigned to the TLVWriter GetNewBuffer function pointer.
+ *
+ * See the GetNewBufferFunct type definition for additional information on the API of the
+ * GetNewBuffer_Malloced() function.
+ */
+WEAVE_ERROR TLVWriter::GetNewBuffer_Malloced(TLVWriter& writer, uintptr_t& bufHandle, uint8_t *& bufStart, uint32_t& remainingLen)
+{
+    size_t prevSize = (writer.mWritePoint - *(uint8_t **)bufHandle) + writer.mRemainingLen;
+
+    size_t newSize = prevSize * 2;
+    if (newSize > writer.mMaxLen)
+    {
+        newSize = writer.mMaxLen;
+    }
+    *(uint8_t **)bufHandle = (uint8_t *)realloc(*(uint8_t **)bufHandle, newSize);
+    bufStart = *(uint8_t **)bufHandle + prevSize;
+    remainingLen = newSize - prevSize;
 
     return WEAVE_NO_ERROR;
 }

@@ -58,6 +58,12 @@ struct CircularEventBuffer
     // for doxygen, see the CPP file
     void AddEvent(timestamp_t inEventTimestamp);
 
+    // Serializes the events in WeaveCircularTLVBuffer and the associated states
+    WEAVE_ERROR SerializeEvents(TLVWriter & writer);
+
+    // Load from serialized events
+    WEAVE_ERROR LoadEvents(TLVReader & reader);
+
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     // for doxygen, see the CPP file
     void AddEventUTC(utc_timestamp_t inEventTimestamp);
@@ -191,6 +197,16 @@ public:
     static void CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers, const LogStorageResources * const inLogStorageResources);
 
     static void DestroyLoggingManagement(void);
+
+    WEAVE_ERROR LoadEvents(TLVReader & reader);
+
+    WEAVE_ERROR SerializeEvents(TLVWriter & writer);
+
+    void MarkShutdownInProgress(void);
+
+    void CancelShutdownInProgress(void);
+
+    bool IsShutdownInProgress(void);
 
     WEAVE_ERROR SetExchangeManager(nl::Weave::WeaveExchangeManager * inMgr);
 

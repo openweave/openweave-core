@@ -27,6 +27,7 @@
 
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
+#include <Weave/Profiles/WeaveProfiles.h>
 
 #include <Weave/Profiles/bulk-data-transfer/Development/BulkDataTransfer.h>
 #include <Weave/Profiles/bulk-data-transfer/Development/BDXMessages.h>
@@ -434,6 +435,106 @@ void LoggingManagement::DestroyLoggingManagement(void)
     sInstance.mState       = kLoggingManagementState_Shutdown;
     sInstance.mEventBuffer = NULL;
     Platform::CriticalSectionExit();
+}
+
+/**
+ * Serialize the Weave events of all importance types.
+ *
+ * Serializes the events in WeaveCircularTLVBuffer and the associated states into the
+ * supplied buffer.
+ *
+ * This method is intended to be used by devices that do not retain RAM while sleeping,
+ * allowing them to persist events before going to sleep and thereby prevent lost of
+ * events
+ */
+WEAVE_ERROR LoggingManagement::SerializeEvents(TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Platform::CriticalSectionEnter();
+
+    CircularEventBuffer * eventBuffer = mEventBuffer;
+
+    TLVType container;
+    err = writer.StartContainer(ProfileTag(kWeaveProfile_Common, kTagNum_SerializedEventState), kTLVType_Array, container);
+    SuccessOrExit(err);
+
+    while (eventBuffer != NULL)
+    {
+        err = eventBuffer->SerializeEvents(writer);
+        SuccessOrExit(err);
+
+        eventBuffer = eventBuffer->mNext;
+    }
+
+    err = writer.EndContainer(container);
+    SuccessOrExit(err);
+
+exit:
+    Platform::CriticalSectionExit();
+
+    return err;
+}
+
+/**
+ * @brief Load previously persisted Weave event.
+ *
+ */
+WEAVE_ERROR LoggingManagement::LoadEvents(TLVReader & reader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Platform::CriticalSectionEnter();
+
+    CircularEventBuffer * eventBuffer = mEventBuffer;
+
+    TLVType container;
+    err = reader.Next(kTLVType_Array, ProfileTag(kWeaveProfile_Common, kTagNum_SerializedEventState));
+    SuccessOrExit(err);
+    err = reader.EnterContainer(container);
+    SuccessOrExit(err);
+
+    while (eventBuffer != NULL)
+    {
+        err = eventBuffer->LoadEvents(reader);
+        SuccessOrExit(err);
+
+        eventBuffer = eventBuffer->mNext;
+    }
+
+    err = reader.VerifyEndOfContainer();
+    SuccessOrExit(err);
+    err = reader.ExitContainer(container);
+    SuccessOrExit(err);
+
+exit:
+    Platform::CriticalSectionExit();
+
+    return err;
+}
+
+/**
+ * @brief Set mShutdownInProgress flag to true.
+ */
+void LoggingManagement::MarkShutdownInProgress(void)
+{
+    mState = kLoggingManagementState_Shutdown;
+}
+
+/**
+ * @brief Set mShutdownInProgress flag to false.
+ */
+void LoggingManagement::CancelShutdownInProgress(void)
+{
+    mState = kLoggingManagementState_Idle;
+}
+
+/**
+ * @brief Check mShutdownInProgress flag.
+ */
+bool LoggingManagement::IsShutdownInProgress(void)
+{
+    return mState == kLoggingManagementState_Shutdown;
 }
 
 /**
@@ -2144,6 +2245,161 @@ void CircularEventReader::Init(CircularEventBuffer * inBuf)
         reader.Init(&prev->mBuffer);
         mMaxLen += reader.GetRemainingLength();
     }
+}
+
+WEAVE_ERROR CircularEventBuffer::SerializeEvents(TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    TLVType container;
+
+    uint8_t *inBufStart = mBuffer.QueueHead();
+    size_t inBufLen = mBuffer.DataLength();
+    uint8_t *bufStart = mBuffer.GetQueue();
+    size_t bufLen = mBuffer.GetQueueSize();
+
+    size_t initLen = inBufLen;
+    if (initLen > bufStart + bufLen - inBufStart)
+    {
+        initLen = bufStart + bufLen - inBufStart;
+    }
+
+    err = writer.StartContainer(AnonymousTag, kTLVType_Structure, container);
+    SuccessOrExit(err);
+
+    err = writer.Put(ContextTag(kTag_PersistEvent_ImportanceLevel), (uint8_t)mImportance);
+    SuccessOrExit(err);
+
+    err = writer.StartPutBytes(ContextTag(kTag_PersistEvent_EventData), inBufLen);
+    SuccessOrExit(err);
+
+    err = writer.ContinuePutBytes(inBufStart, initLen);
+    SuccessOrExit(err);
+
+    if (inBufLen > initLen)
+    {
+        err = writer.ContinuePutBytes(bufStart, inBufLen - initLen);
+        SuccessOrExit(err);
+    }
+
+    err = writer.Put(ContextTag(kTag_PersistEvent_FirstEventId), mFirstEventID);
+    SuccessOrExit(err);
+
+    err = writer.Put(ContextTag(kTag_PersistEvent_LastEventId), mLastEventID);
+    SuccessOrExit(err);
+
+    err = writer.Put(ContextTag(kTag_PersistEvent_FirstEventTimestamp), mFirstEventTimestamp);
+    SuccessOrExit(err);
+
+    err = writer.Put(ContextTag(kTag_PersistEvent_LastEventTimestamp), mLastEventTimestamp);
+    SuccessOrExit(err);
+
+    err = writer.Put(ContextTag(kTag_PersistEvent_EventIdCounter), mEventIdCounter->GetValue());
+    SuccessOrExit(err);
+
+#if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
+    err = writer.Put(ContextTag(kTag_PersistEvent_FirstEventUTCTimestamp), mFirstEventUTCTimestamp);
+    SuccessOrExit(err);
+
+    err = writer.Put(ContextTag(kTag_PersistEvent_LastEventUTCTimestamp), mLastEventUTCTimestamp);
+    SuccessOrExit(err);
+
+    err = writer.PutBoolean(ContextTag(kTag_PersistEvent_UTCInitialized), mUTCInitialized);
+    SuccessOrExit(err);
+#endif
+
+    err = writer.EndContainer(container);
+    SuccessOrExit(err);
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(EventLogging, "Serialize event error: %d", err);
+    }
+    return err;
+}
+
+WEAVE_ERROR CircularEventBuffer::LoadEvents(TLVReader & reader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    TLVType container;
+
+    uint32_t counterValue;
+    uint8_t importance;
+
+    err = reader.Next(kTLVType_Structure, AnonymousTag);
+    SuccessOrExit(err);
+    err = reader.EnterContainer(container);
+    SuccessOrExit(err);
+
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_PersistEvent_ImportanceLevel));
+    SuccessOrExit(err);
+    err = reader.Get(importance);
+    SuccessOrExit(err);
+    mImportance = (ImportanceType)importance;
+
+    err = reader.Next(kTLVType_ByteString, ContextTag(kTag_PersistEvent_EventData));
+    SuccessOrExit(err);
+    VerifyOrExit(reader.GetLength() <= mBuffer.GetQueueSize(), err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+    mBuffer.SetQueueLength(reader.GetLength());
+    mBuffer.SetQueueHead(mBuffer.GetQueue());
+    err = reader.GetBytes(mBuffer.GetQueue(), mBuffer.DataLength());
+    SuccessOrExit(err);
+
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_PersistEvent_FirstEventId));
+    SuccessOrExit(err);
+    err = reader.Get(mFirstEventID);
+    SuccessOrExit(err);
+
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_PersistEvent_LastEventId));
+    SuccessOrExit(err);
+    err = reader.Get(mLastEventID);
+    SuccessOrExit(err);
+
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_PersistEvent_FirstEventTimestamp));
+    SuccessOrExit(err);
+    err = reader.Get(mFirstEventTimestamp);
+    SuccessOrExit(err);
+
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_PersistEvent_LastEventTimestamp));
+    SuccessOrExit(err);
+    err = reader.Get(mLastEventTimestamp);
+    SuccessOrExit(err);
+
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_PersistEvent_EventIdCounter));
+    SuccessOrExit(err);
+    err = reader.Get(counterValue);
+    SuccessOrExit(err);
+
+    static_cast<PersistedCounter *>(mEventIdCounter)->SetValue(counterValue);
+
+#if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_PersistEvent_FirstEventUTCTimestamp));
+    SuccessOrExit(err);
+    err = reader.Get(mFirstEventUTCTimestamp);
+    SuccessOrExit(err);
+
+    err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_PersistEvent_LastEventUTCTimestamp));
+    SuccessOrExit(err);
+    err = reader.Get(mLastEventUTCTimestamp);
+    SuccessOrExit(err);
+
+    err = reader.Next(kTLVType_Boolean, ContextTag(kTag_PersistEvent_UTCInitialized));
+    SuccessOrExit(err);
+    err = reader.Get(mUTCInitialized);
+    SuccessOrExit(err);
+#endif
+
+    err = reader.ExitContainer(container);
+    SuccessOrExit(err);
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(EventLogging, "Load event error: %d", err);
+    }
+    return err;
 }
 
 WEAVE_ERROR CircularEventBuffer::GetNextBufferFunct(TLVReader & ioReader, uintptr_t & inBufHandle, const uint8_t *& outBufStart,
