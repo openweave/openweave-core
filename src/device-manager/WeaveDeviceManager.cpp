@@ -3513,6 +3513,11 @@ void WeaveDeviceManager::HandleConnectionClosed(WeaveConnection *con, WEAVE_ERRO
         devMgr->mOnConnectionClosedFunc(devMgr, devMgr->mOnConnectionClosedAppReq, con, conErr);
     }
 
+    if (conErr != WEAVE_NO_ERROR && devMgr->mOnError)
+    {
+        devMgr->mOnError(devMgr, devMgr->mAppReqState, conErr, NULL);
+    }
+
     WeaveLogProgress(DeviceManager, "Connection to device closed");
 }
 
