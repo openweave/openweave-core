@@ -346,6 +346,23 @@ private:
 };
 
 /**
+ * @class WeaveSessionResumptionMsgId
+ *
+ * @brief
+ *   Contains information about the messageIds to use to resume a session
+ */
+class WeaveSessionResumptionMsgId
+{
+public:
+    MonotonicallyIncreasingCounter ResumptionSendMsgId;  /**< The next message id to be used when the session resumes after suspension. */
+    uint32_t ResumptionRecvMsgId;                        /**< The next message id expected to be received from the peer on session resumption. */
+
+    void ComputeNextResumptionMsgIds() { ResumptionSendMsgId.AdvanceBy(WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET);
+                                         ResumptionRecvMsgId += WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET;
+                                       }
+};
+
+/**
  * @class WeaveSessionKey
  *
  * @brief
@@ -371,6 +388,9 @@ public:
     WeaveSessionState::ReceiveFlagsType RcvFlags;       /**< Flags tracking messages received under the key. */
     WeaveAuthMode AuthMode;                             /**< The means by which the peer node was authenticated during session establishment. */
     WeaveMsgEncryptionKey MsgEncKey;                    /**< The Weave message encryption key. */
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+    WeaveSessionResumptionMsgId resumptionMsgId;
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
     uint8_t ReserveCount;                               /**< Number of times the session key has been reserved. */
     uint8_t Flags;                                      /**< Various flags associated with the session. */
 
@@ -467,6 +487,7 @@ public:
      *
      */
     virtual void DidLeaveFabric(WeaveFabricState *fabricState, uint64_t oldFabricId) = 0;
+
 };
 
 class NL_DLL_EXPORT WeaveFabricState
@@ -527,8 +548,8 @@ public:
                                            uint8_t endNodeIdsBufSize, uint8_t& endNodeIdsCount);
     void RemoveSharedSessionEndNodes(const WeaveSessionKey *sessionKey);
 
-    WEAVE_ERROR SuspendSession(uint16_t keyId, uint64_t peerNodeId, uint8_t * buf, uint16_t bufSize, uint16_t & serializedSessionLen);
-    WEAVE_ERROR RestoreSession(uint8_t * serializedSession, uint16_t serializedSessionLen);
+    WEAVE_ERROR SuspendSession(uint16_t keyId, uint64_t peerNodeId, uint8_t * buf, uint16_t bufSize, uint16_t & serializedSessionLen, bool useResumptionMsgIds = false);
+    WEAVE_ERROR RestoreSession(uint8_t * serializedSession, uint16_t serializedSessionLen, WeaveConnection *con = NULL, bool useResumptionMsgIds = false);
 
     WEAVE_ERROR GetSessionState(uint64_t remoteNodeId, uint16_t keyId, uint8_t encType, WeaveConnection *con, WeaveSessionState& outSessionState);
 
@@ -579,6 +600,15 @@ public:
     };
 
     WEAVE_ERROR RegisterSessionEndCallback(SessionEndCbCtxt *sessionEndCb);
+
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+    /**
+     * Notify the application about the closure of a connection that was bound
+     * to a session specified by the KeyId and PeerNodeId
+     */
+    typedef void (*BoundConnectionClosedForSessionFunct)(uint16_t keyId, uint64_t peerNodeId);
+    BoundConnectionClosedForSessionFunct BoundConnectionClosedForSession;
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 private:
     PeerIndexType PeerCount;
     MonotonicallyIncreasingCounter NextUnencUDPMsgId;

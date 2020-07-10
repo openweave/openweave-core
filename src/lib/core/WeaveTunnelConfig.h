@@ -469,6 +469,43 @@
 #define WEAVE_CONFIG_TUNNEL_INTERFACE_MTU                           (1536)
 #endif // WEAVE_CONFIG_TUNNEL_INTERFACE_MTU
 
+/**
+ * @def WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+ *
+ * @brief
+ *    Set to true if the Tunnel CASE session needs to be persisted,
+ *    false otherwise.
+ */
+#ifndef WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+#define WEAVE_CONFIG_PERSIST_CONNECTED_SESSION                      (1)
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+
+/**
+ * @def WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET
+ *
+ * @brief
+ *   The offset to use to move the message id forward when
+ *   computing the resumption message ids when suspending
+ *   the current secure tunnel session.
+ *
+ */
+#ifndef WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET
+#define WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET      (10000)
+#endif // WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET
+
+/**
+ * @def WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_RECALCULATE_THRESHOLD
+ *
+ * @brief
+ *   The offset to use to move the message id forward when
+ *   computing the resumption message ids when suspending
+ *   the current secure tunnel session.
+ *
+ */
+#ifndef WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_RECALCULATE_THRESHOLD
+#define WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_RECALCULATE_THRESHOLD (50)
+#endif // WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_RECALCULATE_THRESHOLD
+
 // clang-format on
 
 #endif /* WEAVE_TUNNEL_CONFIG_H_ */

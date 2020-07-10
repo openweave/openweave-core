@@ -50,6 +50,24 @@ namespace WeaveTunnel {
 class WeaveTunnelAgent;
 
 /**
+ *  @struct WeaveTunnelConnectionInfo
+ *
+ *  @brief
+ *    Read-only information about the Weave Tunnel Connection.
+ *
+ */
+
+struct WeaveTunnelConnectionInfo
+{
+    IPAddress ServiceIP;
+    uint16_t ServicePort;
+    uint16_t SessionKeyId;
+    uint8_t EncryptionType;
+    WeaveAuthMode AuthMode;
+    void Clear() { memset(this, 0, sizeof(*this)); }
+};
+
+/**
  * The reconnect policy parameters that are used to govern the way the
  * tunnel reconnects to the Service.
  */
@@ -111,6 +129,20 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
     } TunnelConnNotifyReasons;
 
     WeaveTunnelConnectionMgr(void);
+
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+/**
+ * Check if a persisted secure session for the corresponding peer node exists
+ */
+    typedef bool (*PersistedSecureSessionExistsFunct)(uint64_t PeerNode);
+    PersistedSecureSessionExistsFunct IsPersistedSecureSessionPresent;
+
+/**
+ * Populate the persisted secure session within the passed WeaveConnection object
+ */
+    typedef void (*LoadPersistedSessionFunct)(WeaveConnection *con);
+    LoadPersistedSessionFunct LoadPersistedTunnelSession;
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 
 /**
  * Initialize the WeaveTunnelConnectionMgr.
@@ -223,6 +255,8 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
  */
     void StopAndReconnectTunnelConn(ReconnectParam & reconnParam);
 
+    WeaveTunnelConnectionInfo GetTunnelConnectionInfo(void) const {return mTunnelConnInfo;}
+
   private:
 
     WEAVE_ERROR StartServiceTunnelConn(uint64_t destNodeId, IPAddress destIPAddr,
@@ -251,6 +285,8 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
     void ReStartOnlineCheck(void);
     static void OnlineCheckTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
     void HandleOnlineCheckResult(bool isOnline);
+    void SetConnectionInfo(WeaveConnection *con);
+
     // Pointer to a Weave Tunnel Agent object.
 
     WeaveTunnelAgent *mTunAgent;
@@ -293,6 +329,10 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
     // Handle to the Weave connection object.
 
     WeaveConnection *mServiceCon;
+
+    // Weave Connection Info;
+
+    WeaveTunnelConnectionInfo mTunnelConnInfo;
 
 #if WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
     // TCP connection keepalive interval (in secs)

@@ -342,7 +342,10 @@ enum
     kTag_SerializedSession_AES128CTRSHA1_DataKey        = 11, // [ BYTE STRING, len 16 ] For sessions supporting AES128CTRSHA1
                                                               //    message encryption, the data encryption key.
     kTag_SerializedSession_AES128CTRSHA1_IntegrityKey   = 12, // [ BYTE STRING, len 20 ] For sessions supporting AES128CTRSHA1
-                                                              //    message encryption, the data integrity key.
+    kTag_SerializedSession_ResumptionSendMessageId      = 13, // [ UNSIGNED INT, range 32bits ] Send message id for a persisted
+                                                              //    session to resume from.
+    kTag_SerializedSession_ResumptionRecvMessageId      = 14, // [ UNSIGNED INT, range 32bits ] Next expected receive message id
+                                                              //    for a session resumed after persistence.
 };
 
 // Weave-defined elliptic curve ids

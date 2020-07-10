@@ -93,6 +93,16 @@ public:
 
     /**
      *  @brief
+     *  Advance the value of the counter by a specific increment.
+     *
+     *  @param[in] aIncrement  The increment to the counter.
+     *
+     *  @return A Weave error code if something fails, WEAVE_NO_ERROR otherwise
+     */
+    virtual WEAVE_ERROR AdvanceBy(uint32_t aIncrement);
+
+    /**
+     *  @brief
      *  Get the current value of the counter.
      *
      *  @return The current value of the counter.

@@ -51,6 +51,16 @@ MonotonicallyIncreasingCounter::Advance(void)
     return err;
 }
 
+WEAVE_ERROR
+MonotonicallyIncreasingCounter::AdvanceBy(uint32_t increment)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    mCounterValue += increment;
+
+    return err;
+}
+
 uint32_t
 MonotonicallyIncreasingCounter::GetValue(void)
 {

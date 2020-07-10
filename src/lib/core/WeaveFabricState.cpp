@@ -621,7 +621,7 @@ void WeaveFabricState::RemoveSharedSessionEndNodes(const WeaveSessionKey *sessio
  * allowing them to persist the state of an active session and thereby avoid the need to
  * re-establish the session when they wake.
  */
-WEAVE_ERROR WeaveFabricState::SuspendSession(uint16_t keyId, uint64_t peerNodeId, uint8_t * buf, uint16_t bufSize, uint16_t & serializedSessionLen)
+WEAVE_ERROR WeaveFabricState::SuspendSession(uint16_t keyId, uint64_t peerNodeId, uint8_t * buf, uint16_t bufSize, uint16_t & serializedSessionLen, bool useResumptionMsgIds)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WeaveSessionKey * sessionKey;
@@ -633,7 +633,6 @@ WEAVE_ERROR WeaveFabricState::SuspendSession(uint16_t keyId, uint64_t peerNodeId
     // Assert various requirements about the session.
     VerifyOrExit(sessionKey->IsKeySet(), err = WEAVE_ERROR_KEY_NOT_FOUND);
     VerifyOrExit(!sessionKey->IsSuspended(), err = WEAVE_ERROR_SESSION_KEY_SUSPENDED);
-    VerifyOrExit(sessionKey->BoundCon == NULL, err = WEAVE_ERROR_INVALID_USE_OF_SESSION_KEY);
     VerifyOrExit(IsCertAuthMode(sessionKey->AuthMode), err = WEAVE_ERROR_INVALID_USE_OF_SESSION_KEY);
 
     {
@@ -709,6 +708,17 @@ WEAVE_ERROR WeaveFabricState::SuspendSession(uint16_t keyId, uint64_t peerNodeId
             ExitNow(err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
         }
 
+        if (useResumptionMsgIds)
+        {
+            err = writer.Put(ContextTag(kTag_SerializedSession_ResumptionSendMessageId),
+                             sessionKey->resumptionMsgId.ResumptionSendMsgId.GetValue());
+            SuccessOrExit(err);
+
+            err = writer.Put(ContextTag(kTag_SerializedSession_ResumptionRecvMessageId),
+                             sessionKey->resumptionMsgId.ResumptionRecvMsgId);
+            SuccessOrExit(err);
+        }
+
         // End the Security:SerializedSession TLV structure and finalize the encoding.
         err = writer.EndContainer(container);
         SuccessOrExit(err);
@@ -738,7 +748,8 @@ exit:
  * Restore a previously suspended Weave Security Session from a serialized state.
  *
  */
-WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16_t serializedSessionLen)
+WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16_t serializedSessionLen, WeaveConnection *con,
+                                             bool resumptionMsgIdPresent)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVReader reader;
@@ -746,6 +757,7 @@ WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16
     uint16_t keyId;
     uint64_t peerNodeId;
     WeaveSessionKey * sessionKey = NULL;
+    WeaveSessionResumptionMsgId resumptionMsgId;
     bool removeSessionOnError = false;
 
     reader.Init(serializedSession, serializedSessionLen);
@@ -884,6 +896,37 @@ WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16
         break;
     default:
         ExitNow(err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
+    }
+
+    // Get the resumptionMsgIds;
+    if (resumptionMsgIdPresent)
+    {
+        uint32_t nextResumptionMsgId;
+        err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_ResumptionSendMessageId));
+        SuccessOrExit(err);
+
+        err = reader.Get(nextResumptionMsgId);
+        SuccessOrExit(err);
+
+        err = sessionKey->resumptionMsgId.ResumptionSendMsgId.Init(nextResumptionMsgId);
+        SuccessOrExit(err);
+
+        err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_ResumptionRecvMessageId));
+        SuccessOrExit(err);
+
+        err = reader.Get(sessionKey->resumptionMsgId.ResumptionRecvMsgId);
+        SuccessOrExit(err);
+
+        sessionKey->NextMsgId = sessionKey->resumptionMsgId.ResumptionSendMsgId;
+        sessionKey->MaxRcvdMsgId = sessionKey->resumptionMsgId.ResumptionRecvMsgId;
+
+        // Generate a new set of resumption msg ids
+        sessionKey->resumptionMsgId.ComputeNextResumptionMsgIds();
+    }
+
+    if (con)
+    {
+        sessionKey->BoundCon = con;
     }
 
     // Verify no other data in the serialized session structure.
@@ -1663,6 +1706,13 @@ void WeaveFabricState::HandleConnectionClosed(WeaveConnection *con)
     {
         if (sessionKey->IsAllocated() && SessionKeys[i].BoundCon == con)
         {
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+            if (BoundConnectionClosedForSession)
+            {
+                BoundConnectionClosedForSession(con->DefaultKeyId, con->PeerNodeId);
+            }
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+
             RemoveSessionKey(sessionKey);
         }
     }
