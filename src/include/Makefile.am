@@ -379,6 +379,7 @@ $(nl_public_WeaveSupport_source_dirstem)/FibonacciUtils.h \
 $(nl_public_WeaveSupport_source_dirstem)/FlagUtils.hpp \
 $(nl_public_WeaveSupport_source_dirstem)/ManagedNamespace.hpp \
 $(nl_public_WeaveSupport_source_dirstem)/MathUtils.h \
+$(nl_public_WeaveSupport_source_dirstem)/ProfileUtils.h \
 $(nl_public_WeaveSupport_source_dirstem)/NLDLLUtil.h \
 $(nl_public_WeaveSupport_source_dirstem)/NestCerts.h \
 $(nl_public_WeaveSupport_source_dirstem)/PersistedCounter.h \

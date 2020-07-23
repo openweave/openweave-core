@@ -664,10 +664,13 @@ void WeaveExchangeManager::DispatchMessage(WeaveMessageInfo *msgInfo, PacketBuff
 
     msgCon = msgInfo->InCon;
 
-    WeaveLogRetain(ExchangeManager, "Msg %s %08" PRIX32 ":%d %d %016" PRIX64 " %04" PRIX16 " %04" PRIX16 " %ld MsgId:%08" PRIX32,
-                   "rcvd", exchangeHeader.ProfileId, exchangeHeader.MessageType,
-                   (int)msgBuf->DataLength(), msgInfo->SourceNodeId, msgCon->LogId(), exchangeHeader.ExchangeId,
-                   (long)err, msgInfo->MessageId);
+    if(!nl::Weave::Platform::IsProfileSilenced(static_cast<nl::Weave::Profiles::WeaveProfileId>(exchangeHeader.ProfileId)))
+    {
+        WeaveLogRetain(ExchangeManager, "Msg %s %08" PRIX32 ":%d %d %016" PRIX64 " %04" PRIX16 " %04" PRIX16 " %ld MsgId:%08" PRIX32,
+                       "rcvd", exchangeHeader.ProfileId, exchangeHeader.MessageType,
+                       (int)msgBuf->DataLength(), msgInfo->SourceNodeId, msgCon->LogId(), exchangeHeader.ExchangeId,
+                       (long)err, msgInfo->MessageId);
+    }
 
 #if WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
     isMsgCounterSyncResp = exchangeHeader.ProfileId == nl::Weave::Profiles::kWeaveProfile_Security &&
