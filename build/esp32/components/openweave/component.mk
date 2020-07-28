@@ -122,17 +122,6 @@ endif
 COMPONENT_ADD_INCLUDEDIRS 	 = project-config \
                                $(REL_OUTPUT_DIR)/include
 
-# Linker flags to be included when building other components that use Weave. 
-COMPONENT_ADD_LDFLAGS        = -L$(OUTPUT_DIR)/lib \
-					           -lWeave \
-					           -lInetLayer \
-					           -lmincrypt \
-					           -lnlfaultinjection \
-					           -lSystemLayer \
-					           -luECC \
-					           -lWarm \
-					           -lDeviceLayer
-
 # Tell the ESP-IDF build system that the OpenWeave component defines its own build
 # and clean targets.
 COMPONENT_OWNBUILDTARGET 	 = 1
@@ -143,7 +132,7 @@ COMPONENT_OWNCLEANTARGET 	 = 1
 # Build Rules
 # ==================================================
 
-.PHONY : check-config-args-updated
+.PHONY : check-config-args-updated install-weave build-weave configure-weave
 check-config-args-updated : | $(OUTPUT_DIR)
 	echo $(OPENWEAVE_ROOT)/configure -C $(CONFIGURE_OPTIONS) > $(OUTPUT_DIR)/config.args.tmp; \
 	(test -r $(OUTPUT_DIR)/config.args && cmp -s $(OUTPUT_DIR)/config.args.tmp $(OUTPUT_DIR)/config.args) || \
@@ -171,11 +160,34 @@ build-weave : configure-weave
 	echo "BUILD OPENWEAVE..."
 	MAKEFLAGS= make -C $(OUTPUT_DIR) --no-print-directory all
 
-install-weave : | build-weave
+install-weave : build-weave
 	echo "INSTALL OPENWEAVE..."
 	MAKEFLAGS= make -C $(OUTPUT_DIR) --no-print-directory install
 
-build : build-weave install-weave
+# Openweave build routine builds several .a libraries (lib{Weave|InetLayer|...}.a)
+# instead of a single library (libopenweave.a) which is expected by esp-idf 3.3
+# Here, we extract the libraries and repack them into a one big library
+OPENWEAVE_STATIC_LIBRARIES = \
+	$(OUTPUT_DIR)/lib/libWeave.a             \
+	$(OUTPUT_DIR)/lib/libInetLayer.a         \
+	$(OUTPUT_DIR)/lib/libmincrypt.a          \
+	$(OUTPUT_DIR)/lib/libnlfaultinjection.a  \
+	$(OUTPUT_DIR)/lib/libSystemLayer.a       \
+	$(OUTPUT_DIR)/lib/libuECC.a              \
+	$(OUTPUT_DIR)/lib/libWarm.a              \
+	$(OUTPUT_DIR)/lib/libDeviceLayer.a       \
+
+# Extract and repack the %.a files into a single libopenweave.a
+$(OUTPUT_DIR)/libopenweave.a : install-weave
+	mkdir -p $(OUTPUT_DIR)/libopenweave.a.tmp
+	cd $(OUTPUT_DIR)/libopenweave.a.tmp; \
+	for files in $(OPENWEAVE_STATIC_LIBRARIES) ; do \
+	  $(AR) -x $$files ; \
+	done
+	$(AR) cru $@ $(OUTPUT_DIR)/libopenweave.a.tmp/*.o
+	rm -rf $(OUTPUT_DIR)/libopenweave.a.tmp
+
+build : build-weave install-weave $(OUTPUT_DIR)/libopenweave.a
 
 clean:
 	echo "RM $(OUTPUT_DIR)"

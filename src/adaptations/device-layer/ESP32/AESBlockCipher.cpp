@@ -30,6 +30,7 @@
 #include <Weave/Support/crypto/AESBlockCipher.h>
 
 #include <hwcrypto/aes.h>
+#include <esp_system.h>
 
 namespace nl {
 namespace Weave {
@@ -64,7 +65,11 @@ void AES128BlockCipherEnc::EncryptBlock(const uint8_t *inBlock, uint8_t *outBloc
 
     esp_aes_init(&ctx);
     esp_aes_setkey(&ctx, mKey, kKeyLengthBits);
+#if ESP_IDF_VERSION_MAJOR > 3 || (ESP_IDF_VERSION_MAJOR == 3 && ESP_IDF_VERSION_MINOR >= 2)
+    esp_aes_crypt_ecb(&ctx, ESP_AES_ENCRYPT, inBlock, outBlock);
+#else
     esp_aes_encrypt(&ctx, inBlock, outBlock);
+#endif
     esp_aes_free(&ctx);
 }
 
@@ -79,7 +84,11 @@ void AES128BlockCipherDec::DecryptBlock(const uint8_t *inBlock, uint8_t *outBloc
 
     esp_aes_init(&ctx);
     esp_aes_setkey(&ctx, mKey, kKeyLengthBits);
+#if ESP_IDF_VERSION_MAJOR > 3 || (ESP_IDF_VERSION_MAJOR == 3 && ESP_IDF_VERSION_MINOR >= 2)
+    esp_aes_crypt_ecb(&ctx, ESP_AES_DECRYPT, inBlock, outBlock);
+#else
     esp_aes_decrypt(&ctx, inBlock, outBlock);
+#endif
     esp_aes_free(&ctx);
 }
 
@@ -109,7 +118,11 @@ void AES256BlockCipherEnc::EncryptBlock(const uint8_t *inBlock, uint8_t *outBloc
 
     esp_aes_init(&ctx);
     esp_aes_setkey(&ctx, mKey, kKeyLengthBits);
+#if ESP_IDF_VERSION_MAJOR > 3 || (ESP_IDF_VERSION_MAJOR == 3 && ESP_IDF_VERSION_MINOR >= 2)
+    esp_aes_crypt_ecb(&ctx, ESP_AES_ENCRYPT, inBlock, outBlock);
+#else
     esp_aes_encrypt(&ctx, inBlock, outBlock);
+#endif
     esp_aes_free(&ctx);
 }
 
@@ -124,7 +137,11 @@ void AES256BlockCipherDec::DecryptBlock(const uint8_t *inBlock, uint8_t *outBloc
 
     esp_aes_init(&ctx);
     esp_aes_setkey(&ctx, mKey, kKeyLengthBits);
+#if ESP_IDF_VERSION_MAJOR > 3 || (ESP_IDF_VERSION_MAJOR == 3 && ESP_IDF_VERSION_MINOR >= 2)
+    esp_aes_crypt_ecb(&ctx, ESP_AES_DECRYPT, inBlock, outBlock);
+#else
     esp_aes_decrypt(&ctx, inBlock, outBlock);
+#endif
     esp_aes_free(&ctx);
 }
 
