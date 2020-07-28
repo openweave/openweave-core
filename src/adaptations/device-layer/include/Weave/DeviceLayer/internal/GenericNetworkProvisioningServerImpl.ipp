@@ -897,7 +897,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateThreadProvi
     // Verify a valid Thread channel was specified.
     if (netInfo.ThreadChannel != kThreadChannel_NotSpecified)
     {
-        if (netInfo.ThreadChannel < 11 && netInfo.ThreadChannel > 26)
+        if (netInfo.ThreadChannel < 11 || netInfo.ThreadChannel > 26)
         {
             statusProfileId = kWeaveProfile_NetworkProvisioning;
             statusCode = kStatusCode_InvalidNetworkConfiguration;
