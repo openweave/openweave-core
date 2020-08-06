@@ -50,7 +50,7 @@ WeaveTunnelConnectionMgr::WeaveTunnelConnectionMgr(void)
     mServiceCon                     = NULL;
     mTunFailedConnAttemptsInRow     = 0;
 #if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
-    IsPersistedSecureSessionPresent = NULL;
+    IsPersistedTunnelSessionPresent = NULL;
     LoadPersistedTunnelSession      = NULL;
 #endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 }
@@ -298,9 +298,9 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::TryConnectingNow(void)
     }
 
 #if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
-    // If Tunnel secure session is persisted then setup an unsecured WeaveConnection before using
+    // If Tunnel secure session is persisted and available then setup an unsecured WeaveConnection before using
     // the persisted secure session to open the tunnel.
-    if (IsPersistedSecureSessionPresent && IsPersistedSecureSessionPresent(mTunAgent->mPeerNodeId))
+    if (IsPersistedTunnelSessionPresent && IsPersistedTunnelSessionPresent())
     {
         currentAuthMode = kWeaveAuthMode_Unauthenticated;
     }

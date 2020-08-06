@@ -132,10 +132,10 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
 
 #if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 /**
- * Check if a persisted secure session for the corresponding peer node exists
+ * Check if a persisted secure session for the tunnel exists
  */
-    typedef bool (*PersistedSecureSessionExistsFunct)(uint64_t PeerNode);
-    PersistedSecureSessionExistsFunct IsPersistedSecureSessionPresent;
+    typedef bool (*PersistedSecureSessionExistsFunct)(void);
+    PersistedSecureSessionExistsFunct IsPersistedTunnelSessionPresent;
 
 /**
  * Populate the persisted secure session within the passed WeaveConnection object

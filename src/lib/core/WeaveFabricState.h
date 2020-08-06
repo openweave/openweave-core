@@ -606,7 +606,7 @@ public:
      * Notify the application about the closure of a connection that was bound
      * to a session specified by the KeyId and PeerNodeId
      */
-    typedef void (*BoundConnectionClosedForSessionFunct)(uint16_t keyId, uint64_t peerNodeId);
+    typedef void (*BoundConnectionClosedForSessionFunct)(WeaveConnection *con);
     BoundConnectionClosedForSessionFunct BoundConnectionClosedForSession;
 #endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 private:

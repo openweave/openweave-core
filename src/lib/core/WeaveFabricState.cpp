@@ -1709,7 +1709,7 @@ void WeaveFabricState::HandleConnectionClosed(WeaveConnection *con)
 #if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
             if (BoundConnectionClosedForSession)
             {
-                BoundConnectionClosedForSession(con->DefaultKeyId, con->PeerNodeId);
+                BoundConnectionClosedForSession(con);
             }
 #endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 
