@@ -163,7 +163,6 @@ libDeviceLayer_a_SOURCES               +=       \
     ESP32/Entropy.cpp                           \
     ESP32/ESP32Config.cpp                       \
     ESP32/ESP32Utils.cpp                        \
-    ESP32/ThreadStackManagerImpl.cpp            \ 
     ESP32/GroupKeyStoreImpl.cpp                 \
     ESP32/Logging.cpp                           \
     ESP32/LwIPCoreLock.cpp                      \
@@ -171,6 +170,7 @@ libDeviceLayer_a_SOURCES               +=       \
     ESP32/PlatformManagerImpl.cpp               \
     ESP32/SoftwareUpdateManagerImpl.cpp         \
     ESP32/SystemTimeSupport.cpp                 \
+    ESP32/ThreadStackManagerImpl.cpp            \ 
     OpenThread/OpenThreadUtils.cpp              \
     LwIP/WarmSupport.cpp                        \
     $(NULL)
