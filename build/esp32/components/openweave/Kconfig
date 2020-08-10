@@ -669,11 +669,6 @@ menu "OpenWeave Device Layer"
         config WEAVE_DEVICE_CONFIG_ENABLE_THREAD
             bool "Enable Thread support (with external RCP)"
             default n
-        
-        config WARM_CONFIG_SUPPORT_THREAD_ROUTING
-            bool "Enable Thread routing"
-            default n
-            depends on WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 
     endmenu
     
