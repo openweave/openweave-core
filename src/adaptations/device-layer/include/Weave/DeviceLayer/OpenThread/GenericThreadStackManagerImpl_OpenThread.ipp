@@ -1020,7 +1020,7 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::DoInit(otInstan
     // create or acquire a singleton instance of OpenThread.
     if (otInst == NULL)
     {
-#ifdef WEAVE_PLATFORM_ESP32
+#if defined(WEAVE_DEVICE_LAYER_TARGET_ESP32) && WEAVE_DEVICE_LAYER_TARGET_ESP32
         WeaveLogError(DeviceLayer, "otInstance is not supplied, create a new instance");
         size_t instanceSize = 0;
 
