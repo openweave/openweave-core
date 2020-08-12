@@ -67,7 +67,7 @@ void GenericThreadStackManagerImpl_FreeRTOS<ThreadStackManagerImpl>::ThreadTaskM
 
     while (true)
     {
-      otSysMainloopContext mainloop;
+        otSysMainloopContext mainloop;
  
         otSysMainloopInit(&mainloop);
 
