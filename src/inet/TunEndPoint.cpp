@@ -549,12 +549,12 @@ err_t TunEndPoint::LwIPPostToInetEventQ (struct netif *netif, struct pbuf *p)
     INET_ERROR              err             = INET_NO_ERROR;
     TunEndPoint*            ep              = static_cast<TunEndPoint *>(netif->state);
     Weave::System::Layer&   lSystemLayer    = ep->SystemLayer();
-    PacketBuffer*           buf             = PacketBuffer::NewWithAvailableSize(p->tot_len);
 
     // Starting off with a reserved size of the default WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE
     // which allows for adding the Weave header and the underlying transport and IP headers
-    // encapsulating this tunneled packet.
+    // encapsulating this tunneled packet. Also need to request space for trailer.
 
+    PacketBuffer* buf = PacketBuffer::NewWithAvailableSize(p->tot_len + WEAVE_TRAILER_RESERVE_SIZE);
     VerifyOrExit(buf != NULL, lwipErr = ERR_MEM);
 
     buf->SetDataLength(p->tot_len);
