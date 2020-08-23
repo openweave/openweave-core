@@ -1011,6 +1011,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h                            \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/SoftwareUpdateManagerImpl.h                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/SystemPlatformConfig.h                           \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ThreadStackManagerImpl.h                          \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WarmPlatformConfig.h                             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformEvent.h                       \

@@ -239,6 +239,12 @@ void ConfigurationManagerImpl::DoFactoryReset(intptr_t arg)
         WeaveLogError(DeviceLayer, "esp_wifi_restore() failed: %s", nl::ErrorStr(err));
     }
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    ThreadStackMgrImpl().LockThreadStack();
+    otInstanceFactoryReset(ThreadStackMgrImpl().OTInstance());
+    ThreadStackMgrImpl().UnlockThreadStack();
+#endif
+
     // Restart the system.
     WeaveLogProgress(DeviceLayer, "System restarting");
     esp_restart();

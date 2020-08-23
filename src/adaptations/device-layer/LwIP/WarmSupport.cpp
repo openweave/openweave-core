@@ -448,8 +448,6 @@ PlatformResult AddRemoveThreadRoute(InterfaceType inInterfaceType, const Inet::I
 
     ThreadStackMgrImpl().LockThreadStack();
 
-    otBorderRouterRegister(ThreadStackMgrImpl().OTInstance());
-
     memcpy(routeConfig.mPrefix.mPrefix.mFields.m8, inPrefix.IPAddr.Addr, sizeof(routeConfig.mPrefix.mPrefix.mFields));
     routeConfig.mPrefix.mLength = inPrefix.Length;
     routeConfig.mStable = true;
@@ -463,6 +461,8 @@ PlatformResult AddRemoveThreadRoute(InterfaceType inInterfaceType, const Inet::I
     {
         otErr = otBorderRouterRemoveRoute(ThreadStackMgrImpl().OTInstance(), &routeConfig.mPrefix);
     }
+
+    otBorderRouterRegister(ThreadStackMgrImpl().OTInstance());
 
     ThreadStackMgrImpl().UnlockThreadStack();
 

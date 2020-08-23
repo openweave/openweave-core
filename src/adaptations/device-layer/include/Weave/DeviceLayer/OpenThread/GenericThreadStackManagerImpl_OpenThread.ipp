@@ -53,11 +53,11 @@ namespace DeviceLayer {
 namespace Internal {
 
 // Assert some presumptions in this code
-static_assert(DeviceNetworkInfo::kMaxThreadNetworkNameLength == OT_NETWORK_NAME_MAX_SIZE);
-static_assert(DeviceNetworkInfo::kThreadExtendedPANIdLength == OT_EXT_PAN_ID_SIZE);
-static_assert(DeviceNetworkInfo::kThreadMeshPrefixLength == OT_MESH_LOCAL_PREFIX_SIZE);
-static_assert(DeviceNetworkInfo::kThreadNetworkKeyLength == OT_MASTER_KEY_SIZE);
-static_assert(DeviceNetworkInfo::kThreadPSKcLength == OT_PSKC_MAX_SIZE);
+static_assert(DeviceNetworkInfo::kMaxThreadNetworkNameLength == OT_NETWORK_NAME_MAX_SIZE, "ERROR");
+static_assert(DeviceNetworkInfo::kThreadExtendedPANIdLength == OT_EXT_PAN_ID_SIZE, "ERROR");
+static_assert(DeviceNetworkInfo::kThreadMeshPrefixLength == OT_MESH_LOCAL_PREFIX_SIZE, "ERROR");
+static_assert(DeviceNetworkInfo::kThreadNetworkKeyLength == OT_MASTER_KEY_SIZE, "ERROR");
+static_assert(DeviceNetworkInfo::kThreadPSKcLength == OT_PSKC_MAX_SIZE, "ERROR");
 
 // Fully instantiate the generic implementation class in whatever compilation unit includes this file.
 template class GenericThreadStackManagerImpl_OpenThread<ThreadStackManagerImpl>;
@@ -946,7 +946,7 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThrea
             neighborTopoEvent.SetTimeoutPresent();
             neighborTopoEvent.SetNetworkDataVersionPresent();
 
-            snprintf(printBuf, TELEM_PRINT_BUFFER_SIZE, ", Timeout: %10lu NetworkDataVersion: %3d",
+            snprintf(printBuf, TELEM_PRINT_BUFFER_SIZE, ", Timeout: %10" PRIu32 " NetworkDataVersion: %3d",
                                neighborTopoEvent.timeout, neighborTopoEvent.networkDataVersion);
         }
         else
@@ -1020,8 +1020,22 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::DoInit(otInstan
     // create or acquire a singleton instance of OpenThread.
     if (otInst == NULL)
     {
+#if defined(WEAVE_DEVICE_LAYER_TARGET_ESP32) && WEAVE_DEVICE_LAYER_TARGET_ESP32
+        WeaveLogError(DeviceLayer, "otInstance is not supplied, create a new instance");
+        size_t instanceSize = 0;
+
+        // Get the instance size.
+        otInstanceInit(NULL, &instanceSize);
+        void *instanceBuffer = malloc(instanceSize);
+        otInst = otInstanceInit(instanceBuffer, &instanceSize);
+#else
         otInst = otInstanceInitSingle();
+#endif
         VerifyOrExit(otInst != NULL, err = MapOpenThreadError(OT_ERROR_FAILED));
+    }
+    else
+    {
+        WeaveLogError(DeviceLayer, "Using existing otInstance: %p", otInst);
     }
 
     mOTInst = otInst;

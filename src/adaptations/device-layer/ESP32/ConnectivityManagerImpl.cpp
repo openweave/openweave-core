@@ -57,6 +57,10 @@
 #include <nest/trait/network/TelemetryNetworkWifiTrait.h>
 #endif
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_Thread.ipp>
+#endif
+
 using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
@@ -398,6 +402,10 @@ WEAVE_ERROR ConnectivityManagerImpl::_Init()
     mWiFiAPIdleTimeoutMS = WEAVE_DEVICE_CONFIG_WIFI_AP_IDLE_TIMEOUT;
     mFlags = 0;
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    GenericConnectivityManagerImpl_Thread<ConnectivityManagerImpl>::_Init();
+#endif 
+
     // Initialize the Weave Addressing and Routing Module.
     err = Warm::Init(FabricState);
     SuccessOrExit(err);
@@ -555,6 +563,10 @@ void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
     }
 
 #endif // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    GenericConnectivityManagerImpl_Thread<ConnectivityManagerImpl>::_OnPlatformEvent(event);
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 }
 
 void ConnectivityManagerImpl::_OnWiFiScanDone()

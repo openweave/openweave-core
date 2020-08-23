@@ -42,7 +42,7 @@ WEAVE_ERROR GenericThreadStackManagerImpl_FreeRTOS<ImplClass>::DoInit(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    mThreadStackLock = xSemaphoreCreateMutex();
+    mThreadStackLock = xSemaphoreCreateRecursiveMutex();
     if (mThreadStackLock == NULL)
     {
         WeaveLogError(DeviceLayer, "Failed to create Thread stack lock");
@@ -78,19 +78,19 @@ exit:
 template<class ImplClass>
 void GenericThreadStackManagerImpl_FreeRTOS<ImplClass>::_LockThreadStack(void)
 {
-    xSemaphoreTake(mThreadStackLock, portMAX_DELAY);
+    xSemaphoreTakeRecursive(mThreadStackLock, portMAX_DELAY);
 }
 
 template<class ImplClass>
 bool GenericThreadStackManagerImpl_FreeRTOS<ImplClass>::_TryLockThreadStack(void)
 {
-    return xSemaphoreTake(mThreadStackLock, 0) == pdTRUE;
+    return xSemaphoreTakeRecursive(mThreadStackLock, 0) == pdTRUE;
 }
 
 template<class ImplClass>
 void GenericThreadStackManagerImpl_FreeRTOS<ImplClass>::_UnlockThreadStack(void)
 {
-    xSemaphoreGive(mThreadStackLock);
+    xSemaphoreGiveRecursive(mThreadStackLock);
 }
 
 template<class ImplClass>
