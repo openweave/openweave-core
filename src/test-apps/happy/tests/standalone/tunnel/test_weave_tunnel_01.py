@@ -43,10 +43,6 @@ class test_weave_tunnel_01(unittest.TestCase):
             self.use_lwip = True
             topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.sh"
-            # tap interface, ipv4 gateway and node addr should be provided if device is tap device
-            # both BorderRouter and cloud node are tap devices here
-            self.BR_tap = "wlan0"
-            self.cloud_tap = "eth0"
         else:
             self.use_lwip = False
             topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
@@ -80,8 +76,8 @@ class test_weave_tunnel_01(unittest.TestCase):
         options["service"] = service
         options["use_lwip"] = self.use_lwip
         if self.use_lwip:
-            options["client_tap"] = self.BR_tap
-            options["service_tap"] = self.cloud_tap
+            options["client_tap_wlan"] = "wlan0"
+            options["service_tap"] = "eth0"
 
         weave_tunnel = WeaveTunnelStart.WeaveTunnelStart(options)
         ret = weave_tunnel.run()

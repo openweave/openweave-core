@@ -54,6 +54,8 @@ options = {"border_gateway": None,
            "case": False,
            "service_dir_server": None,
            "use_lwip": False,
+           "client_tap_wlan": None,
+           "client_tap_wpan": None,
            "service_process_tag": "WEAVE-SERVICE-TUNNEL",
            "gateway_process_tag": "WEAVE-GATEWAY-TUNNEL",
            "case_cert_path": None,
@@ -116,8 +118,25 @@ class WeaveTunnelStart(HappyNodeRoute, WeaveTest):
                 self.service, self.service_tap, service_v4route_prefix)[0]
 
             BR_v4route_prefix = self.getNodeRoutePrefix("v4", self.border_gateway)
-            self.client_ipv4_addr = self.getNodeAddrMatchingPrefix(
-                self.border_gateway, self.client_tap, BR_v4route_prefix)[0]
+            self.client_ipv4_addr_wlan = self.getNodeAddrMatchingPrefix(
+                self.border_gateway, self.client_tap_wlan, BR_v4route_prefix)[0]
+
+            self.service_weave_addr = self.getServiceWeaveIPAddress("Tunnel")
+
+            weave_prefix = self.getFabricRecord().get('global_prefix', "")
+
+            # get client BorderGateway's wlan weave address
+            client_addrs_wlan = self.getNodeInterfaceAddresses(self.client_tap_wlan, self.border_gateway)
+            client_ipv6_addrs_wlan = [addr for addr in client_addrs_wlan if IP.isIpv6(addr)]
+            self.client_weave_addr_wlan = [addr
+                for addr in client_ipv6_addrs_wlan if IP.prefixMatchAddress(weave_prefix, addr)][0]
+
+            # get client BorderGateway's wpan weave address
+            if self.client_tap_wpan:
+                client_addrs_wpan = self.getNodeInterfaceAddresses(self.client_tap_wpan, self.border_gateway)
+                client_ipv6_addrs_wpan = [addr for addr in client_addrs_wpan if IP.isIpv6(addr)]
+                self.client_weave_addr_wpan = [addr
+                    for addr in client_ipv6_addrs_wpan if IP.prefixMatchAddress(weave_prefix, addr)][0]
 
         self.gateway_process_tag += self.test_tag
         self.service_process_tag += self.test_tag
@@ -236,6 +255,7 @@ class WeaveTunnelStart(HappyNodeRoute, WeaveTest):
             cmd += " --tap-device " + self.service_tap
             cmd += " --ipv4-gateway " + self.service_ipv4_gateway
             cmd += " --node-addr " + self.service_ipv4_addr
+            cmd += " --node-addr " + self.service_weave_addr
 
         if self.service_faults:
             cmd += " --faults " + self.service_faults
@@ -246,7 +266,6 @@ class WeaveTunnelStart(HappyNodeRoute, WeaveTest):
 
         cmd += " --debug-resource-usage"
         cmd += " --print-fault-counters"
-
         cmd = self.runAsRoot(cmd)
         self.start_weave_process(self.service, cmd, self.service_process_tag,
                                  strace=self.strace, sync_on_output=self.sync_on_service_output,
@@ -304,10 +323,14 @@ class WeaveTunnelStart(HappyNodeRoute, WeaveTest):
 
         # if device is tap device, we need to provide tap-interface, ipv4-gateway, node-addr
         if self.use_lwip:
-            cmd += " --tap-device " + self.client_tap
+            cmd += " --tap-device " + self.client_tap_wlan
             cmd += " --ipv4-gateway " + self.client_ipv4_gateway
-            cmd += " --node-addr " + self.client_ipv4_addr
+            cmd += " --node-addr " + self.client_ipv4_addr_wlan
+            cmd += " --node-addr " + self.client_weave_addr_wlan
             cmd += " --service-dir-server " + self.service_ipv4_addr
+            if self.client_tap_wpan:
+                cmd += " --tap-device " + self.client_tap_wpan
+                cmd += " --node-addr " + self.client_weave_addr_wpan
 
         if self.primary:
             cmd += " --primary-intf " + self.primary

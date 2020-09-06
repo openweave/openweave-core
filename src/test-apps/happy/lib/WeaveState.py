@@ -168,6 +168,30 @@ class WeaveState(State):
                 return addr
         return None
 
+    def getNodeInterfaceWeaveIPAddress(self, interface_id, node_id, state=None):
+        """This function attempts to get weave IP address of a paticular node's interface.
+
+        Args:
+            interface_id(str): A string containing a node interface id, example: "wlan0" or "wpan0".
+            node_id(str): A string containing a node id, example: "BorderGateway", "ThreadNode".
+            state(json data): node's json data, default is None.
+
+        Returns:
+           str. The return value:
+                None:  not found weave address
+                addr:  found weave address
+        """
+        weave_global_prefix = self.getFabricGlobalPrefix(state)
+        if weave_global_prefix is None:
+            return None
+        node_interface_addresses = self.getNodeInterfaceAddresses(interface_id, node_id, state)
+        if node_interface_addresses == []:
+            return None
+        for addr in node_interface_addresses:
+            if IP.prefixMatchAddress(weave_global_prefix, addr):
+                return addr
+        return None
+
     def getWeaveNetworkIds(self, state=None):
         networks_record = self.getWeaveNetworks(state)
         return networks_record.keys()
