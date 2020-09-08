@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2017 Nest Labs, Inc.
@@ -22,6 +22,7 @@
 #       Implements WeaveTopologyMgr class that provides API to create weave topology
 #
 
+from __future__ import absolute_import
 import WeaveFabricAdd
 import WeaveFabricDelete
 import WeaveNetworkGateway

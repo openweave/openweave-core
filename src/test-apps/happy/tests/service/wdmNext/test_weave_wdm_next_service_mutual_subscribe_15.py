@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -24,6 +24,8 @@
 #       M23: Stress, Mutual Subscribe: Root path. Null Version. Mutate data in initiator for X times and Y minutes. Client in initiator abort
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
@@ -37,7 +39,7 @@ class test_weave_wdm_next_service_mutual_subscribe_15(weave_wdm_next_test_servic
         wdm_next_args['total_client_count'] = 12 * 10
         wdm_next_args['final_client_status'] = 2
         wdm_next_args['timer_client_period'] = 5000
-        wdm_next_args['test_client_iterations'] = 1
+        wdm_next_args['test_client_iterations'] = 10
         wdm_next_args['enable_client_flip'] = 1
         wdm_next_args['timeout'] = 60 * 15 * wdm_next_args['test_client_iterations']
 
@@ -49,8 +51,8 @@ class test_weave_wdm_next_service_mutual_subscribe_15(weave_wdm_next_test_servic
 
         wdm_next_args['test_tag'] = self.__class__.__name__
         wdm_next_args['test_case_name'] = ['Wdm-NestService-M23: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator for X times and Y minutes. Client in initiator abort']
-        print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test M21"
+        print('test file: ' + self.__class__.__name__)
+        print("weave-wdm-next test M21")
         super(test_weave_wdm_next_service_mutual_subscribe_15, self).weave_wdm_next_test_service_base(wdm_next_args)
 
 

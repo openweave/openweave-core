@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #       M41: Stress Mutual Subscribe: Initiator and Responder Continuous Events. Mutate data in initiator responder. Client in initiator cancels
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 import set_test_path
 from weave_wdm_next_test_base import weave_wdm_next_test_base
@@ -68,8 +70,8 @@ class test_weave_wdm_next_mutual_subscribe_60(weave_wdm_next_test_base):
 
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
         wdm_next_args['test_case_name'] = ['M41: Initiator and Responder Continuous Events. Mutate data in initiator responder. Client in initiator cancels']
-        print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test I17 and M41"
+        print('test file: ' + self.__class__.__name__)
+        print("weave-wdm-next test I17 and M41")
         super(test_weave_wdm_next_mutual_subscribe_60, self).weave_wdm_next_test_base(wdm_next_args)
 
 

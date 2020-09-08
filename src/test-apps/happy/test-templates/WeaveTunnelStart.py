@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,7 @@
 #       between border-gateway and a service.
 #
 
+from __future__ import absolute_import
 import os
 import sys
 import time
@@ -147,7 +148,7 @@ class WeaveTunnelStart(HappyNodeRoute, WeaveTest):
 
         # Check if service node was given in the environment
         if not self.service and not self.service_dir:
-            if "weave_service_address" in os.environ.keys():
+            if "weave_service_address" in list(os.environ.keys()):
                 self.service = os.environ['weave_service_address']
                 emsg = "Found weave_service_address %s." % (self.service)
                 self.logger.debug("[localhost] Weave: %s" % (emsg))
@@ -157,7 +158,7 @@ class WeaveTunnelStart(HappyNodeRoute, WeaveTest):
                 self.skip_service_end = True
                 self.logger.debug("[localhost] WeaveTunnelStart against tier %s." % self.service_dir_server)
             else:
-                if "weave_service_address" in os.environ.keys():
+                if "weave_service_address" in list(os.environ.keys()):
                     self.skip_service_end = True
                     if "unstable" not in os.environ["weave_service_address"]:
                         self.service_dir_server = os.environ["weave_service_address"]

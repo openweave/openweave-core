@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeaveConnectionTunnel class that tests WeaveConnectionTunnel functionality.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -231,13 +233,13 @@ class WeaveConnectionTunnel(HappyNode, HappyNetwork, WeaveTest):
                 pass_test = True
                 break
 
-        print "weave-connection-tunnel test among Agent %s (%s), Source %s (%s), Destination %s (%s)" % \
-                  (self.agent, self.agent_ip, self.source, self.source_ip, self.destination, self.dest_ip)
+        print("weave-connection-tunnel test among Agent %s (%s), Source %s (%s), Destination %s (%s)" % \
+                  (self.agent, self.agent_ip, self.source, self.source_ip, self.destination, self.dest_ip))
 
         if pass_test:
-            print hgreen("succeeded")
+            print(hgreen("succeeded"))
         else:
-            print hred("failed")
+            print(hred("failed"))
 
         return pass_test
 

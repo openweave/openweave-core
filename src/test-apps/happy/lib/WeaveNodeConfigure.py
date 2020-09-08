@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2019 Google, LLC.
@@ -24,6 +24,8 @@
 #       Weave parameters for a Happy node.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import glob
 import re
@@ -39,6 +41,7 @@ import happy.HappyNodeAddress as HappyNodeAddress
 from Weave import Weave
 from WeaveState import WeaveState
 import WeaveCerts
+from six.moves import range
 
 options = {}
 options['quiet'] = True
@@ -152,7 +155,7 @@ class WeaveNodeConfigure():
         WeaveState. If none is found, generates a random weave_node_id.
         """
         ids_in_use = self.weave_state.getWeaveNodeIds()
-        ids_with_certs = self.weave_device_certs.keys()
+        ids_with_certs = list(self.weave_device_certs.keys())
         available_ids = list(set(ids_with_certs) - set(ids_in_use))
 
         if available_ids:
@@ -392,62 +395,62 @@ class WeaveNodeConfigure():
 
 if __name__ == '__main__':
 
-    print "\nTEST01: no node_name, configure all nodes"
+    print("\nTEST01: no node_name, configure all nodes")
     opts = option()
     wnc = WeaveNodeConfigure(opts)
     wnc.run()
-    print json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4)
+    print(json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4))
 
-    print "\nTEST02: node_name: BorderRouter. Random weave_node_id assigned."
+    print("\nTEST02: node_name: BorderRouter. Random weave_node_id assigned.")
     opts = option()
     opts['node_name'] = 'BorderRouter'
     wnc = WeaveNodeConfigure(opts)
     wnc.run()
-    print json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4)
+    print(json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4))
 
-    print "\nTEST03: node_name: BorderRouter. weave_node_id: 18B4300000000003. certs: None"
+    print("\nTEST03: node_name: BorderRouter. weave_node_id: 18B4300000000003. certs: None")
     opts = option()
     opts['node_name'] = 'BorderRouter'
     opts['weave_node_id'] = '18B4300000000003'
     wnc = WeaveNodeConfigure(opts)
     wnc.run()
-    print json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4)
+    print(json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4))
 
-    print "\nTEST04: node_name: ThreadNode. weave_node_id: 18B430000000111. certs don't exist."
+    print("\nTEST04: node_name: ThreadNode. weave_node_id: 18B430000000111. certs don't exist.")
     opts = option()
     opts['node_name'] = 'ThreadNode'
     opts['weave_node_id'] = '18B4300000000111'
     wnc = WeaveNodeConfigure(opts)
     wnc.run()
-    print json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4)
+    print(json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4))
 
-    print "\nTEST05: node_name: BorderRouter, delete=True"
+    print("\nTEST05: node_name: BorderRouter, delete=True")
     opts = option()
     opts['node_name'] = 'BorderRouter'
     opts['delete'] = True
     wnc = WeaveNodeConfigure(opts)
     wnc.run()
-    print json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4)
+    print(json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4))
 
-    print "\nTEST06: delete=True, deletes all nodes"
+    print("\nTEST06: delete=True, deletes all nodes")
     opts = option()
     opts['delete'] = True
     wnc = WeaveNodeConfigure(opts)
     wnc.run()
-    print json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4)
+    print(json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4))
 
-    print "\nTEST07: node_name: BorderRouter, customized_eui64=18-B4-30-00-00-00-00-05"
+    print("\nTEST07: node_name: BorderRouter, customized_eui64=18-B4-30-00-00-00-00-05")
     opts = option()
     opts['node_name'] = 'BorderRouter'
     opts['customized_eui64'] = '18-B4-30-00-00-00-00-05'
     wnc = WeaveNodeConfigure(opts)
     wnc.run()
-    print json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4)
+    print(json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4))
 
-    print "\nTEST08: node_name: BorderRouter, customized_eui64=18-B4-30-00-AA-00-00-05"
+    print("\nTEST08: node_name: BorderRouter, customized_eui64=18-B4-30-00-AA-00-00-05")
     opts = option()
     opts['node_name'] = 'BorderRouter'
     opts['customized_eui64'] = '18-B4-30-00-AA-00-00-05'
     wnc = WeaveNodeConfigure(opts)
     wnc.run()
-    print json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4)
+    print(json.dumps(wnc.weave_state.getWeaveNodeRecord(), indent=4))

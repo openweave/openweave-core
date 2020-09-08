@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeaveHeartbeat class that tests Weave Heartbeat among Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -183,11 +185,11 @@ class WeaveHeartbeat(HappyNode, HappyNetwork, WeaveTest):
             heartbeat_num += 1
 
         if self.quiet == False:
-            print "weave-heartbeat from node %s (%s) to node %s (%s) : " % \
+            print("weave-heartbeat from node %s (%s) to node %s (%s) : " % \
                 (self.client_node_id, self.client_ip,
-                 self.server_node_id, self.server_ip),
+                 self.server_node_id, self.server_ip), end=' ')
                  
-            print hgreen("%d heartbeats" % (heartbeat_num))
+            print(hgreen("%d heartbeats" % (heartbeat_num)))
             
         return (heartbeat_num, output)
     

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #       The command is executed by instantiating and running WeaveTunnelStart class.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import getopt
 import sys
 import set_test_path
@@ -41,13 +43,13 @@ if __name__ == "__main__":
              "service_dir_server=",  "case", "case_cert_path=", "case_key_path="])
 
     except getopt.GetoptError as err:
-        print WeaveTunnelStart.WeaveTunnelStart.__doc__
-        print hred(str(err))
+        print(WeaveTunnelStart.WeaveTunnelStart.__doc__)
+        print(hred(str(err)))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print WeaveTunnelStart.WeaveTunnelStart.__doc__
+            print(WeaveTunnelStart.WeaveTunnelStart.__doc__)
             sys.exit(0)
 
         elif o in ("-q", "--quiet"):

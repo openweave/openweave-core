@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2019 Google LLC.
@@ -24,6 +24,7 @@
 #       between a pair of nodes.
 #
 
+from __future__ import absolute_import
 import os
 import sys
 import time

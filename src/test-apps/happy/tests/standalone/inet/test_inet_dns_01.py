@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -22,6 +22,8 @@
 #    @file
 #       Calls Weave Inet test between nodes.
 #
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -38,7 +40,7 @@ length = 500
 
 class test_inet_dns(unittest.TestCase):
     def setUp(self):
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.using_lwip = True
             topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
             "/topology/two_nodes_on_tap_wifi.sh"
@@ -65,9 +67,9 @@ class test_inet_dns(unittest.TestCase):
         process result returned from inet dns test template
         """
         if value:
-            print hgreen("PASSED")
+            print(hgreen("PASSED"))
         else:
-            print hred("FAILED")
+            print(hred("FAILED"))
             raise ValueError("Weave Inet DNS Test Failed")
 
     def __run_inet_dns_test(self, node):

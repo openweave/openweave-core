@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2018-2019 Google LLC.
@@ -23,6 +23,7 @@
 #       among multiple nodes.
 #
 
+from __future__ import absolute_import
 import os
 import sys
 import time
@@ -255,7 +256,7 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
             # If present, generate and accumulate the LwIP hosted OS
             # network local IPv4 address.
 
-            if self.ipversion == "4" and attributes.has_key('tap-ipv4-local-addr'):
+            if self.ipversion == "4" and 'tap-ipv4-local-addr' in attributes:
                 cmd += " --local-addr " + attributes['tap-ipv4-local-addr']
 
         # Generate and accumulate, if present, the bound network
@@ -300,7 +301,7 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
 
     # Start the sender test process.
     def __start_sender(self):
-        node = self.configuration['sender'].keys()[0]
+        node = list(self.configuration['sender'].keys())[0]
         attributes = self.configuration['sender'][node]
         tag = "INET-MCAST-TX-0"
 

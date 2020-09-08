@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #       The command is executed by instantiating and running WeaveWdmNext class.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import getopt
 import sys
 import set_test_path
@@ -62,13 +64,13 @@ if __name__ == "__main__":
              "save_server_perf=", "swap_role=", "case", "case_cert_path=", "case_key_path=", "group_enc", "group_enc_key_id="])
 
     except getopt.GetoptError as err:
-        print WeaveWdmNext.WeaveWdmNext.__doc__
-        print hred(str(err))
+        print(WeaveWdmNext.WeaveWdmNext.__doc__)
+        print(hred(str(err)))
         sys.exit(hred("%s: Failed server parse arguments." % (__file__)))
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print helpstring
+            print(helpstring)
             sys.exit(0)
 
         elif o in ("-q", "--quiet"):
@@ -159,7 +161,7 @@ if __name__ == "__main__":
             options["group_enc_key_id"] = a
 
         else:
-            print hred(str(o) + " cannot be recognized")
+            print(hred(str(o) + " cannot be recognized"))
             assert False, "unhandled option"
 
         if len(args) == 1:

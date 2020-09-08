@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #       Copyright (c) 2015-2017  Nest Labs, Inc.
 #       All rights reserved.
@@ -21,6 +21,8 @@
 #       Calls Weave BLE between nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -80,15 +82,15 @@ class test_weave_ble_01(unittest.TestCase):
         passed = result_list[0]
 
         if not passed:
-            print "Captured experiment result:"
+            print("Captured experiment result:")
 
-            print "Client Output: "
+            print("Client Output: ")
             for line in client_output.split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
-            print "Server Output: "
+            print("Server Output: ")
             for line in server_output.split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
             raise ValueError("The test failed")
 

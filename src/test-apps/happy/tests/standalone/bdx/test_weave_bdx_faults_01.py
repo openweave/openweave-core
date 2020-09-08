@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Calls Weave BDX between nodes using fault injection to test failure handling
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import filecmp
 import itertools
 import os
@@ -40,6 +42,8 @@ import WeaveStateLoad
 import WeaveStateUnload
 import WeaveBDX
 import WeaveUtilities
+from six.moves import map
+from six.moves import range
 
 gFaultopts = WeaveUtilities.FaultInjectionOptions()
 gOptions = {"direction": None, "versions": None}
@@ -85,7 +89,7 @@ class test_weave_bdx_faults_01(unittest.TestCase):
             bdx_version = [0, 1]
             pairs_of_versions = list(itertools.product(bdx_version, bdx_version))
         else:
-            pairs_of_versions = [map(int, gOptions["versions"].split("_"))]
+            pairs_of_versions = [list(map(int, gOptions["versions"].split("_")))]
 
 
         directions = [ gOptions["direction"] ]
@@ -113,17 +117,17 @@ class test_weave_bdx_faults_01(unittest.TestCase):
 
                         for fault_config in fault_configs:
                             test_tag = "_" + direction + "_v" + str(version[0]) + "_v" + str(version[1]) + "_" + str(self.test_num) + "_" + node + "_" + fault_config
-                            print test_tag
+                            print(test_tag)
                             failed = self.__weave_bdx(direction, file_size, version[0], version[1], num_iterations = 3, faults = {node: fault_config}, test_tag = test_tag)
                             if failed:
                                 num_failed_tests += 1
                                 failed_tests.append(test_tag)
 
-        print "executed %d cases" % self.test_num
-        print "failed %d cases:" % num_failed_tests
+        print("executed %d cases" % self.test_num)
+        print("failed %d cases:" % num_failed_tests)
         if num_failed_tests > 0:
             for failed_test in failed_tests:
-                print "    " + failed_test
+                print("    " + failed_test)
             raise ValueError("Fix it!")
                    
 
@@ -176,22 +180,22 @@ class test_weave_bdx_faults_01(unittest.TestCase):
     def __process_result(self, nodeA, nodeB, value, data, direction, file_size, server_version, client_version, faults):
 
         if direction == "download":
-            print "bdx download of " + str(file_size) + "B from " + nodeA + "(BDX-v" + str(server_version) + ") to "\
-                  + nodeB + "(BDX-v" + str(client_version) + ") ",
+            print("bdx download of " + str(file_size) + "B from " + nodeA + "(BDX-v" + str(server_version) + ") to "\
+                  + nodeB + "(BDX-v" + str(client_version) + ") ", end=' ')
         else:
-            print "bdx upload of " + str(file_size) + "B from " + nodeA + "(BDX-v" + str(server_version) + ") to "\
-                  + nodeB + "(BDX-v" + str(client_version) + ") ",
+            print("bdx upload of " + str(file_size) + "B from " + nodeA + "(BDX-v" + str(server_version) + ") to "\
+                  + nodeB + "(BDX-v" + str(client_version) + ") ", end=' ')
 
         if faults.get('server') != None:
-            print "server fault: " + faults['server'] + " "
+            print("server fault: " + faults['server'] + " ")
 
         if faults.get('client') != None:
-            print "client fault: " + faults['client'] + " "
+            print("client fault: " + faults['client'] + " ")
 
         if value:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
         else:
-            print hred("Failed")
+            print(hred("Failed"))
 
         failed = not value
 
@@ -204,7 +208,7 @@ class test_weave_bdx_faults_01(unittest.TestCase):
         receive_file_path = receive_path + "/" + file_name
 
         if not os.path.exists(receive_file_path):
-            print "A copy of a file does not exists"
+            print("A copy of a file does not exists")
             return False
 
         return filecmp.cmp(test_file_path, receive_file_path)
@@ -255,15 +259,15 @@ if __name__ == "__main__":
         opts, args = getopt.getopt(sys.argv[1:], "h", longopts)
 
     except getopt.GetoptError as err:
-        print help_str
-        print hred(str(err))
+        print(help_str)
+        print(hred(str(err)))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     opts = gFaultopts.process_opts(opts)
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print help_str
+            print(help_str)
             sys.exit(0)
 
         elif o in ("--versions"):
@@ -272,7 +276,7 @@ if __name__ == "__main__":
             if a in gDirections:
                 gOptions["direction"] = a
             else:
-                print help_str
+                print(help_str)
                 sys.exit(1)
 
     sys.argv = [sys.argv[0]]

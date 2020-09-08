@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2017 Nest Labs, Inc.
@@ -25,6 +25,8 @@
 #       B02: Stress Mutual Subscribe: Application key: Group key
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import unittest
 from weave_wdm_next_test_base import weave_wdm_next_test_base
@@ -66,10 +68,10 @@ class test_weave_wdm_next_application_key_02(weave_wdm_next_test_base):
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['test_tag'] = self.__class__.__name__[35:].upper()
         wdm_next_args['test_case_name'] = ['B02: Stress Mutual Subscribe: Application key: Group key']
-        print 'test file: ' + self.__class__.__name__
-        print "test_weave_wdm_next_application_key test A02 and B02"
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print "it does not support wdm with group key encryption under Lwip:"
+        print('test file: ' + self.__class__.__name__)
+        print("test_weave_wdm_next_application_key test A02 and B02")
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+            print("it does not support wdm with group key encryption under Lwip:")
             return
         super(test_weave_wdm_next_application_key_02, self).weave_wdm_next_test_base(wdm_next_args)
 

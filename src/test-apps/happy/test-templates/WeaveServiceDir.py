@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -24,6 +24,8 @@
 #       between a node and a service.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -40,6 +42,7 @@ import happy.HappyNetworkAddress
 from WeaveTest import WeaveTest
 import WeaveUtilities
 import plugins.plaid.Plaid as Plaid
+from functools import reduce
 
 
 options = {}
@@ -163,15 +166,15 @@ class WeaveServiceDir(HappyNode, HappyNetwork, WeaveTest):
                 result["connection_completed"] = True
                 break
 
-        final_result = reduce((lambda x, y: x and y), result.values())
+        final_result = reduce((lambda x, y: x and y), list(result.values()))
 
-        print "weave-service-dir test from client %s to service %s: " % (self.client, self.service)
+        print("weave-service-dir test from client %s to service %s: " % (self.client, self.service))
 
         if self.quiet == False:
             if final_result: 
-                print hgreen("succeeded")
+                print(hgreen("succeeded"))
             else:
-                print hred("failed")
+                print(hred("failed"))
 
         if not final_result:
             pprint.pprint(result)
@@ -312,7 +315,7 @@ class WeaveServiceDir(HappyNode, HappyNetwork, WeaveTest):
         data["service_output"] = service_output_data
         data["result_details"] = result
 
-        final_result = reduce((lambda x, y: x and y), result.values())
+        final_result = reduce((lambda x, y: x and y), list(result.values()))
 
         self.logger.debug("[localhost] WeaveServiceDir: Done.")
         return ReturnMsg(final_result, data)

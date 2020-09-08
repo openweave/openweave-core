@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Calls Weave WDM between mock client and NestService Wdm Services via Tunnel
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import re
 import sys
@@ -36,6 +38,7 @@ import WeaveWdmNext
 import Weave
 import plugins.testrail.TestrailResultOutput
 from topologies.dynamic.thread_wifi_ap_internet_configurable_topology import thread_wifi_ap_internet_configurable_topology
+from six.moves import range
 
 TEST_OPTION_QUIET = True
 DEFAULT_FABRIC_SEED = "00001"
@@ -60,7 +63,7 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
 
         fabric_seed = os.environ.get("FABRIC_SEED", DEFAULT_FABRIC_SEED)
 
-        if "FABRIC_OFFSET" in os.environ.keys():
+        if "FABRIC_OFFSET" in list(os.environ.keys()):
             self.fabric_id = format(int(fabric_seed, 16) + int(os.environ["FABRIC_OFFSET"]), 'x').zfill(5)
         else:
             self.fabric_id = fabric_seed
@@ -84,7 +87,7 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
         self.enable_random_fabric = int(os.environ.get("ENABLE_RANDOM_FABRIC", "0")) == 1
 
         # TODO: Once LwIP bugs for tunnel are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.tap = True
             self.tap_id = "wpan0"
             return
@@ -101,7 +104,7 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
                                                                           enable_random_fabric=self.enable_random_fabric)
             self.topology.createTopology()
         else:
-            print "topology set up not required"
+            print("topology set up not required")
 
         self.show_strace = False
 
@@ -118,10 +121,10 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
 
         import time
         try:
-            print "sleeping..."
+            print("sleeping...")
             #time.sleep(60*60)
         except:
-            print "sleep interrupted"
+            print("sleep interrupted")
 
 
 
@@ -222,7 +225,7 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
             wdm_stress_diag_list.append('test_file: %s\n client_weave_id: %s\n parameters: %s\n'
                                         % (self.test_tag, data['client_weave_id'], str(self.options)))
             wdm_stress_diag_list.append(str(data['success_dic']))
-            print "weave-wdm-next %s from " % self.wdm_option + data['client'] + " to " + nodeB + " "
+            print("weave-wdm-next %s from " % self.wdm_option + data['client'] + " to " + nodeB + " ")
             if len(self.test_case_name) == 2:
                 client_delimiter = 'Current completed test iteration is'
                 client_completed_iter_list = [i + client_delimiter for i in data["client_output"].split(client_delimiter)]
@@ -312,9 +315,9 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
             self.__output_test_result(output_file_name, output_data)
 
             if not wdm_sanity_check:
-                print "wdm_sanity_check is False\n\n" + "\n\t".join(wdm_sanity_diag_list)
+                print("wdm_sanity_check is False\n\n" + "\n\t".join(wdm_sanity_diag_list))
             if not wdm_stress_check:
-                print "wdm_stress_check is False\n\n" + "\n\t".join(wdm_stress_diag_list)
+                print("wdm_stress_check is False\n\n" + "\n\t".join(wdm_stress_diag_list))
 
 
             try:
@@ -324,13 +327,13 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
                 success = False
                 exception_dic[data['client']] = test_results
             if success_rate < self.success_threshold:
-                print exception_dic
+                print(exception_dic)
                 success = False
         if not success:
-            print hred("Failed")
+            print(hred("Failed"))
             raise ValueError('test failure')
         else:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
 
     def __output_test_result(self, file_path, output_data):
         options = plugins.testrail.TestrailResultOutput.option()

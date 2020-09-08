@@ -20,7 +20,7 @@ While it is not particularly important where you clone and build the `mcproxy` d
 
 ```
 % git clone https://github.com/openweave/happy.git happy
-% sudo apt-get install bridge-utils python-lockfile python-psutil python-setuptools
+% sudo apt-get install bridge-utils python3-lockfile python3-pip python3-psutil python3-setuptools
 % cd happy
 % sudo make install
 ```

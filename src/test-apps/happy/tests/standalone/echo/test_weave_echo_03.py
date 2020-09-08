@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Calls Weave Echo between nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import unittest
@@ -39,7 +41,7 @@ class test_weave_echo_03(unittest.TestCase):
     def setUp(self):
         self.tap = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
             self.tap = "wpan0"
@@ -69,41 +71,41 @@ class test_weave_echo_03(unittest.TestCase):
 
 
     def test_weave_echo(self):
-        print "start WRMP ping:"
+        print("start WRMP ping:")
         value, data = self.__run_ping_test_between("node01", "node02")
         self.__process_result("node01", "node02", value, data)
 
 
     def __process_result(self, nodeA, nodeB, value, data):
-        print "ping from " + nodeA + " to " + nodeB + " ",
+        print("ping from " + nodeA + " to " + nodeB + " ", end=' ')
 
         if value > 0:
-            print hred("Failed")
+            print(hred("Failed"))
         else:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
 
         try:
             self.assertTrue(value == 0, "%s > 0 %%" % (str(value)))
-        except AssertionError, e:
-            print str(e)
-            print "Captured experiment result:"
+        except AssertionError as e:
+            print(str(e))
+            print("Captured experiment result:")
 
-            print "Client Output: "
+            print("Client Output: ")
             for line in data[0]["client_output"].split("\n"):
-               print "\t" + line
+               print("\t" + line)
 
-            print "Server Output: "
+            print("Server Output: ")
             for line in data[0]["server_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
             if self.show_strace == True:
-                print "Server Strace: "
+                print("Server Strace: ")
                 for line in data[0]["server_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
-                print "Client Strace: "
+                print("Client Strace: ")
                 for line in data[0]["client_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
         if value > 0:
             raise ValueError("Weave Ping Failed")

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeaveWDMv0 class that tests Weave WDMv0 among two Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 
 from happy.ReturnMsg import ReturnMsg
@@ -185,13 +187,13 @@ class WeaveWDMv0(HappyNode, HappyNetwork, WeaveTest):
                 break
 
         if self.quiet == False:
-            print "weave-wdmv0 from server %s (%s) to client %s (%s) : " % \
+            print("weave-wdmv0 from server %s (%s) to client %s (%s) : " % \
                 (self.server_node_id, self.server_ip,
-                 self.client_node_id, self.client_ip)
+                 self.client_node_id, self.client_ip))
             if pass_test:
-                print hgreen("WDMv0 test is completed")
+                print(hgreen("WDMv0 test is completed"))
             else:
-                print hred("WDMv0 test is not completed")
+                print(hred("WDMv0 test is not completed"))
 
         return (pass_test, client_output)
 

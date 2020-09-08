@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -26,6 +26,8 @@
 #       after some number of resubscribes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import getopt
 import sys
 import unittest
@@ -106,7 +108,7 @@ class test_weave_wdm_next_mutual_resub(weave_wdm_next_test_base):
                 wdm_next_args['client_log_check'] = [("Good Iteration", NUM_ITERATIONS),
                                                      ('SendSubscribeRequest', NUM_ITERATIONS * expected_retries)]
                 wdm_next_args['test_tag'] = "%s_%s_FAULT_%s" % (base_test_tag, node.upper(), fault_config)
-                print wdm_next_args['test_tag']
+                print(wdm_next_args['test_tag'])
                 if node == 'client':
                     wdm_next_args['client_faults'] = fault_config
                     wdm_next_args['server_faults'] = None

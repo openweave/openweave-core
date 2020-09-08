@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Run Weave WRMP test #1 between two Thread nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import sys
@@ -36,13 +38,14 @@ import WeaveStateLoad
 import WeaveStateUnload
 import WeaveWRMP
 import WeaveUtilities
+from six.moves import range
 
 
 class test_weave_wrmp(unittest.TestCase):
     def setUp(self):
         self.tap = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
             self.tap = "wpan0"
@@ -77,8 +80,8 @@ class test_weave_wrmp(unittest.TestCase):
 
     def test_weave_wrmp_among_all_nodes(self):
         # TODO: Once LwIP bugs are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")            
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+            print(hred("WARNING: Test skipped due to LwIP-based network cofiguration!"))            
             return
 
         options = happy.HappyNodeList.option()
@@ -92,7 +95,7 @@ class test_weave_wrmp(unittest.TestCase):
 
         for pair in pairs_of_nodes:
             if pair[0] == pair[1]:
-                print "Skip WRMP test on client and server running on the same node."
+                print("Skip WRMP test on client and server running on the same node.")
                 continue
 
             for t in range(1,17):
@@ -101,35 +104,35 @@ class test_weave_wrmp(unittest.TestCase):
 
 
     def __process_result(self, nodeA, nodeB, value, data, test_num):
-        print "wrmp from " + nodeA + " to " + nodeB + " (Test #" + str(test_num) + ") ",
+        print("wrmp from " + nodeA + " to " + nodeB + " (Test #" + str(test_num) + ") ", end=' ')
 
         if value == True:
-            print hgreen("Passed")
+            print(hgreen("Passed"))
         else:
-            print hred("Failed")
+            print(hred("Failed"))
 
         try:
             self.assertTrue(value == True, "%s == True %%" % (str(value)))
-        except AssertionError, e:
-            print str(e)
-            print "Captured experiment result:"
+        except AssertionError as e:
+            print(str(e))
+            print("Captured experiment result:")
 
-            print "Client Output: "
+            print("Client Output: ")
             for line in data["client_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
-            print "Server Output: "
+            print("Server Output: ")
             for line in data["server_output"].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
             if self.show_strace:
-                print "Server Strace: "
+                print("Server Strace: ")
                 for line in data["server_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
-                print "Client Strace: "
+                print("Client Strace: ")
                 for line in data["client_strace"].split("\n"):
-                    print "\t" + line
+                    print("\t" + line)
 
         if value != True:
             raise ValueError("WRMP #" + str(test_num) + " Failed")

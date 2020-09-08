@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2016-2017 Nest Labs, Inc.
@@ -24,6 +24,8 @@
 #       The command is executed by instantiating and running WeaveNetworkGateway class.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import getopt
 import sys
 import set_test_path
@@ -39,13 +41,13 @@ if __name__ == "__main__":
                                    ["help", "id=", "quiet", "add", "delete", "gateway="])
 
     except getopt.GetoptError as err:
-        print WeaveNetworkGateway.WeaveNetworkGateway.__doc__
-        print hred(str(err))
+        print(WeaveNetworkGateway.WeaveNetworkGateway.__doc__)
+        print(hred(str(err)))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print WeaveNetworkGateway.WeaveNetworkGateway.__doc__
+            print(WeaveNetworkGateway.WeaveNetworkGateway.__doc__)
             sys.exit(0)
 
         elif o in ("-q", "--quiet"):

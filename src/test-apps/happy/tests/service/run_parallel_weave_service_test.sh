@@ -77,7 +77,7 @@ for ((i=0; i<$total_count; i++)); do
     while [ $(jobs | wc -l) -ge $BUILD_JOBS ] ; do sleep 1 ; done
     action="$1"
     x=`printf "%03d" ${i}`
-    HAPPY_STATE_ID=${x} FABRIC_OFFSET=${i} DEVICE_NUMBERS=${device_numbers} TOPOLOGY=${topology} FABRIC_SEED=${fabric_seed} python $6  &
+    HAPPY_STATE_ID=${x} FABRIC_OFFSET=${i} DEVICE_NUMBERS=${device_numbers} TOPOLOGY=${topology} FABRIC_SEED=${fabric_seed} python3 $6  &
     pids+="$! "
     pid_array["$!"]=${x}
 done

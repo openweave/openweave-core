@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeaveBle class that tests Weave Echo among Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import psutil
 import re
@@ -36,6 +38,7 @@ from happy.HappyNetwork import HappyNetwork
 from happy.HappyProcess import HappyProcess
 import happy.HappyProcessStart
 from WeaveTest import WeaveTest
+from six.moves import map
 
 
 options = {"quiet": False,
@@ -228,9 +231,9 @@ class WeaveBle(WeaveTest, HappyNode, HappyNetwork, HappyProcess):
         # TODO: add output extraction outside of container in happy
         process = subprocess.Popen(['sudo','hciconfig'], stdout=subprocess.PIPE)
         out, err = process.communicate()
-        print out
+        out = out.decode("utf-8")
         self.interfaces = [self.extract(interface) for interface in out.split('\n\n') if interface.strip()]
-        print self.interfaces
+        print(self.interfaces)
 
     def initializeBluez(self):
         self.resetBluez()

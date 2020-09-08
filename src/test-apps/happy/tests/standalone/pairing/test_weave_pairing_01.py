@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Calls Weave pairing between the mobile and device.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import unittest
 import set_test_path
@@ -38,7 +40,7 @@ class test_weave_pairing_01(unittest.TestCase):
     def setUp(self):
         self.tap = None
 
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
             self.tap = "wpan0"
@@ -69,8 +71,8 @@ class test_weave_pairing_01(unittest.TestCase):
 
     def test_weave_pairing(self):
         # TODO: Once LwIP bugs are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")            
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+            print(hred("WARNING: Test skipped due to LwIP-based network cofiguration!"))            
             return
 
         # topology has nodes: node01(mobile), node02(device) and node03
@@ -84,15 +86,15 @@ class test_weave_pairing_01(unittest.TestCase):
         passed = result_list[0]
 
         if not passed:
-            print "Captured experiment result:"
+            print("Captured experiment result:")
 
-            print "Mobile Output: "
+            print("Mobile Output: ")
             for line in mobiles_output[0].split("\n"):
-               print "\t" + line
+               print("\t" + line)
 
-            print "Device Output: "
+            print("Device Output: ")
             for line in devices_output[0].split("\n"):
-                print "\t" + line
+                print("\t" + line)
 
             raise ValueError("The test failed")
 

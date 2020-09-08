@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -24,6 +24,8 @@
 #       Implements WeavePairing class that tests Weave Pairing among Weave node and device manager.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import random
 import re
@@ -36,6 +38,7 @@ from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 
 from WeaveTest import WeaveTest
+from six.moves import zip
 
 
 options = {"quiet": False,
@@ -299,7 +302,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
     def __start_mobile_side(self, device_info, mobile_process_tag):
         os.environ['WEAVE_DEVICE_MGR_PATH'] = self.getWeaveDeviceMgrPath()
         os.environ['WEAVE_DEVICE_MGR_LIB_PATH'] = self.getWeaveDeviceMgrLibPath()
-        cmd = "/usr/bin/env python " + \
+        cmd = "/usr/bin/env python3 " + \
             os.path.dirname(os.path.realpath(__file__)) + "/../lib/WeaveDeviceManager.py"
         if not cmd:
             return
@@ -367,9 +370,9 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
                 result_list.append(False)
 
         for device_info, result in zip(devices_info, result_list):
-            print " %s weave-pairing from mobile %s (%s) to device %s (%s) : " % \
+            print(" %s weave-pairing from mobile %s (%s) to device %s (%s) : " % \
                 ("Success for" if result else "Fail for", self.mobile_node_id,
-                 self.mobile_ip, device_info['device_node_id'], device_info['device_ip'])
+                 self.mobile_ip, device_info['device_node_id'], device_info['device_ip']))
 
         return result_list
 

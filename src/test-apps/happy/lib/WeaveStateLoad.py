@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2016-2017 Nest Labs, Inc.
@@ -23,6 +23,7 @@
 #       together with Weave fabric configuration.
 #
 
+from __future__ import absolute_import
 import json
 import os
 import sys

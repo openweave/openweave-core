@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       A02: Calls Weave Echo with wrmp over tunnel between mock device and real service.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import unittest
 from test_weave_echo_base import test_weave_echo_base
 
@@ -34,8 +36,8 @@ class test_weave_echo_02(test_weave_echo_base):
         echo_args["endpoint"] = 'Echo'
         echo_args['test_tag'] = self.__class__.__name__
         echo_args['test_case_name'] = ['Echo-NestService-A02: Calls Weave Echo with wrmp over tunnel between mock device and real service.']
-        print 'test file: ' + self.__class__.__name__
-        print "weave echo test A02"
+        print('test file: ' + self.__class__.__name__)
+        print("weave echo test A02")
         super(test_weave_echo_02, self).weave_echo_base(echo_args)
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #       from ThreadNode to NestService. Kick out the connection in primary tunnel,
 #       and the weave-ping can still work with backup tunnel
 
+from __future__ import absolute_import
+from __future__ import print_function
 import itertools
 import os
 import re
@@ -42,6 +44,7 @@ import WeaveTunnelStop
 import plugins.testrail.TestrailResultOutput
 
 from topologies.dynamic.thread_wifi_ap_internet_configurable_topology import thread_wifi_ap_internet_configurable_topology
+from six.moves import range
 
 TEST_OPTION_QUIET = True
 DEFAULT_FABRIC_SEED = "00000"
@@ -69,7 +72,7 @@ class test_weave_tunnel_02(unittest.TestCase):
 
         fabric_seed = os.environ.get("FABRIC_SEED", DEFAULT_FABRIC_SEED)
 
-        if "FABRIC_OFFSET" in os.environ.keys():
+        if "FABRIC_OFFSET" in list(os.environ.keys()):
             self.fabric_id = format(int(fabric_seed, 16) + int(os.environ["FABRIC_OFFSET"]), 'x').zfill(5)
         else:
             self.fabric_id = fabric_seed
@@ -81,7 +84,7 @@ class test_weave_tunnel_02(unittest.TestCase):
         self.test_timeout = int(os.environ.get("TEST_TIMEOUT", 60 * 30))
 
         # TODO: Once LwIP bugs for tunnel are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.tap = True
             self.tap_id = "wpan0"
             return
@@ -101,7 +104,7 @@ class test_weave_tunnel_02(unittest.TestCase):
                                                                           device_numbers=self.device_numbers)
             self.topology.createTopology()
         else:
-            print "topology set up not required"
+            print("topology set up not required")
         self.show_strace = False
 
         # Wait for a second to ensure that Weave ULA addresses passed dad
@@ -187,23 +190,23 @@ class test_weave_tunnel_02(unittest.TestCase):
     def __process_result(self, nodeA, nodeB, value, all_data):
         success = True
         for data in all_data:
-            print "ping from " + data['client'] + " to " + nodeB + " ",
+            print("ping from " + data['client'] + " to " + nodeB + " ", end=' ')
             # value is loss_percentage, current criteria is less than or equal to 11%
             if value > 5:
                 success = False
-                print hred("Failed")
+                print(hred("Failed"))
             else:
-                print hgreen("Passed")
+                print(hgreen("Passed"))
 
             try:
                 self.assertTrue(value < 5, "%s < 5 %%" % (str(value)))
-            except AssertionError, e:
-                print str(e)
-                print "Captured experiment result:"
+            except AssertionError as e:
+                print(str(e))
+                print("Captured experiment result:")
 
-                print "Gateway Output: "
+                print("Gateway Output: ")
                 for line in data["gateway_output"].split("\n"):
-                   print "\t" + line
+                   print("\t" + line)
 
             test_results = []
 

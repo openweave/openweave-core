@@ -316,7 +316,7 @@ esac
 
 # Check for Python
 
-AM_PATH_PYTHON
+AM_PATH_PYTHON([3.5])
 
 # If a Python interpreter of any color cannot be found, error out.
 
@@ -836,7 +836,7 @@ else
     fi
 fi
 if test "${with_happy}" != "no"; then
-    PYTHONPATH=${happy_path}:${PYTHONPATH} python -c 'import happy' 2> /dev/null
+    PYTHONPATH=${happy_path}:${PYTHONPATH} ${PYTHON} -c 'import happy' 2> /dev/null
     if test $? != 0; then
         if test "${with_happy}" = "yes"; then
             if test -z ${happy_path}; then
@@ -855,7 +855,7 @@ if test "${with_happy}" != "no"; then
 fi
 if test "${with_happy}" = "yes"; then
     HAPPY_MINIMUM_VERSION="1.1.36"
-    happy_version=`PYTHONPATH=${happy_path}:${PYTHONPATH} ${PYTHON} -c 'import happy; print happy.__version__ if "__version__" in dir(happy) else "0.0.0"'`
+    happy_version=`PYTHONPATH=${happy_path}:${PYTHONPATH} ${PYTHON} -c 'import happy; print(happy.__version__) if "__version__" in dir(happy) else "0.0.0"'`
     AX_COMPARE_VERSION([${HAPPY_MINIMUM_VERSION}],[gt],[${happy_version}],[AC_MSG_ERROR(["The Nest Labs network functional test framework (Happy) is installed with version ${happy_version}; however, Weave test apps require at least version ${HAPPY_MINIMUM_VERSION}."])],[])
 fi
 AC_MSG_RESULT(${with_happy})

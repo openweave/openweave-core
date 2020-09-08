@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeavePing class that tests Weave Echo among Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import re
@@ -213,21 +215,21 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
                 try:
                     loss_percentage = 100 - float(m.group(1))
                 except Exception:
-                    print hred("Failed to parse %s", )
+                    print(hred("Failed to parse %s", ))
 
         if loss_percentage == None:
             # hmmm, we haven't found our line
             loss_percentage = 100
 
         if self.quiet == False:
-            print "weave-ping from node %s (%s) to node %s (%s) : " % \
+            print("weave-ping from node %s (%s) to node %s (%s) : " % \
                 (client_info['client_node_id'], client_info['client_ip'],
-                 self.server_node_id, self.server_ip),
+                 self.server_node_id, self.server_ip), end=' ')
 
             if loss_percentage == 0:
-                print hgreen("%f%% packet loss" % (loss_percentage))
+                print(hgreen("%f%% packet loss" % (loss_percentage)))
             else:
-                print hred("%f%% packet loss" % (loss_percentage))
+                print(hred("%f%% packet loss" % (loss_percentage)))
 
         return  loss_percentage # indicate the loss for each client
 

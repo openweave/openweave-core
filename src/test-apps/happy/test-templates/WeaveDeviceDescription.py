@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -23,6 +23,8 @@
 #       Implements WeaveDeviceDescription class that tests Weave DEVICE-DESCRIPTION among two Weave Nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
@@ -183,13 +185,13 @@ class WeaveDeviceDescription(HappyNode, HappyNetwork, WeaveTest):
                 break
 
         if self.quiet == False:
-            print "weave-device-description from server %s (%s) to client %s (%s) : " % \
+            print("weave-device-description from server %s (%s) to client %s (%s) : " % \
                 (self.server_node_id, self.server_ip,
-                 self.client_node_id, self.client_ip)
+                 self.client_node_id, self.client_ip))
             if pass_test:
-                print hgreen("Device description operation is completed")
+                print(hgreen("Device description operation is completed"))
             else:
-                print hred("Device description operation is not completed")
+                print(hred("Device description operation is not completed"))
 
         return (pass_test, client_output)
 

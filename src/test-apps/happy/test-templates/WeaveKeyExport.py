@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 #    Copyright (c) 2017 Nest Labs, Inc.
@@ -22,6 +22,8 @@
 #       Implements WeaveKeyExport class that tests Weave Key Export protocol among Weave nodes.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import time
@@ -230,14 +232,14 @@ class WeaveKeyExport(HappyNode, HappyNetwork, WeaveTest):
                 break
 
         if self.quiet == False:
-            print "weave-key-export requested by node %s (%s) from node %s (%s) : " % \
+            print("weave-key-export requested by node %s (%s) from node %s (%s) : " % \
                 (self.client_node_id, self.client_ip,
-                 self.server_node_id, self.server_ip),
+                 self.server_node_id, self.server_ip), end=' ')
 
             if fail_test:
-                print hred("FAILED")
+                print(hred("FAILED"))
             else:
-                print hgreen("PASSED")
+                print(hgreen("PASSED"))
 
         return (fail_test, client_output)
 

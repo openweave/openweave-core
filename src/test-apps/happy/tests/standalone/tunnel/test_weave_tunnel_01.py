@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #       Copyright (c) 2015-2017  Nest Labs, Inc.
 #       All rights reserved.
@@ -21,6 +21,7 @@
 #       Calls Weave Tunnel between nodes.
 #
 
+from __future__ import absolute_import
 import itertools
 import os
 import sys
@@ -39,7 +40,7 @@ import WeaveUtilities
 
 class test_weave_tunnel_01(unittest.TestCase):
     def setUp(self):
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in list(os.environ.keys()) and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.use_lwip = True
             topology_shell_script = os.path.dirname(os.path.realpath(__file__)) + \
                 "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.sh"

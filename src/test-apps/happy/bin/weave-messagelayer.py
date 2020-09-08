@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 #
@@ -25,6 +25,8 @@
 #       The command is executed by instantiating and running WeaveMessageLayer class.
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 import getopt
 import sys
 import set_test_path
@@ -39,13 +41,13 @@ if __name__ == "__main__":
 		opts, args = getopt.getopt(sys.argv[1:], "hc:s:n:tqp:",
 			["help", "client=", "server=", "count=", "tcp", "quiet", "tap="])
 	except getopt.GetoptError as err:
-		print WeaveMessageLayer.WeaveMessageLayer.__doc__
-		print hred(str(err))
+		print(WeaveMessageLayer.WeaveMessageLayer.__doc__)
+		print(hred(str(err)))
                 sys.exit(hred("%s: Failed server parse arguments." % (__file__)))
 
 	for o, a in opts:
 		if o in ("-h", "--help"):
-			print WeaveMessageLayer.WeaveMessageLayer.__doc__
+			print(WeaveMessageLayer.WeaveMessageLayer.__doc__)
 			sys.exit(0)
 
 		elif o in ("-q", "--quiet"):

@@ -25,6 +25,7 @@
 
 # There is no need to set IP and Route for tap devices here, since it will be 
 # assigned from lwip stack
+
 export PATH=$PATH:$(dirname $(readlink -f "$0"))/../../bin
 happy-network-add HomeThread thread
 happy-network-address HomeThread 2001:db8:111:1::

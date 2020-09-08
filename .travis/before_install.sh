@@ -58,11 +58,10 @@ installdeps()
             sudo apt-get update
             sudo apt-get -y install bridge-utils
             sudo apt-get -y install lcov
-            sudo apt-get -y install python-lockfile
-            sudo apt-get -y install python-psutil
-            sudo apt-get -y install python-setuptools
-            sudo apt-get -y install swig
-
+            sudo apt-get -y install python3-lockfile
+            sudo apt-get -y install python3-pip
+            sudo apt-get -y install python3-setuptools
+            sudo apt-get -y install python3-psutil
             ;;
 
         openssl-deps)
@@ -161,11 +160,10 @@ case "${BUILD_TARGET}" in
         installdeps "happy-deps"
 
         cd $HOME
-        git clone https://github.com/openweave/happy.git
+        git clone --single-branch --branch feature/happy_py3_support https://github.com/openweave/happy.git
         cd ${HOME}/happy
         make install
-        python pip_packages.py
-        pip install pexpect
+        python3 pip_packages.py
         sudo apt install python-gobject
         sudo apt install python-dbus
 
