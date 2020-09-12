@@ -469,6 +469,30 @@
 #define WEAVE_CONFIG_TUNNEL_INTERFACE_MTU                           (1536)
 #endif // WEAVE_CONFIG_TUNNEL_INTERFACE_MTU
 
+/**
+ * @def WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+ *
+ * @brief
+ *    Set to true if the Tunnel CASE session needs to be persisted,
+ *    false otherwise.
+ */
+#ifndef WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+#define WEAVE_CONFIG_PERSIST_CONNECTED_SESSION                      (0)
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+
+/**
+ * @def WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET
+ *
+ * @brief
+ *   The offset to use to move the message id forward when
+ *   computing the resumption message ids when suspending
+ *   the current secure tunnel session.
+ *
+ */
+#ifndef WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET
+#define WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET      (10000)
+#endif // WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET
+
 // clang-format on
 
 #endif /* WEAVE_TUNNEL_CONFIG_H_ */

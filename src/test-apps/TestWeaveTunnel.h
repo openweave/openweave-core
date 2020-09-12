@@ -82,6 +82,7 @@ enum
     kTestNum_TestTunnelNoStatusReportResetReconnectBackoff      = 26,
     kTestNum_TestTunnelRestrictedRoutingOnStandaloneTunnelOpen  = 27,
     kTestNum_TestTunnelTCPIdle                                  = 28,
+    kTestNum_TestTunnelPersistCASESession                       = 29,
 };
 
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING

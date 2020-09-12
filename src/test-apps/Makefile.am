@@ -499,6 +499,8 @@ network_test_programs                          = \
     TestWRMP                                     \
     TestWeaveMessageLayer                        \
     TestWeaveTunnelBR                            \
+    TestWeaveTunnelCASEPersistClient             \
+    TestWeaveTunnelCASEPersistServer             \
     TestWeaveTunnelServer                        \
     TestWdmNext                                  \
     TestWdmOneWayCommandSender                   \
@@ -1399,6 +1401,14 @@ TestWeaveSignature_LDADD                 = $(COMMON_LDADD)
 TestWeaveTunnelBR_SOURCES                = TestWeaveTunnelBR.cpp
 TestWeaveTunnelBR_LDFLAGS                = $(AM_CPPFLAGS)
 TestWeaveTunnelBR_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD)
+
+TestWeaveTunnelCASEPersistClient_SOURCES = TestWeaveTunnelCASEPersistClient.cpp
+TestWeaveTunnelCASEPersistClient_LDFLAGS = $(AM_CPPFLAGS)
+TestWeaveTunnelCASEPersistClient_LDADD   = libWeaveTestCommon.a $(COMMON_LDADD)
+
+TestWeaveTunnelCASEPersistServer_SOURCES = TestWeaveTunnelCASEPersistServer.cpp
+TestWeaveTunnelCASEPersistServer_LDFLAGS = $(AM_CPPFLAGS)
+TestWeaveTunnelCASEPersistServer_LDADD   = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestWeaveTunnelServer_SOURCES            = TestWeaveTunnelServer.cpp
 TestWeaveTunnelServer_LDFLAGS            = $(AM_CPPFLAGS)

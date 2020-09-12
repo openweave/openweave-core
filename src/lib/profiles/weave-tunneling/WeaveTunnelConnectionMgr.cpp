@@ -46,9 +46,13 @@ using nl::Weave::System::PacketBuffer;
 
 WeaveTunnelConnectionMgr::WeaveTunnelConnectionMgr(void)
 {
-    mConnectionState            = kState_NotConnected;
-    mServiceCon                 = NULL;
-    mTunFailedConnAttemptsInRow = 0;
+    mConnectionState                = kState_NotConnected;
+    mServiceCon                     = NULL;
+    mTunFailedConnAttemptsInRow     = 0;
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+    IsPersistedTunnelSessionPresent = NULL;
+    LoadPersistedTunnelSession      = NULL;
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 }
 
 /*
@@ -79,6 +83,7 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::Init(WeaveTunnelAgent *tunAgent,
     mMaxFailedConAttemptsBeforeNotify = WEAVE_CONFIG_TUNNELING_MAX_NUM_CONNECT_BEFORE_NOTIFY;
     mServiceConnDelayPolicyCallback   = DefaultReconnectPolicyCallback;
     mResetReconnectArmed              = false;
+
     if (connIntfName)
     {
         strncpy(mServiceConIntf, connIntfName, sizeof(mServiceConIntf) - 1);
@@ -263,6 +268,15 @@ void WeaveTunnelConnectionMgr::ConfigureTunnelLivenessInterval(uint16_t liveness
 }
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
 
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+void WeaveTunnelConnectionMgr::SetCallbacksForPersistedTunnelConnection(PersistedSecureSessionExistsFunct aIsPersistedTunnelSessionPresent,
+                                                                        LoadPersistedSessionFunct aLoadPersistedTunnelSession)
+{
+    IsPersistedTunnelSessionPresent = aIsPersistedTunnelSessionPresent;
+    LoadPersistedTunnelSession      = aLoadPersistedTunnelSession;
+}
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+
 /**
  * Try to establish a connecttion to the Service either using
  * ServiceManager or directly
@@ -272,6 +286,8 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::TryConnectingNow(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     InterfaceId connIntfId = INET_NULL_INTERFACEID;
+    WeaveAuthMode currentAuthMode = mTunAgent->mAuthMode;
+
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
     WeaveTunnelCommonStatistics *tunStats = NULL;
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
@@ -288,13 +304,25 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::TryConnectingNow(void)
         SuccessOrExit(err);
     }
 
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+    // If Tunnel secure session is persisted and available then setup an unsecured WeaveConnection before using
+    // the persisted secure session to open the tunnel.
+    if (IsPersistedTunnelSessionPresent)
+    {
+        if (IsPersistedTunnelSessionPresent(kServiceEndpoint_WeaveTunneling))
+        {
+            currentAuthMode = kWeaveAuthMode_Unauthenticated;
+        }
+    }
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     // Initiate TCP connection with Service.
 
     if (mTunAgent->mServiceMgr)
     {
         err = mTunAgent->mServiceMgr->connect(mTunAgent->mPeerNodeId,
-                                              mTunAgent->mAuthMode, this,
+                                              currentAuthMode, this,
                                               ServiceMgrStatusHandler,
                                               HandleServiceConnectionComplete,
                                               WEAVE_CONFIG_TUNNEL_CONNECT_TIMEOUT_SECS * nl::Weave::System::kTimerFactor_milli_per_unit,
@@ -306,7 +334,7 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::TryConnectingNow(void)
         err = StartServiceTunnelConn(mTunAgent->mPeerNodeId,
                                      mTunAgent->mServiceAddress,
                                      mTunAgent->mServicePort,
-                                     mTunAgent->mAuthMode,
+                                     currentAuthMode,
                                      connIntfId);
     }
 
@@ -731,6 +759,21 @@ void WeaveTunnelConnectionMgr::HandleServiceConnectionComplete(WeaveConnection *
 #if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
     tConnMgr->mServiceCon->GetTCPEndPoint()->OnTCPSendIdleChanged = HandleTCPSendIdleChanged;
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+    if (tConnMgr->LoadPersistedTunnelSession)
+    {
+        // Set the configured AuthMode on the created WeaveConnection object
+        // before attempting to load persisted session. The callback will use
+        // this configuration information to make the decision of binding the
+        // persisted session to the connection.
+        con->AuthMode = tConnMgr->mTunAgent->mAuthMode;
+
+        // Pass the WeaveConnection object to have the persisted secure session
+        // loaded onto it.
+        tConnMgr->LoadPersistedTunnelSession(con);
+    }
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 
     // Set the appropriate route priority based on the tunnel type
 

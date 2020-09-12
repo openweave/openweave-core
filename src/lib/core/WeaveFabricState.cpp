@@ -113,6 +113,10 @@ void WeaveSessionKey::Init(void)
     NodeId = kNodeIdNotSpecified;
     NextMsgId.Init(0);
     MaxRcvdMsgId = 0;
+    InitialSendMsgId = 0;
+    InitialRcvdMsgId = 0;
+    ResumptionSendMsgId = 0;
+    ResumptionRecvMsgId = 0;
     BoundCon = NULL;
     RcvFlags = 0;
     AuthMode = kWeaveAuthMode_NotSpecified;
@@ -128,6 +132,22 @@ void WeaveSessionKey::Clear(void)
 {
     Init();
     ClearSecretData((uint8_t *)&MsgEncKey.EncKey, sizeof(MsgEncKey.EncKey));
+}
+
+void WeaveSessionKey::ComputeNextResumptionMsgIds(void)
+{
+     // When calculating the resumption message ids, it needs to be ensured that the next resumption message id is always ahead of the current message ids.
+     while (ResumptionSendMsgId < NextMsgId.GetValue())
+     {
+         ResumptionSendMsgId = (ResumptionSendMsgId == 0) ? InitialSendMsgId + WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET :
+                                ResumptionSendMsgId + WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET;
+     }
+
+     while (ResumptionRecvMsgId < MaxRcvdMsgId)
+     {
+         ResumptionRecvMsgId = (ResumptionRecvMsgId == 0) ? InitialRcvdMsgId + WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET - 1:
+                                ResumptionRecvMsgId + WEAVE_CONFIG_TUNNEL_SESSION_RESUMPTION_MSG_ID_OFFSET;
+     }
 }
 
 /**
@@ -324,6 +344,11 @@ WEAVE_ERROR WeaveFabricState::AllocSessionKey(uint64_t peerNodeId, uint16_t keyI
     sessionKey->Flags = WeaveSessionKey::kFlag_RecentlyActive;
     sessionKey->ReserveCount = 1;
 
+    if (boundCon)
+    {
+        sessionKey->SetUsedOverConnection(true);
+    }
+
     return WEAVE_NO_ERROR;
 }
 
@@ -356,6 +381,8 @@ WEAVE_ERROR WeaveFabricState::SetSessionKey(WeaveSessionKey *sessionKey, uint8_t
     sessionKey->MsgEncKey.EncType = encType;
     sessionKey->MsgEncKey.EncKey = *encKey;
     sessionKey->NextMsgId.Init(msgId);
+    sessionKey->InitialSendMsgId = msgId;
+    sessionKey->InitialRcvdMsgId = 0;
     sessionKey->MaxRcvdMsgId = 0;
     sessionKey->RcvFlags = 0;
     sessionKey->AuthMode = authMode;
@@ -633,7 +660,6 @@ WEAVE_ERROR WeaveFabricState::SuspendSession(uint16_t keyId, uint64_t peerNodeId
     // Assert various requirements about the session.
     VerifyOrExit(sessionKey->IsKeySet(), err = WEAVE_ERROR_KEY_NOT_FOUND);
     VerifyOrExit(!sessionKey->IsSuspended(), err = WEAVE_ERROR_SESSION_KEY_SUSPENDED);
-    VerifyOrExit(sessionKey->BoundCon == NULL, err = WEAVE_ERROR_INVALID_USE_OF_SESSION_KEY);
     VerifyOrExit(IsCertAuthMode(sessionKey->AuthMode), err = WEAVE_ERROR_INVALID_USE_OF_SESSION_KEY);
 
     {
@@ -709,6 +735,28 @@ WEAVE_ERROR WeaveFabricState::SuspendSession(uint16_t keyId, uint64_t peerNodeId
             ExitNow(err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
         }
 
+        if (sessionKey->AreResumptionMsgIdsValid())
+        {
+            // Generate a new set of resumption msg ids
+            sessionKey->ComputeNextResumptionMsgIds();
+
+            err = writer.PutBoolean(ContextTag(kTag_SerializedSession_AreResumptionMsgIdsValid),
+                             sessionKey->AreResumptionMsgIdsValid());
+            SuccessOrExit(err);
+
+            err = writer.Put(ContextTag(kTag_SerializedSession_ResumptionSendMessageId),
+                             sessionKey->ResumptionSendMsgId);
+            SuccessOrExit(err);
+
+            err = writer.Put(ContextTag(kTag_SerializedSession_ResumptionRecvMessageId),
+                             sessionKey->ResumptionRecvMsgId);
+            SuccessOrExit(err);
+        }
+
+        err = writer.PutBoolean(ContextTag(kTag_SerializedSession_IsUsedOverConnection),
+                                sessionKey->IsUsedOverConnection());
+        SuccessOrExit(err);
+
         // End the Security:SerializedSession TLV structure and finalize the encoding.
         err = writer.EndContainer(container);
         SuccessOrExit(err);
@@ -738,7 +786,7 @@ exit:
  * Restore a previously suspended Weave Security Session from a serialized state.
  *
  */
-WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16_t serializedSessionLen)
+WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16_t serializedSessionLen, WeaveConnection *con)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVReader reader;
@@ -886,6 +934,63 @@ WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16
         ExitNow(err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
     }
 
+    bool resumptionMsgIdsValid;
+
+    err = reader.Next(kTLVType_Boolean, ContextTag(kTag_SerializedSession_AreResumptionMsgIdsValid));
+    SuccessOrExit(err);
+    err = reader.Get(resumptionMsgIdsValid);
+    SuccessOrExit(err);
+
+    sessionKey->SetResumptionMsgIdsValid(resumptionMsgIdsValid);
+
+    // Get the resumptionMsgIds;
+    if (resumptionMsgIdsValid)
+    {
+        err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_ResumptionSendMessageId));
+        SuccessOrExit(err);
+
+        err = reader.Get(sessionKey->ResumptionSendMsgId);
+        SuccessOrExit(err);
+
+        err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_SerializedSession_ResumptionRecvMessageId));
+        SuccessOrExit(err);
+
+        err = reader.Get(sessionKey->ResumptionRecvMsgId);
+        SuccessOrExit(err);
+
+        WeaveLogDetail(MessageLayer, "Prev Next MsgId:%016" PRIX64 "\n", sessionKey->NextMsgId.GetValue());
+        WeaveLogDetail(MessageLayer, "Prev MaxRcvMsgId:%016" PRIX64 "\n", sessionKey->MaxRcvdMsgId);
+
+        // Assign resumption message ids to the session key
+        sessionKey->NextMsgId.Init(sessionKey->ResumptionSendMsgId);
+        sessionKey->MaxRcvdMsgId = sessionKey->ResumptionRecvMsgId;
+
+        WeaveLogDetail(MessageLayer, "New Next MsgId:%016" PRIX64 "\n", sessionKey->NextMsgId.GetValue());
+        WeaveLogDetail(MessageLayer, "New MaxRcvMsgId:%016" PRIX64 "\n", sessionKey->MaxRcvdMsgId);
+    }
+
+    bool usedOverConnection;
+
+    err = reader.Next(kTLVType_Boolean, ContextTag(kTag_SerializedSession_IsUsedOverConnection));
+    SuccessOrExit(err);
+
+    err = reader.Get(usedOverConnection);
+    SuccessOrExit(err);
+
+    sessionKey->SetUsedOverConnection(usedOverConnection);
+
+    // If a connection object has been passed to be bound to a restored session,
+    // ensure that the AuthMode is CASE and the resumed session was previously
+    // used over a connection.
+    if (con && IsCASEAuthMode(con->AuthMode) && sessionKey->IsUsedOverConnection())
+    {
+        // Bind the connection to the restored session
+        sessionKey->BoundCon = con;
+        con->DefaultKeyId = sessionKey->MsgEncKey.KeyId;
+        con->DefaultEncryptionType = sessionKey->MsgEncKey.EncType;
+        con->PeerNodeId = sessionKey->NodeId;
+    }
+
     // Verify no other data in the serialized session structure.
     err = reader.VerifyEndOfContainer();
     SuccessOrExit(err);
@@ -921,11 +1026,11 @@ WEAVE_ERROR WeaveFabricState::GetSessionState(uint64_t remoteNodeId,
         if (con == NULL)
         {
             FindOrAllocPeerEntry(remoteNodeId, true, peerIndex);
-            outSessionState = WeaveSessionState(NULL, kWeaveAuthMode_Unauthenticated, &NextUnencUDPMsgId,
+            outSessionState = WeaveSessionState(NULL, kWeaveAuthMode_Unauthenticated, &NextUnencUDPMsgId, &PeerStates.MaxUnencUDPMsgIdRcvd[peerIndex],
                                                 &PeerStates.MaxUnencUDPMsgIdRcvd[peerIndex], &PeerStates.UnencRcvFlags[peerIndex]);
         }
         else
-            outSessionState = WeaveSessionState(NULL, kWeaveAuthMode_Unauthenticated, &NextUnencTCPMsgId, NULL, NULL);
+            outSessionState = WeaveSessionState(NULL, kWeaveAuthMode_Unauthenticated, &NextUnencTCPMsgId, NULL, NULL, NULL);
         break;
 
     case WeaveKeyId::kType_Session:
@@ -939,7 +1044,7 @@ WEAVE_ERROR WeaveFabricState::GetSessionState(uint64_t remoteNodeId,
             return (sessionKey->MsgEncKey.EncType == kWeaveEncryptionType_None) ? WEAVE_ERROR_KEY_NOT_FOUND : WEAVE_ERROR_WRONG_ENCRYPTION_TYPE;
         if (sessionKey->BoundCon != NULL && sessionKey->BoundCon != con)
             return WEAVE_ERROR_INVALID_USE_OF_SESSION_KEY;
-        outSessionState = WeaveSessionState(&sessionKey->MsgEncKey, sessionKey->AuthMode, &sessionKey->NextMsgId, &sessionKey->MaxRcvdMsgId, &sessionKey->RcvFlags);
+        outSessionState = WeaveSessionState(&sessionKey->MsgEncKey, sessionKey->AuthMode, &sessionKey->NextMsgId, &sessionKey->InitialRcvdMsgId, &sessionKey->MaxRcvdMsgId, &sessionKey->RcvFlags);
         break;
 
 #if WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
@@ -953,9 +1058,9 @@ WEAVE_ERROR WeaveFabricState::GetSessionState(uint64_t remoteNodeId,
         WeaveAuthMode authMode = GroupKeyAuthMode(keyId);
 
         if (FindOrAllocPeerEntry(remoteNodeId, false, peerIndex))
-            outSessionState = WeaveSessionState(applicationKey, authMode, &NextGroupKeyMsgId, &PeerStates.MaxGroupKeyMsgIdRcvd[peerIndex], &PeerStates.GroupKeyRcvFlags[peerIndex]);
+            outSessionState = WeaveSessionState(applicationKey, authMode, &NextGroupKeyMsgId, NULL, &PeerStates.MaxGroupKeyMsgIdRcvd[peerIndex], &PeerStates.GroupKeyRcvFlags[peerIndex]);
         else
-            outSessionState = WeaveSessionState(applicationKey, authMode, &NextGroupKeyMsgId, NULL, NULL);
+            outSessionState = WeaveSessionState(applicationKey, authMode, &NextGroupKeyMsgId, NULL, NULL, NULL);
         break;
     }
 #endif
@@ -1663,6 +1768,13 @@ void WeaveFabricState::HandleConnectionClosed(WeaveConnection *con)
     {
         if (sessionKey->IsAllocated() && SessionKeys[i].BoundCon == con)
         {
+            // Call application callback to notify about session connection
+            // closure
+            if (BoundConnectionClosedForSession)
+            {
+                BoundConnectionClosedForSession(con);
+            }
+
             RemoveSessionKey(sessionKey);
         }
     }
@@ -1675,16 +1787,19 @@ WeaveSessionState::WeaveSessionState(void)
     MsgEncKey = NULL;
     AuthMode = kWeaveAuthMode_NotSpecified;
     NextMsgId = NULL;
+    InitialMsgIdRcvd = NULL;
     MaxMsgIdRcvd = NULL;
     RcvFlags = NULL;
 }
 
 WeaveSessionState::WeaveSessionState(WeaveMsgEncryptionKey *msgEncKey, WeaveAuthMode authMode,
-                                     MonotonicallyIncreasingCounter *nextMsgId, uint32_t *maxMsgIdRcvd, ReceiveFlagsType *rcvFlags)
+                                     MonotonicallyIncreasingCounter *nextMsgId, uint32_t *initialRcvdMsgId,
+                                     uint32_t *maxMsgIdRcvd, ReceiveFlagsType *rcvFlags)
 {
     MsgEncKey = msgEncKey;
     AuthMode = authMode;
     NextMsgId = nextMsgId;
+    InitialMsgIdRcvd = initialRcvdMsgId;
     MaxMsgIdRcvd = maxMsgIdRcvd;
     RcvFlags = rcvFlags;
 }
@@ -1748,6 +1863,7 @@ bool WeaveSessionState::IsDuplicateMessage(uint32_t msgId)
         {
             *RcvFlags = kReceiveFlags_MessageIdSynchronized;
             *MaxMsgIdRcvd = msgId;
+            *InitialMsgIdRcvd = msgId;
             ExitNow();
         }
     }
