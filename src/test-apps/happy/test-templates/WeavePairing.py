@@ -89,16 +89,22 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
     def __pre_check(self):
         device_node_id = None
-        # Set the produce resource that mock-device is paired to
-        resourceDictionaries = self.getResourceIds()
-        resourceIndexList = os.environ.get("RESOURCE_IDS", "thd1").split(" ")
-        self.resources = [resourceDictionaries[resourceIndex]
-                          for resourceIndex in resourceIndexList]
+
         # Check if Weave Pairing device node is given.
         if self.devices is None:
             emsg = "Missing name or address of the Weave Pairing device node."
             self.logger.error("[localhost] WeavePairing: %s" % (emsg))
             sys.exit(1)
+
+        # Set the produce resource that mock-device is paired to
+        resourceDictionaries = self.getResourceIds()
+        if len(self.devices) == 1 and self.devices[0] == "border_gateway":
+            resourceIndexList = ["nf1"]
+        else:
+            resourceIndexList = os.environ.get("RESOURCE_IDS", "thd1").split(" ")
+
+        self.resources = [resourceDictionaries[resourceIndex]
+                          for resourceIndex in resourceIndexList]
 
         # Check if Weave Pairing mobile node is given.
         if self.mobile is None:
