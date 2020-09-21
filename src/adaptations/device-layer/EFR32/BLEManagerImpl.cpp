@@ -183,7 +183,7 @@ void BLEManagerImpl::bluetoothStackEventHandler(void *p_arg)
     while (1)
     {
         // wait for Bluetooth stack events, do not consume set flag
-        flags |=
+        flags =
             xEventGroupWaitBits(bluetooth_event_flags,            /* The event group being tested. */
                                 BLUETOOTH_EVENT_FLAG_EVT_WAITING, /* The bits within the event group to wait for. */
                                 pdFALSE,                          /* Dont clear flags before returning */
@@ -272,7 +272,7 @@ void BLEManagerImpl::bluetoothStackEventHandler(void *p_arg)
 
         PlatformMgr().UnlockWeaveStack();
 
-        flags = vRaiseEventFlagBasedOnContext(bluetooth_event_flags, BLUETOOTH_EVENT_FLAG_EVT_HANDLED, NULL);
+        vRaiseEventFlagBasedOnContext(bluetooth_event_flags, BLUETOOTH_EVENT_FLAG_EVT_HANDLED);
     }
 }
 
