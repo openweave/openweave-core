@@ -45,9 +45,12 @@ from .WeaveUtility import WeaveUtility
 
 from .WeaveBleBase import WeaveBleBase
 
-
-objc.loadBundle("CoreBluetooth", globals(),
-    bundle_path=objc.pathForFramework(u'/System/Library/Frameworks/IOBluetooth.framework/Versions/A/Frameworks/CoreBluetooth.framework'))
+try:
+    objc.loadBundle("CoreBluetooth", globals(),
+                    bundle_path=objc.pathForFramework(u'/System/Library/Frameworks/IOBluetooth.framework/Versions/A/Frameworks/CoreBluetooth.framework'))
+except:
+    objc.loadBundle("CoreBluetooth", globals(),
+                    bundle_path=objc.pathForFramework(u'/System/Library/Frameworks/CoreBluetooth.framework'))
 
 weave_service = CBUUID.UUIDWithString_(u'0000FEAF-0000-1000-8000-00805F9B34FB')
 weave_service_short = CBUUID.UUIDWithString_(u'FEAF')
