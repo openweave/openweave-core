@@ -1995,11 +1995,13 @@ WEAVE_ERROR SubscriptionEngine::ProcessUpdateRequestDataListWithConditionality(
     {
         TraitDataHandle handle;
         PropertyPathHandle pathHandle;
-
-        // if it is running conditional loop, needs to skip unconditional elements, vice versa.
-        err = ProcessUpdateRequestDataElement(dataReader, handle, pathHandle, apCatalog, acDelegate, aConditionalLoop, index,
-                                              aExistFailure, apStatusDataHandleList);
-        SuccessOrExit(err);
+        if (!(apStatusDataHandleList[index].mProfileId == nl::Weave::Profiles::kWeaveProfile_Common && apStatusDataHandleList[index].mStatusCode == nl::Weave::Profiles::Common::kStatus_Success))
+        {
+            // if it is running conditional loop, needs to skip unconditional elements, vice versa.
+            err = ProcessUpdateRequestDataElement(dataReader, handle, pathHandle, apCatalog, acDelegate, aConditionalLoop, index,
+                                                  aExistFailure, apStatusDataHandleList);
+            SuccessOrExit(err);
+        }
     }
 
     // if we have exhausted this container
@@ -2027,6 +2029,7 @@ WEAVE_ERROR SubscriptionEngine::ProcessUpdateRequestDataList(Weave::TLV::TLVRead
     err =
         ProcessUpdateRequestDataListWithConditionality(aReader, apStatusDataHandleList, apCatalog, acDelegate, aExistFailure, true);
     SuccessOrExit(err);
+
 
     // process unconditional DEs
     err = ProcessUpdateRequestDataListWithConditionality(aReader, apStatusDataHandleList, apCatalog, acDelegate, aExistFailure,
