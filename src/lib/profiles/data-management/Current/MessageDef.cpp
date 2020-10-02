@@ -2822,7 +2822,17 @@ bool VersionList::Parser::IsNull(void)
 
 WEAVE_ERROR VersionList::Parser::GetVersion(uint64_t * const apVersion)
 {
-    return mReader.Get(*apVersion);
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    if (mReader.GetType() == kTLVType_Null)
+    {
+        *apVersion = 0;
+        WeaveLogDetail(DataManagement, "Version is null in GetVersion");
+    }
+    else
+    {
+        err = mReader.Get(*apVersion);
+    }
+    return err;
 }
 
 VersionList::Builder & VersionList::Builder::AddVersion(const uint64_t aVersion)
