@@ -85,7 +85,7 @@ class test_weave_pairing_01(unittest.TestCase):
 
         self.username = os.environ.get("WEAVE_USERNAME", "test-it+weave_happy_fabric%s@nestlabs.com" % self.fabric_id)
 
-        self.password = os.environ.get("WEAVE_PASSWORD", "nest-egg123")
+        self.password = os.environ.get("WEAVE_PASSWORD")
 
         self.initial_device_index = int(os.environ.get("INITIAL_DEVICE_INDEX", "1"))
 
