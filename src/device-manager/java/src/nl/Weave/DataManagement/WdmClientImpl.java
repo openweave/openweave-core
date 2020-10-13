@@ -124,6 +124,13 @@ public class WdmClientImpl implements WdmClient
     }
 
     @Override
+    public void beginFetchEvents(int timeoutSec)
+    {
+        ensureNotClosed();
+        beginFetchEvents(mWdmClientPtr, timeoutSec);
+    }
+
+    @Override
     public CompletionHandler getCompletionHandler()
     {
         return mCompHandler;
@@ -133,6 +140,13 @@ public class WdmClientImpl implements WdmClient
     public void setCompletionHandler(CompletionHandler compHandler)
     {
         mCompHandler = compHandler;
+    }
+
+    @Override
+    public String getEvents()
+    {
+        ensureNotClosed();
+        return getEvents(mWdmClientPtr);
     }
 
     public GenericTraitUpdatableDataSink getDataSink(long traitInstancePtr)
@@ -179,6 +193,11 @@ public class WdmClientImpl implements WdmClient
         requireCompletionHandler().onRefreshDataComplete();
     }
 
+    private void onFetchEventsComplete()
+    {
+        requireCompletionHandler().onFetchEventsComplete();
+    }
+
     private void ensureNotClosed() {
       if (mWdmClientPtr == 0) {
         throw new IllegalStateException("This WdmClient has already been closed.");
@@ -205,4 +224,6 @@ public class WdmClientImpl implements WdmClient
     private native long newDataSink(long wdmClientPtr, ResourceIdentifier resourceIdentifier, long profileId, long instanceId, String path);
     private native void beginFlushUpdate(long wdmClientPtr);
     private native void beginRefreshData(long wdmClientPtr);
+    private native void beginFetchEvents(long wdmClientPtr, int timeoutSec);
+    private native String getEvents(long wdmClientPtr);
 };

@@ -269,6 +269,8 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_NewDataSink(WdmClient *wdmClient, const ResourceIdentifier *resourceIdentifier, uint32_t aProfileId, uint64_t aInstanceId, const char * apPath, GenericTraitUpdatableDataSink ** outGenericTraitUpdatableDataSink);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_FlushUpdate(WdmClient *wdmClient, DMFlushUpdateCompleteFunct onComplete, DMErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_RefreshData(WdmClient *wdmClient, DMCompleteFunct onComplete, DMErrorFunct onError);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_FetchEvents(WdmClient *wdmClient, DMCompleteFunct onComplete, DMErrorFunct onError, uint32_t aTimeoutSec);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_WdmClient_GetEvents(WdmClient *wdmClient, ConstructBytesArrayFunct aCallback);
 
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_Clear(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_GenericTraitUpdatableDataSink_RefreshData(GenericTraitUpdatableDataSink * apGenericTraitUpdatableDataSink, DMCompleteFunct onComplete, DMErrorFunct onError);
@@ -1442,6 +1444,27 @@ WEAVE_ERROR nl_Weave_WdmClient_RefreshData(WdmClient *wdmClient, DMCompleteFunct
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     err = wdmClient->RefreshData(NULL, onComplete, onError, NULL);
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_WdmClient_FetchEvents(WdmClient *wdmClient, DMCompleteFunct onComplete, DMErrorFunct onError, uint32_t aTimeoutSec)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    wdmClient->SetEventFetchingTimeout(aTimeoutSec);
+    err = wdmClient->RefreshData(NULL, onComplete, onError, NULL, true);
+    return err;
+}
+
+WEAVE_ERROR nl_Weave_WdmClient_GetEvents(WdmClient *wdmClient, ConstructBytesArrayFunct aCallback)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    BytesData bytesData;
+    err = wdmClient->GetEvents(&bytesData);
+    SuccessOrExit(err);
+    aCallback(bytesData.mpDataBuf, bytesData.mDataLen);
+    bytesData.Clear();
+
+exit:
     return err;
 }
 

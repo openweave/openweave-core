@@ -427,6 +427,9 @@ static const char *const gToolOptionHelp =
     "  --inter-event-period <ms>"
     "       Delay between emitting consecutive events (default 1s)\n"
     "\n"
+    "  --event-batch-size <n>\n"
+    "       Number of events generated per batch\n"
+    "\n"
     "  --test-case <test case id>\n"
     "       Further configure device behavior with this test case id\n"
     "\n"
@@ -868,7 +871,7 @@ int main(int argc, char *argv[])
         if (gEventGenerator != NULL) {
             printf("Starting Event Generator\n");
             MockEventGenerator::GetInstance()->Init(&ExchangeMgr, gEventGenerator,
-                                                    gMockWdmNodeOptions.mTimeBetweenEvents, true);
+                                                    gMockWdmNodeOptions.mTimeBetweenEvents, true, gMockWdmNodeOptions.mEventBatchSize);
         }
 
     }

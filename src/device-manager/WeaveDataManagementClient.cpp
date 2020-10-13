@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <time.h>
 #include <string>
+#include <chrono>
 
 #include <Weave/Core/WeaveCore.h>
 
@@ -65,6 +66,8 @@ using namespace nl::Weave::Profiles::DataManagement;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
 using namespace Schema::Weave::Common;
+using namespace nl::Weave::Profiles::DataManagement_Current::Event;
+using std::to_string;
 
 class GenericTraitUpdatableDataSink;
 class WdmClient;
@@ -125,7 +128,7 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::LocateTraitHandle(void * apContext,
 WEAVE_ERROR GenericTraitUpdatableDataSink::RefreshData(void * appReqState, DMCompleteFunct onComplete, DMErrorFunct onError)
 {
     ClearVersion();
-    mpWdmClient->RefreshData(appReqState, this, onComplete, onError, LocateTraitHandle);
+    mpWdmClient->RefreshData(appReqState, this, onComplete, onError, LocateTraitHandle, false);
     return WEAVE_NO_ERROR;
 }
 
@@ -878,9 +881,11 @@ exit:
 
 const nl::Weave::ExchangeContext::Timeout kResponseTimeoutMsec = 15000;
 
+// mpWdmEventProcessor is unique_ptr, so we should use nullptr instead of NULL
 WdmClient::WdmClient() :
     State(kState_NotInitialized), mpAppState(NULL), mOnError(NULL), mGetDataHandle(NULL), mpPublisherPathList(NULL),
-    mpSubscriptionClient(NULL), mpMsgLayer(NULL), mpContext(NULL), mpAppReqState(NULL), mOpState(kOpState_Idle)
+    mpSubscriptionClient(NULL), mpMsgLayer(NULL), mpContext(NULL), mpAppReqState(NULL), mOpState(kOpState_Idle),
+    mpWdmEventProcessor(nullptr), mEventStrBuffer(""), mEnableEventFetching(false)
 { }
 
 void WdmClient::Close(void)
@@ -907,6 +912,10 @@ void WdmClient::Close(void)
     mpAppReqState = NULL;
     mOnError      = NULL;
 
+    mEventStrBuffer.clear();
+    mpWdmEventProcessor.release();
+    mEventFetchingTLE = false;
+
     State = kState_NotInitialized;
     ClearOpState();
 }
@@ -921,6 +930,173 @@ void WdmClient::ClearDataSink(void * aTraitInstance, TraitDataHandle aHandle, vo
         pGenericTraitUpdatableDataSink = NULL;
     }
 }
+
+namespace {
+void WriteEscapedString(const char * apStr, size_t aLen, std::string & aBuf)
+{
+    // According to UTF8 encoding, all bytes from a multiple byte UTF8 sequence
+    // will have 1 as most siginificant bit. So this function will output the
+    // multi-byte characters without escape.
+    constexpr char * hex = "0123456789abcdef";
+    for (size_t i = 0; i < aLen && apStr[i]; i++)
+    {
+        switch (apStr[i])
+        {
+        case 0 ... 31:
+        case '"':
+        case '\\':
+        case '/':
+            // escape it using JSON style
+            aBuf += "\\u00";
+            aBuf += hex[(apStr[i] >> 4) & 0xf];
+            aBuf += hex[(apStr[i] & 0xf)];
+            break;
+        default:
+            aBuf += apStr[i];
+            break;
+        }
+    }
+}
+
+WEAVE_ERROR FormatEventData(TLVReader aInReader, std::string & aBuf)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    switch (aInReader.GetType())
+    {
+    case nl::Weave::TLV::kTLVType_Structure:
+    case nl::Weave::TLV::kTLVType_Array:
+        break;
+    case nl::Weave::TLV::kTLVType_SignedInteger: {
+        int64_t value_s64;
+
+        err = aInReader.Get(value_s64);
+        SuccessOrExit(err);
+
+        aBuf += to_string(value_s64);
+        break;
+    }
+
+    case nl::Weave::TLV::kTLVType_UnsignedInteger: {
+        uint64_t value_u64;
+
+        err = aInReader.Get(value_u64);
+        SuccessOrExit(err);
+
+        aBuf += to_string(value_u64);
+        break;
+    }
+
+    case nl::Weave::TLV::kTLVType_Boolean: {
+        bool value_b;
+
+        err = aInReader.Get(value_b);
+        SuccessOrExit(err);
+
+        aBuf += (value_b ? "true" : "false");
+        break;
+    }
+
+    case nl::Weave::TLV::kTLVType_UTF8String: {
+        char value_s[256];
+
+        err = aInReader.GetString(value_s, sizeof(value_s));
+        VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_ERROR_BUFFER_TOO_SMALL, );
+
+        if (err == WEAVE_ERROR_BUFFER_TOO_SMALL)
+        {
+            aBuf += "\"(utf8 string too long)\"";
+            err = WEAVE_NO_ERROR;
+        }
+        else
+        {
+            aBuf += '"';
+            // String data needs escaped
+            WriteEscapedString(value_s, min(sizeof(value_s), strlen(value_s)), aBuf);
+            aBuf += '"';
+        }
+        break;
+    }
+
+    case nl::Weave::TLV::kTLVType_ByteString: {
+        uint8_t value_b[256];
+        uint32_t len, readerLen;
+
+        readerLen = aInReader.GetLength();
+
+        err = aInReader.GetBytes(value_b, sizeof(value_b));
+        VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_ERROR_BUFFER_TOO_SMALL, );
+
+        if (readerLen < sizeof(value_b))
+        {
+            len = readerLen;
+        }
+        else
+        {
+            len = sizeof(value_b);
+        }
+
+        if (err == WEAVE_ERROR_BUFFER_TOO_SMALL)
+        {
+            aBuf += "\"(byte string too long)\"";
+        }
+        else
+        {
+            aBuf += "[";
+            for (size_t i = 0; i < len; i++)
+            {
+                aBuf += (i > 0 ? "," : "");
+                aBuf += to_string(value_b[i]);
+            }
+            aBuf += "]";
+        }
+        break;
+    }
+
+    case nl::Weave::TLV::kTLVType_Null:
+        aBuf += "null";
+        break;
+
+    default:
+        aBuf += "\"<error data>\"";
+        break;
+    }
+
+    if (aInReader.GetType() == nl::Weave::TLV::kTLVType_Structure || aInReader.GetType() == nl::Weave::TLV::kTLVType_Array)
+    {
+        bool insideStructure = (aInReader.GetType() == nl::Weave::TLV::kTLVType_Structure);
+        aBuf += (insideStructure ? ' {' : '[');
+        const char terminating_char = (insideStructure ? '}' : ']');
+
+        nl::Weave::TLV::TLVType type;
+        bool isFirstChild = true;
+        err               = aInReader.EnterContainer(type);
+        SuccessOrExit(err);
+
+        while ((err = aInReader.Next()) == WEAVE_NO_ERROR)
+        {
+            if (!isFirstChild)
+                aBuf += ",";
+            isFirstChild = false;
+            if (insideStructure)
+            {
+                uint32_t tagNum = nl::Weave::TLV::TagNumFromTag(aInReader.GetTag());
+                aBuf += "\"" + to_string(tagNum) + "\":";
+            }
+            err = FormatEventData(aInReader, aBuf);
+            SuccessOrExit(err);
+        }
+
+        aBuf += terminating_char;
+
+        err = aInReader.ExitContainer(type);
+        SuccessOrExit(err);
+    }
+
+exit:
+    return err;
+}
+} // namespace
 
 void WdmClient::ClearDataSinkVersion(void * aTraitInstance, TraitDataHandle aHandle, void * aContext)
 {
@@ -953,6 +1129,7 @@ void WdmClient::ClientEventCallback(void * const aAppState, SubscriptionClient::
         {
             uint16_t pathListLen  = 0;
             uint16_t traitListLen = 0;
+            uint32_t eventListLen = 0;
             TraitDataHandle handle;
             bool needSubscribeSpecificTrait = false;
 
@@ -966,35 +1143,54 @@ void WdmClient::ClientEventCallback(void * const aAppState, SubscriptionClient::
             else
             {
                 traitListLen = pWdmClient->mSinkCatalog.Size();
-                VerifyOrExit(traitListLen != 0, err = WEAVE_ERROR_INVALID_LIST_LENGTH);
             }
             WeaveLogDetail(DataManagement, "prepare to subscribe %d trait data sink", traitListLen);
 
-            if (pWdmClient->mpPublisherPathList != NULL)
+            if (!pWdmClient->mEnableEventFetching)
             {
-                delete[] pWdmClient->mpPublisherPathList;
-            }
+                if (pWdmClient->mpPublisherPathList != NULL)
+                {
+                    delete[] pWdmClient->mpPublisherPathList;
+                    pWdmClient->mpPublisherPathList = NULL;
+                }
 
-            pWdmClient->mpPublisherPathList = new TraitPath[traitListLen];
+                if (traitListLen > 0)
+                {
+                    pWdmClient->mpPublisherPathList = new TraitPath[traitListLen];
+                }
 
-            if (needSubscribeSpecificTrait)
-            {
-                pathListLen = 1;
-                err = pWdmClient->mSinkCatalog.PrepareSubscriptionSpecificPathList(pWdmClient->mpPublisherPathList, traitListLen,
-                                                                                   handle);
+                if (needSubscribeSpecificTrait)
+                {
+                    pathListLen = 1;
+                    err = pWdmClient->mSinkCatalog.PrepareSubscriptionSpecificPathList(pWdmClient->mpPublisherPathList, traitListLen,
+                                                                                    handle);
+                }
+                else
+                {
+                    err = pWdmClient->mSinkCatalog.PrepareSubscriptionPathList(pWdmClient->mpPublisherPathList, traitListLen,
+                                                                            pathListLen);
+                }
+                SuccessOrExit(err);
             }
             else
             {
-                err = pWdmClient->mSinkCatalog.PrepareSubscriptionPathList(pWdmClient->mpPublisherPathList, traitListLen,
-                                                                           pathListLen);
-            }
-            SuccessOrExit(err);
+                // When mEnableEventFetching is true, we will not subscribe to any traits
+                pWdmClient->mpPublisherPathList = NULL;
+                pathListLen = 0;
 
-            aOutParam.mSubscribeRequestPrepareNeeded.mPathList                  = pWdmClient->mpPublisherPathList;
-            aOutParam.mSubscribeRequestPrepareNeeded.mPathListSize              = pathListLen;
-            aOutParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents             = false;
-            aOutParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList     = NULL;
-            aOutParam.mSubscribeRequestPrepareNeeded.mLastObservedEventListSize = 0;
+                err = pWdmClient->PrepareLastObservedEventList(eventListLen);
+                SuccessOrExit(err);
+            }
+
+            // Reset the tle state
+            pWdmClient->mEventFetchingTLE = false;
+
+            aOutParam.mSubscribeRequestPrepareNeeded.mPathList      = pWdmClient->mpPublisherPathList;
+            aOutParam.mSubscribeRequestPrepareNeeded.mPathListSize  = pathListLen;
+            aOutParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents = pWdmClient->mEnableEventFetching;
+            // When aEnableEventFetching is false, the eventListLen will be 0
+            aOutParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList = pWdmClient->mLastObservedEventByImportanceForSending;
+            aOutParam.mSubscribeRequestPrepareNeeded.mLastObservedEventListSize = eventListLen;
             aOutParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMin             = 30;
             aOutParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMax             = 120;
         }
@@ -1014,7 +1210,7 @@ void WdmClient::ClientEventCallback(void * const aAppState, SubscriptionClient::
         break;
     case SubscriptionClient::kEvent_OnNotificationProcessed:
         WeaveLogDetail(DataManagement, "Client->kEvent_OnNotificationProcessed");
-        VerifyOrExit(kOpState_RefreshData == pWdmClient->mOpState, err = WEAVE_ERROR_INCORRECT_STATE);
+        VerifyOrExit((kOpState_RefreshData == pWdmClient->mOpState) || pWdmClient->mEventFetchingTLE, err = WEAVE_ERROR_INCORRECT_STATE);
         break;
     case SubscriptionClient::kEvent_OnSubscriptionTerminated:
         WeaveLogDetail(DataManagement, "Client->kEvent_OnSubscriptionTerminated. Reason: %u, peer = 0x%" PRIX64 "\n",
@@ -1061,6 +1257,31 @@ void WdmClient::ClientEventCallback(void * const aAppState, SubscriptionClient::
         pWdmClient->mFailedPaths.clear();
         pWdmClient->mpContext = NULL;
         pWdmClient->ClearOpState();
+        break;
+
+    case SubscriptionClient::kEvent_OnEventStreamReceived:
+        WeaveLogDetail(DataManagement, "kEvent_OnEventStreamReceived");
+
+        if (pWdmClient->mpWdmEventProcessor != nullptr)
+        {
+            // Remove ']' at end of buffer and append data then push ']' back to the buffer
+            pWdmClient->mEventStrBuffer.pop_back();
+            err = pWdmClient->mpWdmEventProcessor->ProcessEvents(*(aInParam.mEventStreamReceived.mReader),
+                                                                *(pWdmClient->mpSubscriptionClient));
+            pWdmClient->mEventStrBuffer += ']';
+
+            SuccessOrExit(err);
+
+            if (pWdmClient->mLimitEventFetchTimeout && std::chrono::system_clock::now() >= pWdmClient->mEventFetchTimeout)
+            {
+                pWdmClient->mEventFetchingTLE = true;
+                pWdmClient->mpSubscriptionClient->AbortSubscription();
+                VerifyOrExit(kOpState_RefreshData == pWdmClient->mOpState, err = WEAVE_ERROR_INCORRECT_STATE);
+                pWdmClient->mOnComplete.General(pWdmClient->mpContext, pWdmClient->mpAppReqState);
+                pWdmClient->mpContext = NULL;
+                pWdmClient->ClearOpState();
+            }
+        }
         break;
 
     default:
@@ -1128,6 +1349,12 @@ WEAVE_ERROR WdmClient::Init(WeaveMessageLayer * apMsgLayer, Binding * apBinding)
     mFailedFlushPathStatus.clear();
     mFailedPaths.clear();
 
+    mEventStrBuffer.clear();
+    mLimitEventFetchTimeout = false;
+    memset(mLastObservedEventByImportance, 0, sizeof mLastObservedEventByImportance);
+
+    mEventFetchingTLE = false;
+
 exit:
     return WEAVE_NO_ERROR;
 }
@@ -1135,6 +1362,16 @@ exit:
 void WdmClient::SetNodeId(uint64_t aNodeId)
 {
     mSinkCatalog.SetNodeId(aNodeId);
+
+    mpWdmEventProcessor.reset(new WdmEventProcessor(aNodeId, this));
+
+    WeaveLogError(DataManagement, "mpWdmEventProcessor set to %p", mpWdmEventProcessor.get());
+}
+
+void WdmClient::SetEventFetchingTimeout(uint32_t aTimeoutSec)
+{
+    mLimitEventFetchTimeout = (aTimeoutSec != 0);
+    mEventFetchTimeLimit    = std::chrono::seconds(aTimeoutSec);
 }
 
 WEAVE_ERROR WdmClient::UpdateFailedPathResults(WdmClient * const apWdmClient, TraitDataHandle mTraitDataHandle,
@@ -1243,29 +1480,30 @@ exit:
 }
 
 WEAVE_ERROR WdmClient::RefreshData(void * apAppReqState, DMCompleteFunct onComplete, DMErrorFunct onError,
-                                   GetDataHandleFunct getDataHandleCb)
+                                   GetDataHandleFunct getDataHandleCb, bool aFetchEvents)
 {
     VerifyOrExit(mpSubscriptionClient != NULL, WeaveLogError(DataManagement, "mpSubscriptionClient is NULL"));
 
     mSinkCatalog.Iterate(ClearDataSinkVersion, this);
 
-    RefreshData(apAppReqState, this, onComplete, onError, getDataHandleCb);
+    RefreshData(apAppReqState, this, onComplete, onError, getDataHandleCb, aFetchEvents);
 
 exit:
     return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR WdmClient::RefreshData(void * apAppReqState, void * apContext, DMCompleteFunct onComplete, DMErrorFunct onError,
-                                   GetDataHandleFunct getDataHandleCb)
+                                   GetDataHandleFunct getDataHandleCb, bool aFetchEvents)
 {
     VerifyOrExit(mOpState == kOpState_Idle, WeaveLogError(DataManagement, "RefreshData with OpState %d", mOpState));
 
-    mpAppReqState       = apAppReqState;
-    mOnComplete.General = onComplete;
-    mOnError            = onError;
-    mOpState            = kOpState_RefreshData;
-    mGetDataHandle      = getDataHandleCb;
-    mpContext           = apContext;
+    mpAppReqState        = apAppReqState;
+    mOnComplete.General  = onComplete;
+    mOnError             = onError;
+    mOpState             = kOpState_RefreshData;
+    mGetDataHandle       = getDataHandleCb;
+    mpContext            = apContext;
+    mEnableEventFetching       = aFetchEvents;
 
     mpSubscriptionClient->InitiateSubscription();
 
@@ -1289,6 +1527,114 @@ WEAVE_ERROR WdmClient::UnsubscribePublisherTrait(TraitDataSink * apDataSink)
 {
     return mSinkCatalog.Remove(apDataSink);
 }
+
+WEAVE_ERROR WdmClient::GetEvents(BytesData * apBytesData)
+{
+    apBytesData->mpDataBuf = reinterpret_cast<const uint8_t *>(mEventStrBuffer.c_str());
+    apBytesData->mDataLen  = mEventStrBuffer.size();
+    apBytesData->mpMsgBuf  = NULL;
+
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR WdmClient::ProcessEvent(nl::Weave::TLV::TLVReader inReader, const EventProcessor::EventHeader & inEventHeader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (mEventStrBuffer.size() > 1)
+    {
+        // We will insert a bracket first, so the EventStrBuffer will be 1 for first event
+        mEventStrBuffer += ",";
+    }
+
+    mEventStrBuffer += "{";
+
+    mEventStrBuffer += "\"Source\":";
+    mEventStrBuffer += to_string(inEventHeader.mSource);
+    mEventStrBuffer += ",\"Importance\":";
+    mEventStrBuffer += to_string(inEventHeader.mImportance);
+    mEventStrBuffer += ",\"Id\":";
+    mEventStrBuffer += to_string(inEventHeader.mId);
+
+    mEventStrBuffer += ",\"RelatedImportance\":";
+    mEventStrBuffer += to_string(inEventHeader.mRelatedImportance);
+    mEventStrBuffer += ",\"RelatedId\":";
+    mEventStrBuffer += to_string(inEventHeader.mRelatedId);
+    mEventStrBuffer += ",\"UTCTimestamp\":";
+    mEventStrBuffer += to_string(inEventHeader.mUTCTimestamp);
+    mEventStrBuffer += ",\"SystemTimestamp\":";
+    mEventStrBuffer += to_string(inEventHeader.mSystemTimestamp);
+    mEventStrBuffer += ",\"ResourceId\":";
+    mEventStrBuffer += to_string(inEventHeader.mResourceId);
+    mEventStrBuffer += ",\"TraitProfileId\":";
+    mEventStrBuffer += to_string(inEventHeader.mTraitProfileId);
+    mEventStrBuffer += ",\"TraitInstanceId\":";
+    mEventStrBuffer += to_string(inEventHeader.mTraitInstanceId);
+    mEventStrBuffer += ",\"Type\":";
+    mEventStrBuffer += to_string(inEventHeader.mType);
+
+    mEventStrBuffer += ",\"DeltaUTCTime\":";
+    mEventStrBuffer += to_string(inEventHeader.mDeltaUTCTime);
+    mEventStrBuffer += ",\"DeltaSystemTime\":";
+    mEventStrBuffer += to_string(inEventHeader.mDeltaSystemTime);
+
+    mEventStrBuffer += ",\"PresenceMask\":";
+    mEventStrBuffer += to_string(inEventHeader.mPresenceMask);
+    mEventStrBuffer += ",\"DataSchemaVersionRange\": {\"MinVersion\":";
+    mEventStrBuffer += to_string(inEventHeader.mDataSchemaVersionRange.mMinVersion);
+    mEventStrBuffer += ",\"MaxVersion\":";
+    mEventStrBuffer += to_string(inEventHeader.mDataSchemaVersionRange.mMaxVersion);
+    mEventStrBuffer += "}";
+
+    mEventStrBuffer += ",\"Data\":";
+    err = FormatEventData(inReader, mEventStrBuffer);
+
+    mEventStrBuffer += "}";
+
+    mLastObservedEventByImportance[static_cast<int>(inEventHeader.mImportance) - static_cast<int>(kImportanceType_First)]
+        .mSourceId = inEventHeader.mSource;
+    mLastObservedEventByImportance[static_cast<int>(inEventHeader.mImportance) - static_cast<int>(kImportanceType_First)]
+        .mImportance = inEventHeader.mImportance;
+    mLastObservedEventByImportance[static_cast<int>(inEventHeader.mImportance) - static_cast<int>(kImportanceType_First)].mEventId =
+        inEventHeader.mId;
+
+    return err;
+}
+
+WEAVE_ERROR WdmClient::PrepareLastObservedEventList(uint32_t & aEventListLen)
+{
+    for (int i = 0; i < kImportanceType_Last - kImportanceType_First + 1; i++)
+    {
+        if (mLastObservedEventByImportance[i].mEventId)
+        {
+            mLastObservedEventByImportanceForSending[aEventListLen++] =
+                mLastObservedEventByImportance[i];
+        }
+    }
+
+    mEventFetchTimeout = std::chrono::system_clock::now() + mEventFetchTimeLimit;
+    mEventStrBuffer    = "[]";
+
+    return WEAVE_NO_ERROR;
+}
+
+WdmEventProcessor::WdmEventProcessor(uint64_t aNodeId, WdmClient * aWdmClient) : EventProcessor(aNodeId), mWdmClient(aWdmClient)
+{
+    // nothing to do
+}
+
+WEAVE_ERROR WdmEventProcessor::ProcessEvent(nl::Weave::TLV::TLVReader inReader,
+                                            nl::Weave::Profiles::DataManagement::SubscriptionClient & inClient,
+                                            const EventHeader & inEventHeader)
+{
+    return mWdmClient->ProcessEvent(inReader, inEventHeader);
+}
+
+WEAVE_ERROR WdmEventProcessor::GapDetected(const EventHeader & inEventHeader)
+{
+    // Do nothing
+    return WEAVE_NO_ERROR;
+};
 
 } // namespace DeviceManager
 } // namespace Weave

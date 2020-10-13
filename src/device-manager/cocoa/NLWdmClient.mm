@@ -547,5 +547,61 @@ static void onWdmClientFlushUpdateComplete(
     });
 }
 
+- (void)fetchEvents:(WdmClientCompletionBlock)completionHandler failure:(WdmClientFailureBlock)failureHandler timeoutSec:(uint32_t)timeoutSec
+{
+    WDM_LOG_METHOD_SIG();
+
+    NSString * taskName = @"FetchEvents";
+
+    dispatch_sync(_mWeaveWorkQueue, ^() {
+        _mWeaveCppWdmClient->SetEventFetchingTimeout(timeoutSec);
+    });
+
+    // we use async for the results are sent back to caller via async means also
+    dispatch_async(_mWeaveWorkQueue, ^() {
+        if (nil == _mRequestName) {
+            _mRequestName = taskName;
+            _mCompletionHandler = [completionHandler copy];
+            _mFailureHandler = [failureHandler copy];
+
+            WEAVE_ERROR err = _mWeaveCppWdmClient->RefreshData((__bridge void *) self, onWdmClientComplete, onWdmClientError, NULL, true);
+
+            if (WEAVE_NO_ERROR != err) {
+                [self dispatchAsyncDefaultFailureBlockWithCode:err];
+            }
+        } else {
+            WDM_LOG_ERROR(@"%@: Attemp to %@ while we're still executing %@, ignore", _name, taskName, _mRequestName);
+
+            // do not change _mRequestName, as we're rejecting this request
+            [self dispatchAsyncFailureBlock:WEAVE_ERROR_INCORRECT_STATE taskName:taskName handler:failureHandler];
+        }
+    });
+}
+
+- (WEAVE_ERROR)getEvents:(NSString **)events
+{
+    __block WEAVE_ERROR err = WEAVE_NO_ERROR;
+    __block nl::Weave::DeviceManager::BytesData bytesData;
+
+    WDM_LOG_METHOD_SIG();
+
+    VerifyOrExit(NULL != _mWeaveCppWdmClient, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    // need this bracket to use Verify macros
+    {
+        // we use sync so the bytesData is immediately available to the caller upon return
+        dispatch_sync(_mWeaveWorkQueue, ^() {
+            err = _mWeaveCppWdmClient->GetEvents(&bytesData);
+        });
+    }
+
+exit:
+    if (WEAVE_NO_ERROR == err)
+    {
+        *events = [[NSString alloc] initWithBytes:bytesData.mpDataBuf length:bytesData.mDataLen encoding:NSUTF8StringEncoding];
+    }
+    return err;
+}
+
 @end
 #endif // WEAVE_CONFIG_DATA_MANAGEMENT_CLIENT_EXPERIMENTAL

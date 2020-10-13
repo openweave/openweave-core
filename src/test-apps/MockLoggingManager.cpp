@@ -59,7 +59,7 @@ class MockEventGeneratorImpl : public MockEventGenerator
 public:
     MockEventGeneratorImpl(void);
     WEAVE_ERROR Init(nl::Weave::WeaveExchangeManager * aExchangeMgr, EventGenerator * aEventGenerator, int aDelayBetweenEvents,
-                     bool aWraparound);
+                     bool aWraparound, size_t aBatch=1);
     void SetEventGeneratorStop();
     bool IsEventGeneratorStopped();
 
@@ -67,6 +67,7 @@ private:
     static void HandleNextEvent(nl::Weave::System::Layer * aSystemLayer, void * aAppState, ::nl::Weave::System::Error aErr);
     nl::Weave::WeaveExchangeManager * mExchangeMgr;
     int mTimeBetweenEvents; ///< delay, in miliseconds, between events.
+    size_t mBatch;
     bool mEventWraparound;  ///< does the event generator run indefinitely, or does it stop after iterating through its states
     EventGenerator * mEventGenerator; ///< the event generator to use
     int32_t mEventsLeft;
@@ -93,10 +94,10 @@ void CriticalSectionExit()
 } // namespace Weave
 } // namespace nl
 
-uint64_t gDebugEventBuffer[192];
-uint64_t gInfoEventBuffer[64];
-uint64_t gProdEventBuffer[256];
-uint64_t gCritEventBuffer[256];
+uint64_t gDebugEventBuffer[192000];
+uint64_t gInfoEventBuffer[64000];
+uint64_t gProdEventBuffer[256000];
+uint64_t gCritEventBuffer[256000];
 
 bool gMockEventStop                     = false;
 bool gEventIsStopped                    = false;
@@ -152,17 +153,19 @@ MockEventGenerator * MockEventGenerator::GetInstance(void)
 }
 
 MockEventGeneratorImpl::MockEventGeneratorImpl(void) :
-    mExchangeMgr(NULL), mTimeBetweenEvents(0), mEventWraparound(false), mEventGenerator(NULL), mEventsLeft(0)
+    mExchangeMgr(NULL), mTimeBetweenEvents(0), mBatch(1), mEventWraparound(false), mEventGenerator(NULL), mEventsLeft(0)
 { }
 
 WEAVE_ERROR MockEventGeneratorImpl::Init(nl::Weave::WeaveExchangeManager * aExchangeMgr, EventGenerator * aEventGenerator,
-                                         int aDelayBetweenEvents, bool aWraparound)
+                                         int aDelayBetweenEvents, bool aWraparound, size_t aBatch)
 {
     WEAVE_ERROR err    = WEAVE_NO_ERROR;
     mExchangeMgr       = aExchangeMgr;
     mEventGenerator    = aEventGenerator;
     mTimeBetweenEvents = aDelayBetweenEvents;
     mEventWraparound   = aWraparound;
+
+    mBatch = aBatch;
 
     if (mEventWraparound)
         mEventsLeft = INT32_MAX;
@@ -186,8 +189,12 @@ void MockEventGeneratorImpl::HandleNextEvent(nl::Weave::System::Layer * aSystemL
     }
     else
     {
-        generator->mEventGenerator->Generate();
-        generator->mEventsLeft--;
+        for (size_t i = 0; i < generator->mBatch && generator->mEventsLeft > 0; i++)
+        {
+            generator->mEventGenerator->Generate();
+            generator->mEventsLeft--;
+        }
+
         if ((generator->mEventWraparound) || (generator->mEventsLeft > 0))
         {
             aSystemLayer->StartTimer(generator->mTimeBetweenEvents, HandleNextEvent, generator);

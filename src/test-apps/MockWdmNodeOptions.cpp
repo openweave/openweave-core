@@ -44,6 +44,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
     mEnableDataFlip(true),
     mEventGeneratorType(kGenerator_None),
     mTimeBetweenEvents(1000),
+    mEventBatchSize(1),
     mTimeBetweenLivenessCheckSec(NULL),
     mEnableDictionaryTest(false),
     mEnableRetry(false),
@@ -71,6 +72,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         { "enable-dictionary-test",                         kNoArgument,        kToolOpt_EnableDictionaryTest },
         { "event-generator",                                kArgumentRequired,  kToolOpt_EventGenerator },
         { "inter-event-period",                             kArgumentRequired,  kToolOpt_TimeBetweenEvents },
+        { "event-batch-size ",                              kArgumentRequired,  kToolOpt_EventBatchSize },
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
         { "wdm-publisher",                                  kArgumentRequired,  kToolOpt_WdmPublisherNodeId },
         { "wdm-subless-notify-dest-node",                   kArgumentRequired,  kToolOpt_WdmSublessNotifyDestNodeId },
@@ -179,7 +181,10 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         "         TestTrait: TestETrait events which cover a range of types.\n"
         "\n"
         "  --inter-event-period <ms>\n"
-        "       Delay between emitting consecutive events (default 1s)\n"
+        "       Delay between emitting consecutive event batches (default 1s)\n"
+        "\n"
+        "  --event-batch-size <n>\n"
+        "       Number of events generated per batch\n"
         "\n"
         "  --enable-retry\n"
         "       Enable automatic subscription retries by WDM\n"
@@ -484,6 +489,17 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
     {
         char *endptr;
         mTimeBetweenEvents = strtoul(arg, &endptr, 0);
+        if (endptr == arg)
+        {
+            PrintArgError("%s: Invalid inter-event timeout\n", progName);
+            return false;
+        }
+        break;
+    }
+    case kToolOpt_EventBatchSize:
+    {
+        char *endptr;
+        mEventBatchSize = strtoul(arg, &endptr, 0);
         if (endptr == arg)
         {
             PrintArgError("%s: Invalid inter-event timeout\n", progName);

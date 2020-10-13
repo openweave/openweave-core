@@ -1706,6 +1706,7 @@ DataElement::Builder & DataElement::Builder::EndOfDataElement(void)
 #if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
 // Roughly verify the schema is right, including
 // 1) at least one element is there
+//    (not checked since we want to subscribe to events only some times)
 // 2) all elements are anonymous and of Path type
 // 3) every path is also valid in schema
 WEAVE_ERROR PathList::Parser::CheckSchemaValidity(void) const
@@ -1744,11 +1745,7 @@ WEAVE_ERROR PathList::Parser::CheckSchemaValidity(void) const
     // if we have exhausted this container
     if (WEAVE_END_OF_TLV == err)
     {
-        // if we have at least one Path element
-        if (NumPath > 0)
-        {
-            err = WEAVE_NO_ERROR;
-        }
+        err = WEAVE_NO_ERROR;
     }
 
 exit:

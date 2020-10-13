@@ -41,7 +41,7 @@ from threading import Thread, Lock, Event
 from ctypes import *
 from .WeaveUtility import WeaveUtility
 
-__all__ = [ 'DeviceStatusStruct', 'WeaveStackException', 'DeviceError', 'WeaveStackError', 'WeaveStack']
+__all__ = [ 'DeviceStatusStruct', 'WeaveStackException', 'DeviceError', 'WeaveStackError', 'WeaveStack', 'WeaveLogFormatter']
 
 WeaveStackDLLBaseName = '_WeaveDeviceMgr.so'
 
