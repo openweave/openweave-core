@@ -160,7 +160,7 @@ case "${BUILD_TARGET}" in
         installdeps "happy-deps"
 
         cd $HOME
-        git clone --single-branch --branch feature/happy_py3_support https://github.com/openweave/happy.git
+        git clone https://github.com/openweave/happy.git
         cd ${HOME}/happy
         make install
         python3 pip_packages.py

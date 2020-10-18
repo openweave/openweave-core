@@ -547,14 +547,14 @@ def testWdmClientDataSinkResourceIdentifierMakeResTypeIdBytes(testObject):
 
 def testWdmClientDataSinkSetFlushInvalidInstanceId(testObject):
     testObject.createWdmClient()
-    localeSettingsTrait = testObject.newDataSink(20, 1, "/")
-    TestCTrait = testObject.newDataSink(593165827, 0, "/")
-    testObject.setData(localeSettingsTrait, "/1", "en-US")
-    testObject.setData(TestCTrait, "/1", False)
-    testObject.setData(TestCTrait, "/2", 15)
-    testObject.setData(TestCTrait, "/3/1", 16)
-    testObject.setData(TestCTrait, "/3/2", False)
-    testObject.setData(TestCTrait, "/4", 17)
+    localeSettingsTrait = testObject.newDataSink(20, 1, b"/")
+    TestCTrait = testObject.newDataSink(593165827, 0, b"/")
+    testObject.setData(localeSettingsTrait, b"/1", b"en-US")
+    testObject.setData(TestCTrait, b"/1", False)
+    testObject.setData(TestCTrait, b"/2", 15)
+    testObject.setData(TestCTrait, b"/3/1", 16)
+    testObject.setData(TestCTrait, b"/3/2", False)
+    testObject.setData(TestCTrait, b"/4", 17)
     result = testObject.flushUpdate()
     if len(result) != 1:
         raise ValueError("testWdmClientDataSinkSetFlushInvalidInstanceId fails")
@@ -562,12 +562,12 @@ def testWdmClientDataSinkSetFlushInvalidInstanceId(testObject):
         if not (result[0].profileId == 0xb and result[0].statusCode == 0x21):
             raise ValueError("testWdmClientDataSinkSetFlushInvalidInstanceId profileId and StatusCode check fails")
 
-        print "clear trait: " + str(result[0].dataSink.profileId)
-        print "clear trait path:" + str(result[0].path)
-        testObject.deleteData(result[0].dataSink, result[0].path)
+        print("clear trait: " + str(result[0].dataSink.profileId))
+        print("clear trait path:" + str(result[0].path))
+        testObject.deleteData(result[0].dataSink, result[0].path.encode("utf-8"))
 
     testObject.closeWdmClient()
-    print "testWdmClientDataSinkSetFlushInvalidInstanceId completes"
+    print("testWdmClientDataSinkSetFlushInvalidInstanceId completes")
 
 def RunWdmClientTest():
     print("Run Weave Data Management Test")
@@ -711,7 +711,7 @@ if __name__ == '__main__':
 
         """
         #Disable unregister since the service automatically removes devices from accounts when they are paired again
-        print "Register NestService done"
+        print("Register NestService done")
 
         print ''
         print '#################################unregister-real-NestService#################################'
@@ -721,7 +721,7 @@ if __name__ == '__main__':
             print str(ex)
             exit()
 
-        print "Unregister service done"
+        print("Unregister service done")
         """
         print('')
         print('#################################close#################################')
