@@ -970,7 +970,7 @@ void WdmClient::ClientEventCallback(void * const aAppState, SubscriptionClient::
             }
             WeaveLogDetail(DataManagement, "prepare to subscribe %d trait data sink", traitListLen);
 
-            if (pWdmClient->mpPublisherPathList == NULL)
+            if (pWdmClient->mpPublisherPathList != NULL)
             {
                 delete[] pWdmClient->mpPublisherPathList;
             }
