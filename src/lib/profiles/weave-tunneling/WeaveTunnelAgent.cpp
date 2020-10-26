@@ -365,6 +365,19 @@ WeaveTunnelAgent::AgentState WeaveTunnelAgent::GetWeaveTunnelAgentState(void)
     return mTunAgentState;
 }
 
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+void WeaveTunnelAgent::SetCallbacksForPersistedTunnelConnection(WeaveTunnelConnectionMgr::PersistedSecureSessionExistsFunct aIsPersistedTunnelSessionPresent,
+                                                                WeaveTunnelConnectionMgr::LoadPersistedSessionFunct aLoadPersistedTunnelSession)
+{
+    mPrimaryTunConnMgr.SetCallbacksForPersistedTunnelConnection(aIsPersistedTunnelSessionPresent, aLoadPersistedTunnelSession);
+
+#if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+    mBackupTunConnMgr.SetCallbacksForPersistedTunnelConnection(aIsPersistedTunnelSessionPresent, aLoadPersistedTunnelSession);
+#endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+
+}
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+
 /**
  * Shutdown the Tunnel Agent. This tears down connection to the Service and closes the TunEndPoint
  * interface after removing addresses and routes associated with the tunnel interface.

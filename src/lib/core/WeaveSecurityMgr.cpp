@@ -2514,6 +2514,7 @@ WEAVE_ERROR WeaveSecurityManager::SendKeyErrorMsg(WeaveMessageInfo *rcvdMsgInfo,
     }
     else
     {
+        con->PeerNodeId = rcvdMsgInfo->SourceNodeId;
         ec = ExchangeManager->NewContext(con, this);
     }
     VerifyOrExit(ec != NULL, err = WEAVE_ERROR_NO_MEMORY);

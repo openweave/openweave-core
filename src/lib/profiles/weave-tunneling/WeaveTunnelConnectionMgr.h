@@ -112,6 +112,24 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
 
     WeaveTunnelConnectionMgr(void);
 
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+/**
+ * Check if a persisted secure session for the tunnel exists
+ */
+    typedef bool (*PersistedSecureSessionExistsFunct)(uint64_t peerNodeId);
+    PersistedSecureSessionExistsFunct IsPersistedTunnelSessionPresent;
+
+/**
+ * Populate the persisted secure session within the passed WeaveConnection object
+ */
+    typedef void (*LoadPersistedSessionFunct)(WeaveConnection *con);
+    LoadPersistedSessionFunct LoadPersistedTunnelSession;
+
+    void SetCallbacksForPersistedTunnelConnection(PersistedSecureSessionExistsFunct aIsPersistedTunnelSessionPresent,
+                                                  LoadPersistedSessionFunct aLoadPersistedTunnelSession);
+
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+
 /**
  * Initialize the WeaveTunnelConnectionMgr.
  */

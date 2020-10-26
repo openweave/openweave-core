@@ -265,6 +265,14 @@ public:
  */
     WEAVE_ERROR ResetPrimaryReconnectBackoff(bool reconnectImmediately);
 
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+/**
+ * Set Callbacks for persisted tunnel connection
+ */
+    void SetCallbacksForPersistedTunnelConnection(WeaveTunnelConnectionMgr::PersistedSecureSessionExistsFunct aIsPersistedTunnelSessionPresent,
+                                                  WeaveTunnelConnectionMgr::LoadPersistedSessionFunct aLoadPersistedTunnelSession);
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
 
 /**
