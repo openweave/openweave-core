@@ -39,6 +39,7 @@ set -e
 
 if [[ $# -eq 0 ]]
 then
+    pairing/test_weave_pairing_br.py
     pairing/test_weave_pairing_01.py
     # wdmNext/test_weave_wdm_next_service_mutual_subscribe_05.py
     # wdmNext/test_weave_wdm_next_service_mutual_subscribe_09.py
