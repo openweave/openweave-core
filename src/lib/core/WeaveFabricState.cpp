@@ -735,14 +735,14 @@ WEAVE_ERROR WeaveFabricState::SuspendSession(uint16_t keyId, uint64_t peerNodeId
             ExitNow(err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
         }
 
+        err = writer.PutBoolean(ContextTag(kTag_SerializedSession_AreResumptionMsgIdsValid),
+                         sessionKey->AreResumptionMsgIdsValid());
+        SuccessOrExit(err);
+
         if (sessionKey->AreResumptionMsgIdsValid())
         {
             // Generate a new set of resumption msg ids
             sessionKey->ComputeNextResumptionMsgIds();
-
-            err = writer.PutBoolean(ContextTag(kTag_SerializedSession_AreResumptionMsgIdsValid),
-                             sessionKey->AreResumptionMsgIdsValid());
-            SuccessOrExit(err);
 
             err = writer.Put(ContextTag(kTag_SerializedSession_ResumptionSendMessageId),
                              sessionKey->ResumptionSendMsgId);
