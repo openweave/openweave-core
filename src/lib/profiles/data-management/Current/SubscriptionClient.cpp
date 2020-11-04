@@ -149,6 +149,8 @@ WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apA
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     MoveToState(kState_Initialized);
 
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
     _AddRef();
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -427,6 +429,8 @@ WEAVE_ERROR SubscriptionClient::_PrepareBinding()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
     _AddRef();
 
     if (mBinding->IsReady())
@@ -778,6 +782,9 @@ void SubscriptionClient::_Release()
     {
         --mRefCount;
     }
+
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
 }
 
 Binding * SubscriptionClient::GetBinding() const
@@ -796,6 +803,8 @@ WEAVE_ERROR SubscriptionClient::ReplaceExchangeContext()
     InEventParam inParam;
     OutEventParam outParam;
 
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
     // Make sure we're not freed by accident.
     _AddRef();
 
@@ -1091,6 +1100,8 @@ void SubscriptionClient::SetRetryTimer(WEAVE_ERROR aReason)
 {
     WEAVE_ERROR err                   = WEAVE_NO_ERROR;
 
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
     _AddRef();
 
     // this check serves to see whether we already have a timer set
@@ -1166,6 +1177,9 @@ void SubscriptionClient::BindingEventCallback(void * const aAppState, const Bind
                                               const Binding::InEventParam & aInParam, Binding::OutEventParam & aOutParam)
 {
     SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aAppState);
+
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(pClient),
+                   pClient->GetStateStr(), __func__, pClient->mRefCount);
 
     pClient->_AddRef();
 
@@ -1347,6 +1361,9 @@ void SubscriptionClient::TimerEventHandler(void)
         ExitNow();
     }
 
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
+
     // Make sure we're not freed by accident
     _AddRef();
 
@@ -1454,6 +1471,8 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
     AlwaysAcceptDataElementAccessControlDelegate acDelegate;
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
     _AddRef();
     LockUpdateMutex();
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -2479,6 +2498,8 @@ void SubscriptionClient::OnUpdateResponse(WEAVE_ERROR aReason, nl::Weave::Profil
     bool isPathPrivate;
     bool willRetryPath;
 
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+               GetStateStr(), __func__, mRefCount);
     // This method invokes callbacks into the upper layer.
     _AddRef();
 
@@ -2773,6 +2794,8 @@ void SubscriptionClient::OnUpdateNoResponse(WEAVE_ERROR aError)
     TraitPath traitPath;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+               GetStateStr(), __func__, mRefCount);
     _AddRef();
 
     LockUpdateMutex();
@@ -3334,6 +3357,8 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate(bool aForce)
     err = SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->ScheduleWork(OnUpdateScheduleWorkCallback, this);
     SuccessOrExit(err);
 
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+               GetStateStr(), __func__, mRefCount);
     _AddRef();
     mUpdateFlushScheduled = true;
 
