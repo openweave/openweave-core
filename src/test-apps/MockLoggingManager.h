@@ -45,7 +45,7 @@ class MockEventGenerator
 {
 public:
     static MockEventGenerator * GetInstance(void);
-    virtual WEAVE_ERROR Init(nl::Weave::WeaveExchangeManager *aExchangeMgr, EventGenerator *aEventGenerator, int aDelayBetweenEvents, bool aWraparound) = 0;
+    virtual WEAVE_ERROR Init(nl::Weave::WeaveExchangeManager *aExchangeMgr, EventGenerator *aEventGenerator, int aDelayBetweenEvents, bool aWraparound, size_t aBatch=1) = 0;
     virtual void SetEventGeneratorStop() = 0;
     virtual bool IsEventGeneratorStopped() = 0;
 };

@@ -29,7 +29,7 @@ from .ResourceIdentifier import *
 from .WeaveUtility import WeaveUtility
 
 __all__ = [ 'WdmClient', 'WdmFlushUpdateStatusStruct', 'WdmClientFlushUpdateError', 'WdmClientFlushUpdateDeviceError' ]
-
+_ConstructBytesArrayFunct                   = CFUNCTYPE(None, c_void_p, c_uint32)
 WEAVE_ERROR_STATUS_REPORT = 4044
 
 class WdmFlushUpdateStatusStruct(Structure):
@@ -103,6 +103,7 @@ class WdmClient():
         self._weaveStack.Call(
             lambda: self._datamanagmentLib.nl_Weave_WdmClient_SetNodeId(self._wdmClientPtr, nodeId)
         )
+
     def newDataSink(self, resourceIdentifier, profileId, instanceId, path):
         self._ensureNotClosed()
         traitInstance = c_void_p(None)
@@ -162,6 +163,33 @@ class WdmClient():
             lambda: self._datamanagmentLib.nl_Weave_WdmClient_RefreshData(self._wdmClientPtr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
         )
 
+    def fetchEvents(self, timeoutSec):
+        self._ensureNotClosed()
+
+        return self._weaveStack.CallAsync(
+            lambda: self._datamanagmentLib.nl_Weave_WdmClient_FetchEvents(self._wdmClientPtr, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError, timeoutSec)
+        )
+
+    def getEvents(self):
+        self._ensureNotClosed()
+        res = self._getEvents()
+
+        if isinstance(res, int):
+            raise self._weaveStack.ErrorToException(res)
+
+        return res
+    
+    def _getEvents(self):
+        self._ensureNotClosed()
+
+        def HandleConstructBytesArray(dataBuf, dataLen):
+            self._weaveStack.callbackRes = WeaveUtility.VoidPtrToByteArray(dataBuf, dataLen)
+
+        cbHandleConstructBytesArray = _ConstructBytesArrayFunct(HandleConstructBytesArray)
+        return self._weaveStack.Call(
+            lambda: self._datamanagmentLib.nl_Weave_WdmClient_GetEvents(self._wdmClientPtr, cbHandleConstructBytesArray)
+        )
+
     def _ensureNotClosed(self):
         if (self._wdmClientPtr == None):
             raise ValueError("wdmClient is not ready")
@@ -194,6 +222,12 @@ class WdmClient():
 
             self._datamanagmentLib.nl_Weave_WdmClient_RefreshData.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
             self._datamanagmentLib.nl_Weave_WdmClient_RefreshData.restype = c_uint32
+
+            self._datamanagmentLib.nl_Weave_WdmClient_FetchEvents.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct, c_uint32 ]
+            self._datamanagmentLib.nl_Weave_WdmClient_FetchEvents.restype = c_uint32
+
+            self._datamanagmentLib.nl_Weave_WdmClient_GetEvents.argtypes = [ c_void_p, _ConstructBytesArrayFunct ]
+            self._datamanagmentLib.nl_Weave_WdmClient_GetEvents.restype = c_uint32
 
         res = self._datamanagmentLib.nl_Weave_WdmClient_Init()
         if (res != 0):

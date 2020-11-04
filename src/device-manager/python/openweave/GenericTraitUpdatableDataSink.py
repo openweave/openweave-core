@@ -90,7 +90,9 @@ class GenericTraitUpdatableDataSink:
 
     def refreshData(self):
         self._ensureNotClosed()
-        self._weaveStack.CallAsync(lambda: self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_RefreshData(self._traitInstance, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError))
+        return self._weaveStack.CallAsync(
+            lambda: self._generictraitupdatabledatasinkLib.nl_Weave_GenericTraitUpdatableDataSink_RefreshData(self._traitInstance, self._weaveStack.cbHandleComplete, self._weaveStack.cbHandleError)
+        )
 
     def setData(self, path, val, isConditional=False):
         self._ensureNotClosed()

@@ -184,6 +184,8 @@ extern "C" {
     NL_DLL_EXPORT jlong Java_nl_Weave_DataManagement_WdmClientImpl_newDataSink(JNIEnv *env, jobject self, jlong wdmClientPtr, jobject resourceIdentifierObj, jlong profileId, jlong instanceId, jstring path);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WdmClientImpl_beginFlushUpdate(JNIEnv *env, jobject self, jlong wdmClientPtr);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WdmClientImpl_beginRefreshData(JNIEnv *env, jobject self, jlong wdmClientPtr);
+    NL_DLL_EXPORT void Java_nl_Weave_DataManagement_WdmClientImpl_beginFetchEvents(JNIEnv *env, jobject self, jlong wdmClientPtr, jint timeoutSec);
+    NL_DLL_EXPORT jstring Java_nl_Weave_DataManagement_WdmClientImpl_getEvents(JNIEnv *env, jobject self, jlong wdmClientPtr);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_init(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_shutdown(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
     NL_DLL_EXPORT void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_clear(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr);
@@ -3993,6 +3995,47 @@ void Java_nl_Weave_DataManagement_WdmClientImpl_beginRefreshData(JNIEnv *env, jo
     {
         ThrowError(env, err);
     }
+}
+
+void Java_nl_Weave_DataManagement_WdmClientImpl_beginFetchEvents(JNIEnv *env, jobject self, jlong wdmClientPtr, jint timeoutSec)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WdmClient *wdmClient = (WdmClient *)wdmClientPtr;
+
+    WeaveLogProgress(DeviceManager, "beginFetchEvents() called");
+
+    pthread_mutex_lock(&sStackLock);
+    wdmClient->SetEventFetchingTimeout((uint32_t)timeoutSec);
+    err = wdmClient->RefreshData((void *)"FetchEvents", HandleWdmClientComplete, HandleWdmClientError, NULL, true);
+    pthread_mutex_unlock(&sStackLock);
+
+    if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
+    {
+        ThrowError(env, err);
+    }
+}
+
+
+jstring Java_nl_Weave_DataManagement_WdmClientImpl_getEvents(JNIEnv *env, jobject self, jlong wdmClientPtr)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WdmClient *wdmClient = (WdmClient *)wdmClientPtr;
+    BytesData bytesData;
+
+    WeaveLogProgress(DeviceManager, "getEvents() called");
+
+    err = wdmClient->GetEvents(&bytesData);
+    SuccessOrExit(err);
+
+exit:
+
+    if (err != WEAVE_NO_ERROR && err != WDM_JNI_ERROR_EXCEPTION_THROWN)
+    {
+        ThrowError(env, err);
+    }
+
+    // bytesData.mpDataBuf should be a pointer get by mEventBuffer.c_str()
+    return env->NewStringUTF(reinterpret_cast<const char *>(bytesData.mpDataBuf));
 }
 
 void Java_nl_Weave_DataManagement_GenericTraitUpdatableDataSinkImpl_init(JNIEnv *env, jobject self, jlong genericTraitUpdatableDataSinkPtr)

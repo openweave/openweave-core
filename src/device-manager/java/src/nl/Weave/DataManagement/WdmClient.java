@@ -67,15 +67,51 @@ public interface WdmClient
      */
     public void beginRefreshData();
 
+    /**
+     * The result of this operation can be observed through the {@link CompletionHandler}
+     * that has been assigned via {@link #setCompletionHandler}.
+     * The fetched events can be accessed via getEvents()
+     *
+     * @param timeoutSec operation timeoutSec, this operation might take a long time if the number of events is too large.
+     */
+    public void beginFetchEvents(int timeoutSec);
+
     public CompletionHandler getCompletionHandler();
     public void setCompletionHandler(CompletionHandler compHandler);
 
     public GenericTraitUpdatableDataSink getDataSink(long traitInstancePtr);
 
+    /**
+     * getEvents will return a list of event data in json array representation.
+     * If no events have been fetched, an empty array ("[]") will be returned.
+     * The internal buffer will be cleared when beginFetchEvents() is called.
+     * Each element in this array should be an object
+     *
+     * Field                  | Type        | Description
+     * -----------------------+-------------+--------------
+     * Source                 | uint64      | Event Header
+     * Importance             | int (enum)
+     * Id                     | uint64
+     * RelatedImportance      | uint64
+     * RelatedId              | uint64
+     * UTCTimestamp           | uint64
+     * ResourceId             | uint64
+     * TraitProfileId         | uint64
+     * TraitInstanceId        | uint64
+     * Type                   | uint64
+     * DeltaUTCTime           | int
+     * DeltaSystemTime        | int
+     * PresenceMask           | uint64
+     * DataSchemaVersionRange | Object{MinVersion: uint64, MaxVersion: uint64}
+     * Data                   | Object      | Event Trait Data
+     */
+    public String getEvents();
+
     public interface CompletionHandler
     {
         void onFlushUpdateComplete(Throwable[] exceptions, WdmClient wdmClient);
         void onRefreshDataComplete();
+        void onFetchEventsComplete();
         void onError(Throwable err);
     }
 };

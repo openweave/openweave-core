@@ -972,7 +972,10 @@ void SubscriptionClient::_Cleanup(void)
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     mUpdateClient.Shutdown();
 
-    mDataSinkCatalog->Iterate(CleanupUpdatableSinkTrait, this);
+    if (NULL != mDataSinkCatalog)
+    {
+        mDataSinkCatalog->Iterate(CleanupUpdatableSinkTrait, this);
+    }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 }
 

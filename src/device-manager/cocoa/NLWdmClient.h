@@ -59,6 +59,7 @@ typedef void (^WdmClientFailureBlock)(id owner, NSError * error);
  */
 - (void)setNodeId:(uint64_t)nodeId;
 
+
 /**
  * Create the new data newDataSink
  *
@@ -88,5 +89,39 @@ typedef void (^WdmClientFailureBlock)(id owner, NSError * error);
  * failureHandler
  */
 - (void)refreshData:(WdmClientCompletionBlock)completionHandler failure:(WdmClientFailureBlock)failureHandler;
+
+/**
+ * Begins a sync of all events. The result of this operation can be observed through the CompletionHandler and
+ * failureHandler, the procedure will be terminated after reaching timeout.
+ */
+- (void)fetchEvents:(WdmClientCompletionBlock)completionHandler failure:(WdmClientFailureBlock)failureHandler
+            timeoutSec:(uint32_t)timeoutSec;
+
+/**
+ * getEvents will return a list of event data in json array representation.
+ * If no events have been fetched, an empty array ("[]") will be returned.
+ * The internal buffer will be cleared when beginFetchEvents() is called.
+ * Each element in this array should be an object
+ *
+ * Field                  | Type        | Description
+ * -----------------------+-------------+--------------
+ * Source                 | uint64      | Event Header
+ * Importance             | int (enum)
+ * Id                     | uint64
+ * RelatedImportance      | uint64
+ * RelatedId              | uint64
+ * UTCTimestamp           | uint64
+ * ResourceId             | uint64
+ * TraitProfileId         | uint64
+ * TraitInstanceId        | uint64
+ * Type                   | uint64
+ * DeltaUTCTime           | int
+ * DeltaSystemTime        | int
+ * PresenceMask           | uint64
+ * DataSchemaVersionRange | Object{MinVersion: uint64, MaxVersion: uint64}
+ * Data                   | Object      | Event Trait Data
+ */
+- (void)getEvents:(NSString **)events;
+
 
 @end

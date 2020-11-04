@@ -68,6 +68,7 @@ enum
     kToolOpt_WdmUpdateConditionality,
     kToolOpt_WdmUpdateTiming,
     kToolOpt_WdmUpdateDiscardOnError,
+    kToolOpt_EventBatchSize,
 };
 
 class MockWdmNodeOptions : public OptionSetBase
@@ -141,6 +142,7 @@ public:
     bool mEnableDataFlip;
     EventGeneratorType mEventGeneratorType;
     int mTimeBetweenEvents;
+    int mEventBatchSize;
     const char * mTimeBetweenLivenessCheckSec;
     bool mEnableDictionaryTest;
     bool mEnableRetry;

@@ -344,6 +344,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
         cmd += " --node-addr " + device_info['device_ip'] + " --pairing-code TEST"
         cmd += " --wdm-resp-mutual-sub --test-case 10 --total-count 0 --wdm-update-timing NoSub "
+        cmd += " --event-generator TestTrait --event-batch-size 500"
 
         if self.server is not None:
             cmd += " --pairing-server " + self.server_ip \

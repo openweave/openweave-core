@@ -36,9 +36,13 @@
 #include <SystemLayer/SystemPacketBuffer.h>
 #include <Weave/Profiles/data-management/SubscriptionClient.h>
 #include <Weave/Profiles/data-management/Current/GenericTraitCatalogImpl.h>
+#include <Weave/Profiles/data-management/Current/EventProcessor.h>
 #include <map>
+#include <memory>
 #include <vector>
 #include "WeaveDeviceManager.h"
+
+#include <chrono>
 
 namespace nl {
 namespace Weave {
@@ -70,6 +74,7 @@ public:
 
 class GenericTraitUpdatableDataSink;
 class WdmClient;
+class WdmEventProcessor;
 
 class WdmClientFlushUpdateStatus
 {
@@ -167,6 +172,7 @@ private:
 class NL_DLL_EXPORT WdmClient
 {
     friend class GenericTraitUpdatableDataSink;
+    friend class WdmEventProcessor;
 
 public:
     enum
@@ -189,7 +195,10 @@ public:
     WEAVE_ERROR FlushUpdate(void * apAppReqState, DMFlushUpdateCompleteFunct onComplete, DMErrorFunct onError);
 
     WEAVE_ERROR RefreshData(void * apAppReqState, DMCompleteFunct onComplete, DMErrorFunct onError,
-                            GetDataHandleFunct getDataHandleCb);
+                            GetDataHandleFunct getDataHandleCb, bool aFetchEvents = false);
+
+    WEAVE_ERROR GetEvents(BytesData * aBytes);
+    void SetEventFetchingTimeout(uint32_t aTimeoutSec);
 
     void * mpAppState;
 
@@ -216,9 +225,8 @@ private:
     static void ClientEventCallback(void * const aAppState, SubscriptionClient::EventID aEvent,
                                     const SubscriptionClient::InEventParam & aInParam,
                                     SubscriptionClient::OutEventParam & aOutParam);
-
     WEAVE_ERROR RefreshData(void * apAppReqState, void * apContext, DMCompleteFunct onComplete, DMErrorFunct onError,
-                            GetDataHandleFunct getDataHandleCb);
+                            GetDataHandleFunct getDataHandleCb, bool aWithEvents);
     WEAVE_ERROR GetDataSink(const ResourceIdentifier & aResourceId, uint32_t aProfileId, uint64_t aInstanceId,
                             GenericTraitUpdatableDataSink *& apGenericTraitUpdatableDataSink);
     WEAVE_ERROR SubscribePublisherTrait(const ResourceIdentifier & aResourceId, const uint64_t & aInstanceId,
@@ -230,6 +238,10 @@ private:
                                         PropertyPathHandle mPropertyPathHandle, uint32_t aReason, uint32_t aStatusProfileId,
                                         uint16_t aStatusCode);
 
+    WEAVE_ERROR ProcessEvent(nl::Weave::TLV::TLVReader inReader, const EventProcessor::EventHeader & inEventHeader);
+
+    WEAVE_ERROR PrepareLastObservedEventList(uint32_t & aEventListLen);
+
     GenericTraitSinkCatalog mSinkCatalog;
     TraitPath * mpPublisherPathList;
 
@@ -240,7 +252,39 @@ private:
     OpState mOpState;
     std::vector<std::string> mFailedPaths;
     std::vector<WdmClientFlushUpdateStatus> mFailedFlushPathStatus;
+
+    std::unique_ptr<WdmEventProcessor> mpWdmEventProcessor;
+    std::string mEventStrBuffer;
+
+    // Three flags for event fetching
+    // If EventFetching is enabled
+    // If we limit the event fetching time
+    // If event fetching time limit exceeded (TLE)
+    bool mEnableEventFetching, mLimitEventFetchTimeout, mEventFetchingTLE;
+
+    std::chrono::time_point<std::chrono::system_clock> mEventFetchTimeout;
+    std::chrono::seconds mEventFetchTimeLimit;
+    SubscriptionClient::LastObservedEvent mLastObservedEventByImportance[kImportanceType_Last - kImportanceType_First + 1];
+    SubscriptionClient::LastObservedEvent
+        mLastObservedEventByImportanceForSending[kImportanceType_Last - kImportanceType_First + 1];
 };
+
+class WdmEventProcessor : public EventProcessor
+{
+public:
+    WdmEventProcessor(uint64_t aNodeId, WdmClient * aWdmClient);
+    virtual ~WdmEventProcessor() = default;
+
+protected:
+    WEAVE_ERROR ProcessEvent(nl::Weave::TLV::TLVReader inReader, nl::Weave::Profiles::DataManagement::SubscriptionClient & inClient,
+                             const EventHeader & inEventHeader) override;
+
+    WEAVE_ERROR GapDetected(const EventHeader & inEventHeader) override;
+
+private:
+    WdmClient * mWdmClient;
+};
+
 } // namespace DeviceManager
 } // namespace Weave
 } // namespace nl

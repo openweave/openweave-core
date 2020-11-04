@@ -348,12 +348,12 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         client_parser_error, client_leak_detected = WeaveUtilities.scan_for_leaks_and_parser_errors(client_output)
         result["no_client_parser_error"] = not client_parser_error
         result["no_client_leak_detected"] = not client_leak_detected
-        if server_output is not "":
+        if server_output != "":
             server_parser_error, server_leak_detected = WeaveUtilities.scan_for_leaks_and_parser_errors(server_output)
             result["no_server_parser_error"] = not client_parser_error
             result["no_server_leak_detected"] = not server_leak_detected
 
-        if self.quiet is False:
+        if not self.quiet:
             print("weave-wdm-next %s from node %s (%s) to node %s (%s) : "\
                   % (self.wdm_option, client_info["client_node_id"], client_info["client_ip"], self.server_node_id, self.server_ip))
 
