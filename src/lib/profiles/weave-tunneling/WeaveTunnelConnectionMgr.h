@@ -241,6 +241,11 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
  */
     void StopAndReconnectTunnelConn(ReconnectParam & reconnParam);
 
+/**
+ * Get a pointer to the Weave Tunnel Connection object for this
+ * Tunnel Connection Manager.
+ */
+    nl::Weave::WeaveConnection * GetTunnelConnection(void) const;
   private:
 
     WEAVE_ERROR StartServiceTunnelConn(uint64_t destNodeId, IPAddress destIPAddr,

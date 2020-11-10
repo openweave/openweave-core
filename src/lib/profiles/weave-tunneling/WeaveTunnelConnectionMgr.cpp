@@ -650,6 +650,27 @@ void WeaveTunnelConnectionMgr::ServiceTunnelClose(WEAVE_ERROR err)
 }
 
 /**
+ * Get a pointer to the Weave Tunnel Connection object for this
+ * Tunnel Connection Manager.
+ *
+ * @return pointer to the WeaveConnection object for the Tunnel. If Tunnel is
+ *         not in an established state, a null pointer is returned
+ *
+ */
+
+nl::Weave::WeaveConnection * WeaveTunnelConnectionMgr::GetTunnelConnection(void) const
+{
+    if (mConnectionState == kState_ConnectionEstablished || mConnectionState == kState_TunnelOpen)
+    {
+        return mServiceCon;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+/**
  * Handler to receive tunneled IPv6 packets from the Service TCP connection and forward to the Tunnel
  * EndPoint interface after decapsulating the raw IPv6 packet from inside the tunnel header.
  *
