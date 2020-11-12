@@ -365,6 +365,18 @@ WeaveTunnelAgent::AgentState WeaveTunnelAgent::GetWeaveTunnelAgentState(void)
     return mTunAgentState;
 }
 
+/**
+ * Get a pointer to the Weave Tunnel Connection.
+ *
+ * @return WeaveConnection pointer for an established Weave Tunnel. If tunnel is
+ *         not in the established state, a null pointer is returned.
+ *
+ */
+nl::Weave::WeaveConnection * WeaveTunnelAgent::GetPrimaryTunnelConnection(void) const
+{
+    return mPrimaryTunConnMgr.GetTunnelConnection();
+}
+
 #if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 void WeaveTunnelAgent::SetCallbacksForPersistedTunnelConnection(WeaveTunnelConnectionMgr::PersistedSecureSessionExistsFunct aIsPersistedTunnelSessionPresent,
                                                                 WeaveTunnelConnectionMgr::LoadPersistedSessionFunct aLoadPersistedTunnelSession)

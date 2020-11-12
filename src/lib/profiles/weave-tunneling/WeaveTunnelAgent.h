@@ -216,6 +216,12 @@ public:
  */
     AgentState GetWeaveTunnelAgentState(void);
 
+/**
+ * Get the Primary Tunnel Connection
+ *
+ */
+    nl::Weave::WeaveConnection * GetPrimaryTunnelConnection(void) const;
+
 #if WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 /**
  *  Configure the TCP user timeout option on the primary tunnel connection.
