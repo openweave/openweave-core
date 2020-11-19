@@ -300,6 +300,8 @@ WEAVE_ERROR WeaveFabricState::Init(GroupKeyStoreBase *groupKeyStore)
 
     sessionEndCallbackList = NULL;
 
+    BoundConnectionClosedForSession = NULL;
+
     State = kState_Initialized;
 
     return WEAVE_NO_ERROR;
