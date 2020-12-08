@@ -621,9 +621,16 @@ private:
     void StopConnectTimer(void);
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    Weave::System::PacketBuffer *mUnsentQueue;
-    uint16_t mUnsentOffset;
+    struct BufferOffset {
+        const Weave::System::PacketBuffer *buffer;
+        uint32_t offset;
+    };
 
+    uint32_t mUnackedLength;                            // Amount sent but awaiting ACK. Used as a form of reference count
+                                                        // to hang-on to backing packet buffers until they are no longer needed.
+
+    uint32_t RemainingToSend();
+    BufferOffset FindStartOfUnsent();
     INET_ERROR GetPCB(IPAddressType addrType);
     void HandleDataSent(uint16_t len);
     void HandleDataReceived(Weave::System::PacketBuffer *buf);
