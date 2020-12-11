@@ -1757,6 +1757,17 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  */
 #define WEAVE_ERROR_UNSUPPORTED_WIRELESS_OPERATING_LOCATION      _WEAVE_ERROR(185)
 
+/**
+ *  @def WEAVE_ERROR_WDM_EVENT_TOO_BIG
+ *
+ *  @brief
+ *    The specified event is too big to be successfully transmitted to a peer node,
+ *    e.g., it exceeds the maximum WDM Notification message size
+ *    limit.
+ *
+ */
+#define WEAVE_ERROR_WDM_EVENT_TOO_BIG                            _WEAVE_ERROR(186)
+
 
 /**
  *  @}

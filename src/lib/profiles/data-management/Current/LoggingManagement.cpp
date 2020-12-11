@@ -1314,6 +1314,8 @@ inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema & inSchem
         CircularEventBuffer * buffer = mEventBuffer;
         do
         {
+            VerifyOrExit((WDM_MAX_NOTIFICATION_SIZE - WDM_NOTIFY_REQUEST_META_INFO_BYTES_MAX) >= writer.GetLengthWritten(),
+                         err = WEAVE_ERROR_WDM_EVENT_TOO_BIG);
             VerifyOrExit(buffer->mBuffer.GetQueueSize() >= writer.GetLengthWritten(), err = WEAVE_ERROR_BUFFER_TOO_SMALL);
             if (buffer->IsFinalDestinationForImportance(inSchema.mImportance))
                 break;
@@ -1329,6 +1331,7 @@ exit:
     if (err != WEAVE_NO_ERROR)
     {
         mEventBuffer->mBuffer = checkpoint;
+        WeaveLogError(EventLogging, "Failed to log event for profile id: 0x%x (err: %d)", inSchema.mProfileId, err);
     }
     else if (inSchema.mImportance <= GetCurrentImportance(inSchema.mProfileId))
     {

@@ -33,6 +33,13 @@
 #include <Weave/Profiles/data-management/TraitData.h>
 #include <Weave/Profiles/data-management/TraitCatalog.h>
 
+// Reserve bytes that would account for additional formulation overhead
+// of a Notify Request(beyond the event and the data lists) containing
+// meta information, e.g., SubscriptionId, etc. This is a conservative
+// estimate that should serve as a loose upper bound, and help in bounding
+// the maximum size of a WDM event.
+#define WDM_NOTIFY_REQUEST_META_INFO_BYTES_MAX  (64)
+
 namespace nl {
 namespace Weave {
 namespace Profiles {
