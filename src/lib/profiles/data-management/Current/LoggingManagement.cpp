@@ -1343,7 +1343,7 @@ exit:
             GetImportanceBuffer(inSchema.mImportance)->AddEventUTC(opts.timestamp.utcTimestamp);
 
 #if WEAVE_CONFIG_EVENT_LOGGING_VERBOSE_DEBUG_LOGS
-            WeaveLogDetail(
+            WeaveLogProgress(
                 EventLogging, "LogEvent event id: %u importance: %u profile id: 0x%x structure id: 0x%x utc timestamp: 0x%" PRIx64,
                 event_id, inSchema.mImportance, inSchema.mProfileId, inSchema.mStructureType, opts.timestamp.utcTimestamp);
 #endif // WEAVE_CONFIG_EVENT_LOGGING_VERBOSE_DEBUG_LOGS
@@ -1354,7 +1354,7 @@ exit:
             GetImportanceBuffer(inSchema.mImportance)->AddEvent(opts.timestamp.systemTimestamp);
 
 #if WEAVE_CONFIG_EVENT_LOGGING_VERBOSE_DEBUG_LOGS
-            WeaveLogDetail(
+            WeaveLogProgress(
                 EventLogging, "LogEvent event id: %u importance: %u profile id: 0x%x structure id: 0x%x sys timestamp: 0x%" PRIx32,
                 event_id, inSchema.mImportance, inSchema.mProfileId, inSchema.mStructureType, opts.timestamp.systemTimestamp);
 #endif // WEAVE_CONFIG_EVENT_LOGGING_VERBOSE_DEBUG_LOGS
@@ -1946,12 +1946,18 @@ WEAVE_ERROR LoggingManagement::ScheduleFlushIfNeeded(bool inRequestFlush)
         if ((mExchangeMgr != NULL) && (mExchangeMgr->MessageLayer != NULL) && (mExchangeMgr->MessageLayer->SystemLayer != NULL))
         {
             mExchangeMgr->MessageLayer->SystemLayer->ScheduleWork(LoggingFlushHandler, this);
+            WeaveLogProgress(EventLogging, "Scheduled flush for urgent event.");
         }
         else
         {
             err              = WEAVE_ERROR_INCORRECT_STATE;
             mUploadRequested = false;
+            WeaveLogError(EventLogging, "Schedule flush failed with error: %s", ErrorStr(err));
         }
+    }
+    else if (inRequestFlush)
+    {
+        WeaveLogProgress(EventLogging, "Flush already scheduled, no need to schedule an additional flush.");
     }
 
     return err;
