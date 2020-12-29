@@ -1094,6 +1094,10 @@ event_id_t LoggingManagement::LogEvent(const EventSchema & inSchema, EventWriter
 
 exit:
     Platform::CriticalSectionExit();
+    if (event_id == 0)
+    {
+        WeaveLogProgress(EventLogging, "Failed to log event with ProfileId: %d, return event id 0", inSchema.mProfileId);
+    }
     return event_id;
 }
 
@@ -2117,7 +2121,9 @@ void CircularEventBuffer::AddEventUTC(utc_timestamp_t inEventTimestamp)
 
 void CircularEventBuffer::RemoveEvent(size_t aNumEvents)
 {
+    event_id_t currentFirstEventID = mFirstEventID;
     mFirstEventID += aNumEvents;
+    WeaveLogDetail(EventLogging, "Dropping events | Move first event id from %u to %u", currentFirstEventID, mFirstEventID);
 }
 
 /**
