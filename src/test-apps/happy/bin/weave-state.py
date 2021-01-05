@@ -40,7 +40,7 @@ if __name__ == "__main__":
                                    ["help", "quiet"])
 
     except getopt.GetoptError as err:
-    	print(WeaveState.WeaveState.__doc__)
+        print(WeaveState.WeaveState.__doc__)
         print(hred(str(err)))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
