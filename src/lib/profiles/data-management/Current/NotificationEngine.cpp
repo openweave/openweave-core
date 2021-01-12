@@ -1226,6 +1226,8 @@ WEAVE_ERROR NotificationEngine::BuildSingleNotifyRequestEventList(SubscriptionHa
             event_id_t tmp_id = logger.GetFirstEventID(static_cast<ImportanceType>(i + 1));
             if (tmp_id > initialEvents[i])
             {
+                WeaveLogProgress(DataManagement, "BuildSingleNotifyRequestEventList | Missing event_id range: { %u, %u };",
+                                 initialEvents[i], tmp_id - 1);
                 initialEvents[i] = tmp_id;
             }
         }
@@ -1342,6 +1344,8 @@ exit:
         if (aSubHandler->mSelfVendedEvents[i] > initialEvents[i])
         {
             event_count += aSubHandler->mSelfVendedEvents[i] - initialEvents[i];
+            WeaveLogProgress(DataManagement, "Fetched events [importance: %d, event_id: %u - %u]",
+                             i, initialEvents[i], aSubHandler->mSelfVendedEvents[i] - 1);
         }
     }
 
