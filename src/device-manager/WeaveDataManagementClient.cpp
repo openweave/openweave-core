@@ -937,7 +937,7 @@ void WriteEscapedString(const char * apStr, size_t aLen, std::string & aBuf)
     // According to UTF8 encoding, all bytes from a multiple byte UTF8 sequence
     // will have 1 as most siginificant bit. So this function will output the
     // multi-byte characters without escape.
-    constexpr char * hex = "0123456789abcdef";
+    constexpr char hex[] = "0123456789abcdef";
     for (size_t i = 0; i < aLen && apStr[i]; i++)
     {
         switch (apStr[i])
@@ -1065,7 +1065,7 @@ WEAVE_ERROR FormatEventData(TLVReader aInReader, std::string & aBuf)
     if (aInReader.GetType() == nl::Weave::TLV::kTLVType_Structure || aInReader.GetType() == nl::Weave::TLV::kTLVType_Array)
     {
         bool insideStructure = (aInReader.GetType() == nl::Weave::TLV::kTLVType_Structure);
-        aBuf += (insideStructure ? ' {' : '[');
+        aBuf += (insideStructure ? '{' : '[');
         const char terminating_char = (insideStructure ? '}' : ']');
 
         nl::Weave::TLV::TLVType type;
