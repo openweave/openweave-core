@@ -1883,6 +1883,17 @@
 
 
 /**
+ *  @def WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+ *
+ *  @brief
+ *    If asserted (1), enable logging of file name and line number.
+ */
+#ifndef WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+#define WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE 0
+#endif // WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+
+
+/**
  *  @def WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
  *
  *  @brief
