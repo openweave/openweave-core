@@ -1421,6 +1421,18 @@ WEAVE_ERROR NotificationEngine::BuildSingleNotifyRequestDataList(SubscriptionHan
 
             // Ensure we're in the DataList element.  May allocate memory.
             err = aNotifyRequest.MoveToState(kNotifyRequestBuilder_BuildDataList);
+
+#if WEAVE_CONFIG_ENABLE_OFFLOAD_EVENTS_FIRST
+            // if we did not have enough space for data list at all,
+            // squash the error and exit immediately. This check is necessary here
+            // when we are loading from the datalist after having loaded the event
+            // list into the buffer already.
+            if ((err == WEAVE_ERROR_NO_MEMORY) || (err == WEAVE_ERROR_BUFFER_TOO_SMALL))
+            {
+                err = WEAVE_NO_ERROR;
+                ExitNow();
+            }
+#endif // WEAVE_CONFIG_ENABLE_OFFLOAD_EVENTS_FIRST
             SuccessOrExit(err);
 
             // Make a back-up of the writer so that we can rewind back if the next retrieval fails due to the packet getting full.
@@ -1550,6 +1562,20 @@ WEAVE_ERROR NotificationEngine::BuildSingleNotifyRequest(SubscriptionHandler * a
     // Fill in the DataList.  Allocation may take place
     subClean = true;
 
+#if WEAVE_CONFIG_ENABLE_OFFLOAD_EVENTS_FIRST
+
+#if WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
+    // Fill in the EventList.  Allocation may take place
+    err = BuildSingleNotifyRequestEventList(aSubHandler, notifyRequest, subClean, neWriteInProgress);
+    SuccessOrExit(err);
+#endif
+
+    aIsSubscriptionClean &= subClean;
+    subClean = true;
+
+    err = BuildSingleNotifyRequestDataList(aSubHandler, notifyRequest, subClean, neWriteInProgress);
+    SuccessOrExit(err);
+#else
     err = BuildSingleNotifyRequestDataList(aSubHandler, notifyRequest, subClean, neWriteInProgress);
     SuccessOrExit(err);
 
@@ -1561,6 +1587,7 @@ WEAVE_ERROR NotificationEngine::BuildSingleNotifyRequest(SubscriptionHandler * a
     err = BuildSingleNotifyRequestEventList(aSubHandler, notifyRequest, subClean, neWriteInProgress);
     SuccessOrExit(err);
 #endif
+#endif // WEAVE_CONFIG_ENABLE_OFFLOAD_EVENTS_FIRST
 
     aIsSubscriptionClean &= subClean;
 
