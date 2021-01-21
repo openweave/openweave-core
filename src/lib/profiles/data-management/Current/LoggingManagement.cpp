@@ -1784,7 +1784,7 @@ WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer & inBuffer, voi
 
         eventBuffer->RemoveEvent(numEventsToDrop);
         eventBuffer->mFirstEventTimestamp += context.mDeltaTime;
-        WeaveLogProgress(EventLogging, "Dropped events due to overflow: { importance_level: %d, count: %d };", imp, numEventsToDrop);
+        WeaveLogDetail(EventLogging, "Dropped events due to overflow: { importance_level: %d, count: %d };", imp, numEventsToDrop);
 
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
         eventBuffer->mFirstEventUTCTimestamp += context.mDeltaUtc;

@@ -1345,7 +1345,7 @@ exit:
         {
             event_count += aSubHandler->mSelfVendedEvents[i] - initialEvents[i];
             WeaveLogProgress(DataManagement, "Fetched events [importance: %d, event_id: %u - %u]",
-                             i, initialEvents[i], aSubHandler->mSelfVendedEvents[i] - 1);
+                             i + 1, initialEvents[i], aSubHandler->mSelfVendedEvents[i] - 1);
         }
     }
 
