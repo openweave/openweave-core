@@ -195,18 +195,26 @@ private:
     uint32_t mTestCounter;
 };
 
-class TestBTraitDataSource : public nl::Weave::Profiles::DataManagement::TraitDataSource
+class TestBTraitDataSource:
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+    public nl::Weave::Profiles::DataManagement::TraitUpdatableDataSource
+#else
+    public nl::Weave::Profiles::DataManagement::TraitDataSource
+#endif
 {
 public:
     TestBTraitDataSource();
     void Mutate();
 
 private:
+#if WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
+    WEAVE_ERROR SetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader &aReader) __OVERRIDE;
+#endif // WDM_ENABLE_PUBLISHER_UPDATE_SERVER_SUPPORT
     WEAVE_ERROR GetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter &aWriter) __OVERRIDE;
     WEAVE_ERROR GetNextDictionaryItemKey(nl::Weave::Profiles::DataManagement::PropertyPathHandle aDictionaryHandle, uintptr_t &aContext, nl::Weave::Profiles::DataManagement::PropertyDictionaryKey &aKey) __OVERRIDE;
 
-    Schema::Nest::Test::Trait::TestATrait::EnumA taa;
-    Schema::Nest::Test::Trait::TestCommon::CommonEnumA tab;
+    int32_t taa;
+    int32_t tab;
     uint32_t tac;
     uint32_t tad_saa;
     bool tad_sab;

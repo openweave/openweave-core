@@ -356,6 +356,7 @@ private:
     friend class NotificationEngine;
     friend class TestTdm;
     friend class TestWdm;
+    friend class WdmUpdateServerTest;
 
     nl::Weave::WeaveExchangeManager * mExchangeMgr;
     void * mAppState;

@@ -403,6 +403,7 @@ private:
     friend class TestTdm;
     friend class TestWdm;
     friend class WdmUpdateEncoderTest;
+    friend class WdmUpdateServerTest;
     friend class MockWdmSubscriptionInitiatorImpl;
     friend class TraitDataSink;
     friend class TraitSchemaEngine;

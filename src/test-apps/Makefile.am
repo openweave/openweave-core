@@ -364,6 +364,7 @@ check_PROGRAMS +=                                \
     TestPathStore                                \
     TestWdmUpdateEncoder                         \
     TestWdmUpdateResponse                        \
+    TestWdmUpdateServer                          \
     $(NULL)
 
 if WEAVE_BUILD_WARM
@@ -479,6 +480,7 @@ local_test_programs                           += \
     TestPathStore                                \
     TestWdmUpdateEncoder                         \
     TestWdmUpdateResponse                        \
+    TestWdmUpdateServer                          \
     $(NULL)
 endif
 
@@ -1262,6 +1264,22 @@ TestWdmUpdateResponse_SOURCES                  = TestWdmUpdateResponse.cpp \
 TestWdmUpdateResponse_CPPFLAGS                 = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestWdmUpdateResponse_LDFLAGS                  = $(AM_CPPFLAGS)
 TestWdmUpdateResponse_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD)
+
+TestWdmUpdateServer_SOURCES                    = TestWdmUpdateServer.cpp \
+                                                 MockSinkTraits.cpp						\
+                                                 MockSourceTraits.cpp						\
+                                                 schema/nest/test/trait/TestATrait.cpp			\
+                                                 schema/nest/test/trait/TestBTrait.cpp			\
+                                                 schema/nest/test/trait/TestETrait.cpp			\
+                                                 schema/nest/test/trait/TestCommon.cpp \
+                                                 schema/weave/trait/security/BoltLockSettingsTrait.cpp	\
+                                                 schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp	\
+                                                 MockWdmNodeOptions.cpp                   \
+                                                 TestPersistedStorageImplementation.cpp
+
+TestWdmUpdateServer_CPPFLAGS                         = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
+TestWdmUpdateServer_LDFLAGS                          = $(AM_CPPFLAGS)
+TestWdmUpdateServer_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestFabricStateDelegate_SOURCES          = TestFabricStateDelegate.cpp TestPersistedStorageImplementation.cpp
 TestFabricStateDelegate_LDFLAGS          = $(AM_CPPFLAGS)

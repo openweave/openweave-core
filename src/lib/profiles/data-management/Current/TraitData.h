@@ -831,6 +831,7 @@ public:
 private:
     friend class SubscriptionClient;
     friend class UpdateEncoder;
+    friend class WdmUpdateServerTest;
 
     /**
      * Checks if a DataVersion is more recent than the one currently stored in the Sink.
@@ -965,6 +966,7 @@ protected: // IGetDataDelegate
     const TraitSchemaEngine * mSchemaEngine;
 
 private:
+    friend class WdmUpdateServerTest;
     // Current version of the data in this source.
     uint64_t mVersion;
     // Tracks whether SetDirty was called within a Lock/Unlock 'session'
