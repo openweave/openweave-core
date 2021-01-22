@@ -1672,6 +1672,7 @@ $(WEAVE_LIBS_COVERAGE_INFO): $(WEAVE_COVERAGE_INFO) | $(WEAVE_LIBS_COVERAGE_BUND
 	    -e 's,include/Weave/Core/,lib/core/,g' \
 	    -e 's,include/Weave/Profiles/,lib/profiles/,g' \
 	    -e 's,include/Weave/Support/,lib/support/,g' \
+	    -e 's,include/Weave/DeviceManager/,device-manager/,g' \
 	    -e '/\/nlio/,/end_of_record/'d \
 	    < $(@) \
 	    > $(@).clean
