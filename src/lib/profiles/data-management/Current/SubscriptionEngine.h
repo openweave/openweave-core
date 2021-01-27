@@ -225,12 +225,28 @@ public:
     typedef void (*EventCallback)(void * const aAppState, EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
 
     /**
+     * @brief Iterate through the valid subscription handlers for peer specific call backs
+     *
+     * @param[in]  aPeerNodeId             A weave node id of a peer
+     * @param[out] aSubscriptionHandler    A pointer to a valid subscription handler with a specific peer node id
+     */
+    typedef void (*SubscriptionHandlerIteratorCallback)(void * aSubscriptionHandler, const uint64_t aPeerNodeId);
+
+    /**
      * @brief Set the event back function and pointer to associated state object for SubscriptionEngine specific call backs
      *
      * @param[in]  aAppState  		A pointer to application layer supplied state object
      * @param[in]  aEventCallback  	A function pointer for event call back
      */
     void SetEventCallback(void * const aAppState, const EventCallback aEventCallback);
+
+    /**
+     * @brief Iterate through the valid subscription handlers for peer specific call backs
+     *
+     * @param[in]  aCallback  		A function pointer for event call back
+     * @param[in]  aPeerNodeId  	An application layer supplied peer node id
+     */
+    void IterateSubscriptionHandler(SubscriptionHandlerIteratorCallback aCallback, const uint64_t aPeerNodeId);
 
     /**
      * @brief This is the default event handler to be called by application layer for any ignored or unrecognized event

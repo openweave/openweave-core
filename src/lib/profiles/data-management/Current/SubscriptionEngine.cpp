@@ -55,6 +55,21 @@ void SubscriptionEngine::SetEventCallback(void * const aAppState, const EventCal
     mEventCallback = aEventCallback;
 }
 
+void SubscriptionEngine::IterateSubscriptionHandler(SubscriptionHandlerIteratorCallback aCallback, const uint64_t aPeerNodeId)
+{
+    for (size_t i = 0; i < kMaxNumSubscriptionHandlers; ++i)
+    {
+        if ((mHandlers[i].mCurrentState >= SubscriptionHandler::kState_SubscriptionInfoValid_Begin) &&
+            (mHandlers[i].mCurrentState <= SubscriptionHandler::kState_SubscriptionInfoValid_End))
+        {
+            if (aPeerNodeId == mHandlers[i].mBinding->GetPeerNodeId())
+            {
+                aCallback(&mHandlers[i], aPeerNodeId);
+            }
+        }
+    }
+}
+
 void SubscriptionEngine::DefaultEventHandler(EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam)
 {
     IgnoreUnusedVariable(aInParam);

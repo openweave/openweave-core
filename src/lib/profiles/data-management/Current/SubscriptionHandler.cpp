@@ -75,6 +75,7 @@ void SubscriptionHandler::InitAsFree()
 
     memset(mSelfVendedEvents, 0, sizeof(mSelfVendedEvents));
     memset(mLastScheduledEventId, 0, sizeof(mLastScheduledEventId));
+    memset(mDeliveredEvents, 0, sizeof(mDeliveredEvents));
 }
 
 WEAVE_ERROR SubscriptionHandler::AcceptSubscribeRequest(const uint32_t aLivenessTimeoutSec)
@@ -510,8 +511,10 @@ WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequest::Pa
                     // mSelfVendedEvents should point to the next event ID that
                     // we publish. Otherwise, we would publish an event that
                     // the subscriber already received.
-                    mSelfVendedEvents[static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First)] =
-                        static_cast<event_id_t>(eventId + 1);
+                    uint32_t i = static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First);
+                    WeaveLogProgress(DataManagement, "Update mSelfVendedEvents[%d] from %d to %d using service data",
+                                     i, mSelfVendedEvents[i], eventId + 1);
+                    mSelfVendedEvents[i] = static_cast<event_id_t>(eventId + 1);
                 }
                 else
                 {
@@ -531,6 +534,9 @@ WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequest::Pa
         {
             ExitNow();
         }
+#if WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
+        LoadPersistentDeliveredEventsIntoCache();
+#endif // WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
     }
 
     // Great! We've successfully processed path, version, and event lists
@@ -634,6 +640,40 @@ exit:
 
     return err;
 }
+
+void SubscriptionHandler::UpdateDeliveredEvents(ImportanceType importance)
+{
+  uint32_t i = static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First);
+  mDeliveredEvents[i] = mSelfVendedEvents[i] - 1;
+}
+
+#if WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
+WEAVE_ERROR SubscriptionHandler::LoadPersistentDeliveredEventsIntoCache()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (Platform::IsPersistentDeliveredEventsPresent(this))
+    {
+        err = Platform::LoadPersistentDeliveredEventsIntoSubscriptionHandler(this);
+        SuccessOrExit(err);
+
+        for (int importance = kImportanceType_First; importance <= kImportanceType_Last; importance++)
+        {
+            uint32_t i = static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First);
+            WeaveLogProgress(DataManagement, "Update mSelfVendedEvents[%d] from %d to %d using persisted data",
+                             i, mSelfVendedEvents[i], 1 + mDeliveredEvents[i]);
+            mSelfVendedEvents[i] = 1 + mDeliveredEvents[i];
+        }
+    }
+exit:
+    Platform::ClearPersistentDeliveredEvents(this);
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Load persistent delivered events into cache error: %d", err);
+    }
+    return err;
+}
+#endif // WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
 
 void SubscriptionHandler::InitWithIncomingRequest(Binding * const aBinding, const uint64_t aRandomNumber,
                                                   nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
@@ -1751,6 +1791,96 @@ void SubscriptionHandler::SetMaxNotificationSize(const uint32_t aMaxSize)
         mMaxNotificationSize = 0;
     else
         mMaxNotificationSize = aMaxSize;
+}
+
+WEAVE_ERROR SubscriptionHandler::SerializeDeliveredEvents(TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Platform::CriticalSectionEnter();
+
+    TLV::TLVType container;
+
+    err = writer.StartContainer(TLV::ContextTag(kTag_PersistDeliveredEvent), TLV::kTLVType_Array, container);
+    SuccessOrExit(err);
+
+    for (int importance = kImportanceType_First; importance <= kImportanceType_Last; importance++)
+    {
+        TLV::TLVType deliveredEventContainer;
+        err = writer.StartContainer(TLV::AnonymousTag, TLV::kTLVType_Structure, deliveredEventContainer);
+        SuccessOrExit(err);
+
+        err = writer.Put(TLV::ContextTag(kTag_PersistDeliveredEvent_ImportanceLevel), (uint8_t)importance);
+        SuccessOrExit(err);
+
+        err = writer.Put(TLV::ContextTag(kTag_PersistDeliveredEvent_EventId), mDeliveredEvents[static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First)]);
+        SuccessOrExit(err);
+
+        err = writer.EndContainer(deliveredEventContainer);
+        SuccessOrExit(err);
+    }
+
+    err = writer.EndContainer(container);
+    SuccessOrExit(err);
+
+exit:
+    Platform::CriticalSectionExit();
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Serialize delivered event id error: %d", err);
+    }
+    return err;
+}
+
+WEAVE_ERROR SubscriptionHandler::LoadDeliveredEvents(TLVReader & reader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Platform::CriticalSectionEnter();
+
+    TLV::TLVType container;
+
+    err = reader.Next(TLV::kTLVType_Array, TLV::ContextTag(kTag_PersistDeliveredEvent));
+    SuccessOrExit(err);
+    err = reader.EnterContainer(container);
+    SuccessOrExit(err);
+
+    for (int importance = kImportanceType_First; importance <= kImportanceType_Last; importance++)
+    {
+        TLV::TLVType deliveredEventContainer;
+        uint8_t persistedImportance;
+
+        err = reader.Next(TLV::kTLVType_Structure, TLV::AnonymousTag);
+        SuccessOrExit(err);
+        err = reader.EnterContainer(deliveredEventContainer);
+        SuccessOrExit(err);
+
+        err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistDeliveredEvent_ImportanceLevel));
+        SuccessOrExit(err);
+        err = reader.Get(persistedImportance);
+        SuccessOrExit(err);
+        VerifyOrExit(persistedImportance == importance, err = WEAVE_ERROR_PERSISTED_STORAGE_FAIL);
+
+        err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistDeliveredEvent_EventId));
+        SuccessOrExit(err);
+        err = reader.Get(mDeliveredEvents[static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First)]);
+        SuccessOrExit(err);
+
+        err = reader.ExitContainer(deliveredEventContainer);
+        SuccessOrExit(err);
+    }
+
+    err = reader.ExitContainer(container);
+    SuccessOrExit(err);
+
+exit:
+    Platform::CriticalSectionExit();
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Load persistent delivered events error: %d", err);
+    }
+    return err;
 }
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

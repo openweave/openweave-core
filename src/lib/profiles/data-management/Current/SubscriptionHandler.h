@@ -187,6 +187,9 @@ public:
 
     void SetMaxNotificationSize(const uint32_t aMaxPayload);
 
+    WEAVE_ERROR SerializeDeliveredEvents(TLVWriter & writer);
+    WEAVE_ERROR LoadDeliveredEvents(TLVReader & reader);
+
 private:
     friend class SubscriptionEngine;
     friend class NotificationEngine;
@@ -215,6 +218,25 @@ private:
 
         kState_SubscriptionInfoValid_Begin       = kState_Subscribing,
         kState_SubscriptionInfoValid_End         = kState_Canceling,
+    };
+
+    /**
+     * @brief
+     *  Tags for the persistent data type
+     */
+    enum
+    {
+        kTag_PersistDeliveredEvent                      = 1
+    };
+
+    /**
+     * @brief
+     *  Tags for persistent data
+     */
+    enum
+    {
+        kTag_PersistDeliveredEvent_ImportanceLevel      = 1,
+        kTag_PersistDeliveredEvent_EventId              = 2
     };
 
     HandlerState mCurrentState;
@@ -260,6 +282,7 @@ private:
     // TODO: WEAV-1426 in this incarnation, we do not account for event aggregation.
     event_id_t mSelfVendedEvents[kImportanceType_Last - kImportanceType_First + 1];
     event_id_t mLastScheduledEventId[kImportanceType_Last - kImportanceType_First + 1];
+    event_id_t mDeliveredEvents[kImportanceType_Last - kImportanceType_First + 1];
     ImportanceType mCurrentImportance;
 
     // The counter here tracks the number of event bytes offloaded to
@@ -312,6 +335,11 @@ private:
     inline WEAVE_ERROR ParseSubscriptionId(SubscribeRequest::Parser & aRequest, uint32_t & aRejectReasonProfileId,
                                            uint16_t & aRejectReasonStatusCode, const uint64_t aRandomNumber);
 
+    void UpdateDeliveredEvents(ImportanceType importance);
+#if WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
+    WEAVE_ERROR LoadPersistentDeliveredEventsIntoCache();
+#endif // WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
+
     static void BindingEventCallback(void * const apAppState, const Binding::EventType aEvent,
                                      const Binding::InEventParam & aInParam, Binding::OutEventParam & aOutParam);
     static void OnTimerCallback(System::Layer * aSystemLayer, void * aAppState, System::Error aErrorCode);
@@ -322,6 +350,14 @@ private:
                                                          const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId,
                                                          uint8_t aMsgType, PacketBuffer * aPayload);
 };
+
+#if WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
+namespace Platform {
+    extern WEAVE_ERROR LoadPersistentDeliveredEventsIntoSubscriptionHandler(SubscriptionHandler * aSubscriptionHandler);
+    extern WEAVE_ERROR ClearPersistentDeliveredEvents(SubscriptionHandler * aSubscriptionHandler);
+    extern bool IsPersistentDeliveredEventsPresent(SubscriptionHandler * aSubscriptionHandler);
+}
+#endif // WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles

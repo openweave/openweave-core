@@ -1922,6 +1922,26 @@
 #endif // WEAVE_CONFIG_PERSIST_SERVICE_DIRECTORY
 
 /**
+ *  @def WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
+ *
+ *  @brief
+ *    If set to (1), use of the persistent delivered event id
+ *    implementation is enabled. Default value is (0) or disabled.
+ *
+ *  @note
+ *    Enabling this profile allows applications using Weave to
+ *    persist the ids of events that have been offloaded to the
+ *    subscriber across device reboots. It is relevant for
+ *    applications that interacts with a service which subscribes
+ *    to all events but cannot provide updated event ids it already
+ *    received during subscription.
+ *
+ */
+#ifndef WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
+#define WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS               0
+#endif // WEAVE_CONFIG_PERSIST_DELIVERED_EVENTS
+
+/**
  *  @def WEAVE_CONFIG_SERVICE_DIR_CONNECT_TIMEOUT_MSECS
  *
  *  @brief
