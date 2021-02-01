@@ -2356,6 +2356,25 @@
 #endif // WEAVE_CONFIG_MAX_SOFTWARE_VERSION_LENGTH
 
 /**
+ *  @def WEAVE_CONFIG_ENABLE_OFFLOAD_EVENTS_FIRST
+ *
+ *  @brief
+ *    Enable offloading of events before trait properties
+ *
+ *  When this option is enabled, WeaveDataManagement will first
+ *  attempt to pack events from the eventlist into the NotifyRequest
+ *  message before adding modified trait data properties from
+ *  the datalist.
+ *
+ *  This feature can be useful in systems that might need
+ *  the events to be dispatched as early as possible.
+ *
+ */
+#ifndef WEAVE_CONFIG_ENABLE_OFFLOAD_EVENTS_FIRST
+#define WEAVE_CONFIG_ENABLE_OFFLOAD_EVENTS_FIRST            0
+#endif // WEAVE_CONFIG_ENABLE_OFFLOAD_EVENTS_FIRST
+
+/**
  * @def WEAVE_NON_PRODUCTION_MARKER
  *
  * @brief Defines the name of a mark symbol whose presence signals that the Weave code
