@@ -325,6 +325,7 @@ protected:
     uint8_t mRemotePassiveRendezvousEncryptionType;
     uint16_t mResetFlags;
     bool mFailSafeArmed;
+    uint16_t mResetConfigTimeout;
 
 private:
     void StartMonitorTimer(ExchangeContext *monitorOp);
@@ -383,7 +384,7 @@ private:
     static void HandleRendezvousIdentifyConnectionClosed(ExchangeContext *ec, WeaveConnection *con,
             WEAVE_ERROR conErr);
     static void HandleMonitorConnectionClose(ExchangeContext *ec, WeaveConnection *con, WEAVE_ERROR conErr);
-
+    static void HandleResetConfigTimeout(System::Layer * aSystemLayer, void * aAppState, System::Error aError);
 
     WEAVE_ERROR VerifyRendezvousedDeviceIdentity(WeaveConnection *con);
     void HandleIdentifyFailed(void);
