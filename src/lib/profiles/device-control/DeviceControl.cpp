@@ -1193,6 +1193,13 @@ void DeviceControlDelegate::EnforceAccessControl(ExchangeContext *ec, uint32_t m
 #if WEAVE_CONFIG_REQUIRE_AUTH_DEVICE_CONTROL
 
         case kMsgType_ResetConfig:
+            if (authMode == kWeaveAuthMode_CASE_AccessToken || authMode == kWeaveAuthMode_CASE_ServiceEndPoint ||
+                (authMode == kWeaveAuthMode_PASE_PairingCode && !IsPairedToAccount()))
+            {
+                result = kAccessControlResult_Accepted;
+            }
+            break;
+
         case kMsgType_ArmFailSafe:
             if (authMode == kWeaveAuthMode_CASE_AccessToken ||
                 (authMode == kWeaveAuthMode_PASE_PairingCode && !IsPairedToAccount()))
