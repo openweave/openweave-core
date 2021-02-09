@@ -283,6 +283,104 @@ WEAVE_ERROR SubscriptionEngine::NewClient(SubscriptionClient ** const appClient,
     return NewClient(appClient, apBinding, apAppState, aEventCallback, apCatalog, aInactivityTimeoutDuringSubscribingMsec, NULL);
 }
 
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+WEAVE_ERROR SubscriptionEngine::NewClientFromPersistedState(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
+                                                            SubscriptionClient::EventCallback const aEventCallback,
+                                                            const TraitCatalogBase<TraitDataSink> * const apCatalog,
+                                                            const uint32_t aInactivityTimeoutDuringSubscribingMsec, TLVReader & reader)
+{
+    WEAVE_ERROR err = WEAVE_ERROR_NO_MEMORY;
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    uint32_t maxSize = WDM_MAX_UPDATE_SIZE;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_SubscriptionClientNew, ExitNow());
+
+    *appClient = NULL;
+
+    for (size_t i = 0; i < kMaxNumSubscriptionClients; ++i)
+    {
+        if (SubscriptionClient::kState_Free == mClients[i].mCurrentState)
+        {
+            *appClient = &mClients[i];
+            err =
+                (*appClient)
+                    ->LoadFromPersistedState(apBinding, apAppState, aEventCallback, apCatalog, aInactivityTimeoutDuringSubscribingMsec, NULL, reader);
+
+            if (WEAVE_NO_ERROR != err)
+            {
+                *appClient = NULL;
+                ExitNow();
+            }
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+            mClients[i].SetMaxUpdateSize(maxSize);
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDM_NumSubscriptionClients);
+            break;
+        }
+    }
+
+exit:
+    if (WEAVE_NO_ERROR != err)
+    {
+        WeaveLogError(DataManagement, "Load persistent subscription client failed with error: %d", err);
+    }
+    return err;
+}
+
+WEAVE_ERROR SubscriptionEngine::NewSubscriptionHandlerFromPersistedState(Binding * const apBinding, void * const apAppState,
+                                                                         SubscriptionHandler::EventCallback const aEventCallback, TLVReader & reader)
+{
+    WEAVE_ERROR err                    = WEAVE_NO_ERROR;
+    SubscriptionHandler * handler      = NULL;
+
+    err = NewSubscriptionHandler(&handler);
+    SuccessOrExit(err);
+
+    handler->SetMaxNotificationSize(WDM_MAX_NOTIFICATION_SIZE);
+    err = handler->LoadFromPersistedState(apBinding, apAppState, aEventCallback, reader);
+    SuccessOrExit(err);
+
+exit:
+    WeaveLogFunctError(err);
+
+    return err;
+}
+
+WEAVE_ERROR SubscriptionEngine::SaveClient(uint64_t aPeerNodeID, TLVWriter &aWriter)
+{
+    WEAVE_ERROR err                      = WEAVE_NO_ERROR;
+    SubscriptionClient * client          = NULL;
+
+    client = FindEstablishedIdleClient(aPeerNodeID);
+    VerifyOrExit(client != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    err = client->SerializeSubscriptionState(aWriter);
+    SuccessOrExit(err);
+
+exit:
+
+    return err;
+}
+
+WEAVE_ERROR SubscriptionEngine::SaveSubscriptionHandler(uint64_t aPeerNodeID, TLVWriter &aWriter)
+{
+    WEAVE_ERROR err                      = WEAVE_NO_ERROR;
+    SubscriptionHandler * handler        = NULL;
+
+    handler = FindEstablishedIdleHandler(aPeerNodeID);
+    VerifyOrExit(handler != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    err = handler->SerializeSubscriptionState(aWriter);
+    SuccessOrExit(err);
+
+exit:
+
+    return err;
+}
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+
 /**
  * Reply to a request with a StatuReport message.
  *
@@ -800,6 +898,27 @@ SubscriptionClient * SubscriptionEngine::FindClient(const uint64_t aPeerNodeId, 
     return result;
 }
 
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+SubscriptionClient * SubscriptionEngine::FindEstablishedIdleClient(const uint64_t aPeerNodeId)
+{
+    SubscriptionClient * result = NULL;
+
+    for (size_t i = 0; i < kMaxNumSubscriptionClients; ++i)
+    {
+        if (mClients[i].mCurrentState == SubscriptionClient::kState_SubscriptionEstablished_Idle)
+        {
+            if (aPeerNodeId == mClients[i].mBinding->GetPeerNodeId())
+            {
+                result = &mClients[i];
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+
 bool SubscriptionEngine::UpdateClientLiveness(const uint64_t aPeerNodeId, const uint64_t aSubscriptionId, const bool aKill)
 {
     WEAVE_ERROR err              = WEAVE_NO_ERROR;
@@ -918,6 +1037,27 @@ SubscriptionHandler * SubscriptionEngine::FindHandler(const uint64_t aPeerNodeId
 
     return result;
 }
+
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+SubscriptionHandler * SubscriptionEngine::FindEstablishedIdleHandler(const uint64_t aPeerNodeId)
+{
+    SubscriptionHandler * result = NULL;
+
+    for (size_t i = 0; i < kMaxNumSubscriptionHandlers; ++i)
+    {
+        if (mHandlers[i].mCurrentState == SubscriptionHandler::kState_SubscriptionEstablished_Idle)
+        {
+            if (aPeerNodeId == mHandlers[i].GetPeerNodeId())
+            {
+                result = &mHandlers[i];
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 
 WEAVE_ERROR SubscriptionEngine::GetMinEventLogPosition(size_t & outLogPosition) const
 {

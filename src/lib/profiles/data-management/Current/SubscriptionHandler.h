@@ -217,6 +217,30 @@ private:
         kState_SubscriptionInfoValid_End         = kState_Canceling,
     };
 
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+    /**
+     * @brief
+     *  Tags for the persistent subscription data
+     */
+    enum
+    {
+        kTag_PersistSubscriptionHandler_PeerNodeId             = 1,
+        kTag_PersistSubscriptionHandler_SubscriptionId         = 2,
+        kTag_PersistSubscriptionHandler_LivenessTimeoutMsec    = 3,
+        kTag_PersistSubscriptionHandler_IsInitiator            = 4,
+        kTag_PersistSubscriptionHandler_SubscribeToAllEvents   = 5,
+
+        kTag_PersistTraitInstances                             = 6,
+        kTag_PersistTraitInstances_TraitDataHandle             = 7,
+        kTag_PersistTraitInstances_RequestedVersion            = 8,
+        kTag_PersistTraitInstances_IsDirty                     = 9,
+
+        kTag_PersistDeliveredEvent                             = 10,
+        kTag_PersistDeliveredEvent_ImportanceLevel             = 11,
+        kTag_PersistDeliveredEvent_EventId                     = 12
+    };
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+
     HandlerState mCurrentState;
 
     bool IsNotifiable(void)
@@ -260,6 +284,9 @@ private:
     // TODO: WEAV-1426 in this incarnation, we do not account for event aggregation.
     event_id_t mSelfVendedEvents[kImportanceType_Last - kImportanceType_First + 1];
     event_id_t mLastScheduledEventId[kImportanceType_Last - kImportanceType_First + 1];
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+    event_id_t mDeliveredEvents[kImportanceType_Last - kImportanceType_First + 1];
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
     ImportanceType mCurrentImportance;
 
     // The counter here tracks the number of event bytes offloaded to
@@ -298,6 +325,16 @@ private:
     ImportanceType FindNextImportanceForTransfer(void);
     WEAVE_ERROR SetEventLogEndpoint(LoggingManagement & logger);
 
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+    WEAVE_ERROR LoadFromPersistedState(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback, TLVReader & reader);
+    WEAVE_ERROR SerializeSubscriptionState(TLVWriter & writer);
+    WEAVE_ERROR LoadSubscriptionState(TLVReader & reader);
+    WEAVE_ERROR SerializeTraitInstances(TLVWriter & writer);
+    WEAVE_ERROR LoadTraitInstances(TLVReader & reader);
+    WEAVE_ERROR SerializeDeliveredEvents(TLVWriter & writer);
+    WEAVE_ERROR LoadDeliveredEvents(TLVReader & reader);
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+
 #if WDM_ENABLE_SUBSCRIPTION_CANCEL
     WEAVE_ERROR Cancel(void);
     void CancelRequestHandler(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
@@ -311,6 +348,10 @@ private:
 
     inline WEAVE_ERROR ParseSubscriptionId(SubscribeRequest::Parser & aRequest, uint32_t & aRejectReasonProfileId,
                                            uint16_t & aRejectReasonStatusCode, const uint64_t aRandomNumber);
+
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+    void UpdateDeliveredEvents(ImportanceType importance);
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 
     static void BindingEventCallback(void * const apAppState, const Binding::EventType aEvent,
                                      const Binding::InEventParam & aInParam, Binding::OutEventParam & aOutParam);

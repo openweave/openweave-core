@@ -300,7 +300,33 @@ public:
                           const TraitCatalogBase<TraitDataSink> * const apCatalog,
                           const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveWDMMutex * aUpdateMutex);
 
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+    /**
+     * @brief This is the default event handler to be called by application layer for any ignored or unrecognized event
+     *
+     * @param[in]  appClient        A pointer to pointer for the new subscription client object
+     * @param[in]  apBinding        A pointer to Binding to be used for this subscription client
+     * @param[in]  apAppState       A pointer to application layer supplied state object
+     * @param[in]  aEventCallback   A function pointer for event call back
+     * @param[in]  apCatalog        A pointer to data sink catalog object
+     * @param[in]  aTimeoutMsecBeforeSubscribeResponse    Max number of milliseconds before subscribe
+     *                                                    response must be received after subscribe request is sent
+     * @param[in]  reader           A reference to TLVReader to load subscription client
+     */
+    WEAVE_ERROR NewClientFromPersistedState(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
+                                            SubscriptionClient::EventCallback const aEventCallback,
+                                            const TraitCatalogBase<TraitDataSink> * const apCatalog,
+                                            const uint32_t aInactivityTimeoutDuringSubscribingMsec, TLVReader & reader);
+    WEAVE_ERROR SaveClient(uint64_t aPeerNodeID, TLVWriter &aWriter);
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+
     WEAVE_ERROR NewSubscriptionHandler(SubscriptionHandler ** const subHandler);
+
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+    WEAVE_ERROR NewSubscriptionHandlerFromPersistedState(Binding * const apBinding, void * const apAppState,
+                                                         SubscriptionHandler::EventCallback const aEventCallback, TLVReader & reader);
+    WEAVE_ERROR SaveSubscriptionHandler(uint64_t aPeerNodeID, TLVWriter &aWriter);
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 
     uint16_t GetClientId(const SubscriptionClient * const apClient) const;
 
@@ -536,6 +562,11 @@ private:
 #endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
 
 #endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+    SubscriptionClient * FindEstablishedIdleClient(const uint64_t aPeerNodeId);
+    SubscriptionHandler * FindEstablishedIdleHandler(const uint64_t aPeerNodeId);
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 };
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

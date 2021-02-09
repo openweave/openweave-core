@@ -75,6 +75,9 @@ void SubscriptionHandler::InitAsFree()
 
     memset(mSelfVendedEvents, 0, sizeof(mSelfVendedEvents));
     memset(mLastScheduledEventId, 0, sizeof(mLastScheduledEventId));
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+    memset(mDeliveredEvents, 0, sizeof(mDeliveredEvents));
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 }
 
 WEAVE_ERROR SubscriptionHandler::AcceptSubscribeRequest(const uint32_t aLivenessTimeoutSec)
@@ -510,8 +513,10 @@ WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequest::Pa
                     // mSelfVendedEvents should point to the next event ID that
                     // we publish. Otherwise, we would publish an event that
                     // the subscriber already received.
-                    mSelfVendedEvents[static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First)] =
-                        static_cast<event_id_t>(eventId + 1);
+                    uint32_t i = static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First);
+                    WeaveLogProgress(DataManagement, "Update mSelfVendedEvents[%d] from %d to %d using service data",
+                                     i, mSelfVendedEvents[i], eventId + 1);
+                    mSelfVendedEvents[i] = static_cast<event_id_t>(eventId + 1);
                 }
                 else
                 {
@@ -634,6 +639,14 @@ exit:
 
     return err;
 }
+
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+void SubscriptionHandler::UpdateDeliveredEvents(ImportanceType importance)
+{
+  uint32_t i = static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First);
+  mDeliveredEvents[i] = mSelfVendedEvents[i] - 1;
+}
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 
 void SubscriptionHandler::InitWithIncomingRequest(Binding * const aBinding, const uint64_t aRandomNumber,
                                                   nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
@@ -1752,6 +1765,402 @@ void SubscriptionHandler::SetMaxNotificationSize(const uint32_t aMaxSize)
     else
         mMaxNotificationSize = aMaxSize;
 }
+
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+WEAVE_ERROR SubscriptionHandler::LoadFromPersistedState(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback, TLVReader & reader)
+{
+    WEAVE_ERROR err                 = WEAVE_NO_ERROR;
+
+    WeaveLogDetail(DataManagement, "Handler[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetHandlerId(this),
+                   GetStateStr(), __func__, mRefCount);
+
+    WeaveLogIfFalse(0 == mRefCount);
+
+    // AddRef for the duration of this method
+    _AddRef();
+
+    mBinding                                = apBinding;
+    mAppState                               = apAppState;
+    mEventCallback                          = aEventCallback;
+
+    // Capture the binding and arrange to receive event callbacks.
+    mBinding->AddRef();
+    mBinding->SetProtocolLayerCallback(BindingEventCallback, this);
+
+    mBytesOffloaded = 0;
+
+    err = LoadSubscriptionState(reader);
+    SuccessOrExit(err);
+
+    // Hold this instance until we clear the protocol state machine
+    _AddRef();
+    MoveToState(kState_SubscriptionEstablished_Idle);
+
+    {
+        InEventParam inParam;
+        OutEventParam outParam;
+        inParam.mSubscriptionEstablished.mSubscriptionId = mSubscriptionId;
+        inParam.mSubscriptionEstablished.mHandler        = this;
+
+        // Note we could be aborted in this callback
+        mEventCallback(mAppState, kEvent_OnSubscriptionEstablished, inParam, outParam);
+    }
+
+    err = ReplaceExchangeContext();
+    SuccessOrExit(err);
+
+    SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
+
+exit:
+    WeaveLogFunctError(err);
+
+    // Run termination if subscription is marked established
+    if (WEAVE_NO_ERROR != err && mCurrentState == kState_SubscriptionEstablished_Idle)
+    {
+        TerminateSubscription(err, NULL, false);
+    }
+
+    _Release();
+
+    return err;
+}
+
+WEAVE_ERROR SubscriptionHandler::LoadSubscriptionState(TLVReader & reader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    TLV::TLVType container;
+
+    err = reader.Next(TLV::kTLVType_Structure, TLV::AnonymousTag);
+    SuccessOrExit(err);
+    err = reader.EnterContainer(container);
+    SuccessOrExit(err);
+
+    err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistSubscriptionHandler_PeerNodeId));
+    SuccessOrExit(err);
+    err = reader.Get(mPeerNodeId);
+    SuccessOrExit(err);
+
+    err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistSubscriptionHandler_SubscriptionId));
+    SuccessOrExit(err);
+    err = reader.Get(mSubscriptionId);
+    SuccessOrExit(err);
+
+    err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistSubscriptionHandler_LivenessTimeoutMsec));
+    SuccessOrExit(err);
+    err = reader.Get(mLivenessTimeoutMsec);
+    SuccessOrExit(err);
+
+    err = reader.Next(TLV::kTLVType_Boolean, TLV::ContextTag(kTag_PersistSubscriptionHandler_IsInitiator));
+    SuccessOrExit(err);
+    err = reader.Get(mIsInitiator);
+    SuccessOrExit(err);
+
+    err = reader.Next(TLV::kTLVType_Boolean, TLV::ContextTag(kTag_PersistSubscriptionHandler_SubscribeToAllEvents));
+    SuccessOrExit(err);
+    err = reader.Get(mSubscribeToAllEvents);
+    SuccessOrExit(err);
+
+    err = LoadTraitInstances(reader);
+    SuccessOrExit(err);
+
+    err = LoadDeliveredEvents(reader);
+    SuccessOrExit(err);
+
+    err = reader.ExitContainer(container);
+    SuccessOrExit(err);
+
+    // Load SelfVendedEvents from DeliveredEvents
+    for (int importance = kImportanceType_First; importance <= kImportanceType_Last; importance++)
+    {
+        uint32_t i = static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First);
+        WeaveLogProgress(DataManagement, "Update mSelfVendedEvents[%d] from %d to %d using persisted data",
+                         i, mSelfVendedEvents[i], 1 + mDeliveredEvents[i]);
+        mSelfVendedEvents[i] = 1 + mDeliveredEvents[i];
+    }
+
+exit:
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Load persistent subscription data for subscription handler error: %d", err);
+    }
+    return err;
+}
+
+
+WEAVE_ERROR SubscriptionHandler::LoadTraitInstances(TLVReader & reader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Platform::CriticalSectionEnter();
+
+    TLV::TLVType traitInstanceArrayContainer;
+
+    err = reader.Next(TLV::kTLVType_Array, TLV::ContextTag(kTag_PersistTraitInstances));
+    SuccessOrExit(err);
+    err = reader.EnterContainer(traitInstanceArrayContainer);
+    SuccessOrExit(err);
+
+    while ((err = reader.Next(TLV::kTLVType_Structure, TLV::AnonymousTag)) == WEAVE_NO_ERROR)
+    {
+        TLV::TLVType traitInstanceContainer;
+        TraitDataSource * dataSource;
+        TraitInstanceInfo * traitInstance = NULL;
+        TraitDataHandle traitDataHandle;
+        uint16_t requestedVersion;
+        bool isDirty;
+
+        err = reader.EnterContainer(traitInstanceContainer);
+        SuccessOrExit(err);
+
+        err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistTraitInstances_TraitDataHandle));
+        SuccessOrExit(err);
+        err = reader.Get(traitDataHandle);
+        SuccessOrExit(err);
+
+        err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistTraitInstances_RequestedVersion));
+        SuccessOrExit(err);
+        err = reader.Get(requestedVersion);
+        SuccessOrExit(err);
+
+        err = reader.Next(TLV::kTLVType_Boolean, TLV::ContextTag(kTag_PersistTraitInstances_IsDirty));
+        SuccessOrExit(err);
+        err = reader.Get(isDirty);
+        SuccessOrExit(err);
+
+        err = reader.ExitContainer(traitInstanceContainer);
+        SuccessOrExit(err);
+
+        // allocate a new trait instance
+        WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_TraitInstanceNew, ExitNow(err = WEAVE_ERROR_NO_MEMORY));
+
+        if (SubscriptionEngine::GetInstance()->mNumTraitInfosInPool < SubscriptionEngine::kMaxNumPathGroups)
+        {
+            traitInstance =
+                SubscriptionEngine::GetInstance()->mTraitInfoPool + SubscriptionEngine::GetInstance()->mNumTraitInfosInPool;
+            ++mNumTraitInstances;
+            ++(SubscriptionEngine::GetInstance()->mNumTraitInfosInPool);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDM_NumTraits);
+
+            traitInstance->Init();
+        }
+        else
+        {
+            // we run out of trait instances, abort
+            // Note it might help the client understanding what's going on with an error status like
+            // "out of memory" or "internal error", but it's pretty common that a server doesn't disclose
+            // too much internal status to clients
+            SuccessOrExit(err = WEAVE_ERROR_NO_MEMORY);
+        }
+
+
+        traitInstance->mTraitDataHandle  = traitDataHandle;
+        traitInstance->mRequestedVersion = requestedVersion;
+
+        if (NULL == mTraitInstanceList)
+        {
+            // this the first trait instance for this subscription
+            // mNumTraitInstanceList has already be incremented
+            mTraitInstanceList = traitInstance;
+        }
+
+        // TODO (didis) Check if data source is persisted, set to dirty if trait data changed from persisted data
+        WeaveLogDetail(DataManagement, "Handler[%u] Syncing is requested for trait[%u].path[%u]",
+                       SubscriptionEngine::GetInstance()->GetHandlerId(this), traitDataHandle, kRootPropertyPathHandle);
+        err = SubscriptionEngine::GetInstance()->mPublisherCatalog->Locate(traitDataHandle, &dataSource);
+        SuccessOrExit(err);
+        dataSource->SetRootDirty();
+        traitInstance->SetDirty();
+    }
+
+    if (err != WEAVE_END_OF_TLV)
+    {
+        goto exit;
+    }
+
+    err = reader.ExitContainer(traitInstanceArrayContainer);
+    SuccessOrExit(err);
+
+exit:
+    Platform::CriticalSectionExit();
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Load persistent trait instances error: %d", err);
+    }
+    return err;
+}
+
+WEAVE_ERROR SubscriptionHandler::SerializeSubscriptionState(TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    TLV::TLVType container;
+
+    err = writer.StartContainer(TLV::AnonymousTag, TLV::kTLVType_Structure, container);
+    SuccessOrExit(err);
+
+
+    err = writer.Put(TLV::ContextTag(kTag_PersistSubscriptionHandler_PeerNodeId), mPeerNodeId);
+    SuccessOrExit(err);
+    err = writer.Put(TLV::ContextTag(kTag_PersistSubscriptionHandler_SubscriptionId), mSubscriptionId);
+    SuccessOrExit(err);
+    err = writer.Put(TLV::ContextTag(kTag_PersistSubscriptionHandler_LivenessTimeoutMsec), mLivenessTimeoutMsec);
+    SuccessOrExit(err);
+    err = writer.PutBoolean(TLV::ContextTag(kTag_PersistSubscriptionHandler_IsInitiator), mIsInitiator);
+    SuccessOrExit(err);
+    err = writer.PutBoolean(TLV::ContextTag(kTag_PersistSubscriptionHandler_SubscribeToAllEvents), mSubscribeToAllEvents);
+    SuccessOrExit(err);
+
+    err = SerializeTraitInstances(writer);
+    SuccessOrExit(err);
+
+    err = SerializeDeliveredEvents(writer);
+    SuccessOrExit(err);
+
+    err = writer.EndContainer(container);
+    SuccessOrExit(err);
+
+exit:
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Serialize subscription state error: %d", err);
+    }
+    return err;
+}
+
+WEAVE_ERROR SubscriptionHandler::SerializeTraitInstances(TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Platform::CriticalSectionEnter();
+
+    TLV::TLVType traitInstanceArrayContainer;
+    err = writer.StartContainer(TLV::ContextTag(kTag_PersistTraitInstances), TLV::kTLVType_Array, traitInstanceArrayContainer);
+    SuccessOrExit(err);
+
+    for (size_t i = 0; i < mNumTraitInstances; ++i)
+    {
+        TLV::TLVType traitInstanceContainer;
+
+        err = writer.StartContainer(TLV::AnonymousTag, TLV::kTLVType_Structure, traitInstanceContainer);
+        SuccessOrExit(err);
+        err = writer.Put(TLV::ContextTag(kTag_PersistTraitInstances_TraitDataHandle), mTraitInstanceList[i].mTraitDataHandle);
+        SuccessOrExit(err);
+        err = writer.Put(TLV::ContextTag(kTag_PersistTraitInstances_RequestedVersion), mTraitInstanceList[i].mRequestedVersion);
+        SuccessOrExit(err);
+        err = writer.PutBoolean(TLV::ContextTag(kTag_PersistTraitInstances_IsDirty), mTraitInstanceList[i].mDirty);
+        SuccessOrExit(err);
+
+        err = writer.EndContainer(traitInstanceContainer);
+        SuccessOrExit(err);
+    }
+
+    err = writer.EndContainer(traitInstanceArrayContainer);
+    SuccessOrExit(err);
+
+exit:
+    Platform::CriticalSectionExit();
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Serialize trait instances error: %d", err);
+    }
+    return err;
+}
+
+WEAVE_ERROR SubscriptionHandler::SerializeDeliveredEvents(TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Platform::CriticalSectionEnter();
+
+    TLV::TLVType container;
+
+    err = writer.StartContainer(TLV::ContextTag(kTag_PersistDeliveredEvent), TLV::kTLVType_Array, container);
+    SuccessOrExit(err);
+
+    for (int importance = kImportanceType_First; importance <= kImportanceType_Last; importance++)
+    {
+        TLV::TLVType deliveredEventContainer;
+        err = writer.StartContainer(TLV::AnonymousTag, TLV::kTLVType_Structure, deliveredEventContainer);
+        SuccessOrExit(err);
+
+        err = writer.Put(TLV::ContextTag(kTag_PersistDeliveredEvent_ImportanceLevel), (uint8_t)importance);
+        SuccessOrExit(err);
+
+        err = writer.Put(TLV::ContextTag(kTag_PersistDeliveredEvent_EventId), mDeliveredEvents[static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First)]);
+        SuccessOrExit(err);
+
+        err = writer.EndContainer(deliveredEventContainer);
+        SuccessOrExit(err);
+    }
+
+    err = writer.EndContainer(container);
+    SuccessOrExit(err);
+
+exit:
+    Platform::CriticalSectionExit();
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Serialize delivered event id error: %d", err);
+    }
+    return err;
+}
+
+WEAVE_ERROR SubscriptionHandler::LoadDeliveredEvents(TLVReader & reader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Platform::CriticalSectionEnter();
+
+    TLV::TLVType container;
+
+    err = reader.Next(TLV::kTLVType_Array, TLV::ContextTag(kTag_PersistDeliveredEvent));
+    SuccessOrExit(err);
+    err = reader.EnterContainer(container);
+    SuccessOrExit(err);
+
+    for (int importance = kImportanceType_First; importance <= kImportanceType_Last; importance++)
+    {
+        TLV::TLVType deliveredEventContainer;
+        uint8_t persistedImportance;
+
+        err = reader.Next(TLV::kTLVType_Structure, TLV::AnonymousTag);
+        SuccessOrExit(err);
+        err = reader.EnterContainer(deliveredEventContainer);
+        SuccessOrExit(err);
+
+        err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistDeliveredEvent_ImportanceLevel));
+        SuccessOrExit(err);
+        err = reader.Get(persistedImportance);
+        SuccessOrExit(err);
+        VerifyOrExit(persistedImportance == importance, err = WEAVE_ERROR_PERSISTED_STORAGE_FAIL);
+
+        err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistDeliveredEvent_EventId));
+        SuccessOrExit(err);
+        err = reader.Get(mDeliveredEvents[static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First)]);
+        SuccessOrExit(err);
+
+        err = reader.ExitContainer(deliveredEventContainer);
+        SuccessOrExit(err);
+    }
+
+    err = reader.ExitContainer(container);
+    SuccessOrExit(err);
+
+exit:
+    Platform::CriticalSectionExit();
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Load persistent delivered events error: %d", err);
+    }
+    return err;
+}
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles

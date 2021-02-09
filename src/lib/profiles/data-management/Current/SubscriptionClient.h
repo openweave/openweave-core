@@ -448,6 +448,18 @@ private:
         kConfig_CounterSubscriber /**< Start a "counter subscription" */
     };
 
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+    /**
+     * @brief
+     *  Tags for the persistent subscription data
+     */
+    enum
+    {
+        kTag_PersistSubscriptionClient_SubscriptionId          = 1,
+        kTag_PersistSubscriptionClient_LivenessTimeoutMsec     = 2
+    };
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+
     bool IsInitiator() { return mConfig == kConfig_Initiator; }
     bool IsCounterSubscriber() { return mConfig == kConfig_CounterSubscriber; }
     bool ShouldSubscribe() { return mConfig > kConfig_Down; }
@@ -492,6 +504,20 @@ private:
     WEAVE_ERROR Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
                      const TraitCatalogBase<TraitDataSink> * const apCatalog,
                      const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveWDMMutex * aUpdateMutex);
+
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+    // load subscription id and liveness timeout
+    // AddRef to Binding
+    // store pointers to binding and delegate
+    // move to kState_SubscriptionEstablished_Idle
+    WEAVE_ERROR LoadFromPersistedState(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
+                                       const TraitCatalogBase<TraitDataSink> * const apCatalog,
+                                       const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveWDMMutex * aUpdateMutex,
+                                       TLVReader & reader);
+
+    WEAVE_ERROR SerializeSubscriptionState(TLVWriter & writer);
+    WEAVE_ERROR LoadSubscriptionState(TLVReader & reader);
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 
     void _InitiateSubscription(void);
     WEAVE_ERROR SendSubscribeRequest(void);

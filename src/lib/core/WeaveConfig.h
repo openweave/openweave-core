@@ -1881,6 +1881,22 @@
 #define WEAVE_CONFIG_ENABLE_CONDITION_LOGGING 0
 #endif // WEAVE_CONFIG_ENABLE_CONDITION_LOGGING
 
+/**
+ *  @def WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+ *
+ *  @brief
+ *    If set to (1), use of the persistent subscription state
+ *    implementation is enabled. Default value is (0) or disabled.
+ *
+ *  @note
+ *    Enabling this profile allows applications using Weave to
+ *    persist the mutual subscription states between device and service
+ *    across device reboots.
+ *
+ */
+#ifndef WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+#define WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE               0
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 
 /**
  *  @def WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY

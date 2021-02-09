@@ -1152,6 +1152,9 @@ void NotificationEngine::OnNotifyConfirm(SubscriptionHandler * aSubHandler, bool
             size_t i                  = static_cast<size_t>(iterator - kImportanceType_First);
             ImportanceType importance = (ImportanceType) iterator;
             logger.NotifyEventsDelivered(importance, aSubHandler->mSelfVendedEvents[i] - 1, aSubHandler->GetPeerNodeId());
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+            aSubHandler->UpdateDeliveredEvents(importance);
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
         }
     }
 
