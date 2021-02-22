@@ -419,17 +419,8 @@ void BLEEndPoint::FinalizeClose(uint8_t oldState, uint8_t flags, BLE_ERROR err)
             }
             else if (mConnObj != BLE_CONNECTION_UNINITIALIZED)
             {
-                // Unsubscribe request was sent successfully, and a confirmation wasn't spontaneously generated or
-                // received in the downcall to UnsubscribeCharacteristic, so set timer for the unsubscribe to complete.
-                err = StartUnsubscribeTimer();
-
-                if (err != BLE_NO_ERROR)
-                {
-                    Free();
-                }
-
-                // Mark unsubscribe GATT operation in progress.
-                SetFlag(mConnStateFlags, kConnState_GattOperationInFlight, true);
+                //Force to free endpoint's BLE connection
+                Free();
             }
         }
         else // mRole == kBleRole_Peripheral, OR GetFlag(mTimerStateFlags, kConnState_DidBeginSubscribe) == false...
