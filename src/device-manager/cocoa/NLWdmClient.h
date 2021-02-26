@@ -121,7 +121,7 @@ typedef void (^WdmClientFailureBlock)(id owner, NSError * error);
  * DataSchemaVersionRange | Object{MinVersion: uint64, MaxVersion: uint64}
  * Data                   | Object      | Event Trait Data
  */
-- (void)getEvents:(NSString **)events;
+- (WEAVE_ERROR)getEvents:(NSString **)events;
 
 
 @end
