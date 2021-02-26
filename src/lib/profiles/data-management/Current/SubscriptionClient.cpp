@@ -165,6 +165,153 @@ exit:
     return err;
 }
 
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+// load subscription id and liveness timeout
+// AddRef to Binding
+// store pointers to binding and delegate
+// move to kState_SubscriptionEstablished_Idle
+WEAVE_ERROR SubscriptionClient::LoadFromPersistedState(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
+                                                       const TraitCatalogBase<TraitDataSink> * const apCatalog,
+                                                       const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveWDMMutex * aUpdateMutex,
+                                                       TLVReader & reader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveLogIfFalse(0 == mRefCount);
+
+    // AddRef for the duration of this method
+    _AddRef();
+
+    // add reference to the binding
+    apBinding->AddRef();
+
+    // set subscription id and liveness timeout
+    err = LoadSubscriptionState(reader);
+    SuccessOrExit(err);
+
+    // make a copy of the pointers
+    mBinding                                = apBinding;
+    mAppState                               = apAppState;
+    mEventCallback                          = aEventCallback;
+
+    // Set the protocol callback on the binding object so that the SubscriptionClient gets
+    // notified of changes in the binding's state.
+    mBinding->SetProtocolLayerCallback(BindingEventCallback, this);
+
+    err = _PrepareBinding();
+    SuccessOrExit(err);
+
+    if (NULL == apCatalog)
+    {
+        mDataSinkCatalog = NULL;
+    }
+    else
+    {
+        mDataSinkCatalog = const_cast <TraitCatalogBase<TraitDataSink>*>(apCatalog);
+    }
+
+    mInactivityTimeoutDuringSubscribingMsec = aInactivityTimeoutDuringSubscribingMsec;
+
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    mUpdateMutex                            = aUpdateMutex;
+    mUpdateInFlight                         = false;
+    mMaxUpdateSize                          = 0;
+
+    err = mUpdateClient.Init(mBinding, this, UpdateEventCallback);
+    SuccessOrExit(err);
+
+    ConfigureUpdatableSinks();
+
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
+    // Hold this instance until we clear the protocol state machine
+    _AddRef();
+    MoveToState(kState_SubscriptionEstablished_Idle);
+
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
+
+    {
+        InEventParam inParam;
+        OutEventParam outParam;
+
+        // Emit an OnSubscriptionActivity event to the application.
+        inParam.mSubscriptionActivity.mClient = this;
+        mEventCallback(mAppState, kEvent_OnSubscriptionActivity, inParam, outParam);
+
+        // Emit an OnSubscriptionEstablished event to the application.
+        // Note that it's allowed to cancel or even abandon this subscription right inside this callback.
+        inParam.mSubscriptionEstablished.mSubscriptionId = mSubscriptionId;
+        inParam.mSubscriptionEstablished.mClient         = this;
+        mEventCallback(mAppState, kEvent_OnSubscriptionEstablished, inParam, outParam);
+    }
+
+exit:
+    _Release();
+    return err;
+}
+
+WEAVE_ERROR SubscriptionClient::SerializeSubscriptionState(TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    TLV::TLVType container;
+
+    err = writer.StartContainer(TLV::AnonymousTag, TLV::kTLVType_Structure, container);
+    SuccessOrExit(err);
+
+    err = writer.Put(TLV::ContextTag(kTag_PersistSubscriptionClient_SubscriptionId), mSubscriptionId);
+    SuccessOrExit(err);
+    err = writer.Put(TLV::ContextTag(kTag_PersistSubscriptionClient_LivenessTimeoutMsec), mLivenessTimeoutMsec);
+    SuccessOrExit(err);
+
+    err = writer.EndContainer(container);
+    SuccessOrExit(err);
+
+exit:
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Serialize persistent subscription data for subscription client error: %d", err);
+    }
+    return err;
+}
+
+WEAVE_ERROR SubscriptionClient::LoadSubscriptionState(TLVReader & reader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    TLV::TLVType container;
+
+    err = reader.Next(TLV::kTLVType_Structure, TLV::AnonymousTag);
+    SuccessOrExit(err);
+    err = reader.EnterContainer(container);
+    SuccessOrExit(err);
+
+    err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistSubscriptionClient_SubscriptionId));
+    SuccessOrExit(err);
+    err = reader.Get(mSubscriptionId);
+    SuccessOrExit(err);
+
+    err = reader.Next(TLV::kTLVType_UnsignedInteger, TLV::ContextTag(kTag_PersistSubscriptionClient_LivenessTimeoutMsec));
+    SuccessOrExit(err);
+    err = reader.Get(mLivenessTimeoutMsec);
+    SuccessOrExit(err);
+
+    err = reader.ExitContainer(container);
+    SuccessOrExit(err);
+
+
+exit:
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DataManagement, "Load persistent subscription data for subscription client error: %d", err);
+    }
+    return err;
+}
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+
 #if WEAVE_DETAIL_LOGGING
 const char * SubscriptionClient::GetStateStr() const
 {
