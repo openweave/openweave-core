@@ -248,15 +248,21 @@ exit:
     if (_mWeaveCppDM) {
         WDM_LOG_ERROR(@"Shutdown C++ Weave Device Manager");
 
-        if (_blePeripheral) {
-            // this is a hack to avoid further callback from BleLayer after closign
-            [[[NLWeaveStack sharedStack] BleDelegate] forceBleDisconnect_Sync:_blePeripheral];
-        }
-
         _mWeaveCppDM->Shutdown();
 
         delete _mWeaveCppDM;
         _mWeaveCppDM = NULL;
+
+        if (_blePeripheral)
+        {
+            // autoclose is disabled when running weave connect ble, close ble after woble stack is
+            // destroyed
+            // release reference to the CBPeripheral
+            // since device manager is the only one who holds a strong reference to this peripheral,
+            // releasing it here cause immediate destruction and hence disconnection
+            [[[NLWeaveStack sharedStack] BleDelegate] forceBleDisconnect_Sync:_blePeripheral];
+            _blePeripheral = nil;
+        }
     }
 
     [self DispatchAsyncCompletionBlock:nil];
@@ -299,20 +305,21 @@ exit:
         }
 
         if (IsOKay) {
-            if (_blePeripheral) {
-                // this is a hack to avoid further callback from BleLayer after closign
-                [[[NLWeaveStack sharedStack] BleDelegate] forceBleDisconnect_Sync:_blePeripheral];
+            // Note that we're already in Weave work queue, which means all callbacks for the previous or current request
+            // has either happened/completed or would be canceled by this call to Close. Therefore, it should be safe
+            // to wipe out request context variables like _mRequestName and _mCompletionHandler.
 
+            _mWeaveCppDM->Close();
+
+            if (_blePeripheral) {
+                [[[NLWeaveStack sharedStack] BleDelegate] forceBleDisconnect_Sync:_blePeripheral];
+                // autoclose is disabled when running weave connect ble, close ble after woble stack is
+                // destroyed
                 // release reference to the CBPeripheral
                 // since device manager is the only one who holds a strong reference to this peripheral,
                 // releasing it here cause immediate destruction and hence disconnection
                 _blePeripheral = nil;
             }
-
-            // Note that we're already in Weave work queue, which means all callbacks for the previous or current request
-            // has either happened/completed or would be canceled by this call to Close. Therefore, it should be safe
-            // to wipe out request context variables like _mRequestName and _mCompletionHandler.
-            _mWeaveCppDM->Close();
 
             _mRequestName = taskName;
             _mCompletionHandler = completionHandler;
