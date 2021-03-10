@@ -241,6 +241,11 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
  */
     void StopAndReconnectTunnelConn(ReconnectParam & reconnParam);
 
+
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    void SetConnectionRepairInfoCallback(nl::Weave::WeaveConnection::ConnectionRepairInfoGetterFunct aGetConnectionRepairInfo, void *repairCtxt);
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+
 /**
  * Get a pointer to the Weave Tunnel Connection object for this
  * Tunnel Connection Manager.
@@ -261,6 +266,7 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
     void ReleaseResourcesAndStopTunnelConn(WEAVE_ERROR err);
     WEAVE_ERROR ResetReconnectBackoff(bool reconnectImmediately);
     static void ServiceConnectTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
+    WEAVE_ERROR AllocateAndPrepTunnelConnection(WeaveConnection **con);
 #if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
     void StartLivenessTimer(void);
     void StopLivenessTimer(void);
@@ -274,6 +280,11 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
     void ReStartOnlineCheck(void);
     static void OnlineCheckTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
     void HandleOnlineCheckResult(bool isOnline);
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    WEAVE_ERROR AttemptRepairTunnelConnection(uint64_t peerNodeId, WeaveAuthMode aAuthMode,
+                                              nl::Inet::InterfaceId aConnIntfId = INET_NULL_INTERFACEID);
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+
     // Pointer to a Weave Tunnel Agent object.
 
     WeaveTunnelAgent *mTunAgent;
@@ -348,6 +359,10 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
     // over the network.
 
     uint16_t mOnlineCheckInterval;
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    nl::Weave::WeaveConnection::ConnectionRepairInfoGetterFunct mConnRepairInfoGet;
+    void *mConnRepairCtxt; // A pointer to an application-specific context object used for repair info retrieval.
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
 };
 
 } // namespace WeaveTunnel

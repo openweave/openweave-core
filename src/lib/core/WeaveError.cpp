@@ -233,6 +233,7 @@ bool FormatWeaveError(char * buf, uint16_t bufSize, int32_t err)
     case WEAVE_ERROR_UNSUPPORTED_WIRELESS_REGULATORY_DOMAIN     : desc = "Unsupported wireless regulatory domain"; break;
     case WEAVE_ERROR_UNSUPPORTED_WIRELESS_OPERATING_LOCATION    : desc = "Unsupported wireless operating location"; break;
     case WEAVE_ERROR_WDM_EVENT_TOO_BIG                          : desc = "The WDM Event is too big to be successfully transmitted to a peer node"; break;
+    case WEAVE_ERROR_CONNECTION_REPAIR_FAILED                   : desc = "Failed to repair the TCP connection using application supplied repair info"; break;
     }
 #endif // !WEAVE_CONFIG_SHORT_ERROR_STR
 

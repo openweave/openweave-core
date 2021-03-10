@@ -963,9 +963,14 @@ WEAVE_ERROR WeaveFabricState::RestoreSession(uint8_t * serializedSession, uint16
         WeaveLogDetail(MessageLayer, "Prev Next MsgId:%016" PRIX64 "\n", sessionKey->NextMsgId.GetValue());
         WeaveLogDetail(MessageLayer, "Prev MaxRcvMsgId:%016" PRIX64 "\n", sessionKey->MaxRcvdMsgId);
 
-        // Assign resumption message ids to the session key
-        sessionKey->NextMsgId.Init(sessionKey->ResumptionSendMsgId);
-        sessionKey->MaxRcvdMsgId = sessionKey->ResumptionRecvMsgId;
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+        if (con && !con->IsRepaired)
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+        {
+            // Assign resumption message ids to the session key
+            sessionKey->NextMsgId.Init(sessionKey->ResumptionSendMsgId);
+            sessionKey->MaxRcvdMsgId = sessionKey->ResumptionRecvMsgId;
+        }
 
         WeaveLogDetail(MessageLayer, "New Next MsgId:%016" PRIX64 "\n", sessionKey->NextMsgId.GetValue());
         WeaveLogDetail(MessageLayer, "New MaxRcvMsgId:%016" PRIX64 "\n", sessionKey->MaxRcvdMsgId);

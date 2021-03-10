@@ -38,8 +38,12 @@
 #include <Weave/Support/CodeUtils.h>
 
 #include <SystemLayer/SystemStats.h>
+#include <SystemLayer/SystemTimer.h>
 #include <InetLayer/InetLayer.h>
 
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+#define CONN_REPAIR_APP_CALLBACK_DELAY_MSECS                    (1)
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
 
 namespace nl {
 namespace Weave {
@@ -1243,6 +1247,84 @@ void WeaveConnection::StartSession()
     }
 }
 
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+void WeaveConnection::AppCallbackAfterConnectionRepair(System::Layer* aSystemLayer, void* aAppState, System::Error aError)
+{
+    WeaveConnection* con = static_cast<WeaveConnection*>(aAppState);
+
+    con->mTcpEndPoint->OnConnectComplete(con->mTcpEndPoint, INET_NO_ERROR);
+}
+
+/**
+ *  Attempt to repair the TCP connection using a given TCP RepairInfo.
+ *
+ *  @param[in]    peerNodeId      NodeId of the peer with which to repair TCP
+ *                                connection.
+ *
+ *  @param[in]    repairInfo      A reference to the TCP Connection repair info.
+ *
+ *  @param[in]    intf            InterfaceId over which the connection is
+ *                                expected to be made.
+ *
+ *  @note
+ *   The TCP connection restoration can only be attempted from the client side.
+ *   Upon failure to restore, the client would fall back to establishing a
+ *   negotiated TCP connection.
+ *
+ */
+WEAVE_ERROR WeaveConnection::TryConnectionRepair(uint64_t peerNodeId, const TCPConnRepairInfo &repairInfo, InterfaceId intf)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // Allocate a new TCP end point.
+    err = MessageLayer->Inet->NewTCPEndPoint(&mTcpEndPoint);
+    SuccessOrExit(err);
+
+    mTcpEndPoint->AppState = this;
+    mTcpEndPoint->OnConnectComplete = HandleConnectComplete;
+
+    mRefCount++;
+
+    State = kState_Connecting;
+
+    WeaveLogProgress(MessageLayer, "Trying to repair connection to node %" PRIx64 "", peerNodeId);
+
+    // Call into TCPEndPoint to repair the TCP connection with the fetched
+    // repair info.
+    err = mTcpEndPoint->RepairConnection(repairInfo, intf);
+    SuccessOrExit(err);
+
+    WeaveLogProgress(MessageLayer, "Connection successfully repaired");
+
+    // Set the connection variables
+    PeerAddr = repairInfo.dstIP;
+    PeerNodeId = peerNodeId;
+    PeerPort = repairInfo.dstPort;
+    IsRepaired = true;
+
+    // After repairing connection, set an immediate timer to call the OnConnectComplete callback.
+    // This is necessary to allow the call stack to unwind and also prevent the
+    // caller of this function to inadvertently change state variables after the
+    // application has been called back.
+    MessageLayer->SystemLayer->StartTimer(CONN_REPAIR_APP_CALLBACK_DELAY_MSECS, AppCallbackAfterConnectionRepair, this);
+
+exit:
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogProgress(MessageLayer, "Failed to repair connection to node %" PRIx64 ", err = %ld" , peerNodeId, (long)err);
+        if (mTcpEndPoint != NULL)
+        {
+            mTcpEndPoint->Abort();
+            mTcpEndPoint->Free();
+            mTcpEndPoint = NULL;
+        }
+    }
+
+    return err;
+}
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+
 WEAVE_ERROR WeaveConnection::StartConnect()
 {
     WEAVE_ERROR err;
@@ -1355,7 +1437,6 @@ void WeaveConnection::HandleConnectComplete(TCPEndPoint *endPoint, INET_ERROR co
 
             return;
         }
-
 
         // Negotiate secure session (or not) based on AuthMode.
         con->StartSession();
@@ -1675,6 +1756,10 @@ void WeaveConnection::Init(WeaveMessageLayer *msgLayer)
 #if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     mDNSOptions = 0;
 #endif
+
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    IsRepaired = false;
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
     mFlags = 0;
 }
 

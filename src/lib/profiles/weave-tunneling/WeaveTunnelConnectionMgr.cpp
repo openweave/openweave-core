@@ -31,6 +31,10 @@
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelCommon.h>
 
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+#include <Weave/Core/WeaveMessageLayer.h>
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Support/RandUtils.h>
 #include <Weave/Support/FibonacciUtils.h>
@@ -131,6 +135,11 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::Init(WeaveTunnelAgent *tunAgent,
 #if WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
     mMaxNumProbes                     = WEAVE_CONFIG_TUNNEL_MAX_KEEPALIVE_PROBES;
 #endif // WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
+
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    mConnRepairInfoGet = NULL;
+    mConnRepairCtxt = NULL;
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
 
     // Initialize WeaveTunnelControl
 
@@ -277,6 +286,99 @@ void WeaveTunnelConnectionMgr::SetCallbacksForPersistedTunnelConnection(Persiste
 }
 #endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 
+WEAVE_ERROR WeaveTunnelConnectionMgr::AllocateAndPrepTunnelConnection(WeaveConnection **outCon)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (mServiceCon != NULL && mConnectionState == kState_NotConnected)
+    {
+        // Remove previous connection(currently closed)
+
+        mServiceCon->Close();
+        mServiceCon = NULL;
+    }
+
+    // Do nothing if a connect attempt is already in progress.
+
+    VerifyOrExit(mServiceCon == NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    // Create a new WeaveConnection object
+
+    *outCon = mTunAgent->mExchangeMgr->MessageLayer->NewConnection();
+
+    VerifyOrExit(*outCon != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    // Setup connection handlers
+
+    (*outCon)->OnConnectionComplete = HandleServiceConnectionComplete;
+
+    // Set app state to WeaveTunnelConnectionMgr
+
+    (*outCon)->AppState = this;
+
+    // Set the connection timeout
+
+    (*outCon)->SetConnectTimeout(WEAVE_CONFIG_TUNNEL_CONNECT_TIMEOUT_SECS * nl::Weave::System::kTimerFactor_milli_per_unit);
+
+exit:
+
+    return err;
+}
+
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+void WeaveTunnelConnectionMgr::SetConnectionRepairInfoCallback(nl::Weave::WeaveConnection::ConnectionRepairInfoGetterFunct aGetConnectionRepairInfo,
+                                                               void *repairCtxt)
+{
+    WeaveLogDetail(WeaveTunnel, "%s Setting Connection RepairInfo callback", __func__);
+
+    mConnRepairInfoGet = aGetConnectionRepairInfo;
+    mConnRepairCtxt = repairCtxt;
+}
+
+WEAVE_ERROR WeaveTunnelConnectionMgr::AttemptRepairTunnelConnection(uint64_t aPeerNodeId,
+                                                                    WeaveAuthMode aAuthMode,
+                                                                    nl::Inet::InterfaceId aConnIntfId)
+{
+
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TCPConnRepairInfo repairInfo;
+    WeaveConnection *newCon = NULL;
+    // The AuthMode has to be UnAuthenticated because after the TCP repair, the Tunnel CASE session
+    // would also have to be restored without negotiating it with the peer.
+    VerifyOrExit(aAuthMode == kWeaveAuthMode_Unauthenticated, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    // Get Repair Info for restoring the TCP connection.
+    VerifyOrExit(mConnRepairInfoGet != NULL, err = WEAVE_ERROR_CONNECTION_REPAIR_FAILED);
+
+    err = mConnRepairInfoGet(aPeerNodeId, IPAddress::Any, WEAVE_PORT, &repairInfo, mConnRepairCtxt);
+    SuccessOrExit(err);
+
+    WeaveLogProgress(WeaveTunnel, "TCP connection repair info fetched");
+
+    err = AllocateAndPrepTunnelConnection(&newCon);
+    SuccessOrExit(err);
+
+    newCon->AuthMode = aAuthMode;
+
+    err = newCon->TryConnectionRepair(aPeerNodeId, repairInfo, aConnIntfId);
+    SuccessOrExit(err);
+
+    mServiceCon = newCon;
+
+exit:
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        if (newCon != NULL)
+        {
+            newCon->Abort();
+            newCon = NULL;
+        }
+    }
+
+    return err;
+}
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
 /**
  * Try to establish a connecttion to the Service either using
  * ServiceManager or directly
@@ -311,48 +413,60 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::TryConnectingNow(void)
     {
         if (IsPersistedTunnelSessionPresent(kServiceEndpoint_WeaveTunneling))
         {
+            WeaveLogDetail(WeaveTunnel, "Persisted Tunnel CASE session exists. Setting AuthMode to UnAuthenticated for initial connection");
             currentAuthMode = kWeaveAuthMode_Unauthenticated;
         }
     }
 #endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 
-#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-    // Initiate TCP connection with Service.
-
-    if (mTunAgent->mServiceMgr)
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    err = AttemptRepairTunnelConnection(mTunAgent->mPeerNodeId, currentAuthMode, connIntfId);
+    if (err == WEAVE_NO_ERROR)
     {
-        err = mTunAgent->mServiceMgr->connect(mTunAgent->mPeerNodeId,
-                                              currentAuthMode, this,
-                                              ServiceMgrStatusHandler,
-                                              HandleServiceConnectionComplete,
-                                              WEAVE_CONFIG_TUNNEL_CONNECT_TIMEOUT_SECS * nl::Weave::System::kTimerFactor_milli_per_unit,
-                                              connIntfId);
+        ExitNow();
     }
     else
-#endif
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
     {
-        err = StartServiceTunnelConn(mTunAgent->mPeerNodeId,
-                                     mTunAgent->mServiceAddress,
-                                     mTunAgent->mServicePort,
-                                     currentAuthMode,
-                                     connIntfId);
-    }
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+         WeaveLogDetail(WeaveTunnel, "Attempting regular connection method via ServiceDirectory");
+        // Initiate TCP connection with Service.
 
-    SuccessOrExit(err);
+        if (mTunAgent->mServiceMgr)
+        {
+            err = mTunAgent->mServiceMgr->connect(mTunAgent->mPeerNodeId,
+                                                  currentAuthMode, this,
+                                                  ServiceMgrStatusHandler,
+                                                  HandleServiceConnectionComplete,
+                                                  WEAVE_CONFIG_TUNNEL_CONNECT_TIMEOUT_SECS * nl::Weave::System::kTimerFactor_milli_per_unit,
+                                                  connIntfId);
+        }
+        else
+#endif
+        {
+            err = StartServiceTunnelConn(mTunAgent->mPeerNodeId,
+                                         mTunAgent->mServiceAddress,
+                                         mTunAgent->mServicePort,
+                                         currentAuthMode,
+                                         connIntfId);
+        }
 
-    // Change the connection state to connecting.
+        SuccessOrExit(err);
 
-    mConnectionState = kState_Connecting;
+        // Change the connection state to connecting.
+
+        mConnectionState = kState_Connecting;
 
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
-    // Update tunnel statistics
-    tunStats = mTunAgent->GetCommonTunnelStatistics(mTunType);
+        // Update tunnel statistics
+        tunStats = mTunAgent->GetCommonTunnelStatistics(mTunType);
 
-    if (tunStats != NULL)
-    {
-        tunStats->mTunnelConnAttemptCount++;
-    }
+        if (tunStats != NULL)
+        {
+            tunStats->mTunnelConnAttemptCount++;
+        }
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
+    }
 exit:
     return err;
 }
@@ -514,36 +628,8 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::StartServiceTunnelConn(uint64_t destNodeId
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    if (mServiceCon != NULL && mConnectionState == kState_NotConnected)
-    {
-        // Remove previous connection(currently closed)
-
-        mServiceCon->Close();
-        mServiceCon = NULL;
-    }
-
-    // Do nothing if a connect attempt is already in progress.
-
-    VerifyOrExit(mServiceCon == NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-    // Create a new WeaveConnection object
-
-    mServiceCon = mTunAgent->mExchangeMgr->MessageLayer->NewConnection();
-
-    VerifyOrExit(mServiceCon != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-    // Setup connection handlers
-
-    mServiceCon->OnConnectionComplete = HandleServiceConnectionComplete;
-
-
-    // Set app state to WeaveTunnelConnectionMgr
-
-    mServiceCon->AppState = this;
-
-    // Set the connection timeout
-
-    mServiceCon->SetConnectTimeout(WEAVE_CONFIG_TUNNEL_CONNECT_TIMEOUT_SECS * nl::Weave::System::kTimerFactor_milli_per_unit);
+    err = AllocateAndPrepTunnelConnection(&mServiceCon);
+    SuccessOrExit(err);
 
     err = mServiceCon->Connect(destNodeId, authMode, destIPAddr, destPort, connIntfId);
 
@@ -769,6 +855,10 @@ void WeaveTunnelConnectionMgr::HandleServiceConnectionComplete(WeaveConnection *
 
     SuccessOrExit(conErr);
 
+    // Set state variables to indicate successful connection.
+
+    tConnMgr->mConnectionState = kState_ConnectionEstablished;
+
     WeaveLogDetail(WeaveTunnel, "Connection established to node %" PRIx64 " (%s) on %s tunnel\n",
                    con->PeerNodeId, ipAddrStr, tConnMgr->mTunType == kType_TunnelPrimary?"primary":"backup");
 
@@ -803,52 +893,79 @@ void WeaveTunnelConnectionMgr::HandleServiceConnectionComplete(WeaveConnection *
         routePriority = WeaveTunnelRoute::kRoutePriority_Low;
     }
 
-    // Create tunnel route for Service and send Tunnel control message.
-
-    tunRoute = WeaveTunnelRoute();
-    globalId = WeaveFabricIdToIPv6GlobalId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->FabricId);
-    if (tConnMgr->mTunAgent->mRole == kClientRole_BorderGateway)
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    // If underlying TCP connection was repaired, then no need to send TunnelOpen
+    // but, instead, signal up that Tunnel is established.
+    if (tConnMgr->mServiceCon->IsRepaired)
     {
-        tunRoute.tunnelRoutePrefix[0].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_ThreadMesh, 0);
-        tunRoute.tunnelRoutePrefix[0].Length = NL_INET_IPV6_DEFAULT_PREFIX_LEN;
-        tunRoute.tunnelRoutePrefix[1].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_PrimaryWiFi, 0);
-        tunRoute.tunnelRoutePrefix[1].Length = NL_INET_IPV6_DEFAULT_PREFIX_LEN;
-        tunRoute.tunnelRoutePrefix[2].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_PrimaryWiFi,
-                                                           WeaveNodeIdToIPv6InterfaceId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->LocalNodeId));
-        tunRoute.tunnelRoutePrefix[2].Length = NL_INET_IPV6_MAX_PREFIX_LEN;
-        tunRoute.tunnelRoutePrefix[3].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_ThreadMesh,
-                                                           WeaveNodeIdToIPv6InterfaceId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->LocalNodeId));
-        tunRoute.tunnelRoutePrefix[3].Length = NL_INET_IPV6_MAX_PREFIX_LEN;
-        tunRoute.priority[0] = tunRoute.priority[1] = tunRoute.priority[2] = tunRoute.priority[3] = routePriority;
-        tunRoute.numOfPrefixes = 4;
+        WeaveLogDetail(WeaveTunnel, "Connection repaired: Setting state to kState_TunnelOpen");
+
+        tConnMgr->mConnectionState = kState_TunnelOpen;
+
+        tConnMgr->mTunFailedConnAttemptsInRow = 0;
+        tConnMgr->mTunReconnectFibonacciIndex = 0;
+        tConnMgr->mIsNetworkOnline = true;
+
+        // Stop the online check if it is running since tunnel is established.
+
+        tConnMgr->StopOnlineCheck();
+
+#if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
+        // Start the Tunnel Liveness timer
+
+        tConnMgr->StartLivenessTimer();
+#endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
+
+       // Call the TunnelOpen post processing function.
+
+       tConnMgr->mTunAgent->WeaveTunnelConnectionUp(NULL, tConnMgr, tConnMgr->mTunAgent->mRole != kClientRole_BorderGateway);
     }
-    else if (tConnMgr->mTunAgent->mRole == kClientRole_MobileDevice)
+    else
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
     {
-        tunRoute.tunnelRoutePrefix[0].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_MobileDevice,
-                                                           WeaveNodeIdToIPv6InterfaceId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->LocalNodeId));
-        tunRoute.tunnelRoutePrefix[0].Length = NL_INET_IPV6_MAX_PREFIX_LEN;
-        tunRoute.priority[0] = routePriority;
-        tunRoute.numOfPrefixes = 1;
+        // Create tunnel route for Service and send Tunnel control message.
 
+        tunRoute = WeaveTunnelRoute();
+        globalId = WeaveFabricIdToIPv6GlobalId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->FabricId);
+        if (tConnMgr->mTunAgent->mRole == kClientRole_BorderGateway)
+        {
+            tunRoute.tunnelRoutePrefix[0].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_ThreadMesh, 0);
+            tunRoute.tunnelRoutePrefix[0].Length = NL_INET_IPV6_DEFAULT_PREFIX_LEN;
+            tunRoute.tunnelRoutePrefix[1].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_PrimaryWiFi, 0);
+            tunRoute.tunnelRoutePrefix[1].Length = NL_INET_IPV6_DEFAULT_PREFIX_LEN;
+            tunRoute.tunnelRoutePrefix[2].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_PrimaryWiFi,
+                                                               WeaveNodeIdToIPv6InterfaceId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->LocalNodeId));
+            tunRoute.tunnelRoutePrefix[2].Length = NL_INET_IPV6_MAX_PREFIX_LEN;
+            tunRoute.tunnelRoutePrefix[3].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_ThreadMesh,
+                                                               WeaveNodeIdToIPv6InterfaceId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->LocalNodeId));
+            tunRoute.tunnelRoutePrefix[3].Length = NL_INET_IPV6_MAX_PREFIX_LEN;
+            tunRoute.priority[0] = tunRoute.priority[1] = tunRoute.priority[2] = tunRoute.priority[3] = routePriority;
+            tunRoute.numOfPrefixes = 4;
+        }
+        else if (tConnMgr->mTunAgent->mRole == kClientRole_MobileDevice)
+        {
+            tunRoute.tunnelRoutePrefix[0].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_MobileDevice,
+                                                               WeaveNodeIdToIPv6InterfaceId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->LocalNodeId));
+            tunRoute.tunnelRoutePrefix[0].Length = NL_INET_IPV6_MAX_PREFIX_LEN;
+            tunRoute.priority[0] = routePriority;
+            tunRoute.numOfPrefixes = 1;
+
+        }
+        else if (tConnMgr->mTunAgent->mRole == kClientRole_StandaloneDevice)
+        {
+            tunRoute.tunnelRoutePrefix[0].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_PrimaryWiFi,
+                                                               WeaveNodeIdToIPv6InterfaceId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->LocalNodeId));
+            tunRoute.tunnelRoutePrefix[0].Length = NL_INET_IPV6_MAX_PREFIX_LEN;
+            tunRoute.tunnelRoutePrefix[1].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_ThreadMesh,
+                                                               WeaveNodeIdToIPv6InterfaceId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->LocalNodeId));
+            tunRoute.tunnelRoutePrefix[1].Length = NL_INET_IPV6_MAX_PREFIX_LEN;
+            tunRoute.priority[0] = tunRoute.priority[1] = routePriority;
+            tunRoute.numOfPrefixes = 2;
+        }
+
+        conErr = tConnMgr->mTunControl.SendTunnelOpen(tConnMgr, &tunRoute);
+        SuccessOrExit(conErr);
     }
-    else if (tConnMgr->mTunAgent->mRole == kClientRole_StandaloneDevice)
-    {
-        tunRoute.tunnelRoutePrefix[0].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_PrimaryWiFi,
-                                                           WeaveNodeIdToIPv6InterfaceId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->LocalNodeId));
-        tunRoute.tunnelRoutePrefix[0].Length = NL_INET_IPV6_MAX_PREFIX_LEN;
-        tunRoute.tunnelRoutePrefix[1].IPAddr = IPAddress::MakeULA(globalId, kWeaveSubnetId_ThreadMesh,
-                                                           WeaveNodeIdToIPv6InterfaceId(tConnMgr->mTunAgent->mExchangeMgr->FabricState->LocalNodeId));
-        tunRoute.tunnelRoutePrefix[1].Length = NL_INET_IPV6_MAX_PREFIX_LEN;
-        tunRoute.priority[0] = tunRoute.priority[1] = routePriority;
-        tunRoute.numOfPrefixes = 2;
-    }
-
-    conErr = tConnMgr->mTunControl.SendTunnelOpen(tConnMgr, &tunRoute);
-    SuccessOrExit(conErr);
-
-    // Set state variables to indicate successful connection.
-
-    tConnMgr->mConnectionState = kState_ConnectionEstablished;
 
 #if WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
     // With the connection established, configure the User timeout on the connection

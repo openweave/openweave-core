@@ -260,6 +260,28 @@ exit:
     return err;
 }
 
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+void WeaveTunnelAgent::SetTunnelConnectionRepairInfoCallback(TunnelType tunType,
+                                                             nl::Weave::WeaveConnection::ConnectionRepairInfoGetterFunct aGetConnectionRepairInfo,
+                                                             void *repairCtxt)
+{
+    switch (tunType)
+    {
+      case kType_TunnelPrimary:
+        mPrimaryTunConnMgr.SetConnectionRepairInfoCallback(aGetConnectionRepairInfo, repairCtxt);
+        break;
+
+#if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+      case kType_TunnelBackup:
+        mBackupTunConnMgr.SetConnectionRepairInfoCallback(aGetConnectionRepairInfo, repairCtxt);
+        break;
+#endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+      default:
+        break;
+    }
+
+}
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
 /**
  * Set the WeaveAuthMode for the Tunnel.
  *
