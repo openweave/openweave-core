@@ -1768,6 +1768,14 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  */
 #define WEAVE_ERROR_WDM_EVENT_TOO_BIG                            _WEAVE_ERROR(186)
 
+/**
+ *  @def WEAVE_ERROR_CONNECTION_REPAIR_FAILED
+ *
+ *  @brief
+ *    The attempt to repair the TCP connection failed.
+ *
+ */
+#define WEAVE_ERROR_CONNECTION_REPAIR_FAILED                     _WEAVE_ERROR(187)
 
 /**
  *  @}

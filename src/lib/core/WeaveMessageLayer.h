@@ -250,6 +250,9 @@ public:
     bool SendDestNodeId;                                /**< True if all messages sent via this connection must include
                                                              an explicitly encoded destination node identifier, false
                                                              otherwise. */
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    bool IsRepaired;                                    /**< True if the connection was repaired, false otherwise. */
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
 
     void AddRef(void);
     void Release(void);
@@ -306,6 +309,34 @@ public:
     uint16_t LogId(void) const { return static_cast<uint16_t>(reinterpret_cast<intptr_t>(this)); }
 
     TCPEndPoint * GetTCPEndPoint(void) const { return mTcpEndPoint; }
+
+
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    /**
+     *  This function is the application callback that is invoked to fetch the TCP connection repair
+     *  parameters.
+     *
+     *
+     *  @param[in]    peerNodeId      NodeId of the peer with which to repair TCP
+     *                                connection.
+     *  @param[in]    destAddr        IP address of the peer with
+     *                                which to repair TCP connection. Defaults to
+     *                                IPAddress::Any.
+     *  @param[in]    destPort        Destination port of the peer connection.
+     *                                Defaults to WEAVE_PORT.
+     *  @param[in]    connRepairInfo  Pointer to the TCP connection repair info
+     *                                object that would be filled in by the
+     *                                callee.
+     *  @param[in]    repairCtxt      pointer to an application-specific context
+     *                                object required for TCP repair info
+     *                                retrieval.
+     *
+     */
+    typedef WEAVE_ERROR (*ConnectionRepairInfoGetterFunct)(uint64_t peerNodeId, IPAddress destAddr,
+                                                           uint16_t destPort, TCPConnRepairInfo *connRepairInfo, void *repairCtxt);
+
+    WEAVE_ERROR TryConnectionRepair(uint64_t peerNodeId, const TCPConnRepairInfo &repairInfo, InterfaceId intf = INET_NULL_INTERFACEID);
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
 
     /**
      *  This function is the application callback that is invoked when a connection setup is complete.
@@ -409,6 +440,9 @@ private:
     void DisconnectOnError(WEAVE_ERROR err);
     WEAVE_ERROR StartConnectToAddressLiteral(const char *peerAddr, size_t peerAddrLen);
 
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    static void AppCallbackAfterConnectionRepair(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
     static void HandleResolveComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray);
     static void HandleConnectComplete(TCPEndPoint *endPoint, INET_ERROR conRes);
     static void HandleDataReceived(TCPEndPoint *endPoint, PacketBuffer *data);

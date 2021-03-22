@@ -726,6 +726,24 @@
 #ifndef INET_CONFIG_IP_MULTICAST_HOP_LIMIT
 #define INET_CONFIG_IP_MULTICAST_HOP_LIMIT                 (64)
 #endif // INET_CONFIG_IP_MULTICAST_HOP_LIMIT
+
+/**
+ * @def INET_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+ *
+ * @brief
+ *   When this flag is enabled, the TCPEndPoint can attempt to
+ *   restore the TCP connection using supplied information from
+ *   a previously active connection.
+ *
+ * @note
+ *   The TCP connection restoration can only be done
+ *   from the client side. Upon failure to restore, the client
+ *   would fall back to establishing a negotiated TCP connection.
+ *
+ */
+#ifndef INET_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+#define INET_CONFIG_TCP_CONN_REPAIR_SUPPORTED              (0)
+#endif // INET_CONFIG_TCP_CONN_REPAIR_SUPPORTED
 // clang-format on
 
 #endif /* INETCONFIG_H */

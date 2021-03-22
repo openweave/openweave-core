@@ -279,6 +279,15 @@ public:
                                                   WeaveTunnelConnectionMgr::LoadPersistedSessionFunct aLoadPersistedTunnelSession);
 #endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 
+#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+/**
+ * Set the callback to get TCP connection repair info
+ */
+    void SetTunnelConnectionRepairInfoCallback(TunnelType tunType,
+                                               nl::Weave::WeaveConnection::ConnectionRepairInfoGetterFunct aGetConnectionRepairInfo,
+                                               void *repairCtxt);
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
 
 /**

@@ -33,10 +33,50 @@
 
 #include <SystemLayer/SystemPacketBuffer.h>
 
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+#include <netinet/tcp.h>
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
 namespace nl {
 namespace Inet {
 
 class InetLayer;
+
+#if INET_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+
+#if (!defined(TCP_REPAIR) || !defined(TCP_REPAIR_QUEUE) || !defined(TCP_REPAIR_OPTIONS) || \
+     !defined(TCPI_OPT_SACK) || !defined(TCPI_OPT_WSCALE) || !defined(TCPI_OPT_TIMESTAMPS) || \
+     !defined(TCPOPT_MAXSEG) || !defined(TCP_REPAIR_WINDOW))
+#error "INET_CONFIG_TCP_CONN_REPAIR_SUPPORTED set but platform does not support TCP REPAIR"
+#endif
+
+typedef struct TCPConnRepairInfo
+{
+    IPAddress srcIP;                     // Source IP address
+    IPAddress dstIP;                     // Destination IP address
+    IPAddressType addrType;              // Address family type
+    uint16_t srcPort;                    // Source port
+    uint16_t dstPort;                    // Destination port
+    uint32_t txSeq;                      // Transmit sequence
+    uint32_t rxSeq;                      // Receive sequence
+    uint32_t sndWl1;                     // Segment seq number for last window update
+    uint32_t sndWnd;                     // Send window
+    uint32_t maxWindow;                  // Max window
+    uint32_t rcvWnd;                     // Receive window
+    uint32_t rcvWup;                     // Last ack number that was sent/
+    uint32_t tsVal;                      // TCP Timestamp
+    uint32_t tsecr;
+    uint16_t mss;                        // Max segment size
+    uint8_t  sndWscale;                  // Send window scale
+    uint8_t  rcvWscale;                  // Receive window scale
+    uint8_t  tcpOptions;                 // TCP options
+
+    bool IsValid (void) const;
+
+    void Dump (void) const;
+
+} TCPConnRepairInfo;
+#endif // INET_CONFIG_TCP_CONN_REPAIR_SUPPORTED
 
 /**
  * @brief   Objects of this class represent TCP transport endpoints.
@@ -396,6 +436,11 @@ public:
      * @return  Returns an opaque unique identifier for use logs.
      */
     uint16_t LogId(void);
+
+#if INET_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    INET_ERROR RepairConnection(const TCPConnRepairInfo &connRepairInfo, InterfaceId intf);
+#endif // INET_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+
 
     /**
      * @brief   Type of connection establishment event handling function.

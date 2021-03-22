@@ -2391,6 +2391,18 @@
 #endif // WEAVE_CONFIG_ENABLE_OFFLOAD_EVENTS_FIRST
 
 /**
+ * @def WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+ *
+ * @brief
+ *   When this option is enabled, Weave will try to restore the TCP connection
+ *   first before attempting to establish a new one.
+ *
+ */
+#ifndef WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+#define WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED            (INET_CONFIG_TCP_CONN_REPAIR_SUPPORTED)
+#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+
+/**
  * @def WEAVE_NON_PRODUCTION_MARKER
  *
  * @brief Defines the name of a mark symbol whose presence signals that the Weave code
