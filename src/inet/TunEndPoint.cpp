@@ -695,6 +695,7 @@ INET_ERROR TunEndPoint::TunDevOpen (const char *intfName)
     {
         //Keep member copy of interface name and Id
         strncpy(tunIntfName, ifr.ifr_name, sizeof(tunIntfName) - 1);
+        tunIntfName[sizeof(tunIntfName) - 1] = '\0';
     }
     else
     {
