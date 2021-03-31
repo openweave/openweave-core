@@ -1299,6 +1299,14 @@ WEAVE_ERROR WeaveConnection::TryConnectionRepair(uint64_t peerNodeId, const TCPC
     // Set the connection variables
     PeerAddr = repairInfo.dstIP;
     PeerNodeId = peerNodeId;
+
+    // If the peer address is not a ULA, or if the interface identifier portion of the peer address does not match
+    // the peer node id, then force the destination node identifier field to be encoded in all sent messages.
+    if (!PeerAddr.IsIPv6ULA() || IPv6InterfaceIdToWeaveNodeId(PeerAddr.InterfaceId()) != PeerNodeId)
+    {
+        SendDestNodeId = true;
+    }
+
     PeerPort = repairInfo.dstPort;
     IsRepaired = true;
 
