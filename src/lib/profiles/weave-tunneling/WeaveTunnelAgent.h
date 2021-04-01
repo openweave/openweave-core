@@ -684,9 +684,9 @@ private:
 
     // Tunnel Control post-processing functions
 
-    void WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
-                                 const WeaveTunnelConnectionMgr *connMgr,
-                                 const bool isRoutingRestricted);
+    void WeaveTunnelUp(const WeaveMessageInfo *msgInfo,
+                       const WeaveTunnelConnectionMgr *connMgr,
+                       const bool isRoutingRestricted);
     void WeaveTunnelConnectionDown(const WeaveTunnelConnectionMgr *connMgr, WEAVE_ERROR conErr);
     void WeaveTunnelServiceReconnectRequested(const WeaveTunnelConnectionMgr *connMgr,
                                               const char *redirectHost, const uint16_t redirectPort);
@@ -706,6 +706,7 @@ private:
                                                 WEAVE_ERROR conErr);
 #endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
     void WeaveTunnelConnectionErrorNotify(const WeaveTunnelConnectionMgr *connMgr, WEAVE_ERROR conErr);
+    void WeaveTunnelConnectionEstablishedNotify(const WeaveTunnelConnectionMgr *connMgr);
 
 #if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
     void RestartTunnelLivenessTimer(TunnelType tunType);
