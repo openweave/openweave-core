@@ -871,6 +871,10 @@ void WeaveTunnelConnectionMgr::HandleServiceConnectionComplete(WeaveConnection *
     tConnMgr->mServiceCon->GetTCPEndPoint()->OnTCPSendIdleChanged = HandleTCPSendIdleChanged;
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
+    // Notify connection establishment
+
+    tConnMgr->mTunAgent->WeaveTunnelConnectionEstablishedNotify(tConnMgr);
+
 #if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
     if (tConnMgr->LoadPersistedTunnelSession)
     {
@@ -918,7 +922,7 @@ void WeaveTunnelConnectionMgr::HandleServiceConnectionComplete(WeaveConnection *
 
        // Call the TunnelOpen post processing function.
 
-       tConnMgr->mTunAgent->WeaveTunnelConnectionUp(NULL, tConnMgr, tConnMgr->mTunAgent->mRole != kClientRole_BorderGateway);
+       tConnMgr->mTunAgent->WeaveTunnelUp(NULL, tConnMgr, tConnMgr->mTunAgent->mRole != kClientRole_BorderGateway);
     }
     else
 #endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED

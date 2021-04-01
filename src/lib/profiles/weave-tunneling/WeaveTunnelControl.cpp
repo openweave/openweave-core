@@ -850,7 +850,7 @@ void WeaveTunnelControl::HandleTunnelOpenResponse(ExchangeContext *ec, const IPP
 
     // Call the TunnelOpen post processing function.
 
-    tunControl->mTunnelAgent->WeaveTunnelConnectionUp(msgInfo, connMgr, isRoutingRestricted);
+    tunControl->mTunnelAgent->WeaveTunnelUp(msgInfo, connMgr, isRoutingRestricted);
 
     // Stop the online check if it is running since tunnel is established.
 

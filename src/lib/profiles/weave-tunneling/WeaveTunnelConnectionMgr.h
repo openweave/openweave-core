@@ -107,7 +107,8 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
         kStatus_TunBackupReconnectRcvd     = 9,   /**< Used to indicate that the Service has requested a reconnect for the Backup Weave tunnel */
         kStatus_TunPrimaryLiveness         = 10,  /**< Used to indicate information about the Tunnel Liveness probe on the Primary Weave tunnel */
         kStatus_TunBackupLiveness          = 11,  /**< Used to indicate information about the Tunnel Liveness probe on the Backup Weave tunnel */
-
+        kStatus_TunPrimaryConnEstablished  = 12,  /**<  Used to indicate that the primary Weave tunnel TCP connection is up */
+        kStatus_TunBackupConnEstablished   = 13,  /**<  Used to indicate that the backup Weave tunnel TCP connection is up */
     } TunnelConnNotifyReasons;
 
     WeaveTunnelConnectionMgr(void);

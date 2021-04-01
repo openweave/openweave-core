@@ -1635,9 +1635,9 @@ void WeaveTunnelAgent::SendQueuedMessages(const WeaveTunnelConnectionMgr *connMg
 /**
  * Post processing function after Tunnel has been opened.
  */
-void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
-                                               const WeaveTunnelConnectionMgr *connMgr,
-                                               const bool isRoutingRestricted)
+void WeaveTunnelAgent::WeaveTunnelUp(const WeaveMessageInfo *msgInfo,
+                                     const WeaveTunnelConnectionMgr *connMgr,
+                                     const bool isRoutingRestricted)
 {
    // Update the Weave Tunnel Agent mode on tunnel establishment.
 
@@ -1739,6 +1739,27 @@ void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
       default:
         break;
     }
+}
+
+/**
+ * Tunnel connection established notifier.
+ */
+void WeaveTunnelAgent::WeaveTunnelConnectionEstablishedNotify(const WeaveTunnelConnectionMgr *connMgr)
+{
+    if (OnServiceTunStatusNotify)
+    {
+        if (connMgr->mTunType == kType_TunnelPrimary)
+        {
+            OnServiceTunStatusNotify(WeaveTunnelConnectionMgr::kStatus_TunPrimaryConnEstablished, WEAVE_NO_ERROR, mAppContext);
+        }
+#if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+        else if (connMgr->mTunType == kType_TunnelBackup)
+        {
+            OnServiceTunStatusNotify(WeaveTunnelConnectionMgr::kStatus_TunBackupConnEstablished, WEAVE_NO_ERROR, mAppContext);
+        }
+#endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+    }
+
 }
 
 /**
