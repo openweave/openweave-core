@@ -1221,7 +1221,7 @@ WEAVE_ERROR WeaveTunnelAgent::SendMessageUponPktTransitAnalysis(const WeaveTunne
     if (OnTunneledPacketTransit)
     {
         // Skip the Tunnel header and send the IP packet.
-        OnTunneledPacketTransit(*msg, pktDir, tunType, dropPacket);
+        OnTunneledPacketTransit(*msg, pktDir, tunType, dropPacket, mAppContext);
     }
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
 
@@ -1350,7 +1350,7 @@ WEAVE_ERROR WeaveTunnelAgent::DecideAndSendShortcutOrRemoteTunnel(uint64_t peerI
         if (OnTunneledPacketTransit)
         {
             // Skip the Tunnel header and send the IP packet.
-            OnTunneledPacketTransit(*msg, kDir_Outbound, kType_TunnelShortcut, dropPacket);
+            OnTunneledPacketTransit(*msg, kDir_Outbound, kType_TunnelShortcut, dropPacket, mAppContext);
         }
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
 
@@ -1413,7 +1413,7 @@ WEAVE_ERROR WeaveTunnelAgent::HandleTunneledReceive(PacketBuffer *msg, TunnelTyp
 #if WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
     if (OnTunneledPacketTransit)
     {
-        OnTunneledPacketTransit(*msg, kDir_Inbound, tunType, dropPacket);
+        OnTunneledPacketTransit(*msg, kDir_Inbound, tunType, dropPacket, mAppContext);
     }
 
     if (dropPacket)

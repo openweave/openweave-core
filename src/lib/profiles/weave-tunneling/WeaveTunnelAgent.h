@@ -506,7 +506,8 @@ public:
  */
     typedef void (*OnPacketTransitFunct)(const PacketBuffer &pkt,
                                          nl::Weave::Profiles::WeaveTunnel::TunnelPktDirection direction,
-                                         nl::Weave::Profiles::WeaveTunnel::TunnelType type, bool &toDrop);
+                                         nl::Weave::Profiles::WeaveTunnel::TunnelType type, bool &toDrop,
+                                         void *appCtxt);
 
     OnPacketTransitFunct OnTunneledPacketTransit;
 

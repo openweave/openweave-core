@@ -250,7 +250,7 @@ bool HandleNonOptionArgs(const char *progName, int argc, char *argv[])
 }
 
 #if WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
-void TunneledPacketTransitHandler(const PacketBuffer &pkt, TunnelPktDirection pktDir, TunnelType tunnelType, bool &toDrop)
+void TunneledPacketTransitHandler(const PacketBuffer &pkt, TunnelPktDirection pktDir, TunnelType tunnelType, bool &toDrop, void *appCtxt)
 {
     DecodedIPPacket decodedPkt;
     char InOrOut[9];
