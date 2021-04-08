@@ -533,6 +533,9 @@ INET_ERROR TCPEndPoint::RepairConnection(const TCPConnRepairInfo &connRepairInfo
 
     mAddrType = connRepairInfo.addrType;
 
+    // Bump the ref count on the TCPEndPoint after repairing the socket.
+    Retain();
+
     // Mark state as Connected
     State = kState_Connected;
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
