@@ -643,17 +643,9 @@ void WeaveTunnelConnectionMgr::StopServiceTunnelConn(WEAVE_ERROR err)
     // Close connection to the Service
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-
-#if WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
-    // If underlying TCP connection was repaired, then no need to invoke Service
-    // Manager.
-    if (!mServiceCon->IsRepaired)
-#endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
+    if (mTunAgent->mServiceMgr)
     {
-        if (mTunAgent->mServiceMgr)
-        {
-            mTunAgent->mServiceMgr->cancel(mTunAgent->mPeerNodeId, this);
-        }
+        mTunAgent->mServiceMgr->cancel(mTunAgent->mPeerNodeId, this);
     }
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 
