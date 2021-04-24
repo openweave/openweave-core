@@ -1964,14 +1964,6 @@ WEAVE_ERROR SubscriptionHandler::LoadTraitInstances(TLVReader & reader)
             // mNumTraitInstanceList has already be incremented
             mTraitInstanceList = traitInstance;
         }
-
-        // TODO (didis) Check if data source is persisted, set to dirty if trait data changed from persisted data
-        WeaveLogDetail(DataManagement, "Handler[%u] Syncing is requested for trait[%u].path[%u]",
-                       SubscriptionEngine::GetInstance()->GetHandlerId(this), traitDataHandle, kRootPropertyPathHandle);
-        err = SubscriptionEngine::GetInstance()->mPublisherCatalog->Locate(traitDataHandle, &dataSource);
-        SuccessOrExit(err);
-        dataSource->SetRootDirty();
-        traitInstance->SetDirty();
     }
 
     if (err != WEAVE_END_OF_TLV)
