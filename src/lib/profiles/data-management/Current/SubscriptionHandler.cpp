@@ -1785,7 +1785,6 @@ WEAVE_ERROR SubscriptionHandler::LoadFromPersistedState(Binding * const apBindin
 
     // Capture the binding and arrange to receive event callbacks.
     mBinding->AddRef();
-    mBinding->SetProtocolLayerCallback(BindingEventCallback, this);
 
     mBytesOffloaded = 0;
 
