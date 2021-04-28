@@ -863,6 +863,9 @@ void SubscriptionClient::InitiateSubscription(void)
 {
     mConfig = kConfig_Initiator;
 
+    // Make double sure the protocol callback is set on the binding object
+    mBinding->SetProtocolLayerCallback(BindingEventCallback, this);
+
     if (IsRetryEnabled())
     {
         if (false == mBinding->IsPreparing())
