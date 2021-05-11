@@ -1303,7 +1303,7 @@ WEAVE_ERROR NotificationEngine::BuildSingleNotifyRequestEventList(SubscriptionHa
                 if (!aNeWriteInProgress)
                 {
                     aSubHandler->mSelfVendedEvents[i]++;
-                    WeaveLogDetail(DataManagement, "<NE:Run> trait event is too big so that it fails to fit in the packet!");
+                    WeaveLogProgress(DataManagement, "<NE:Run> trait event is too big so that it fails to fit in the packet!");
                     err = WEAVE_NO_ERROR;
                 }
                 else
@@ -1445,13 +1445,13 @@ WEAVE_ERROR NotificationEngine::BuildSingleNotifyRequestDataList(SubscriptionHan
 
             if (packetIsFull)
             {
-                WeaveLogDetail(DataManagement, "<NE:Run> Packet got full!");
+                WeaveLogProgress(DataManagement, "<NE:Run> Packet got full!");
                 // Restore the writer
                 aNotifyRequest.Rollback(writerCpy);
                 // when first trait property is too big to fit in the packet, ignore that trait property.
                 if (!aNeWriteInProgress)
                 {
-                    WeaveLogDetail(DataManagement, "<NE:Run> trait property is too big so that it fails to fit in the packet");
+                    WeaveLogProgress(DataManagement, "<NE:Run> trait property is too big so that it fails to fit in the packet");
                     traitInfo->ClearDirty();
                 }
                 else
