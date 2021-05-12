@@ -1373,7 +1373,7 @@ static void BindingEventCallback (void * const apAppState, const nl::Weave::Bind
 
         case nl::Weave::Binding::kEvent_DefaultCheck:
             WeaveLogDetail(DeviceManager, "kEvent_DefaultCheck");
-            // fall through
+            [[fallthrough]];
         default:
             nl::Weave::Binding::DefaultEventHandler(apAppState, aEvent, aInParam, aOutParam);
     }

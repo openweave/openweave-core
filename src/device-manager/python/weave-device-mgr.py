@@ -41,8 +41,8 @@ import struct
 from copy import copy
 from cmd import Cmd
 
-from Cryptodome.Hash import CMAC
-from Cryptodome.Cipher import AES
+from cryptography.hazmat.primitives import cmac
+from cryptography.hazmat.primitives.ciphers import algorithms
 from six.moves import range
 from six.moves import zip
 
@@ -148,9 +148,9 @@ def DecodeHexIntOption(option, opt, value):
 
 
 def aes_cmac(key, message):
-    cipher = CMAC.new(key, ciphermod=AES)
+    cipher = cmac.CMAC.new(algorithms.AES(key))
     cipher.update(message)
-    return cipher.digest()
+    return cipher.finalize()
 
 
 #see RFC-4615
@@ -2602,3 +2602,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
