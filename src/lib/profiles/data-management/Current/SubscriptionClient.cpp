@@ -576,6 +576,9 @@ WEAVE_ERROR SubscriptionClient::_PrepareBinding()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    // Make double sure the protocol callback is set on the binding object
+    mBinding->SetProtocolLayerCallback(BindingEventCallback, this);
+
     WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
                    GetStateStr(), __func__, mRefCount);
     _AddRef();
@@ -862,9 +865,6 @@ exit:
 void SubscriptionClient::InitiateSubscription(void)
 {
     mConfig = kConfig_Initiator;
-
-    // Make double sure the protocol callback is set on the binding object
-    mBinding->SetProtocolLayerCallback(BindingEventCallback, this);
 
     if (IsRetryEnabled())
     {
