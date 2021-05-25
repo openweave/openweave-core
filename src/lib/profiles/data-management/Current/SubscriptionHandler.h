@@ -351,6 +351,7 @@ private:
 
 #if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
     void UpdateDeliveredEvents(ImportanceType importance);
+    bool DeliveredEventsExist(ImportanceType importance);
 #endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 
     static void BindingEventCallback(void * const apAppState, const Binding::EventType aEvent,

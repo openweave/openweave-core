@@ -509,14 +509,27 @@ WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequest::Pa
                     (static_cast<uint32_t>(importance) >= static_cast<uint32_t>(kImportanceType_First)) &&
                     (static_cast<uint32_t>(importance) <= static_cast<uint32_t>(kImportanceType_Last)))
                 {
-                    // We add one to the observed event ID because
-                    // mSelfVendedEvents should point to the next event ID that
-                    // we publish. Otherwise, we would publish an event that
-                    // the subscriber already received.
                     uint32_t i = static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First);
-                    WeaveLogProgress(DataManagement, "Update mSelfVendedEvents[%d] from %d to %d using service data",
-                                     i, mSelfVendedEvents[i], eventId + 1);
-                    mSelfVendedEvents[i] = static_cast<event_id_t>(eventId + 1);
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+                    if (DeliveredEventsExist((ImportanceType) importance))
+                    {
+                        WeaveLogProgress(DataManagement, "Update mSelfVendedEvents[%d] from %d to %d using device data",
+                                         i, mSelfVendedEvents[i], 1 + mDeliveredEvents[i]);
+                        mSelfVendedEvents[i] = 1 + mDeliveredEvents[i];
+                    }
+                    else
+                    {
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+                        // We add one to the observed event ID because
+                        // mSelfVendedEvents should point to the next event ID that
+                        // we publish. Otherwise, we would publish an event that
+                        // the subscriber already received.
+                        WeaveLogProgress(DataManagement, "Update mSelfVendedEvents[%d] from %d to %d using service data",
+                                         i, mSelfVendedEvents[i], eventId + 1);
+                        mSelfVendedEvents[i] = static_cast<event_id_t>(eventId + 1);
+#if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
+                    }
+#endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
                 }
                 else
                 {
@@ -643,8 +656,18 @@ exit:
 #if WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 void SubscriptionHandler::UpdateDeliveredEvents(ImportanceType importance)
 {
-  uint32_t i = static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First);
-  mDeliveredEvents[i] = mSelfVendedEvents[i] - 1;
+    uint32_t i = static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First);
+    mDeliveredEvents[i] = mSelfVendedEvents[i] - 1;
+}
+
+bool SubscriptionHandler::DeliveredEventsExist(ImportanceType importance)
+{
+    uint32_t i = static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First);
+    if (mDeliveredEvents[i] != 0)
+    {
+        return true;
+    }
+    return false;
 }
 #endif // WEAVE_CONFIG_PERSIST_SUBSCRIPTION_STATE
 
