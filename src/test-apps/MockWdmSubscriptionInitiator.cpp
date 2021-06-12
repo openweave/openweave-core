@@ -252,6 +252,8 @@ private:
         kTestCase_IncompatibleVersionedCommandRequest = 9,
 
         kTestCase_TestUpdatableTraits = 10,
+
+        kTestCase_TestDisableSendingNotifies = 11,
     };
 
     enum
@@ -481,6 +483,10 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::Init(
     case kTestCase_TestUpdatableTraits:
         WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTraits");
         break;
+
+    case kTestCase_TestDisableSendingNotifies:
+        WeaveLogDetail(DataManagement, "kTestCase_TestDisableSendingNotifies");
+        break;
     default:
         mTestCaseId = kTestCase_TestTrait;
         WeaveLogDetail(DataManagement, "kTestCase_TestTrait");
@@ -565,6 +571,7 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::StartTesting(const uint64_t aPubli
     {
     case kTestCase_IntegrationTrait:
     case kTestCase_RejectIncomingSubscribeRequest:
+    case kTestCase_TestDisableSendingNotifies:
         mTraitPaths[0].mTraitDataHandle = mTraitHandleSet[kLocaleSettingsSinkIndex];
         mTraitPaths[0].mPropertyPathHandle = kRootPropertyPathHandle;
 
@@ -1061,6 +1068,7 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
         {
         case kTestCase_IntegrationTrait:
         case kTestCase_RejectIncomingSubscribeRequest:
+        case kTestCase_TestDisableSendingNotifies:
             initiator->AddNewVersion(initiator->kLocaleSettingsSinkIndex);
             initiator->AddNewVersion(initiator->kApplicationKeysTraitSinkIndex);
             break;
@@ -1513,6 +1521,11 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
         case kTestCase_IntegrationTrait:
         case kTestCase_RejectIncomingSubscribeRequest:
             initiator->mLocaleCapabilitiesDataSource.Mutate();
+            SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
+            break;
+        case kTestCase_TestDisableSendingNotifies:
+            initiator->mLocaleCapabilitiesDataSource.Mutate();
+            SubscriptionEngine::GetInstance()->GetNotificationEngine()->DisableNotifications();
             SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
             break;
         case kTestCase_TestTrait:

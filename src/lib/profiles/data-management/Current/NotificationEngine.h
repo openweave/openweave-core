@@ -128,6 +128,16 @@ public:
     void ScheduleRun(void);
 
     /**
+     * Enable sending WDM notifications.
+     */
+    WEAVE_ERROR EnableNotifications(void);
+
+    /**
+     * Disable sending WDM notifications.
+     */
+    WEAVE_ERROR DisableNotifications(void);
+
+    /**
      * Marks a handle associated with a data source as being dirty.
      *
      * @retval #WEAVE_NO_ERROR On success.
@@ -416,6 +426,7 @@ private:
     uint32_t mCurSubscriptionHandlerIdx;
     uint32_t mCurTraitInstanceIdx;
     uint32_t mNumNotifiesInFlight;
+    bool     mNotifyTxEnabled;
     nl::Weave::TLV::TLVType mOuterContainerType;
     WEAVE_CONFIG_WDM_PUBLISHER_GRAPH_SOLVER mGraphSolver;
 };

@@ -1033,6 +1033,7 @@ WEAVE_ERROR NotificationEngine::Init()
     mCurSubscriptionHandlerIdx = 0;
     mCurTraitInstanceIdx       = 0;
     mNumNotifiesInFlight       = 0;
+    mNotifyTxEnabled           = true;
 
     return WEAVE_NO_ERROR;
 }
@@ -1761,6 +1762,10 @@ void NotificationEngine::Run()
     bool isClean  = true;
     bool isLocked = false;
 
+
+    VerifyOrExit(mNotifyTxEnabled, WeaveLogProgress(DataManagement, "Notify Transmission disabled. Enable to send Notifies");
+                 err = WEAVE_NO_ERROR);
+
     // Lock before attempting to modify any of the shared data structures.
     err = subEngine->Lock();
     SuccessOrExit(err);
@@ -1849,4 +1854,24 @@ exit:
     }
 
     return;
+}
+
+WEAVE_ERROR NotificationEngine::EnableNotifications(void)
+{
+    WEAVE_ERROR err  = WEAVE_NO_ERROR;
+
+    WeaveLogDetail(DataManagement, "<NE> Enabling notifications!");
+    mNotifyTxEnabled = true;
+
+    return err;
+}
+
+WEAVE_ERROR NotificationEngine::DisableNotifications(void)
+{
+    WEAVE_ERROR err  = WEAVE_NO_ERROR;
+
+    WeaveLogDetail(DataManagement, "<NE> Disabling notifications!");
+    mNotifyTxEnabled = false;
+
+    return err;
 }
