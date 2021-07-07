@@ -180,7 +180,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError * error);
 
 - (BOOL)isConnected;
 
-- (BOOL)isValidPairingCode:(NSString *)pairingCode;
++ (BOOL)isValidPairingCode:(NSString *)pairingCode;
 
 - (void)getCameraAuthData:(NSString *)nonce completion:(WDMCompletionBlock)completionBlock failure:(WDMFailureBlock)failureBlock;
 

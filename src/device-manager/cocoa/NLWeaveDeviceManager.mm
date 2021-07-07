@@ -347,11 +347,11 @@ exit:
     return result ? YES : NO;
 }
 
-- (BOOL)isValidPairingCode:(NSString *)pairingCode;
++ (BOOL)isValidPairingCode:(NSString *)pairingCode;
 {
     __block bool result = false;
 
-    WDM_LOG_METHOD_SIG();
+    WDM_LOG_DEBUG(@"isValidPairingCode");
 
     if ([pairingCode length] != 0) {
         // note we're not executing in any specific queue, as this subroutine is supposed to be 'static'
