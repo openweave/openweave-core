@@ -382,8 +382,10 @@ exit:
 exit:
     if (WEAVE_NO_ERROR != err) {
         WDM_LOG_ERROR(@"Error in ShutdownStack_Stage1 : (%d) %@\n", err, [NSString stringWithUTF8String:nl::ErrorStr(err)]);
-
-        _mShutdownCompletionBlock(err);
+        if (_mShutdownCompletionBlock) {
+          _mShutdownCompletionBlock(err);
+          _mShutdownCompletionBlock = nil;
+        }
     }
 }
 
