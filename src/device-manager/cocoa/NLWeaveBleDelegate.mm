@@ -145,7 +145,6 @@ namespace Ble {
             characteristic = [CBUUID UUIDWithData:[NSData dataWithBytes:charId->bytes length:sizeof(charId->bytes)]];
         }
 
-        WDM_LOG_DEBUG(@"Calling BleDelegateTrampoline::UnsubscribeCharacteristic\n");
         result = [mBleDelegate UnsubscribeCharacteristic:(__bridge id) connObj serivce:service characteristic:characteristic];
 
     exit:
@@ -489,7 +488,6 @@ exit:
 {
     WDM_LOG_METHOD_SIG();
 
-    WDM_LOG_DEBUG(@"forceBleDisconnect_Sync is called");
     // force BleLayer to forget about this connObj
     _mBleLayer->HandleConnectionError((__bridge void *) peripheral, BLE_ERROR_REMOTE_DEVICE_DISCONNECTED);
 }

@@ -136,11 +136,11 @@ public:
     WEAVE_ERROR PassiveRendezvousDevice(const uint8_t *accessToken, uint32_t accessTokenLen, void *appReqState, CompleteFunct onComplete, ErrorFunct onError);
 #if CONFIG_NETWORK_LAYER_BLE
     WEAVE_ERROR ConnectBle(BLE_CONNECTION_OBJECT connObj,
-        void *appReqState, CompleteFunct onComplete, ErrorFunct onError, bool autoClose = false);
+        void *appReqState, CompleteFunct onComplete, ErrorFunct onError, bool autoClose = true);
     WEAVE_ERROR ConnectBle(BLE_CONNECTION_OBJECT connObj, const char *pairingCode,
-        void *appReqState, CompleteFunct onComplete, ErrorFunct onError, bool autoClose = false);
+        void *appReqState, CompleteFunct onComplete, ErrorFunct onError, bool autoClose = true);
     WEAVE_ERROR ConnectBle(BLE_CONNECTION_OBJECT connObj, const uint8_t *accessToken, uint32_t accessTokenLen,
-        void *appReqState, CompleteFunct onComplete, ErrorFunct onError, bool autoClose = false);
+        void *appReqState, CompleteFunct onComplete, ErrorFunct onError, bool autoClose = true);
 #endif // CONFIG_NETWORK_LAYER_BLE
 
     // ----- Remote Passive Rendezvous -----
