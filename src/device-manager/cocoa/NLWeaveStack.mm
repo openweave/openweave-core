@@ -332,18 +332,20 @@ exit:
     WDM_LOG_DEBUG(@"Shutdown Weave System Layer\n");
     _mSystemLayer.Shutdown();
 
-    WDM_LOG_DEBUG(@"Shutdown completed\n");
-
-    self.currentState = kWeaveStack_QueueInitialized;
 
     if (WEAVE_NO_ERROR != err) {
         WDM_LOG_ERROR(@"Error in ShutdownStack_Stage2 : (%d) %@\n", err, [NSString stringWithUTF8String:nl::ErrorStr(err)]);
     }
 
-    // inform application layer about the completion, if so desired
-    if (block) {
-        block(err);
-    }
+    NSTimeInterval delay = 2.0;
+    WDM_LOG_DEBUG(@"Waiting %f seconds for rx/tx buffers to flush.\n", delay);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delay * NSEC_PER_SEC), _mWorkQueue, ^(void) {
+        WDM_LOG_DEBUG(@"Shutdown completed\n");
+        self.currentState = kWeaveStack_QueueInitialized;
+        if (block) {
+            block(err);
+        }
+    });
 }
 
 /**
@@ -560,7 +562,7 @@ void CriticalSectionExit()
 {
     return;
 }
-    
+
 } // Platform
 
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
