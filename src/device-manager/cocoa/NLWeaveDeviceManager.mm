@@ -308,11 +308,11 @@ exit:
             // Note that we're already in Weave work queue, which means all callbacks for the previous or current request
             // has either happened/completed or would be canceled by this call to Close. Therefore, it should be safe
             // to wipe out request context variables like _mRequestName and _mCompletionHandler.
-
             _mWeaveCppDM->Close();
 
             if (_blePeripheral) {
                 [[[NLWeaveStack sharedStack] BleDelegate] forceBleDisconnect_Sync:_blePeripheral];
+
                 // autoclose is disabled when running weave connect ble, close ble after woble stack is
                 // destroyed
                 // release reference to the CBPeripheral
@@ -939,7 +939,7 @@ exit:
             _BleConnectionPreparationCompleteHandler = ^(NLWeaveDeviceManager * dm, WEAVE_ERROR err) {
                 if (WEAVE_NO_ERROR == err) {
                     err = _mWeaveCppDM->ConnectBle(
-                        (__bridge void *) _blePeripheral, (__bridge void *) self, HandleSimpleOperationComplete, onWeaveError);
+                        (__bridge void *) _blePeripheral, (__bridge void *) self, HandleSimpleOperationComplete, onWeaveError, false);
                 }
                 if (WEAVE_NO_ERROR != err) {
                     [dm DispatchAsyncDefaultFailureBlockWithCode:err];
@@ -979,7 +979,7 @@ exit:
                     const char * pairingCodeStr = [pairingCode UTF8String];
 
                     err = _mWeaveCppDM->ConnectBle((__bridge void *) _blePeripheral, pairingCodeStr, (__bridge void *) self,
-                        HandleSimpleOperationComplete, onWeaveError);
+                        HandleSimpleOperationComplete, onWeaveError, false);
                 }
                 if (WEAVE_NO_ERROR != err) {
                     [dm DispatchAsyncDefaultFailureBlockWithCode:err];
@@ -1073,7 +1073,7 @@ static void onGetCameraAuthDataComplete(
                     uint8_t * pAccessToken = (uint8_t *) [accessTokenData bytes];
 
                     err = _mWeaveCppDM->ConnectBle((__bridge void *) _blePeripheral, pAccessToken, accessTokenLen,
-                        (__bridge void *) self, HandleSimpleOperationComplete, onWeaveError);
+                        (__bridge void *) self, HandleSimpleOperationComplete, onWeaveError, false);
                 }
 
                 if (WEAVE_NO_ERROR != err) {
