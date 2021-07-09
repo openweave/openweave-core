@@ -281,7 +281,7 @@ exit:
  * a sub-class of the WDM client and supply the relevant methods as follows.
  */
 
-class DMTestClient :
+class DMTestClient __FINAL :
     public DMClient
 {
 public:
@@ -327,10 +327,12 @@ public:
         return err;
     }
 
-    void IncompleteIndication(const uint64_t &aPeerNodeId, StatusReport &aReport)
+    virtual void IncompleteIndication(const uint64_t &aPeerNodeId, StatusReport &aReport)
     {
         printf("processing: <incomplete indication>\n");
     }
+
+    using DMClient::IncompleteIndication;
 
 #if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
 
