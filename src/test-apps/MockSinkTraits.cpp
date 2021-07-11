@@ -737,7 +737,7 @@ TestATraitDataSink::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aRead
             err = aReader.Get(tax);
             SuccessOrExit(err);
 
-            WeaveLogDetail(DataManagement, "<<  ta_x %d", tax);
+            WeaveLogDetail(DataManagement, "<<  ta_x %lf", tax);
             break;
 
         case TestATrait::kPropertyHandle_TaI_Value:
@@ -1012,7 +1012,7 @@ WEAVE_ERROR TestATraitDataSink::GetLeafData(PropertyPathHandle aLeafHandle, uint
             err = aWriter.Put(aTagToWrite, tax);
             SuccessOrExit(err);
 
-            WeaveLogDetail(DataManagement, ">>  ta_x %d", tax);
+            WeaveLogDetail(DataManagement, ">>  ta_x %lf", tax);
             break;
 
         case TestATrait::kPropertyHandle_TaI_Value:
@@ -2336,7 +2336,7 @@ TestATraitUpdatableDataSink::SetLeafData(PropertyPathHandle aLeafHandle, TLVRead
             err = aReader.Get(tax);
             SuccessOrExit(err);
 
-            WeaveLogDetail(DataManagement, "<<  ta_x %d", tax);
+            WeaveLogDetail(DataManagement, "<<  ta_x %lf", tax);
             break;
 
         case TestATrait::kPropertyHandle_TaI_Value:
@@ -2590,7 +2590,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::GetLeafData(PropertyPathHandle aLeafHan
             err = aWriter.Put(aTagToWrite, tax);
             SuccessOrExit(err);
 
-            WeaveLogDetail(DataManagement, ">>  ta_x %d", tax);
+            WeaveLogDetail(DataManagement, ">>  ta_x %lf", tax);
             break;
 
         case TestATrait::kPropertyHandle_TaI_Value:

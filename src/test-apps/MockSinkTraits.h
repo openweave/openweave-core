@@ -158,7 +158,7 @@ private:
     bool tav;
     char taw[20];
     // boxed float
-    int16_t tax;
+    double tax;
 
     bool nullified_path[Schema::Nest::Test::Trait::TestATrait::kPropertyHandle_TaJ_Value_SaB];
     uint32_t mTestCounter = 0;
@@ -321,7 +321,7 @@ private:
     bool tav;
     char taw[20];
     // boxed float
-    int16_t tax;
+    double tax;
 
     bool nullified_path[Schema::Nest::Test::Trait::TestATrait::kPropertyHandle_TaJ_Value_SaB];
 };
