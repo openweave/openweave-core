@@ -35,6 +35,7 @@ enum
 {
     kThreadNetworkId                                = 1,
     kWiFiStationNetworkId                           = 2,
+    kSystemManagedNetworkId                         = 3,
 };
 
 class DeviceNetworkInfo

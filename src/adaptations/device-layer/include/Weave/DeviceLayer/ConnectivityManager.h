@@ -99,6 +99,11 @@ public:
 
     struct ThreadPollingConfig;
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_SYSTEM_MANAGED_NETWORK
+    // System managed network
+    WEAVE_ERROR ProvisionSystemManagedNetwork(void);
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_SYSTEM_MANAGED_NETWORK
+
     // WiFi station methods
     WiFiStationMode GetWiFiStationMode(void);
     WEAVE_ERROR SetWiFiStationMode(WiFiStationMode val);
@@ -254,6 +259,13 @@ extern ConnectivityManagerImpl & ConnectivityMgrImpl(void);
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_SYSTEM_MANAGED_NETWORK
+inline WEAVE_ERROR ConnectivityManager::ProvisionSystemManagedNetwork(void)
+{
+    return static_cast<ImplClass*>(this)->_ProvisionSystemManagedNetwork();
+}
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_SYSTEM_MANAGED_NETWORK
 
 inline ConnectivityManager::WiFiStationMode ConnectivityManager::GetWiFiStationMode(void)
 {
