@@ -81,8 +81,6 @@ private:
     uint8_t *mServiceConfigBuf;
 };
 
-CASEAuthDelegate gCASEAuthDelegate;
-
 WEAVE_ERROR AddCertToContainer(TLVWriter& writer, uint64_t tag, const uint8_t *cert, uint16_t certLen);
 WEAVE_ERROR MakeCertInfo(uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen,
         const uint8_t *entityCert, uint16_t entityCertLen,
@@ -95,7 +93,7 @@ namespace Internal {
 
 WEAVE_ERROR InitCASEAuthDelegate()
 {
-    new (&gCASEAuthDelegate) CASEAuthDelegate();
+    static CASEAuthDelegate gCASEAuthDelegate;
     SecurityMgr.SetCASEAuthDelegate(&gCASEAuthDelegate);
     return WEAVE_NO_ERROR;
 }
