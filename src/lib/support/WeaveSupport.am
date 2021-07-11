@@ -34,6 +34,7 @@ nl_WeaveSupport_sources                                                         
     @top_builddir@/src/lib/support/ErrorStr.cpp                                             \
     @top_builddir@/src/lib/support/FibonacciUtils.cpp                                       \
     @top_builddir@/src/lib/support/MathUtils.cpp                                            \
+    @top_builddir@/src/lib/support/ProfileUtils.cpp                                         \
     @top_builddir@/src/lib/support/NestCerts.cpp                                            \
     @top_builddir@/src/lib/support/NonProductionMarker.cpp                                  \
     @top_builddir@/src/lib/support/PersistedCounter.cpp                                     \

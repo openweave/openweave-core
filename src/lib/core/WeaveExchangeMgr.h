@@ -31,6 +31,7 @@
 #define WEAVE_EXCHANGE_MGR_H
 
 #include <Weave/Support/NLDLLUtil.h>
+#include <Weave/Support/ProfileUtils.h>
 #include <Weave/Core/WeaveWRMPConfig.h>
 #include <SystemLayer/SystemTimer.h>
 

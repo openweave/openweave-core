@@ -631,9 +631,12 @@ WEAVE_ERROR ExchangeContext::SendMessage(uint32_t profileId, uint8_t msgType, Pa
 exit:
     if (sendCalled)
     {
-        WeaveLogRetain(ExchangeManager, "Msg %s %08" PRIX32 ":%d %d %016" PRIX64 " %04" PRIX16 " %04" PRIX16 " %ld MsgId:%08" PRIX32,
+        if(!nl::Weave::Platform::IsProfileSilenced(static_cast<nl::Weave::Profiles::WeaveProfileId>(profileId)))
+        {
+            WeaveLogRetain(ExchangeManager, "Msg %s %08" PRIX32 ":%d %d %016" PRIX64 " %04" PRIX16 " %04" PRIX16 " %ld MsgId:%08" PRIX32,
                        "sent", profileId, msgType, (int)payloadLen, msgInfo->DestNodeId,
                        (Con ? Con->LogId() : 0), ExchangeId, (long)err, msgInfo->MessageId);
+        }
     }
     if (err != WEAVE_NO_ERROR && IsResponseExpected())
     {
