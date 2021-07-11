@@ -54,6 +54,7 @@ class AsyncDNSResolverSockets
 {
     friend class InetLayer;
     friend class DNSResolver;
+    friend class LockHolder;
 public:
 
     INET_ERROR EnqueueRequest(DNSResolver &resolver);
@@ -88,10 +89,6 @@ private:
     static void *AsyncDNSThreadRun(void *args);
 
     static void NotifyWeaveThread(DNSResolver *resolver);
-
-    void AsyncMutexLock(void);
-
-    void AsyncMutexUnlock(void);
 };
 
 } // namespace Inet
