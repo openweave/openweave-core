@@ -744,6 +744,17 @@
 #endif
 
 // -------------------- Event Logging Configuration --------------------
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_BUFFER_STATIC
+ *
+ * @brief
+ *   Allocate logging buffer on data segment if defined, or allocate on
+ *   heap dynamically if not defined
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_BUFFER_STATIC
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_BUFFER_STATIC 1
+#endif
+
 
 /**
  * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE
