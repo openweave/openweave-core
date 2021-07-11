@@ -2422,6 +2422,16 @@
 extern const char WEAVE_NON_PRODUCTION_MARKER[];
 #endif
 
+/**
+ * @def WEAVE_CONFIG_RESET_WEAVE_CONFIG_TIMEOUT_MSECS
+ *
+ * @brief The amount of time that a device waits after receiving a signal to reset its
+ * Weave configuration before executing the reset action.
+ */
+#ifndef WEAVE_CONFIG_RESET_WEAVE_CONFIG_TIMEOUT_MSECS
+#define WEAVE_CONFIG_RESET_WEAVE_CONFIG_TIMEOUT_MSECS           1000
+#endif // WEAVE_CONFIG_RESET_WEAVE_CONFIG_TIMEOUT_MSECS
+
 // clang-format on
 
 #endif /* WEAVE_CONFIG_H_ */

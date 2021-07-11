@@ -77,6 +77,7 @@ DeviceControlServer::DeviceControlServer()
     mTunnelInactivityTimeout = 0;
     mRemotePassiveRendezvousKeyId = 0;
     mRemotePassiveRendezvousEncryptionType = 0;
+    mResetConfigTimeout = 0;
 }
 
 /**
@@ -131,6 +132,7 @@ WEAVE_ERROR DeviceControlServer::Shutdown()
     mFailSafeToken = 0;
     mFailSafeArmed = false;
     mResetFlags = 0x0000;
+    mResetConfigTimeout = WEAVE_CONFIG_RESET_WEAVE_CONFIG_TIMEOUT_MSECS;
 
     // Kill any pending or completed Remote Passive Rendezvous.
     CloseRemotePassiveRendezvous();
@@ -686,7 +688,9 @@ WEAVE_ERROR DeviceControlServer::HandleResetConfig(uint8_t *p, WeaveConnection *
 
             curCon->Shutdown();
         } else {
-            err = mDelegate->OnResetConfig(resetFlags);
+            mResetFlags = resetFlags;
+            System::Layer* lSystemLayer = ExchangeMgr->MessageLayer->SystemLayer;
+            err = lSystemLayer->StartTimer(mResetConfigTimeout, HandleResetConfigTimeout, this);
             SuccessOrExit(err);
 
             err = SendSuccessResponse();
@@ -707,6 +711,14 @@ exit:
     }
 
     return err;
+}
+
+void DeviceControlServer::HandleResetConfigTimeout(System::Layer * aSystemLayer, void * aAppState, System::Error aError)
+{
+    DeviceControlServer* server = reinterpret_cast<DeviceControlServer *>(aAppState);
+    uint16_t resetFlags = server->mResetFlags;
+    server->mDelegate->OnResetConfig(resetFlags);
+    server->mResetFlags = 0x0000;
 }
 
 WEAVE_ERROR DeviceControlServer::HandleArmFailSafe(uint8_t *p)
