@@ -877,18 +877,23 @@ WEAVE_ERROR ReadDataForType(TLVReader &aReader, void *aStructureData, const Fiel
 
         case SerializedFieldTypeUTF8String:
         {
-            char *dst = NULL;
             // TLV Strings are not null terminated
             uint32_t length = aReader.GetLength() + 1;
 
-            dst = (char *)memMgmt->mem_alloc(length);
-            VerifyOrExit(dst != NULL, err = WEAVE_ERROR_NO_MEMORY);
+            if (length > 1)
+            {
+                char *dst = NULL;
 
-            err = aReader.GetString(dst, length);
-            SuccessOrExit(err);
+                dst = (char *)memMgmt->mem_alloc(length);
+                VerifyOrExit(dst != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-            LogReadWrite("%s utf8string '%s' allocating %d bytes at %p", "R", dst, length, dst);
-            *static_cast<char**>(aStructureData) = dst;
+                err = aReader.GetString(dst, length);
+                SuccessOrExit(err);
+
+                LogReadWrite("%s utf8string '%s' allocating %d bytes at %p", "R", dst, length, dst);
+
+                *static_cast<char**>(aStructureData) = dst;
+            }
             break;
         }
 
@@ -898,7 +903,8 @@ WEAVE_ERROR ReadDataForType(TLVReader &aReader, void *aStructureData, const Fiel
             byteString.mLen = aReader.GetLength();
 
             byteString.mBuf = static_cast<uint8_t *>(memMgmt->mem_alloc(byteString.mLen));
-            VerifyOrExit(byteString.mBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+            if (byteString.mLen > 0)
+                VerifyOrExit(byteString.mBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
             aReader.GetBytes(byteString.mBuf, byteString.mLen);
 
             LogReadWrite("%s bytestring allocated %d bytes at %p", "R", byteString.mLen, byteString.mBuf);
