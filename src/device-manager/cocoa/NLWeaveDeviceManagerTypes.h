@@ -23,6 +23,7 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "NLWeaveErrorCodes.h"
 
 #ifndef __NLWEAVEDEVICEMANAGERTYPES_H__
 #define __NLWEAVEDEVICEMANAGERTYPES_H__

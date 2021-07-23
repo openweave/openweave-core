@@ -96,7 +96,7 @@ typedef NS_ENUM(NSInteger, NLLogLevel) {
  */
 @interface NLWeaveLogging : NSObject
 
-#pragma Logging Configuration
+#pragma mark Logging Configuration
 
 /**
  * Sets the shared @c NLWeaveLogWriter to start receiving Weave logs.
@@ -108,7 +108,7 @@ typedef NS_ENUM(NSInteger, NLLogLevel) {
  */
 + (void)setSharedLogWriter:(nullable id<NLWeaveLogWriter>)logWriter;
 
-#pragma Log Methods
+#pragma mark Log Methods
 
 /**
  * Internal handler method for logging a message to the console and notifying the shared log writer.
