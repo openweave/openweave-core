@@ -63,6 +63,7 @@ libNLWeaveDeviceManager_a_HEADERS        = \
     NLWeavePasscodeEncryptionSupport.h     \
     NLWeaveKeyExportClient.h               \
     NLWeaveKeyExportSupport.h              \
+    NLWeaveLogging.h                       \
     NLWdmClient.h                          \
     NLGenericTraitUpdatableDataSink.h      \
     NLResourceIdentifier.h                 \
