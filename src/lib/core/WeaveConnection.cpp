@@ -1117,7 +1117,8 @@ void WeaveConnection::DoClose(WEAVE_ERROR err, uint8_t flags)
             MessageLayer->ExchangeMgr->HandleConnectionClosed(this, err);
 
         // Call the Fabric state object to alert it of the connection close.
-        MessageLayer->FabricState->HandleConnectionClosed(this);
+        if (MessageLayer->FabricState != NULL)
+            MessageLayer->FabricState->HandleConnectionClosed(this);
 
         // Call the appropriate app callback if allowed.
         if ((flags & kDoCloseFlag_SuppressCallback) == 0)
