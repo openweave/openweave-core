@@ -541,6 +541,45 @@ WEAVE_ERROR TLVReader::Get(uint64_t& v)
     return WEAVE_NO_ERROR;
 }
 
+namespace {
+float BitCastToFloat(const uint64_t elemLenOrVal)
+{
+    float f;
+    auto u32 = static_cast<uint32_t>(elemLenOrVal);
+    memcpy(&f, &u32, sizeof(f));
+    return f;
+}
+} // namespace
+
+// Note: Unlike the integer Get functions, this code avoids doing conversions
+// between float and double wherever possible, because these conversions are
+// relatively expensive on platforms that use soft-float instruction sets.
+
+/**
+ * Get the value of the current element as a single-precision floating point number.
+ *
+ * @param[out]  v                       Receives the value associated with current TLV element.
+ *
+ * @retval #WEAVE_NO_ERROR              If the method succeeded.
+ * @retval #WEAVE_ERROR_WRONG_TLV_TYPE  If the current element is not a TLV floating point type, or
+ *                                      the reader is not positioned on an element.
+ *
+ */
+WEAVE_ERROR TLVReader::Get(float & v)
+{
+    switch (ElementType())
+    {
+    case kTLVElementType_FloatingPointNumber32:
+    {
+        v = BitCastToFloat(mElemLenOrVal);
+        break;
+    }
+    default:
+        return WEAVE_ERROR_WRONG_TLV_TYPE;
+    }
+    return WEAVE_NO_ERROR;
+}
+
 /**
  * Get the value of the current element as a double-precision floating point number.
  *
@@ -557,24 +596,14 @@ WEAVE_ERROR TLVReader::Get(double& v)
     {
     case kTLVElementType_FloatingPointNumber32:
     {
-        union
-        {
-            uint32_t u32;
-            float f;
-        } cvt;
-        cvt.u32 = (uint32_t)mElemLenOrVal;
-        v = cvt.f;
+        v = BitCastToFloat(mElemLenOrVal);
         break;
     }
     case kTLVElementType_FloatingPointNumber64:
     {
-        union
-        {
-            uint64_t u64;
-            double d;
-        } cvt;
-        cvt.u64 = mElemLenOrVal;
-        v = cvt.d;
+        double d;
+        memcpy(&d, &mElemLenOrVal, sizeof(d));
+        v = d;
         break;
     }
     default:
