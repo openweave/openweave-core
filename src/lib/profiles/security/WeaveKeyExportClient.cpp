@@ -504,10 +504,7 @@ WEAVE_ERROR WeaveStandAloneKeyExportClient::BeginCertValidation(bool isInitiator
                            kDecodeFlag_GenerateTBSHash, cert);
     SuccessOrExit(err);
 
-// we need debug in order to get key export functionality working in mobile-ios
-#if DEBUG
-
-    // If DEBUG is enabled and mTrustPreProdDevices == true, arrange to accept key export responses
+    // If mTrustPreProdDevices == true, arrange to accept key export responses
     // from pre-production devices built with Nest development certificates.
 
     if (mAllowNestDevDevices)
@@ -528,8 +525,6 @@ WEAVE_ERROR WeaveStandAloneKeyExportClient::BeginCertValidation(bool isInitiator
                                kDecodeFlag_GenerateTBSHash, cert);
         SuccessOrExit(err);
     }
-
-#endif //DEBUG
 
 exit:
     if (err != WEAVE_NO_ERROR && certSetInitialized)
