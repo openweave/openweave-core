@@ -580,11 +580,12 @@ void ReadEncoding1(nlTestSuite *inSuite, TLVReader& reader)
 
         TestNext<TLVReader>(inSuite, reader2);
 
-        TestGet<TLVReader, double>(inSuite, reader2, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_2, 65535), (float)17.9);
+        TestGet<TLVReader, float>(inSuite, reader2, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_2, 65535), 17.9f);
+        TestGet<TLVReader, double>(inSuite, reader2, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_2, 65535), 17.9f);
 
         TestNext<TLVReader>(inSuite, reader2);
 
-        TestGet<TLVReader, double>(inSuite, reader2, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_2, 65536), (double)17.9);
+        TestGet<TLVReader, double>(inSuite, reader2, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_2, 65536), 17.9);
 
         TestEndAndCloseContainer(inSuite, reader, reader2);
     }
@@ -2946,11 +2947,12 @@ void TestWeaveTLVReaderDup(nlTestSuite *inSuite)
 
         TestNext<TLVReader>(inSuite, reader2);
 
-        TestGet<TLVReader, double>(inSuite, reader2, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_2, 65535), (float)17.9);
+        TestGet<TLVReader, float>(inSuite, reader2, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_2, 65535), 17.9f);
+        TestGet<TLVReader, double>(inSuite, reader2, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_2, 65535), 17.9f);
 
         TestNext<TLVReader>(inSuite, reader2);
 
-        TestGet<TLVReader, double>(inSuite, reader2, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_2, 65536), (double)17.9);
+        TestGet<TLVReader, double>(inSuite, reader2, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_2, 65536), 17.9);
 
         TestEndAndCloseContainer(inSuite, reader, reader2);
     }
@@ -2972,6 +2974,11 @@ void TestWeaveTLVReaderErrorHandling(nlTestSuite *inSuite)
     // Get(bool&)
     bool val;
     err = reader.Get(val);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_WRONG_TLV_TYPE);
+
+    // Get(float&)
+    float numF;
+    err = reader.Get(numF);
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_WRONG_TLV_TYPE);
 
     // Get(double&)
@@ -3020,6 +3027,38 @@ void TestWeaveTLVReaderErrorHandling(nlTestSuite *inSuite)
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_WRONG_TLV_TYPE);
     free((void *)data);
 }
+
+/**
+ *  Test that Weave TLV reader returns an error when a read is requested that
+ *  would truncate the output.
+ */
+void TestWeaveTLVReaderTruncatedReads(nlTestSuite * inSuite)
+{
+    uint8_t buf[2048];
+    TLVWriter writer;
+    TLVReader reader;
+
+    WEAVE_ERROR err;
+    float outF;
+
+    // Setup: Write some values into the buffer
+    writer.Init(buf, sizeof(buf));
+    writer.ImplicitProfileId = TestProfile_2;
+
+    err = writer.Put(AnonymousTag, double(12.5));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    // Test reading values from the buffer
+    reader.Init(buf, sizeof(buf));
+
+    TestNext<TLVReader>(inSuite, reader);
+
+    TestGet<TLVReader, double>(inSuite, reader, kTLVType_FloatingPointNumber, AnonymousTag, 12.5);
+
+    err = reader.Get(outF);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_WRONG_TLV_TYPE);
+}
+
 /**
  *  Test Weave TLV Reader in a use case
  */
@@ -3046,7 +3085,7 @@ void TestWeaveTLVReaderInPractice(nlTestSuite *inSuite)
 
     TestNext<TLVReader>(inSuite, reader);
 
-    TestGet<TLVReader, double>(inSuite, reader, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_1, 4000000000ULL), (float) 1.0);
+    TestGet<TLVReader, float>(inSuite, reader, kTLVType_FloatingPointNumber, ProfileTag(TestProfile_1, 4000000000ULL), (float) 1.0);
 }
 
 void TestWeaveTLVReader_NextOverContainer_ProcessElement(nlTestSuite *inSuite, TLVReader& reader, void *context)
@@ -3146,6 +3185,8 @@ void CheckWeaveTLVReader(nlTestSuite *inSuite, void *inContext)
     TestWeaveTLVReaderDup(inSuite);
 
     TestWeaveTLVReaderErrorHandling(inSuite);
+
+    TestWeaveTLVReaderTruncatedReads(inSuite);
 
     TestWeaveTLVReaderInPractice(inSuite);
 
