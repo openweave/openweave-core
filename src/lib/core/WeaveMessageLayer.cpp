@@ -642,7 +642,9 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress & destAddr, uint16_t 
 
     case kMulticast_AllInterfaces:
 
-        // Send the message over each local interface that supports multicast.
+        // Send the message over each local interface that supports multicast, only report an error
+        // if *none* of the interfaces succeed (b/195258416).
+        err = 0xFF;
         for (InterfaceIterator intfIter; intfIter.HasCurrent(); intfIter.Next())
         {
             if (intfIter.SupportsMulticast())
@@ -650,7 +652,7 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress & destAddr, uint16_t 
                 pktInfo.Interface = intfIter.GetInterface();
                 WEAVE_ERROR sendErr = ep->SendMsg(&pktInfo, payload, UDPEndPoint::kSendFlag_RetainBuffer);
                 CheckForceRefreshUDPEndPointsNeeded(sendErr);
-                if (err == WEAVE_NO_ERROR)
+                if (err != WEAVE_NO_ERROR)
                 {
                     err = FilterUDPSendError(sendErr, true);
                 }
@@ -664,6 +666,8 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress & destAddr, uint16_t 
         // Send the message once for each Weave Fabric ULA assigned to a local interface that supports
         // multicast/broadcast. If the caller has specified a particular interface, only send over the
         // specified interface.  For each message sent, arrange for the source address to be the Fabric ULA.
+        // Only report an error if *none* of the interfaces succeed (b/195258416).
+        err = 0xFF;
         for (InterfaceAddressIterator addrIter; addrIter.HasCurrent(); addrIter.Next())
         {
             pktInfo.SrcAddress = addrIter.GetAddress();
@@ -674,7 +678,7 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress & destAddr, uint16_t 
             {
                 WEAVE_ERROR sendErr = ep->SendMsg(&pktInfo, payload, UDPEndPoint::kSendFlag_RetainBuffer);
                 CheckForceRefreshUDPEndPointsNeeded(sendErr);
-                if (err == WEAVE_NO_ERROR)
+                if (err != WEAVE_NO_ERROR)
                 {
                     err = FilterUDPSendError(sendErr, true);
                 }
