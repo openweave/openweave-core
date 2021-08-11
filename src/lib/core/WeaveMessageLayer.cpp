@@ -645,7 +645,10 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress & destAddr, uint16_t 
         // Send the message over each local interface that supports multicast.
         for (InterfaceIterator intfIter; intfIter.HasCurrent(); intfIter.Next())
         {
-            if (intfIter.SupportsMulticast())
+            bool isBroadcastSupported = intfIter.SupportsMulticast() &&
+                intfIter.HasBroadcastAddress() &&
+                intfIter.IsUp();
+            if (isBroadcastSupported)
             {
                 pktInfo.Interface = intfIter.GetInterface();
                 WEAVE_ERROR sendErr = ep->SendMsg(&pktInfo, payload, UDPEndPoint::kSendFlag_RetainBuffer);
@@ -668,7 +671,10 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress & destAddr, uint16_t 
         {
             pktInfo.SrcAddress = addrIter.GetAddress();
             pktInfo.Interface = addrIter.GetInterface();
-            if (addrIter.SupportsMulticast() &&
+            bool isBroadcastSupported = addrIter.SupportsMulticast() &&
+                addrIter.HasBroadcastAddress() &&
+                addrIter.IsUp();
+            if (isBroadcastSupported &&
                 FabricState->IsLocalFabricAddress(pktInfo.SrcAddress) &&
                 (sendIntfId == INET_NULL_INTERFACEID || pktInfo.Interface == sendIntfId))
             {
