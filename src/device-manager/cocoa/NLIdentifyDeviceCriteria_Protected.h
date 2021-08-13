@@ -26,6 +26,7 @@
 
 #include "WeaveDeviceManager.h"
 #include <Weave/Profiles/device-description/DeviceDescription.h>
+#import "NLIdentifyDeviceCriteria.h"
 
 using nl::Weave::Profiles::DeviceDescription::IdentifyDeviceCriteria;
 
