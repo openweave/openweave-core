@@ -138,7 +138,13 @@ private:
      */
     struct DataElementDataContext
     {
-        DataElementDataContext() { memset(this, 0, sizeof(*this)); }
+        DataElementDataContext() :
+            mTraitPath(0, 0),
+            mUpdateRequiredVersion(0),
+            mForceMerge(false),
+            mDataSink(nullptr),
+            mSchemaEngine(nullptr),
+            mNextDictionaryElementPathHandle(0) {}
 
         TraitPath mTraitPath;                   /**< The TraitPath to encode. */
         DataVersion mUpdateRequiredVersion;     /**< If the update is conditional, the version the update is based off. */
