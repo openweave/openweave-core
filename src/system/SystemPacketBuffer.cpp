@@ -251,12 +251,12 @@ void PacketBuffer::AddToEnd(PacketBuffer* aPacket)
  */
 PacketBuffer* PacketBuffer::DetachTail()
 {
-    PacketBuffer& lReturn = *static_cast<PacketBuffer*>(this->next);
+    PacketBuffer* lReturn = static_cast<PacketBuffer*>(this->next);
 
     this->next = NULL;
     this->tot_len = this->len;
 
-    return &lReturn;
+    return lReturn;
 }
 
 /**
