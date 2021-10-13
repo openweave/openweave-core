@@ -555,24 +555,22 @@ Error Layer::SetClock_RealTime(uint64_t newCurTime)
 /**
  *  Prepare the sets of file descriptors for @p select() to work with.
  *
- *  @param[out] aSetSize        The range of file descriptors in the file descriptor set.
- *  @param[in]  aReadSet        A pointer to the set of readable file descriptors.
- *  @param[in]  aWriteSet       A pointer to the set of writable file descriptors.
- *  @param[in]  aExceptionSet   A pointer to the set of file descriptors with errors.
- *  @param[in]  aSleepTime      A reference to the maximum sleep time.
+ *  @param[in,out]  pollFDs     The fd set which is going to be polled
+ *  @param[in,out]  numPollFDs  The number of fds in the fd set
+ *  @param[in]      timeoutMS   A reference to the maximum sleep time.
  */
-void Layer::PrepareSelect(int& aSetSize, fd_set* aReadSet, fd_set* aWriteSet, fd_set* aExceptionSet, struct timeval& aSleepTime)
+void Layer::PrepareSelect(std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int& numPollFDs, int& timeoutMS)
 {
     if (this->State() != kLayerState_Initialized)
         return;
 
-    if (this->mWakePipeIn + 1 > aSetSize)
-        aSetSize = this->mWakePipeIn + 1;
-
-    FD_SET(this->mWakePipeIn, aReadSet);
+    struct pollfd & event = pollFDs[numPollFDs++];
+    event.fd = this->mWakePipeIn;
+    event.events = POLLIN;
+    event.revents = 0;
 
     const Timer::Epoch kCurrentEpoch = Timer::GetCurrentEpoch();
-    Timer::Epoch lAwakenEpoch = kCurrentEpoch + static_cast<Timer::Epoch>(aSleepTime.tv_sec) * 1000 + aSleepTime.tv_usec / 1000;
+    Timer::Epoch lAwakenEpoch = kCurrentEpoch + timeoutMS;
 
     for (size_t i = 0; i < Timer::sPool.Size(); i++)
     {
@@ -592,8 +590,7 @@ void Layer::PrepareSelect(int& aSetSize, fd_set* aReadSet, fd_set* aWriteSet, fd
     }
 
     const Timer::Epoch kSleepTime = lAwakenEpoch - kCurrentEpoch;
-    aSleepTime.tv_sec = kSleepTime / 1000;
-    aSleepTime.tv_usec = (kSleepTime % 1000) * 1000;
+    timeoutMS = kSleepTime;
 }
 
 /**
@@ -607,30 +604,25 @@ void Layer::PrepareSelect(int& aSetSize, fd_set* aReadSet, fd_set* aWriteSet, fd
  *  I/O related to the old incarnation of the endpoint, not the current one. Saving the pending I/O state in each endpoint before
  *  acting on it allows the endpoint code to clear the I/O flags in the event of a close, thus avoiding any confusion.
  *
- *  @param[in]    aSetSize          The return value of the select call.
- *  @param[in]    aReadSet          A pointer to the set of read file descriptors.
- *  @param[in]    aWriteSet         A pointer to the set of write file descriptors.
- *  @param[in]    aExceptionSet     A pointer to the set of file descriptors with errors.
- *
+ *  @param[in]    pollFDs     The result of polled FDs
+ *  @param[in]    numPollFDs  The number of fds in the fd set
  */
-void Layer::HandleSelectResult(int aSetSize, fd_set* aReadSet, fd_set* aWriteSet, fd_set* aExceptionSet)
+void Layer::HandleSelectResult(const std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int numPollFDs)
 {
     pthread_t lThreadSelf;
 
     if (this->State() != kLayerState_Initialized)
         return;
 
-    if (aSetSize < 0)
-        return;
-
 #if WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
     lThreadSelf = pthread_self();
 #endif // WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
 
-    if (aSetSize > 0)
+    for (int i = 0; i < numPollFDs; ++i)
     {
+        const struct pollfd & event = pollFDs[i];
         // If we woke because of someone writing to the wake pipe, clear the contents of the pipe before returning.
-        if (FD_ISSET(this->mWakePipeIn, aReadSet))
+        if (event.fd == this->mWakePipeIn && event.revents != 0)
         {
             while (true)
             {

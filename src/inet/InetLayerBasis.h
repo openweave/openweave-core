@@ -33,7 +33,8 @@
 #include <stdint.h>
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-#include <sys/select.h>
+#include <poll.h>
+#include <array>
 #endif
 
 namespace nl {
@@ -204,8 +205,8 @@ public:
      */
     void ClearError()           { Value &= ~kError; }
 
-    void SetFDs(int socket, int& nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds);
-    static SocketEvents FromFDs(int socket, fd_set *readfds, fd_set *writefds, fd_set *exceptfds);
+    void SetFDs(int socket, std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int& numPollFDs);
+    static SocketEvents FromFDs(int socket, const std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int numPollFDs);
 };
 
 /**

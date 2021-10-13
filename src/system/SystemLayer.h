@@ -31,7 +31,8 @@
 
 // Include dependent headers
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-#include <sys/select.h>
+#include <poll.h>
+#include <array>
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #if WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
@@ -156,8 +157,8 @@ public:
     Error ScheduleWork(TimerCompleteFunct aComplete, void* aAppState);
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    void PrepareSelect(int& aSetSize, fd_set* aReadSet, fd_set* aWriteSet, fd_set* aExceptionSet, struct timeval& aSleepTime);
-    void HandleSelectResult(int aSetSize, fd_set* aReadSet, fd_set* aWriteSet, fd_set* aExceptionSet);
+    void PrepareSelect(std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int& numPollFDs, int& timeoutMS);
+    void HandleSelectResult(const std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int numPollFDs);
     void WakeSelect(void);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 

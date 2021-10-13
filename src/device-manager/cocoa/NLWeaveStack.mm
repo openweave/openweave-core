@@ -60,12 +60,6 @@ using namespace nl::Weave::Profiles::DataManagement;
     nl::Ble::BleLayer _mBleLayer;
     NLWeaveBleDelegate * _mBleDelegate;
 #endif // #if CONFIG_NETWORK_LAYER_BLE
-    /*
-    int selectRes;
-    int MaxNumberedFdPlusOne;
-    struct timeval sleepTime;
-    fd_set readFDs, writeFDs, exceptFDs;
-     */
 }
 
 - (WEAVE_ERROR)InitStack_internal:(NSString *)listenAddr bleDelegate:(NLWeaveBleDelegate *)bleDelegate;
@@ -422,25 +416,19 @@ exit:
  */
 - (void)TryProcessNetworkEvents
 {
-    __block struct timeval sleepTime;
-    __block fd_set readFDs, writeFDs, exceptFDs;
-    int MaxNumberedFdPlusOne = 0;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     // WDM_LOG_METHOD_SIG();
 
     VerifyOrExit(kWeaveStack_FullyInitialized == self.currentState, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    FD_ZERO(&readFDs);
-    FD_ZERO(&writeFDs);
-    FD_ZERO(&exceptFDs);
-
-    sleepTime.tv_sec = 10;
-    sleepTime.tv_usec = 0;
+    int sleepTime = 10000;
+    std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> pollFDs;
+    int numPollFDs = 0;
 
     // Collect the currently active file descriptors.
-    _mSystemLayer.PrepareSelect(MaxNumberedFdPlusOne, &readFDs, &writeFDs, &exceptFDs, sleepTime);
-    _mInetLayer.PrepareSelect(MaxNumberedFdPlusOne, &readFDs, &writeFDs, &exceptFDs, sleepTime);
+    _mSystemLayer.PrepareSelect(pollFDs, numPollFDs, sleepTime);
+    _mInetLayer.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 
     // WDM_LOG_DEBUG(@"Sleeping for %f sec.\n", sleepTime.tv_sec + (sleepTime.tv_usec / 1000000.0));
 
@@ -451,7 +439,7 @@ exit:
         dispatch_async(_mSelectQueue, ^(void) {
             // Wait for for I/O or for the next timer to expire.
             // Note that this is not a good practice to use with GCD, but it's
-            int selectRes = select(MaxNumberedFdPlusOne, &readFDs, &writeFDs, &exceptFDs, &sleepTime);
+            int pollRes = poll(pollFDs.data(), numPollFDs, sleepTime);
 
             dispatch_async(_mWorkQueue, ^(void) {
                 _mIsWaitingOnSelect = false;
@@ -463,8 +451,8 @@ exit:
                     [self ShutdownStack_Stage2];
                 } else if (kWeaveStack_FullyInitialized == self.currentState) {
                     // Perform I/O and/or dispatch timers.
-                    _mSystemLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
-                    _mInetLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+                    _mSystemLayer.HandleSelectResult(pollFDs, numPollFDs);
+                    _mInetLayer.HandleSelectResult(pollFDs, numPollFDs);
 
                     // It's wierd that with iOS 9 SDK, we have to use disaptch_after here,
                     // instead of directly calling TryProcessNetworkEvents nor dispatch_async.

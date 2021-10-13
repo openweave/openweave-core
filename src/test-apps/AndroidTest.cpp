@@ -253,22 +253,21 @@ void ShutdownWeaveStack()
 
 void ServiceNetwork(struct timeval sleepTime)
 {
-    fd_set readFDs, writeFDs, exceptFDs;
-    int numFDs = 0;
-
-    FD_ZERO(&readFDs);
-    FD_ZERO(&writeFDs);
-    FD_ZERO(&exceptFDs);
+    int sleepTime = aSleepTime.tv_usec / 1000 + aSleepTime.tv_usec * 1000;
+    std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> pollFDs;
+    int numPollFDs = 0;
 
     if (Inet.State == InetLayer::kState_Initialized)
-        Inet.PrepareSelect(numFDs, &readFDs, &writeFDs, &exceptFDs);
+        Inet.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 
-    int selectRes = select(numFDs, &readFDs, &writeFDs, &exceptFDs, &sleepTime);
-    if (selectRes < 0)
-        printf("select failed: %ld\n", (long)(errno));
+    int pollRes = poll(pollFDs.data(), numPollFDs, sleepTime);
+    if (pollRes < 0)
+    {
+        printf("poll failed: %s\n", ErrorStr(MapErrorPOSIX(errno)));
+    }
 
-    if (selectRes > 0 && Inet.State == InetLayer::kState_Initialized)
-        Inet.HandleIO(&readFDs, &writeFDs, &exceptFDs);
+    if (pollRes > 0 && Inet.State == InetLayer::kState_Initialized)
+        Inet.HandleSelectResult(pollFDs, numPollFDs);
 }
 
 uint64_t Now()
