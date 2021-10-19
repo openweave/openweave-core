@@ -205,8 +205,8 @@ public:
      */
     void ClearError()           { Value &= ~kError; }
 
-    void SetFDs(int socket, std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int& numPollFDs);
-    static SocketEvents FromFDs(int socket, const std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int numPollFDs);
+    void SetFDs(int socket, struct pollfd * pollFDs, int& numPollFDs);
+    static SocketEvents FromFDs(int socket, const struct pollfd * pollFDs, int numPollFDs);
 };
 
 /**

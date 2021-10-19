@@ -559,7 +559,7 @@ Error Layer::SetClock_RealTime(uint64_t newCurTime)
  *  @param[in,out]  numPollFDs  The number of fds in the fd set
  *  @param[in]      timeoutMS   A reference to the maximum sleep time.
  */
-void Layer::PrepareSelect(std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int& numPollFDs, int& timeoutMS)
+void Layer::PrepareSelect(struct pollfd * pollFDs, int& numPollFDs, int& timeoutMS)
 {
     if (this->State() != kLayerState_Initialized)
         return;
@@ -607,7 +607,7 @@ void Layer::PrepareSelect(std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> &
  *  @param[in]    pollFDs     The result of polled FDs
  *  @param[in]    numPollFDs  The number of fds in the fd set
  */
-void Layer::HandleSelectResult(const std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int numPollFDs)
+void Layer::HandleSelectResult(const struct pollfd * pollFDs, int numPollFDs)
 {
     pthread_t lThreadSelf;
 

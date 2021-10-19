@@ -254,13 +254,13 @@ void ShutdownWeaveStack()
 void ServiceNetwork(struct timeval sleepTime)
 {
     int sleepTime = aSleepTime.tv_usec / 1000 + aSleepTime.tv_usec * 1000;
-    std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> pollFDs;
+    struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
     int numPollFDs = 0;
 
     if (Inet.State == InetLayer::kState_Initialized)
         Inet.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 
-    int pollRes = poll(pollFDs.data(), numPollFDs, sleepTime);
+    int pollRes = poll(pollFDs, numPollFDs, sleepTime);
     if (pollRes < 0)
     {
         printf("poll failed: %s\n", ErrorStr(MapErrorPOSIX(errno)));

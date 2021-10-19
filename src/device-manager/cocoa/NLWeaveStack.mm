@@ -423,7 +423,7 @@ exit:
     VerifyOrExit(kWeaveStack_FullyInitialized == self.currentState, err = WEAVE_ERROR_INCORRECT_STATE);
 
     int sleepTime = 10000;
-    std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> pollFDs;
+    struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
     int numPollFDs = 0;
 
     // Collect the currently active file descriptors.
@@ -439,7 +439,7 @@ exit:
         dispatch_async(_mSelectQueue, ^(void) {
             // Wait for for I/O or for the next timer to expire.
             // Note that this is not a good practice to use with GCD, but it's
-            int pollRes = poll(pollFDs.data(), numPollFDs, sleepTime);
+            int pollRes = poll(pollFDs, numPollFDs, sleepTime);
 
             dispatch_async(_mWorkQueue, ^(void) {
                 _mIsWaitingOnSelect = false;

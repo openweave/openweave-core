@@ -1014,7 +1014,7 @@ void ServiceEvents(::timeval& aSleepTime)
     }
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     int sleepTime = aSleepTime.tv_usec / 1000 + aSleepTime.tv_usec * 1000;
-    std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> pollFDs;
+    struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
     int numPollFDs = 0;
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
@@ -1027,7 +1027,7 @@ void ServiceEvents(::timeval& aSleepTime)
         Inet.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
-    int pollRes = poll(pollFDs.data(), numPollFDs, sleepTime);
+    int pollRes = poll(pollFDs, numPollFDs, sleepTime);
     if (pollRes < 0)
     {
         printf("poll failed: %s\n", ErrorStr(System::MapErrorPOSIX(errno)));

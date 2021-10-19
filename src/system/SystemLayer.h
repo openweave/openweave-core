@@ -157,8 +157,8 @@ public:
     Error ScheduleWork(TimerCompleteFunct aComplete, void* aAppState);
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    void PrepareSelect(std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int& numPollFDs, int& timeoutMS);
-    void HandleSelectResult(const std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int numPollFDs);
+    void PrepareSelect(struct pollfd * pollFDs, int& numPollFDs, int& timeoutMS);
+    void HandleSelectResult(const struct pollfd * pollFDs, int numPollFDs);
     void WakeSelect(void);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 

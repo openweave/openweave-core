@@ -350,7 +350,7 @@ WEAVE_ERROR nl_Weave_DeviceManager_DriveIO(uint32_t sleepTimeMS)
 
 #else /* WEAVE_SYSTEM_CONFIG_USE_SOCKETS */
     int sleepTime = sleepTimeMS;
-    std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> pollFDs;
+    struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
     int numPollFDs = 0;
     int blePollFD = -1;
 #if CONFIG_NETWORK_LAYER_BLE
@@ -386,7 +386,7 @@ WEAVE_ERROR nl_Weave_DeviceManager_DriveIO(uint32_t sleepTimeMS)
     }
 #endif /* CONFIG_NETWORK_LAYER_BLE */
 
-    int pollRes = poll(pollFDs.data(), numPollFDs, sleepTime);
+    int pollRes = poll(pollFDs, numPollFDs, sleepTime);
     VerifyOrExit(pollRes >= 0, err = System::MapErrorPOSIX(errno));
 
 #if CONFIG_NETWORK_LAYER_BLE

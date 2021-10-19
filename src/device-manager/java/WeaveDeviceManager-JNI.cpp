@@ -1932,7 +1932,7 @@ void *IOThreadMain(void *arg)
     while (true)
     {
         int sleepTime = 10000;
-        std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> pollFDs;
+        struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
         int numPollFDs = 0;
 
         // Collect the currently active file descriptors.
@@ -1943,7 +1943,7 @@ void *IOThreadMain(void *arg)
         pthread_mutex_unlock(&sStackLock);
 
         // Wait for for I/O or for the next timer to expire.
-        int pollRes = poll(pollFDs.data(), numPollFDs, sleepTime);
+        int pollRes = poll(pollFDs, numPollFDs, sleepTime);
         if (pollRes < 0)
         {
             printf("poll failed: %s\n", nl::ErrorStr(System::MapErrorPOSIX(errno)));

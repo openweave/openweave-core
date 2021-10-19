@@ -36,7 +36,7 @@ namespace Inet {
  *  @param[in,out]  pollFDs     The fd set which is going to be polled
  *  @param[in,out]  numPollFDs  The number of fds in the fd set
  */
-void SocketEvents::SetFDs(int socket, std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int& numPollFDs)
+void SocketEvents::SetFDs(int socket, struct pollfd * pollFDs, int& numPollFDs)
 {
     if (socket != INET_INVALID_SOCKET_FD)
     {
@@ -61,7 +61,7 @@ void SocketEvents::SetFDs(int socket, std::array<struct pollfd, WEAVE_CONFIG_MAX
  *  @param[in]    pollFDs     The result of polled FDs
  *  @param[in]    numPollFDs  The number of fds in the fd set
  */
-SocketEvents SocketEvents::FromFDs(int socket, const std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int numPollFDs)
+SocketEvents SocketEvents::FromFDs(int socket, const struct pollfd * pollFDs, int numPollFDs)
 {
     SocketEvents res;
 

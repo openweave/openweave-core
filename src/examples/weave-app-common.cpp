@@ -123,7 +123,7 @@ void DriveIO(void)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     int sleepTime = NETWORK_SLEEP_TIME_MSECS;
-    std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> pollFDs;
+    struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
     int numPollFDs = 0;
 
     if (SystemLayer.State() == System::kLayerState_Initialized)
@@ -132,7 +132,7 @@ void DriveIO(void)
     if (Inet.State == InetLayer::kState_Initialized)
         Inet.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 
-    int pollRes = poll(pollFDs.data(), numPollFDs, sleepTime);
+    int pollRes = poll(pollFDs, numPollFDs, sleepTime);
     if (pollRes < 0)
     {
         printf("poll failed: %s\n", nl::ErrorStr(System::MapErrorPOSIX(errno)));

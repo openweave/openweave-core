@@ -1416,7 +1416,7 @@ INET_ERROR InetLayer::HandlePlatformTimer(void)
  *  @param[in]      timeoutMS   A reference to the maximum sleep time.
  *
  */
-void InetLayer::PrepareSelect(std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int& numPollFDs, int& timeoutMS)
+void InetLayer::PrepareSelect(struct pollfd * pollFDs, int& numPollFDs, int& timeoutMS)
 {
     if (State != kState_Initialized)
         return;
@@ -1485,7 +1485,7 @@ void InetLayer::PrepareSelect(std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FD
  *  @param[in]  pollFDs     The result of polled FDs
  *  @param[in]  numPollFDs  The number of fds in the fd set
  */
-void InetLayer::HandleSelectResult(const std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> & pollFDs, int numPollFDs)
+void InetLayer::HandleSelectResult(const struct pollfd * pollFDs, int numPollFDs)
 {
     if (State != kState_Initialized)
         return;
