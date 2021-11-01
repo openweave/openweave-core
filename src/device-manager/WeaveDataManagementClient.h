@@ -137,10 +137,6 @@ public:
     void * mpAppState;
 
 private:
-    union
-    {
-        DMCompleteFunct General;
-    } mOnComplete;
     DMErrorFunct mOnError;
 
     template <class T>

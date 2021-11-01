@@ -156,7 +156,7 @@ private:
     uint32_t tae[10];
 
     // weave.common.StringRef is implemented as a union
-    char *tag_string = "stringreftest";
+    char tag_string[20] = "stringreftest";
     uint16_t tag_ref;
     bool tag_use_ref;
     uint32_t tai_stageditem;
@@ -186,7 +186,7 @@ private:
     uint32_t tat;
     int32_t tau;
     bool tav;
-    char *taw = "boxedstring";
+    char taw[20] = "boxedstring";
     // boxed float
     int16_t tax;
 

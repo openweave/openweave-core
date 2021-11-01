@@ -36,9 +36,12 @@ namespace Weave {
 namespace Crypto {
 
 template <class BlockCipher>
-CTR_DRBG<BlockCipher>::CTR_DRBG()
+CTR_DRBG<BlockCipher>::CTR_DRBG() : mBlockCipher()
 {
-    memset(this, 0, sizeof(*this));
+    mEntropyFunct = NULL;
+    mReseedCounter = 0;
+    mEntropyFunct = 0;
+    memset(mCounter, 0, kBlockLength);
 }
 
 template <class BlockCipher>

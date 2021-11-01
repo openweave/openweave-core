@@ -77,18 +77,6 @@ typedef enum CommandFlags
 class NL_DLL_EXPORT Command
 {
 public:
-    /**
-     *  @brief
-     *    The Command flag bits.
-     */
-    typedef enum CommandFlags
-    {
-        kCommandFlag_MustBeVersionValid   = 0x0001,  /**< Set when the version field is valid */
-        kCommandFlag_InitiationTimeValid  = 0x0002,  /**< Set when the init time is valid */
-        kCommandFlag_ActionTimeValid      = 0x0004,  /**< Set when the action time is valid */
-        kCommandFlag_ExpiryTimeValid      = 0x0008,  /**< Set when the expiry time is valid */
-        kCommandFlag_IsOneWay             = 0x0010,  /**< Set when the command is one-way */
-    } CommandFlags;
 
     uint64_t commandType;
     uint64_t mustBeVersion;

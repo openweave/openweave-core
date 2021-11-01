@@ -265,7 +265,6 @@ WEAVE_ERROR WdmUpdateServerTest::VerifyUpdateRequest(nlTestSuite * inSuite, Pack
     PacketBuffer * pBuf = NULL;
     UpdateRequest::Parser update;
     Weave::TLV::TLVReader reader;
-    bool isDataListPresent                                             = false;
     bool existFailure                                                  = false;
     uint32_t numDataElements                                           = 0;
     uint32_t maxPayloadSize                                            = 0;
@@ -297,14 +296,9 @@ WEAVE_ERROR WdmUpdateServerTest::VerifyUpdateRequest(nlTestSuite * inSuite, Pack
     {
         DataList::Parser dataList;
         err = update.GetDataList(&dataList);
-        if (WEAVE_NO_ERROR == err)
+        if (WEAVE_END_OF_TLV == err)
         {
-            isDataListPresent = true;
-        }
-        else if (WEAVE_END_OF_TLV == err)
-        {
-            isDataListPresent = false;
-            err               = WEAVE_NO_ERROR;
+            err = WEAVE_NO_ERROR;
         }
         SuccessOrExit(err);
 

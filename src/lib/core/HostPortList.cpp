@@ -35,15 +35,6 @@ namespace Weave {
 using namespace nl::Weave::Encoding;
 
 /**
- *  Class default (void) constructor.
- *
- */
-HostPortList::HostPortList(void)
-{
-    Clear();
-}
-
-/**
  *  Reset the list to empty.
  *
  */

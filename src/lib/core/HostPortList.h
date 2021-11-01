@@ -46,7 +46,7 @@ namespace Weave {
 class HostPortList
 {
  public:
-    HostPortList(void);
+    HostPortList(void) = default;
     inline HostPortList(const uint8_t *hostPortList, uint8_t hostPortCount, const uint8_t *suffixList, const uint8_t suffixCount)
     {
         mElements    = hostPortList;

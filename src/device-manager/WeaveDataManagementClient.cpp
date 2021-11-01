@@ -575,7 +575,6 @@ WEAVE_ERROR GenericTraitUpdatableDataSink::GetTLVBytes(const char * apPath, Byte
 {
     WEAVE_ERROR err                                       = WEAVE_NO_ERROR;
     TraitSchemaEngine::IGetDataDelegate * getDataDelegate = NULL;
-    TLVType dummyContainerType;
     nl::Weave::TLV::TLVWriter writer;
     PropertyPathHandle propertyPathHandle = kNullPropertyPathHandle;
 
@@ -751,8 +750,6 @@ exit:
 WEAVE_ERROR GenericTraitUpdatableDataSink::DeleteData(const char * apPath)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    nl::Weave::TLV::TLVReader reader;
-    PacketBuffer * pMsgBuf                = NULL;
     PropertyPathHandle propertyPathHandle = kNullPropertyPathHandle;
     std::map<PropertyPathHandle, PacketBuffer *>::iterator it;
 

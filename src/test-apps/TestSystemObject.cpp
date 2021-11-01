@@ -295,7 +295,7 @@ void* TestObject::CheckConcurrencyThread(void* aContext)
 void* TestObject::CheckHighWatermarkThread(void* aContext)
 {
     TestContext&        lContext        = *static_cast<TestContext*>(aContext);
-    unsigned int        i;
+    int        i;
     nl::Weave::System::Stats::count_t lNumInUse;
     nl::Weave::System::Stats::count_t lHighWatermark;
 
@@ -359,11 +359,11 @@ void TestObject::CheckHighWatermark(nlTestSuite* inSuite, void* aContext)
 {
     memset(&sPool, 0, sizeof(sPool));
 
-    const unsigned int  kNumObjects     = kPoolSize;
+    const int           kNumObjects     = kPoolSize;
     TestObject*         lObject         = NULL;
     TestContext&        lContext        = *static_cast<TestContext*>(aContext);
     Layer               lLayer;
-    unsigned int        i;
+    int                 i;
     nl::Weave::System::Stats::count_t lNumInUse;
     nl::Weave::System::Stats::count_t lHighWatermark;
 

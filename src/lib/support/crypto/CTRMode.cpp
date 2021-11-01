@@ -38,9 +38,11 @@ namespace Weave {
 namespace Crypto {
 
 template <class BlockCipher>
-CTRMode<BlockCipher>::CTRMode()
+CTRMode<BlockCipher>::CTRMode() : mBlockCipher()
 {
-    memset(this, 0, sizeof(*this));
+    mMsgIndex = 0;
+    memset(Counter, 0, sizeof(Counter));
+    ClearSecretData(mEncryptedCounter, sizeof(mEncryptedCounter));
 }
 
 template <class BlockCipher>

@@ -100,15 +100,6 @@ public:
     bool operator !=(const IPPrefix& other) const;
 
     /**
-     * @brief   Conventional assignment operator.
-     *
-     * @param[in]   other   the prefix to copy.
-     *
-     * @return  a reference to this object.
-     */
-    IPPrefix& operator =(const IPPrefix& other);
-
-    /**
      * @brief   Test if an address matches the prefix.
      *
      * @param[in]   addr   the address to test.

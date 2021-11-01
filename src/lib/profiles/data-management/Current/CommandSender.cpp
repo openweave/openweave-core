@@ -209,9 +209,7 @@ void CommandSender::Close(bool aAbortNow)
 
 WEAVE_ERROR CommandSender::SendCommand(nl::Weave::PacketBuffer *aPayload, nl::Weave::Binding *aBinding, ResourceIdentifier &aResourceId, uint32_t aProfileId, uint32_t aCommandType)
 {
-    SendParams sendParams;
-
-    memset(&sendParams, 0, sizeof(sendParams));
+    SendParams sendParams = SendParams();
 
     sendParams.ResourceId = aResourceId;
     sendParams.ProfileId = aProfileId;
@@ -431,12 +429,11 @@ exit:
 
 void CommandSender::OnResponseTimeout(ExchangeContext *aEC)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
     CommandSender *_this = static_cast<CommandSender *>(aEC->AppState);
     InEventParam inEventParam;
     OutEventParam outEventParam;
 
-    VerifyOrExit(_this, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(_this, );
 
     inEventParam.CommunicationError.error = WEAVE_ERROR_TIMEOUT;
     _this->mEventCallback(_this->mAppState, kEvent_CommunicationError, inEventParam, outEventParam);

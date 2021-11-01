@@ -80,6 +80,8 @@ static bool gCleanStatus = true;
 static nl::Weave::WRMPConfig gWRMPConfig = { kWRMPInitialRetransTimeoutMsec, kWRMPActiveRetransTimeoutMsec, kWRMPAckTimeoutMsec, kWRMPMaxRetrans };
 
 
+#if 0
+// Re-enable should there be any requirement to use the debug pretty print
 static void TLVPrettyPrinter(const char *aFormat, ...)
 {
     va_list args;
@@ -96,6 +98,7 @@ static WEAVE_ERROR DebugPrettyPrint(nl::Weave::TLV::TLVReader & aReader)
 {
     return nl::Weave::TLV::Debug::Dump(aReader, TLVPrettyPrinter);
 }
+#endif
 
 nl::Weave::Profiles::DataManagement::SubscriptionEngine * nl::Weave::Profiles::DataManagement::SubscriptionEngine::GetInstance()
 {
@@ -1082,9 +1085,7 @@ void MockWdmSubscriptionResponderImpl::Command_Send(void)
 
     {
         uint64_t nowMicroSecs, deadline;
-        CommandSender::SendParams sendParams;
-
-        memset(&sendParams, 0, sizeof(sendParams));
+        CommandSender::SendParams sendParams = CommandSender::SendParams();
 
         if (mTestCaseId == kTestCase_ForwardCompatibleVersionedRequest) {
             sendParams.VersionRange.mMaxVersion = 4;

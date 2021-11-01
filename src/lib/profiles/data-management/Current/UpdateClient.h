@@ -83,7 +83,6 @@ private:
     EventCallback mEventCallback;
     nl::Weave::ExchangeContext * mEC;
     UpdateClientState mState;
-    utc_timestamp_t mExpiryTimeMicroSecond;
 
     static void OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext);
     static void OnResponseTimeout(nl::Weave::ExchangeContext * aEC);

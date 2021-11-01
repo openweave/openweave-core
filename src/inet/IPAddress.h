@@ -289,15 +289,6 @@ public:
     bool operator !=(const IPAddress& other) const;
 
     /**
-     * @brief   Conventional assignment operator.
-     *
-     * @param[in]   other   The address to copy.
-     *
-     * @return  A reference to this object.
-     */
-    IPAddress& operator =(const IPAddress& other);
-
-    /**
      * @brief   Emit the IP address in conventional text presentation format.
      *
      * @param[out]  buf         The address of the emitted text.
