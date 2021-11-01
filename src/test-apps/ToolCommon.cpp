@@ -1013,7 +1013,7 @@ void ServiceEvents(::timeval& aSleepTime)
         }
     }
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    int sleepTime = aSleepTime.tv_usec / 1000 + aSleepTime.tv_usec * 1000;
+    int sleepTime = aSleepTime.tv_usec / 1000 + aSleepTime.tv_sec * 1000;
     struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
     int numPollFDs = 0;
 
