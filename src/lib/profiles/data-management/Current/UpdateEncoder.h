@@ -144,7 +144,7 @@ private:
             mForceMerge(false),
             mDataSink(nullptr),
             mSchemaEngine(nullptr),
-            mNextDictionaryElementPathHandle(0) {}
+            mNextDictionaryElementPathHandle(0) { }
 
         TraitPath mTraitPath;                   /**< The TraitPath to encode. */
         DataVersion mUpdateRequiredVersion;     /**< If the update is conditional, the version the update is based off. */
