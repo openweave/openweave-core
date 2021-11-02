@@ -79,27 +79,6 @@ static bool gClearDataSink = false;
 static bool gCleanStatus = true;
 static nl::Weave::WRMPConfig gWRMPConfig = { kWRMPInitialRetransTimeoutMsec, kWRMPActiveRetransTimeoutMsec, kWRMPAckTimeoutMsec, kWRMPMaxRetrans };
 
-
-#if 0
-// Re-enable should there be any requirement to use the debug pretty print
-static void TLVPrettyPrinter(const char *aFormat, ...)
-{
-    va_list args;
-
-    va_start(args, aFormat);
-
-    // There is no proper Weave logging routine for us to use here
-    vprintf(aFormat, args);
-
-    va_end(args);
-}
-
-static WEAVE_ERROR DebugPrettyPrint(nl::Weave::TLV::TLVReader & aReader)
-{
-    return nl::Weave::TLV::Debug::Dump(aReader, TLVPrettyPrinter);
-}
-#endif
-
 nl::Weave::Profiles::DataManagement::SubscriptionEngine * nl::Weave::Profiles::DataManagement::SubscriptionEngine::GetInstance()
 {
     static nl::Weave::Profiles::DataManagement::SubscriptionEngine gWdmSubscriptionEngine;
