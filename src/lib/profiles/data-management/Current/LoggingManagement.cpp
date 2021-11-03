@@ -2276,9 +2276,9 @@ WEAVE_ERROR CircularEventBuffer::SerializeEvents(TLVWriter & writer)
     size_t bufLen = mBuffer.GetQueueSize();
 
     size_t initLen = inBufLen;
-    if ((inBufStart + initLen) > (bufStart + bufLen))
+    if (initLen > ((size_t) ((bufStart - inBufStart) + bufLen)))
     {
-        initLen = bufStart + bufLen - inBufStart;
+        initLen = (size_t) ((bufStart - inBufStart) + bufLen);
     }
 
     err = writer.StartContainer(AnonymousTag, kTLVType_Structure, container);
