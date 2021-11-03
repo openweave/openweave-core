@@ -62,12 +62,14 @@ using namespace ::nl::Weave::Profiles::DeviceDescription;
 
 static bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
 static bool HandleNonOptionArgs(const char *progName, int argc, char *argv[]);
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 static void HandleLoadPersistedTunnelCASESession(nl::Weave::WeaveConnection *con);
-static void HandleSessionPersistOnTunnelClosure(nl::Weave::WeaveConnection *con);
-static WEAVE_ERROR RestorePersistedTunnelCASESession(nl::Weave::WeaveConnection *con);
-static WEAVE_ERROR SuspendAndPersistTunnelCASESession(nl::Weave::WeaveConnection *con);
 static bool IsPersistentTunnelSessionPresent(uint64_t peerNodeId);
+static WEAVE_ERROR RestorePersistedTunnelCASESession(nl::Weave::WeaveConnection *con);
+#endif
 
+static void HandleSessionPersistOnTunnelClosure(nl::Weave::WeaveConnection *con);
+static WEAVE_ERROR SuspendAndPersistTunnelCASESession(nl::Weave::WeaveConnection *con);
 static void
 WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
                                    WEAVE_ERROR aErr, void *appCtxt);
@@ -326,6 +328,7 @@ exit:
     return err;
 }
 
+#if WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
 WEAVE_ERROR
 RestorePersistedTunnelCASESession(nl::Weave::WeaveConnection *con)
 {
@@ -397,6 +400,14 @@ void HandleLoadPersistedTunnelCASESession(nl::Weave::WeaveConnection *con)
     }
 }
 
+bool IsPersistentTunnelSessionPresent(uint64_t peerNodeId)
+{
+    const char * persistentTunnelSessionPath = PERSISTENT_TUNNEL_SESSION_PATH;
+
+    return (access(persistentTunnelSessionPath, F_OK) != -1);
+}
+#endif // WEAVE_CONFIG_PERSIST_CONNECTED_SESSION
+
 void HandleSessionPersistOnTunnelClosure(nl::Weave::WeaveConnection *con)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -407,13 +418,6 @@ void HandleSessionPersistOnTunnelClosure(nl::Weave::WeaveConnection *con)
     {
         printf("Suspending and persisting Tunnel CASE Session failed with Weave error: %d\n", err);
     }
-}
-
-bool IsPersistentTunnelSessionPresent(uint64_t peerNodeId)
-{
-    const char * persistentTunnelSessionPath = PERSISTENT_TUNNEL_SESSION_PATH;
-
-    return (access(persistentTunnelSessionPath, F_OK) != -1);
 }
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING
 

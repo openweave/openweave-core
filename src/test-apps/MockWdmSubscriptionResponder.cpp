@@ -79,24 +79,6 @@ static bool gClearDataSink = false;
 static bool gCleanStatus = true;
 static nl::Weave::WRMPConfig gWRMPConfig = { kWRMPInitialRetransTimeoutMsec, kWRMPActiveRetransTimeoutMsec, kWRMPAckTimeoutMsec, kWRMPMaxRetrans };
 
-
-static void TLVPrettyPrinter(const char *aFormat, ...)
-{
-    va_list args;
-
-    va_start(args, aFormat);
-
-    // There is no proper Weave logging routine for us to use here
-    vprintf(aFormat, args);
-
-    va_end(args);
-}
-
-static WEAVE_ERROR DebugPrettyPrint(nl::Weave::TLV::TLVReader & aReader)
-{
-    return nl::Weave::TLV::Debug::Dump(aReader, TLVPrettyPrinter);
-}
-
 nl::Weave::Profiles::DataManagement::SubscriptionEngine * nl::Weave::Profiles::DataManagement::SubscriptionEngine::GetInstance()
 {
     static nl::Weave::Profiles::DataManagement::SubscriptionEngine gWdmSubscriptionEngine;
@@ -1082,9 +1064,7 @@ void MockWdmSubscriptionResponderImpl::Command_Send(void)
 
     {
         uint64_t nowMicroSecs, deadline;
-        CommandSender::SendParams sendParams;
-
-        memset(&sendParams, 0, sizeof(sendParams));
+        CommandSender::SendParams sendParams = CommandSender::SendParams();
 
         if (mTestCaseId == kTestCase_ForwardCompatibleVersionedRequest) {
             sendParams.VersionRange.mMaxVersion = 4;
