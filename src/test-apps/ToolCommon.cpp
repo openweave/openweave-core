@@ -92,7 +92,7 @@ nl::Ble::Platform::BlueZ::BluezBlePlatformDelegate *getBluezPlatformDelegate()
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 #include <arpa/inet.h>
-#include <sys/select.h>
+#include <poll.h>
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
@@ -1013,29 +1013,27 @@ void ServiceEvents(::timeval& aSleepTime)
         }
     }
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    fd_set readFDs, writeFDs, exceptFDs;
-    int numFDs = 0;
-
-    FD_ZERO(&readFDs);
-    FD_ZERO(&writeFDs);
-    FD_ZERO(&exceptFDs);
+    int sleepTime = aSleepTime.tv_usec / 1000 + aSleepTime.tv_sec * 1000;
+    struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
+    int numPollFDs = 0;
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     if (SystemLayer.State() == System::kLayerState_Initialized)
-        SystemLayer.PrepareSelect(numFDs, &readFDs, &writeFDs, &exceptFDs, aSleepTime);
+        SystemLayer.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     if (Inet.State == InetLayer::kState_Initialized)
-        Inet.PrepareSelect(numFDs, &readFDs, &writeFDs, &exceptFDs, aSleepTime);
+        Inet.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
-    int selectRes = select(numFDs, &readFDs, &writeFDs, &exceptFDs, &aSleepTime);
-    if (selectRes < 0)
+    int pollRes = poll(pollFDs, numPollFDs, sleepTime);
+    if (pollRes < 0)
     {
-        printf("select failed: %s\n", ErrorStr(System::MapErrorPOSIX(errno)));
+        printf("poll failed: %s\n", ErrorStr(System::MapErrorPOSIX(errno)));
         return;
     }
+
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     if (SystemLayer.State() == System::kLayerState_Initialized)
@@ -1046,7 +1044,7 @@ void ServiceEvents(::timeval& aSleepTime)
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
-        SystemLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+        SystemLayer.HandleSelectResult(pollFDs, numPollFDs);
 
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
@@ -1083,7 +1081,7 @@ void ServiceEvents(::timeval& aSleepTime)
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
-        Inet.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+        Inet.HandleSelectResult(pollFDs, numPollFDs);
 
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 

@@ -349,9 +349,10 @@ WEAVE_ERROR nl_Weave_DeviceManager_DriveIO(uint32_t sleepTimeMS)
     ExitNow(err = WEAVE_ERROR_NOT_IMPLEMENTED);
 
 #else /* WEAVE_SYSTEM_CONFIG_USE_SOCKETS */
-    struct timeval sleepTime;
-    fd_set readFDs, writeFDs, exceptFDs;
-    int maxFDs = 0;
+    int sleepTime = sleepTimeMS;
+    struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
+    int numPollFDs = 0;
+    int blePollFD = -1;
 #if CONFIG_NETWORK_LAYER_BLE
     uint8_t bleWakeByte;
     bool result = false;
@@ -367,33 +368,30 @@ WEAVE_ERROR nl_Weave_DeviceManager_DriveIO(uint32_t sleepTimeMS)
     } evu;
 #endif /* CONFIG_NETWORK_LAYER_BLE */
 
-    FD_ZERO(&readFDs);
-    FD_ZERO(&writeFDs);
-    FD_ZERO(&exceptFDs);
-
-    sleepTime.tv_sec = sleepTimeMS / 1000;
-    sleepTime.tv_usec = (sleepTimeMS % 1000) * 1000;
-
     if (sSystemLayer.State() == System::kLayerState_Initialized)
-        sSystemLayer.PrepareSelect(maxFDs, &readFDs, &writeFDs, &exceptFDs, sleepTime);
+        sSystemLayer.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 
     if (Inet.State == InetLayer::kState_Initialized)
-        Inet.PrepareSelect(maxFDs, &readFDs, &writeFDs, &exceptFDs, sleepTime);
+        Inet.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 
 #if CONFIG_NETWORK_LAYER_BLE
     // Add read end of BLE wake pipe to readFDs.
-    FD_SET(BleWakePipe[0], &readFDs);
-
-    if (BleWakePipe[0] + 1 > maxFDs)
-        maxFDs = BleWakePipe[0] + 1;
+    {
+        struct pollfd event;
+        event.fd = BleWakePipe[0];
+        event.events = POLLIN;
+        event.revents = 0;
+        blePollFD = numPollFDs;
+        pollFDs[numPollFDs++] = event;
+    }
 #endif /* CONFIG_NETWORK_LAYER_BLE */
 
-    int selectRes = select(maxFDs, &readFDs, &writeFDs, &exceptFDs, &sleepTime);
-    VerifyOrExit(selectRes >= 0, err = System::MapErrorPOSIX(errno));
+    int pollRes = poll(pollFDs, numPollFDs, sleepTime);
+    VerifyOrExit(pollRes >= 0, err = System::MapErrorPOSIX(errno));
 
 #if CONFIG_NETWORK_LAYER_BLE
     // Drive IO to InetLayer and/or BleLayer.
-    if (FD_ISSET(BleWakePipe[0], &readFDs))
+    if (pollFDs[blePollFD].revents != 0)
     {
         while (true)
         {
@@ -498,17 +496,14 @@ WEAVE_ERROR nl_Weave_DeviceManager_DriveIO(uint32_t sleepTimeMS)
                 }
             }
         }
-
-        // Don't bother InetLayer if we only got BLE IO.
-        selectRes--;
     }
 #endif /* CONFIG_NETWORK_LAYER_BLE */
 
     if (sSystemLayer.State() == System::kLayerState_Initialized)
-        sSystemLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+        sSystemLayer.HandleSelectResult(pollFDs, numPollFDs);
 
     if (Inet.State == InetLayer::kState_Initialized)
-        Inet.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+        Inet.HandleSelectResult(pollFDs, numPollFDs);
 
 #endif /* WEAVE_SYSTEM_CONFIG_USE_SOCKETS */
 

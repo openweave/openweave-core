@@ -2422,6 +2422,15 @@
 extern const char WEAVE_NON_PRODUCTION_MARKER[];
 #endif
 
+/**
+ * @def WEAVE_CONFIG_MAX_POLL_FDS
+ *
+ * @brief Max number of select/poll fds.
+ */
+#ifndef WEAVE_CONFIG_MAX_POLL_FDS
+#define WEAVE_CONFIG_MAX_POLL_FDS 16
+#endif // WEAVE_CONFIG_MAX_POLL_FDS
+
 // clang-format on
 
 #endif /* WEAVE_CONFIG_H_ */

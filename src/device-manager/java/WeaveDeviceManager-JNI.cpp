@@ -24,6 +24,7 @@
  *
  */
 
+#include <array>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -1910,9 +1911,6 @@ void *IOThreadMain(void *arg)
 {
     JNIEnv *env;
     JavaVMAttachArgs attachArgs;
-    struct timeval sleepTime;
-    fd_set readFDs, writeFDs, exceptFDs;
-    int numFDs = 0;
 
     // Attach the IO thread to the JVM as a daemon thread.  This allows the JVM to shutdown
     // without waiting for this thread to exit.
@@ -1933,23 +1931,24 @@ void *IOThreadMain(void *arg)
     // Loop until we told to exit.
     while (true)
     {
-        numFDs = 0;
-        FD_ZERO(&readFDs);
-        FD_ZERO(&writeFDs);
-        FD_ZERO(&exceptFDs);
-
-        sleepTime.tv_sec = 10;
-        sleepTime.tv_usec = 0;
+        int sleepTime = 10000;
+        struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
+        int numPollFDs = 0;
 
         // Collect the currently active file descriptors.
-        sSystemLayer.PrepareSelect(numFDs, &readFDs, &writeFDs, &exceptFDs, sleepTime);
-        sInet.PrepareSelect(numFDs, &readFDs, &writeFDs, &exceptFDs, sleepTime);
+        sSystemLayer.PrepareSelect(pollFDs, numPollFDs, sleepTime);
+        sInet.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 
         // Unlock the stack so that Java threads can make API calls.
         pthread_mutex_unlock(&sStackLock);
 
         // Wait for for I/O or for the next timer to expire.
-        int selectRes = select(numFDs, &readFDs, &writeFDs, &exceptFDs, &sleepTime);
+        int pollRes = poll(pollFDs, numPollFDs, sleepTime);
+        if (pollRes < 0)
+        {
+            printf("poll failed: %s\n", nl::ErrorStr(System::MapErrorPOSIX(errno)));
+            continue;
+        }
 
         // Break the loop if requested to shutdown.
         if (sShutdown)
@@ -1959,8 +1958,8 @@ void *IOThreadMain(void *arg)
         pthread_mutex_lock(&sStackLock);
 
         // Perform I/O and/or dispatch timers.
-        sSystemLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
-        sInet.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+        sSystemLayer.HandleSelectResult(pollFDs, numPollFDs);
+        sInet.HandleSelectResult(pollFDs, numPollFDs);
     }
 
     // Detach the thread from the JVM.

@@ -1411,20 +1411,12 @@ INET_ERROR InetLayer::HandlePlatformTimer(void)
 /**
  *  Prepare the sets of file descriptors for @p select() to work with.
  *
- *  @param[out]    nfds       The range of file descriptors in the file
- *                            descriptor set.
- *
- *  @param[in]     readfds    A pointer to the set of readable file descriptors.
- *
- *  @param[in]     writefds   A pointer to the set of writable file descriptors.
- *
- *  @param[in]     exceptfds  A pointer to the set of file descriptors with errors.
- *
- * @param[in]      sleepTimeTV A pointer to a structure specifying how long the select should sleep
+ *  @param[in,out]  pollFDs     The fd set which is going to be polled
+ *  @param[in,out]  numPollFDs  The number of fds in the fd set
+ *  @param[in]      timeoutMS   A reference to the maximum sleep time.
  *
  */
-void InetLayer::PrepareSelect(int& nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
-        struct timeval& sleepTimeTV)
+void InetLayer::PrepareSelect(struct pollfd * pollFDs, int& numPollFDs, int& timeoutMS)
 {
     if (State != kState_Initialized)
         return;
@@ -1434,7 +1426,7 @@ void InetLayer::PrepareSelect(int& nfds, fd_set *readfds, fd_set *writefds, fd_s
     {
         RawEndPoint* lEndPoint = RawEndPoint::sPool.Get(*mSystemLayer, i);
         if ((lEndPoint != NULL) && lEndPoint->IsCreatedByInetLayer(*this))
-            lEndPoint->PrepareIO().SetFDs(lEndPoint->mSocket, nfds, readfds, writefds, exceptfds);
+            lEndPoint->PrepareIO().SetFDs(lEndPoint->mSocket, pollFDs, numPollFDs);
     }
 #endif // INET_CONFIG_ENABLE_RAW_ENDPOINT
 
@@ -1443,7 +1435,7 @@ void InetLayer::PrepareSelect(int& nfds, fd_set *readfds, fd_set *writefds, fd_s
     {
         TCPEndPoint* lEndPoint = TCPEndPoint::sPool.Get(*mSystemLayer, i);
         if ((lEndPoint != NULL) && lEndPoint->IsCreatedByInetLayer(*this))
-            lEndPoint->PrepareIO().SetFDs(lEndPoint->mSocket, nfds, readfds, writefds, exceptfds);
+            lEndPoint->PrepareIO().SetFDs(lEndPoint->mSocket, pollFDs, numPollFDs);
     }
 #endif // INET_CONFIG_ENABLE_TCP_ENDPOINT
 
@@ -1452,7 +1444,7 @@ void InetLayer::PrepareSelect(int& nfds, fd_set *readfds, fd_set *writefds, fd_s
     {
         UDPEndPoint* lEndPoint = UDPEndPoint::sPool.Get(*mSystemLayer, i);
         if ((lEndPoint != NULL) && lEndPoint->IsCreatedByInetLayer(*this))
-            lEndPoint->PrepareIO().SetFDs(lEndPoint->mSocket, nfds, readfds, writefds, exceptfds);
+            lEndPoint->PrepareIO().SetFDs(lEndPoint->mSocket, pollFDs, numPollFDs);
     }
 #endif // INET_CONFIG_ENABLE_UDP_ENDPOINT
 
@@ -1461,14 +1453,14 @@ void InetLayer::PrepareSelect(int& nfds, fd_set *readfds, fd_set *writefds, fd_s
     {
         TunEndPoint* lEndPoint = TunEndPoint::sPool.Get(*mSystemLayer, i);
         if ((lEndPoint != NULL) && lEndPoint->IsCreatedByInetLayer(*this))
-            lEndPoint->PrepareIO().SetFDs(lEndPoint->mSocket, nfds, readfds, writefds, exceptfds);
+            lEndPoint->PrepareIO().SetFDs(lEndPoint->mSocket, pollFDs, numPollFDs);
     }
 #endif // INET_CONFIG_ENABLE_TUN_ENDPOINT
 
 #if INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
     if (mSystemLayer == &mImplicitSystemLayer)
     {
-        mSystemLayer->PrepareSelect(nfds, readfds, writefds, exceptfds, sleepTimeTV);
+        mSystemLayer->PrepareSelect(pollFDs, numPollFDs, timeoutMS);
     }
 #endif // INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 }
@@ -1490,26 +1482,14 @@ void InetLayer::PrepareSelect(int& nfds, fd_set *readfds, fd_set *writefds, fd_s
  *    on it allows the endpoint code to clear the I/O flags in the event
  *    of a close, thus avoiding any confusion.
  *
- *  @param[in]    selectRes    The return value of the select call.
- *
- *  @param[in]    readfds      A pointer to the set of read file descriptors.
- *
- *  @param[in]    writefds     A pointer to the set of write file descriptors.
- *
- *  @param[in]    exceptfds    A pointer to the set of file descriptors with
- *                             errors.
- *
+ *  @param[in]  pollFDs     The result of polled FDs
+ *  @param[in]  numPollFDs  The number of fds in the fd set
  */
-void InetLayer::HandleSelectResult(int selectRes, fd_set *readfds, fd_set *writefds, fd_set *exceptfds)
+void InetLayer::HandleSelectResult(const struct pollfd * pollFDs, int numPollFDs)
 {
     if (State != kState_Initialized)
         return;
 
-    if (selectRes < 0)
-        return;
-
-    if (selectRes > 0)
-    {
         // Set the pending I/O field for each active endpoint based on the value returned by select.
 #if INET_CONFIG_ENABLE_RAW_ENDPOINT
         for (size_t i = 0; i < RawEndPoint::sPool.Size(); i++)
@@ -1517,7 +1497,7 @@ void InetLayer::HandleSelectResult(int selectRes, fd_set *readfds, fd_set *write
             RawEndPoint* lEndPoint = RawEndPoint::sPool.Get(*mSystemLayer, i);
             if ((lEndPoint != NULL) && lEndPoint->IsCreatedByInetLayer(*this))
             {
-                lEndPoint->mPendingIO = SocketEvents::FromFDs(lEndPoint->mSocket, readfds, writefds, exceptfds);
+                lEndPoint->mPendingIO = SocketEvents::FromFDs(lEndPoint->mSocket, pollFDs, numPollFDs);
             }
         }
 #endif // INET_CONFIG_ENABLE_RAW_ENDPOINT
@@ -1528,7 +1508,7 @@ void InetLayer::HandleSelectResult(int selectRes, fd_set *readfds, fd_set *write
             TCPEndPoint* lEndPoint = TCPEndPoint::sPool.Get(*mSystemLayer, i);
             if ((lEndPoint != NULL) && lEndPoint->IsCreatedByInetLayer(*this))
             {
-                lEndPoint->mPendingIO = SocketEvents::FromFDs(lEndPoint->mSocket, readfds, writefds, exceptfds);
+                lEndPoint->mPendingIO = SocketEvents::FromFDs(lEndPoint->mSocket, pollFDs, numPollFDs);
             }
         }
 #endif // INET_CONFIG_ENABLE_TCP_ENDPOINT
@@ -1539,7 +1519,7 @@ void InetLayer::HandleSelectResult(int selectRes, fd_set *readfds, fd_set *write
             UDPEndPoint* lEndPoint = UDPEndPoint::sPool.Get(*mSystemLayer, i);
             if ((lEndPoint != NULL) && lEndPoint->IsCreatedByInetLayer(*this))
             {
-                lEndPoint->mPendingIO = SocketEvents::FromFDs(lEndPoint->mSocket, readfds, writefds, exceptfds);
+                lEndPoint->mPendingIO = SocketEvents::FromFDs(lEndPoint->mSocket, pollFDs, numPollFDs);
             }
         }
 #endif // INET_CONFIG_ENABLE_UDP_ENDPOINT
@@ -1550,7 +1530,7 @@ void InetLayer::HandleSelectResult(int selectRes, fd_set *readfds, fd_set *write
             TunEndPoint* lEndPoint = TunEndPoint::sPool.Get(*mSystemLayer, i);
             if ((lEndPoint != NULL) && lEndPoint->IsCreatedByInetLayer(*this))
             {
-                lEndPoint->mPendingIO = SocketEvents::FromFDs(lEndPoint->mSocket, readfds, writefds, exceptfds);
+                lEndPoint->mPendingIO = SocketEvents::FromFDs(lEndPoint->mSocket, pollFDs, numPollFDs);
             }
         }
 #endif // INET_CONFIG_ENABLE_TUN_ENDPOINT
@@ -1599,12 +1579,11 @@ void InetLayer::HandleSelectResult(int selectRes, fd_set *readfds, fd_set *write
             }
         }
 #endif // INET_CONFIG_ENABLE_TUN_ENDPOINT
-    }
 
 #if INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
     if (mSystemLayer == &mImplicitSystemLayer)
     {
-        mSystemLayer->HandleSelectResult(selectRes, readfds, writefds, exceptfds);
+        mSystemLayer->HandleSelectResult(pollFDs, numPollFDs);
     }
 #endif // INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 }

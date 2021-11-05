@@ -122,40 +122,31 @@ void ShutdownWeave(void)
 void DriveIO(void)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    struct timeval sleepTime;
-    fd_set readFDs, writeFDs, exceptFDs;
-    int numFDs = 0;
-    int selectRes;
-
-    // Use a sleep value of 100 milliseconds
-    sleepTime.tv_sec = 0;
-    sleepTime.tv_usec = NETWORK_SLEEP_TIME_MSECS;
-
-    FD_ZERO(&readFDs);
-    FD_ZERO(&writeFDs);
-    FD_ZERO(&exceptFDs);
+    int sleepTime = NETWORK_SLEEP_TIME_MSECS;
+    struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
+    int numPollFDs = 0;
 
     if (SystemLayer.State() == System::kLayerState_Initialized)
-        SystemLayer.PrepareSelect(numFDs, &readFDs, &writeFDs, &exceptFDs, sleepTime);
+        SystemLayer.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 
     if (Inet.State == InetLayer::kState_Initialized)
-        Inet.PrepareSelect(numFDs, &readFDs, &writeFDs, &exceptFDs, sleepTime);
+        Inet.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 
-    selectRes = select(numFDs, &readFDs, &writeFDs, &exceptFDs, &sleepTime);
-    if (selectRes < 0)
+    int pollRes = poll(pollFDs, numPollFDs, sleepTime);
+    if (pollRes < 0)
     {
-        printf("select failed: %s\n", nl::ErrorStr(System::MapErrorPOSIX(errno)));
+        printf("poll failed: %s\n", nl::ErrorStr(System::MapErrorPOSIX(errno)));
         return;
     }
 
     if (SystemLayer.State() == System::kLayerState_Initialized)
     {
-        SystemLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+        SystemLayer.HandleSelectResult(pollFDs, numPollFDs);
     }
 
     if (Inet.State == InetLayer::kState_Initialized)
     {
-        Inet.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+        Inet.HandleSelectResult(pollFDs, numPollFDs);
     }
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }

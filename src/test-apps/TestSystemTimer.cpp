@@ -40,7 +40,7 @@
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-#include <sys/select.h>
+#include <poll.h>
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #include <SystemLayer/SystemError.h>
@@ -57,20 +57,17 @@ using namespace nl::Weave::System;
 static void ServiceEvents(Layer& aLayer, ::timeval& aSleepTime)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    fd_set readFDs, writeFDs, exceptFDs;
-    int numFDs = 0;
-
-    FD_ZERO(&readFDs);
-    FD_ZERO(&writeFDs);
-    FD_ZERO(&exceptFDs);
+    int sleepTime = aSleepTime.tv_usec / 1000 + aSleepTime.tv_sec * 1000;
+    struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
+    int numPollFDs = 0;
 
     if (aLayer.State() == kLayerState_Initialized)
-        aLayer.PrepareSelect(numFDs, &readFDs, &writeFDs, &exceptFDs, aSleepTime);
+        aLayer.PrepareSelect(pollFDs, numPollFDs, sleepTime);
 
-    int selectRes = select(numFDs, &readFDs, &writeFDs, &exceptFDs, &aSleepTime);
-    if (selectRes < 0)
+    int pollRes = poll(pollFDs, numPollFDs, sleepTime);
+    if (pollRes < 0)
     {
-        printf("select failed: %s\n", ErrorStr(MapErrorPOSIX(errno)));
+        printf("poll failed: %s\n", ErrorStr(MapErrorPOSIX(errno)));
         return;
     }
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
@@ -78,7 +75,7 @@ static void ServiceEvents(Layer& aLayer, ::timeval& aSleepTime)
     if (aLayer.State() == kLayerState_Initialized)
     {
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-        aLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+        aLayer.HandleSelectResult(pollFDs, numPollFDs);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP

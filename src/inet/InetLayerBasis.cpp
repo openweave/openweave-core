@@ -32,29 +32,24 @@ namespace Inet {
 /**
  *  Sets the bit for the specified file descriptor in the given sets of file descriptors.
  *
- *  @param[in]    socket    The file descriptor for which the bit is being set.
- *
- *  @param[out]   nfds      A reference to the range of file descriptors in the set.
- *
- *  @param[in]    readfds   A pointer to the set of readable file descriptors.
- *
- *  @param[in]    writefds  A pointer to the set of writable file descriptors.
- *
- *  @param[in]    exceptfds  A pointer to the set of file descriptors with errors.
- *
+ *  @param[in]      socket      The file descriptor for which the bit is being set.
+ *  @param[in,out]  pollFDs     The fd set which is going to be polled
+ *  @param[in,out]  numPollFDs  The number of fds in the fd set
  */
-void SocketEvents::SetFDs(int socket, int& nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds)
+void SocketEvents::SetFDs(int socket, struct pollfd * pollFDs, int& numPollFDs)
 {
     if (socket != INET_INVALID_SOCKET_FD)
     {
+        struct pollfd & event = pollFDs[numPollFDs];
+        event.fd = socket;
+        event.events = 0;
+        event.revents = 0;
         if (IsReadable())
-            FD_SET(socket, readfds);
+            event.events |= POLLIN;
         if (IsWriteable())
-            FD_SET(socket, writefds);
-        if (IsError())
-            FD_SET(socket, exceptfds);
-        if (IsSet() && (socket + 1) > nfds)
-            nfds = socket + 1;
+            event.events |= POLLOUT;
+        if (event.events != 0)
+            numPollFDs++;
     }
 }
 
@@ -62,27 +57,29 @@ void SocketEvents::SetFDs(int socket, int& nfds, fd_set *readfds, fd_set *writef
  *  Set the read, write or exception bit flags for the specified socket based on its status in
  *  the corresponding file descriptor sets.
  *
- *  @param[in]    socket    The file descriptor for which the bit flags are being set.
- *
- *  @param[in]    readfds   A pointer to the set of readable file descriptors.
- *
- *  @param[in]    writefds  A pointer to the set of writable file descriptors.
- *
- *  @param[in]    exceptfds  A pointer to the set of file descriptors with errors.
- *
+ *  @param[in]    socket      The file descriptor for which the bit flags are being set.
+ *  @param[in]    pollFDs     The result of polled FDs
+ *  @param[in]    numPollFDs  The number of fds in the fd set
  */
-SocketEvents SocketEvents::FromFDs(int socket, fd_set *readfds, fd_set *writefds, fd_set *exceptfds)
+SocketEvents SocketEvents::FromFDs(int socket, const struct pollfd * pollFDs, int numPollFDs)
 {
     SocketEvents res;
 
     if (socket != INET_INVALID_SOCKET_FD)
     {
-        if (FD_ISSET(socket, readfds))
-            res.SetRead();
-        if (FD_ISSET(socket, writefds))
-            res.SetWrite();
-        if (FD_ISSET(socket, exceptfds))
-            res.SetError();
+        for (int i = 0; i < numPollFDs; ++i)
+        {
+            const struct pollfd & event = pollFDs[i];
+            if (event.fd == socket)
+            {
+                if ((event.revents & (POLLIN | POLLHUP)) != 0)
+                    res.SetRead();
+                if ((event.revents & POLLOUT) != 0)
+                    res.SetWrite();
+                if ((event.revents & POLLERR) != 0)
+                    res.SetError();
+            }
+        }
     }
 
     return res;

@@ -51,7 +51,7 @@
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 #include <sys/socket.h>
-#include <sys/select.h>
+#include <poll.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <unistd.h>

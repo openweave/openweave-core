@@ -284,8 +284,8 @@ class NL_DLL_EXPORT InetLayer
 #endif // INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    void PrepareSelect(int& nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval& sleepTime);
-    void HandleSelectResult(int selectRes, fd_set *readfds, fd_set *writefds, fd_set *exceptfds);
+    void PrepareSelect(struct pollfd * pollFDs, int& numPollFDs, int& timeoutMS);
+    void HandleSelectResult(const struct pollfd * pollFDs, int numPollFDs);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     static void UpdateSnapshot(nl::Weave::System::Stats::Snapshot &aSnapshot);
