@@ -37,6 +37,8 @@
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
 
+#include <array>
+
 using namespace nl::Weave::Profiles;
 using namespace nl::Weave::Profiles::DataManagement;
 
@@ -420,15 +422,15 @@ exit:
 
     // WDM_LOG_METHOD_SIG();
 
-    VerifyOrExit(kWeaveStack_FullyInitialized == self.currentState, err = WEAVE_ERROR_INCORRECT_STATE);
-
     int sleepTime = 10000;
-    struct pollfd pollFDs[WEAVE_CONFIG_MAX_POLL_FDS];
+    __block std::array<struct pollfd, WEAVE_CONFIG_MAX_POLL_FDS> pollFDs;
     int numPollFDs = 0;
 
+    VerifyOrExit(kWeaveStack_FullyInitialized == self.currentState, err = WEAVE_ERROR_INCORRECT_STATE);
+
     // Collect the currently active file descriptors.
-    _mSystemLayer.PrepareSelect(pollFDs, numPollFDs, sleepTime);
-    _mInetLayer.PrepareSelect(pollFDs, numPollFDs, sleepTime);
+    _mSystemLayer.PrepareSelect(pollFDs.data(), numPollFDs, sleepTime);
+    _mInetLayer.PrepareSelect(pollFDs.data(), numPollFDs, sleepTime);
 
     // WDM_LOG_DEBUG(@"Sleeping for %f sec.\n", sleepTime.tv_sec + (sleepTime.tv_usec / 1000000.0));
 
@@ -439,7 +441,7 @@ exit:
         dispatch_async(_mSelectQueue, ^(void) {
             // Wait for for I/O or for the next timer to expire.
             // Note that this is not a good practice to use with GCD, but it's
-            int pollRes = poll(pollFDs, numPollFDs, sleepTime);
+            int pollRes = poll(pollFDs.data(), numPollFDs, sleepTime);
 
             dispatch_async(_mWorkQueue, ^(void) {
                 _mIsWaitingOnSelect = false;
@@ -451,8 +453,8 @@ exit:
                     [self ShutdownStack_Stage2];
                 } else if (kWeaveStack_FullyInitialized == self.currentState) {
                     // Perform I/O and/or dispatch timers.
-                    _mSystemLayer.HandleSelectResult(pollFDs, numPollFDs);
-                    _mInetLayer.HandleSelectResult(pollFDs, numPollFDs);
+                    _mSystemLayer.HandleSelectResult(pollFDs.data(), numPollFDs);
+                    _mInetLayer.HandleSelectResult(pollFDs.data(), numPollFDs);
 
                     // It's wierd that with iOS 9 SDK, we have to use disaptch_after here,
                     // instead of directly calling TryProcessNetworkEvents nor dispatch_async.
