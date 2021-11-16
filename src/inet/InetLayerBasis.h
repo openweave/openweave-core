@@ -34,7 +34,6 @@
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 #include <poll.h>
-#include <array>
 #endif
 
 namespace nl {

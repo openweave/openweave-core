@@ -32,7 +32,6 @@
 // Include dependent headers
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 #include <poll.h>
-#include <array>
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #if WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
