@@ -66,6 +66,7 @@ enum {
     kFlagAutoReleaseKey         = 0x0100, /// Automatically release the message encryption key when the exchange context is freed.
     kFlagAutoReleaseConnection  = 0x0200, /// Automatically release the associated WeaveConnection when the exchange context is freed.
     kFlagUseEphemeralUDPPort    = 0x0400, /// When set, use the local ephemeral UDP port as the source port for outbound messages.
+    kFlagCaptureSentMessage     = 0x0800, /// Capture the sent message after encoded with Weave headers.
 };
 
 /**
@@ -313,6 +314,18 @@ void ExchangeContext::SetShouldAutoReleaseConnection(bool autoReleaseCon)
 {
     SetFlag(mFlags, static_cast<uint16_t>(kFlagAutoReleaseConnection), autoReleaseCon);
 }
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+void ExchangeContext::SetCaptureSentMessage(bool inCaptureSentMessage)
+{
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagCaptureSentMessage), inCaptureSentMessage);
+}
+
+bool ExchangeContext::ShouldCaptureSentMessage() const
+{
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagCaptureSentMessage));
+}
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
 /**
  * @fn  bool ExchangeContext::UseEphemeralUDPPort(void) const
@@ -562,6 +575,15 @@ WEAVE_ERROR ExchangeContext::SendMessage(uint32_t profileId, uint8_t msgType, Pa
 #if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
     SetFlag(msgInfo->Flags, kWeaveMessageFlag_ViaEphemeralUDPPort, UseEphemeralUDPPort());
 #endif // WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    // Set flag for capture in MessageInfo if ExchangeContext is marked for
+    // capture.
+    if (ShouldCaptureSentMessage())
+    {
+        msgInfo->Flags |= kWeaveMessageFlag_CaptureTxMessage;
+    }
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
     // Send the message via UDP or TCP/BLE based on the presence of a connection.
     if (Con != NULL)

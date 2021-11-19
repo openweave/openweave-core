@@ -268,6 +268,7 @@ private:
     {
         kFlag_KeyReserved                           = 0x1,
         kFlag_ConnectionReferenced                  = 0x2,
+        kFlag_CaptureTxMessage                      = 0x4,
     };
 
     WeaveExchangeManager * mExchangeManager;
@@ -388,6 +389,10 @@ public:
     Configuration& Security_AppGroupKey(uint32_t aAppGroupGlobalId, uint32_t aRootKeyId, bool aUseRotatingKey);
     Configuration& Security_EncryptionType(uint8_t aEncType);
     Configuration& Security_AuthenticationMode(WeaveAuthMode aAuthMode);
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    Configuration& CaptureTxMessage(void);
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
     Configuration& ConfigureFromMessage(const WeaveMessageInfo *aMsgInfo, const Inet::IPPacketInfo *aPacketInfo);
 

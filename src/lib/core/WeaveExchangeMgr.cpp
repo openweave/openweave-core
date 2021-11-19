@@ -1556,7 +1556,7 @@ WEAVE_ERROR WeaveExchangeManager::AddToRetransTable(ExchangeContext *ec, PacketB
 WEAVE_ERROR WeaveExchangeManager::SendFromRetransTable(RetransTableEntry *entry)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint16_t msgSendFlags = 0;
+    uint32_t msgSendFlags = 0;
     uint8_t     *p = NULL;
     uint32_t    len = 0;
     ExchangeContext *ec = entry->exchContext;
@@ -1573,6 +1573,12 @@ WEAVE_ERROR WeaveExchangeManager::SendFromRetransTable(RetransTableEntry *entry)
 
     if (ec)
     {
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+        if (ec->ShouldCaptureSentMessage())
+        {
+            SetFlag(msgSendFlags, kWeaveMessageFlag_CaptureTxMessage);
+        }
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
         SetFlag(msgSendFlags, kWeaveMessageFlag_RetainBuffer);
 
 #if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT

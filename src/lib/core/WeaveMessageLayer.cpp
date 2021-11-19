@@ -153,6 +153,9 @@ WEAVE_ERROR WeaveMessageLayer::Init(InitContext *context)
     SecurityMgr = NULL;
     IsListening = context->listenTCP || context->listenUDP;
     IncomingConIdleTimeout = WEAVE_CONFIG_DEFAULT_INCOMING_CONNECTION_IDLE_TIMEOUT;
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    OnMessageCapture = NULL;
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
     //Internal and for Debug Only; When set, Message Layer drops message and returns.
     mDropMessage = false;
@@ -250,6 +253,9 @@ WEAVE_ERROR WeaveMessageLayer::Shutdown()
     ExchangeMgr = NULL;
     AppState = NULL;
     mFlags = 0;
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    OnMessageCapture = NULL;
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
     return WEAVE_NO_ERROR;
 }
@@ -547,7 +553,7 @@ void WeaveMessageLayer::CheckForceRefreshUDPEndPointsNeeded(WEAVE_ERROR err)
  *  @retval  errors generated from the lower Inet layer UDP endpoint during sending.
  *
  */
-WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress & destAddr, uint16_t destPort, InterfaceId sendIntfId,
+WEAVE_ERROR WeaveMessageLayer::SendMessage(IPAddress & destAddr, uint16_t destPort, InterfaceId sendIntfId,
                                            PacketBuffer * payload, uint32_t msgFlags)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -560,6 +566,21 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress & destAddr, uint16_t 
         kMulticast_AllFabricAddrs,
     } sendAction;
     uint16_t udpSendFlags;
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    // Check the destination address to check if the message is meant to be sent
+    // to the Service Cloud subnet. In that case, replace the subnetID to the
+    // CaptureSubnet if it is tagged for capture.
+
+    if (GetFlag(msgFlags, kWeaveMessageFlag_CaptureTxMessage) && destAddr.Subnet() == kWeaveSubnetId_Service)
+    {
+        char ipAddrStr[64];
+        destAddr = IPAddress::MakeULA(FabricState->FabricId, kWeaveSubnetId_TunneledCapture, destAddr.InterfaceId());
+        ClearFlag(msgFlags, kWeaveMessageFlag_CaptureTxMessage);
+        destAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
+        WeaveLogDetail(ExchangeManager, "Setting Capture Subnet in DestAddr %s", ipAddrStr);
+    }
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
     IPPacketInfo pktInfo;
     pktInfo.Clear();
@@ -624,6 +645,23 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress & destAddr, uint16_t 
     {
         sendAction = kMulticast_AllInterfaces;
     }
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    // Capture the message if it is tagged for capture in the message flags
+    if (GetFlag(msgFlags, kWeaveMessageFlag_CaptureTxMessage))
+    {
+        WeaveMessageInfo msgInfo;
+        memset(&msgInfo, 0, sizeof(msgInfo));
+        msgInfo.Flags = msgFlags;
+
+        if (OnMessageCapture)
+        {
+            OnMessageCapture(payload->Start(), payload->DataLength(), &msgInfo);
+        }
+
+        ExitNow(err);
+    }
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
     // Send the message...
     switch (sendAction)
@@ -2411,6 +2449,22 @@ void WeaveMessageLayer::SetSignalMessageLayerActivityChanged(MessageLayerActivit
 {
     OnMessageLayerActivityChange = messageLayerActivityChangeHandler;
 }
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+/**
+ *  Set an application handler that would get called to receive the captured
+ *  message.
+ *
+ *  @param[in] messageLayerPktCaptureHandler A pointer to a function to be
+ *             called when a message is captured by the WeaveMessageLayer.
+ *
+ *  @retval None.
+ */
+void WeaveMessageLayer::SetMessageLayerPktCaptureHandler(MessageLayerPktCaptureHandlerFunct messageLayerPktCaptureHandler)
+{
+    OnMessageCapture = messageLayerPktCaptureHandler;
+}
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
 bool WeaveMessageLayer::IsMessageLayerActive(void)
 {
