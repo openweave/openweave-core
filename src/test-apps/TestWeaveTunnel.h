@@ -83,6 +83,7 @@ enum
     kTestNum_TestTunnelRestrictedRoutingOnStandaloneTunnelOpen  = 27,
     kTestNum_TestTunnelTCPIdle                                  = 28,
     kTestNum_TestTunnelPersistCASESession                       = 29,
+    kTestNum_TestTunneledPacketCapture                          = 30,
 };
 
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING

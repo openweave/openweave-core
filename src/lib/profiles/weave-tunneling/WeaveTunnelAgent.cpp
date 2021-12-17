@@ -40,15 +40,20 @@
 #include <Weave/Support/WeaveFaultInjection.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelCommon.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelControl.h>
+#include <Weave/Support/logging/DecodedIPPacket.h>
+#include <Weave/Core/WeaveEncoding.h>
 
 #if WEAVE_CONFIG_ENABLE_TUNNELING
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #include "lwip/ip6.h"
 #include "lwip/ip6_addr.h"
+#include "lwip/sockets.h"
+#include "lwip/udp.h"
 #else
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <netinet/udp.h>
 #include <netinet/ip6.h>
 #endif
 
@@ -934,6 +939,150 @@ void WeaveTunnelAgent::ParseDestinationIPAddress(const PacketBuffer &inMsg, IPAd
 #endif // !WEAVE_SYSTEM_CONFIG_USE_LWIP
 }
 
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+
+struct PseudoHeader {
+    uint16_t    PayloadLength;
+    uint16_t    Protocol;
+    uint8_t     SrcAddr[16];
+    uint8_t     DstAddr[16];
+};
+
+uint32_t WeaveTunnelAgent::Checksum(uint16_t *buf, uint16_t len)
+{
+    uint32_t sum    = 0;
+    uint16_t result = 0;
+
+    while (len > 1)
+    {
+        sum += *buf++;
+        len -= 2;
+    }
+
+    if (len == 1)
+    {
+        *(uint8_t *)(&result) = *(uint8_t *)buf;
+        sum += result;
+    }
+
+    return sum;
+}
+
+WEAVE_ERROR WeaveTunnelAgent::ComputeUDPChecksumForIPv6Pkt(PacketBuffer *inMsg, const IPAddress &srcAddr, const IPAddress &destAddr)
+{
+    WEAVE_ERROR       err   = WEAVE_NO_ERROR;
+    uint8_t           *p    = NULL;
+    uint16_t          *q    = NULL;
+    PseudoHeader  payloadWithPseudoHdr;
+    uint16_t udpPktLen = 0;
+    uint32_t sum    = 0;
+    uint16_t *currCSumPtr = 0;
+    uint16_t cSumDataLen = 0;
+
+    // The beginning of the IPv6 packet
+    p = inMsg->Start() + TUN_HDR_SIZE_IN_BYTES;
+
+    // The paylload of the IPv6 packet
+    q = (uint16_t *)(p + sizeof(struct ip6_hdr));
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    struct udphdr *udpHdr  = (struct udphdr *)(q);
+
+    // Initialize checksum to 0
+    udpHdr->check = 0;
+#else // !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    struct udp_hdr *udpHdr =  (struct udp_hdr *)(q);
+
+    // Initialize checksum to 0
+    udpHdr->chksum = 0;
+#endif // !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+    struct ip6_hdr *ip6hdr = (struct ip6_hdr *)p;
+
+    // Get the UDP length or the IPv6 payload length
+    udpPktLen = inMsg->DataLength() - TUN_HDR_SIZE_IN_BYTES - sizeof(struct ip6_hdr);
+
+    //Fill up IPv6 fields belonging to the pseudo header necessary to calculate the checksum.
+    payloadWithPseudoHdr.PayloadLength   = nl::Weave::Encoding::BigEndian::HostSwap16(udpPktLen);
+    payloadWithPseudoHdr.Protocol      = nl::Weave::Encoding::BigEndian::HostSwap16(NL_PROTO_TYPE_UDP);
+    memcpy(payloadWithPseudoHdr.SrcAddr, &srcAddr, sizeof(payloadWithPseudoHdr.SrcAddr));
+    memcpy(payloadWithPseudoHdr.DstAddr, &destAddr, sizeof(payloadWithPseudoHdr.DstAddr));
+
+    // Calculate checksum for the pseudo header
+    sum = Checksum((uint16_t*)&payloadWithPseudoHdr, sizeof(PseudoHeader));
+    // Calculate the UDP Datagram checksum and add to the sum.
+    sum += Checksum(q, udpPktLen);
+
+    // Adjust for carryover
+    sum = (sum >> 16) + (sum & 0xffff);
+    sum += (sum >> 16);
+    sum = ~sum;
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    // Set the new computed checksum result
+    udpHdr->check = ((uint16_t)sum == 0x0000) ? 0xFFFF : (uint16_t)sum;
+    WeaveLogDetail(WeaveTunnel, "New checksum = %x", udpHdr->check);
+#else // !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    // Set the new computed checksum result
+    udpHdr->chksum = ((uint16_t)sum == 0x0000) ? 0xFFFF : (uint16_t)sum;
+    WeaveLogDetail(WeaveTunnel, "New checksum = %x", udpHdr->chksum);
+#endif // !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+    return err;
+}
+
+WEAVE_ERROR WeaveTunnelAgent::ReplaceDestSubnetInAddress(PacketBuffer *inMsg, const uint16_t subnetId)
+{
+    WEAVE_ERROR      err   = WEAVE_NO_ERROR;
+    uint8_t           *p   = NULL;
+    struct ip6_hdr *ip6hdr = NULL;
+    IPAddress inDest, srcAddr, replacedDestAddr;
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+    ip6_addr_t ipv6Addr;
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    struct in6_addr ipv6Addr;
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+    // Extract the IPv6 header to look at the destination address
+
+    p = inMsg->Start() + TUN_HDR_SIZE_IN_BYTES;
+
+    ip6hdr = (struct ip6_hdr *)p;
+
+    // Fetch destination address from header
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+    ip6_addr_copy(ipv6Addr, ip6hdr->dest);
+    inDest = IPAddress::FromIPv6(ipv6Addr);
+
+    ip6_addr_copy(ipv6Addr, ip6hdr->src);
+    srcAddr = IPAddress::FromIPv6(ipv6Addr);
+#else // !WEAVE_SYSTEM_CONFIG_USE_LWIP
+    inDest = IPAddress::FromIPv6(ip6hdr->ip6_dst);
+    srcAddr = IPAddress::FromIPv6(ip6hdr->ip6_src);
+#endif // !WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+    replacedDestAddr = IPAddress::MakeULA(inDest.GlobalId(), subnetId, inDest.InterfaceId());
+
+    // Set correct destination address
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    ip6hdr->ip6_dst = replacedDestAddr.ToIPv6();
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+    ipv6Addr = replacedDestAddr.ToIPv6();
+    ip6_addr_copy(ip6hdr->dest, ipv6Addr);
+#endif // !WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+    // Recompute UDP checksum to account for the destination address change
+    err = ComputeUDPChecksumForIPv6Pkt(inMsg, srcAddr, replacedDestAddr);
+
+    return err;
+}
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+
 /**
  * Handler to receive IPv6 packets from the Tunnel EndPoint interface and forward, either to the Service
  * via the Service TCP connection after encapsulating IPv6 packet inside the tunnel header or to the Mobile
@@ -958,6 +1107,7 @@ void WeaveTunnelAgent::RecvdFromTunnelEndPoint(TunEndPoint *tunEP, PacketBuffer 
     SuccessOrExit(err);
 
     nodeId = destIP6Addr.InterfaceId();
+
     if (destIP6Addr.Subnet() == kWeaveSubnetId_Service)
     {
         // Destined for Service
@@ -993,6 +1143,18 @@ void WeaveTunnelAgent::RecvdFromTunnelEndPoint(TunEndPoint *tunEP, PacketBuffer 
             SuccessOrExit(err);
         }
     }
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    else if (destIP6Addr.Subnet() == kWeaveSubnetId_TunneledCapture)
+    {
+        WeaveLogDetail(WeaveTunnel, "Tunneled message received with Capture subnet. Replacing with Service Subnet\n");
+        err = tAgent->ReplaceDestSubnetInAddress(msg, kWeaveSubnetId_Service);
+        SuccessOrExit(err);
+
+        err = tAgent->HandleSendingToService(msg, true);
+        msg = NULL;
+        SuccessOrExit(err);
+    }
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
 exit:
     if (msg != NULL)
@@ -1164,8 +1326,6 @@ WEAVE_ERROR WeaveTunnelAgent::TeardownTunEndPoint(void)
 void WeaveTunnelAgent::PopulateTunnelMsgHeader(WeaveMessageInfo *msgInfo,
                                                const WeaveTunnelConnectionMgr *connMgr)
 {
-    msgInfo->Clear();
-
     // Set to no-encryption when not using a tunnel to the Service
 
     if (!connMgr)
@@ -1262,10 +1422,13 @@ exit:
 /**
  * Prepare message and send to Service via Remote tunnel.
  */
-WEAVE_ERROR WeaveTunnelAgent::HandleSendingToService(PacketBuffer *msg)
+WEAVE_ERROR WeaveTunnelAgent::HandleSendingToService(PacketBuffer *msg, const bool shouldCapture)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool dropPacket = false;
+    WeaveMessageInfo msgInfo;
+
+    msgInfo.Clear();
 
     if (mPrimaryTunConnMgr.mConnectionState != WeaveTunnelConnectionMgr::kState_TunnelOpen
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
@@ -1286,12 +1449,18 @@ WEAVE_ERROR WeaveTunnelAgent::HandleSendingToService(PacketBuffer *msg)
         ExitNow();
     }
 
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    if (shouldCapture)
+    {
+        WeaveLogDetail(WeaveTunnel, "Tagging Tunneled message for capture\n");
+        msgInfo.Flags |= kWeaveMessageFlag_CaptureTxMessage;
+    }
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+
     // Send on primary tunnel if open; else send over backup tunnel
 
     if (mPrimaryTunConnMgr.mConnectionState == WeaveTunnelConnectionMgr::kState_TunnelOpen)
     {
-        WeaveMessageInfo msgInfo;
-
         PopulateTunnelMsgHeader(&msgInfo, &mPrimaryTunConnMgr);
 
         err = SendMessageUponPktTransitAnalysis(&mPrimaryTunConnMgr, kDir_Outbound, kType_TunnelPrimary,
@@ -1300,8 +1469,6 @@ WEAVE_ERROR WeaveTunnelAgent::HandleSendingToService(PacketBuffer *msg)
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
     else if (mBackupTunConnMgr.mConnectionState == WeaveTunnelConnectionMgr::kState_TunnelOpen)
     {
-        WeaveMessageInfo msgInfo;
-
         PopulateTunnelMsgHeader(&msgInfo, &mBackupTunConnMgr);
 
         err = SendMessageUponPktTransitAnalysis(&mBackupTunConnMgr, kDir_Outbound, kType_TunnelBackup,

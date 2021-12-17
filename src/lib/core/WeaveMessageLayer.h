@@ -137,9 +137,10 @@ typedef enum WeaveMessageFlags
     kWeaveMessageFlag_PeerRequestedAck                  = 0x00004000, /**< Indicates that the sender of the  message requested an acknowledgment. */
     kWeaveMessageFlag_DuplicateMessage                  = 0x00008000, /**< Indicates that the message is a duplicate of a previously received message. */
     kWeaveMessageFlag_PeerGroupMsgIdNotSynchronized     = 0x00010000, /**< Indicates that the peer's group key message counter is not synchronized. */
-	kWeaveMessageFlag_FromInitiator                     = 0x00020000, /**< Indicates that the source of the message is the initiator of the
-																		   Weave exchange. */
+    kWeaveMessageFlag_FromInitiator                     = 0x00020000, /**< Indicates that the source of the message is the initiator of the Weave exchange. */
     kWeaveMessageFlag_ViaEphemeralUDPPort               = 0x00040000, /**< Indicates that message is being sent/received via the local ephemeral UDP port. */
+
+    kWeaveMessageFlag_CaptureTxMessage                  = 0x00080000, /**< Indicates that the outgoing message needs to be captured. */
 
     kWeaveMessageFlag_MulticastFromLinkLocal            = kWeaveMessageFlag_DefaultMulticastSourceAddress,
                                                                       /**< Deprecated alias for \c kWeaveMessageFlag_DefaultMulticastSourceAddress */
@@ -745,6 +746,27 @@ public:
     void SetSignalMessageLayerActivityChanged(MessageLayerActivityChangeHandlerFunct messageLayerActivityChangeHandler);
     bool IsMessageLayerActive(void);
 
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    /**
+     *  This function is the callback for capturing a sent Weave message and
+     *  passing it to the application. The Weave message encoded all the way to
+     *  the MessageLayer is captured and handed over via this API.
+     *
+     *  @param[in] msgBuf   A pointer to the Weave message being captured.
+     *
+     *  @param[in] msgLen   Length of the encoded message in the buffer.
+     *
+     *  @param[in] msgInfo  A pointer to the WeaveMessageInfo object
+     *                      pertaining to this captured message.
+     *
+     *  @note
+     *    All pointer parameters passed via this API may be freed once the callback returns and it is the responsibility
+     *    of the callee to copy their contents if need be.
+     */
+    typedef void (*MessageLayerPktCaptureHandlerFunct)(uint8_t *msgBuf, uint16_t msgLen, WeaveMessageInfo *msgInfo);
+    void SetMessageLayerPktCaptureHandler(MessageLayerPktCaptureHandlerFunct messageLayerPktCaptureHandler);
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+
     static uint32_t GetMaxWeavePayloadSize(const PacketBuffer *msgBuf, bool isUDP, uint32_t udpMTU);
 
     static void GetPeerDescription(char *buf, size_t bufSize, uint64_t nodeId, const IPAddress *addr, uint16_t port, InterfaceId interfaceId, const WeaveConnection *con);
@@ -795,6 +817,10 @@ private:
     void *UnsecuredConnectionReceivedAppState;
     MessageLayerActivityChangeHandlerFunct OnMessageLayerActivityChange;
 
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    MessageLayerPktCaptureHandlerFunct OnMessageCapture;
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+
     WEAVE_ERROR EnableUnsecuredListen(void);
     WEAVE_ERROR DisableUnsecuredListen(void);
 
@@ -805,7 +831,7 @@ private:
     WEAVE_ERROR RefreshEndpoint(TCPEndPoint *& endPoint, bool enable, const char * name, IPAddressType addrType, IPAddress addr, uint16_t port);
     WEAVE_ERROR RefreshEndpoint(UDPEndPoint *& endPoint, bool enable, const char * name, IPAddressType addrType, IPAddress addr, uint16_t port, InterfaceId intfId);
 
-    WEAVE_ERROR SendMessage(const IPAddress &destAddr, uint16_t destPort, InterfaceId sendIntfId, PacketBuffer *payload, uint32_t msgFlags);
+    WEAVE_ERROR SendMessage(IPAddress &destAddr, uint16_t destPort, InterfaceId sendIntfId, PacketBuffer *payload, uint32_t msgFlags);
     WEAVE_ERROR SelectOutboundUDPEndPoint(const IPAddress & destAddr, uint32_t msgFlags, UDPEndPoint *& ep);
     WEAVE_ERROR SelectDestNodeIdAndAddress(uint64_t& destNodeId, IPAddress& destAddr);
     WEAVE_ERROR DecodeMessage(PacketBuffer *msgBuf, uint64_t sourceNodeId, WeaveConnection *con,
@@ -1086,6 +1112,7 @@ typedef enum WeaveSubnetId
     kWeaveSubnetId_MobileDevice                         = 4, /**< The subnet identifier for all Mobile devices. */
     kWeaveSubnetId_Service                              = 5, /**< The subnet identifier for the Nest Service endpoints. */
     kWeaveSubnetId_ThreadMesh                           = 6, /**< The Thread mesh radio interface subnet identifier. */
+    kWeaveSubnetId_TunneledCapture                      = 32, /**< A Subnet identifier for marking a tunneled packet for capture. */
 } WeaveSubnetId;
 
 #define WEAVE_MAX_NODE_ADDR_STR_LENGTH (nl::Weave::kWeavePeerDescription_MaxLength)

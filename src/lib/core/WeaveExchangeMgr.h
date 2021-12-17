@@ -159,6 +159,8 @@ public:
         kSendFlag_RequestAck                    = 0x0400, /**< Used to send a WRM message requesting an acknowledgment. */
         kSendFlag_NoAutoRequestAck              = 0x0800, /**< Suppress the auto-request acknowledgment feature when sending a message. */
 
+        kSendFlag_CaptureSentMessage            = 0x1000, /**< Capture the sent message after encoded with Weave headers */
+
         kSendFlag_MulticastFromLinkLocal        = kSendFlag_DefaultMulticastSourceAddress,
                                                           /**< Deprecated alias for \c kSendFlag_DefaultMulticastSourceAddress */
     };
@@ -191,6 +193,11 @@ public:
 #if WEAVE_CONFIG_ENABLE_EPHEMERAL_UDP_PORT
     void SetUseEphemeralUDPPort(bool val);
 #endif
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    void SetCaptureSentMessage(bool inCaptureSentMessage);
+    bool ShouldCaptureSentMessage() const;
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
     WEAVE_ERROR SendMessage(uint32_t profileId, uint8_t msgType, PacketBuffer *msgPayload, uint16_t sendFlags = 0, void *msgCtxt = 0);
     WEAVE_ERROR SendMessage(uint32_t profileId, uint8_t msgType, PacketBuffer *msgBuf, uint16_t sendFlags, WeaveMessageInfo * msgInfo, void *msgCtxt = 0);

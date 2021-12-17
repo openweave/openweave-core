@@ -2403,6 +2403,22 @@
 #endif // WEAVE_CONFIG_TCP_CONN_REPAIR_SUPPORTED
 
 /**
+ * @def WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+ *
+ * @brief
+ *   When this option is enabled, transmitted Weave messages can be captured
+ *   back at the WeaveMessageLayer after being fully encoded with the Weave
+ *   Exchange and Message layer headers.
+ *   In orderr to capture messages, the application can configure a WeaveBinding
+ *   object to vend an ExchangeContext that is tagged for capture. Thereafter,
+ *   all transmitted messages on that ExchangeContext would be captured.
+ *
+ */
+#ifndef WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+#define WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE                 0
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+
+/**
  * @def WEAVE_NON_PRODUCTION_MARKER
  *
  * @brief Defines the name of a mark symbol whose presence signals that the Weave code

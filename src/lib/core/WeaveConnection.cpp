@@ -661,6 +661,7 @@ WEAVE_ERROR WeaveConnection::SendMessage (WeaveMessageInfo *msgInfo, PacketBuffe
     {
         msgInfo->Flags |= kWeaveMessageFlag_DestNodeId;
     }
+
     // Encode the Weave message. NOTE that this results in the payload buffer containing the entire encoded message.
     // If the encoded message would have exceeded the sent limit, return WEAVE_ERROR_SENDING_BLOCKED to the caller.
     res = MessageLayer->EncodeMessageWithLength(msgInfo, msgBuf, this, UINT16_MAX);
@@ -671,6 +672,18 @@ WEAVE_ERROR WeaveConnection::SendMessage (WeaveMessageInfo *msgInfo, PacketBuffe
 
     // Copy msg to a right-sized buffer if applicable
     msgBuf = PacketBuffer::RightSize(msgBuf);
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    if (GetFlag(msgInfo->Flags, kWeaveMessageFlag_CaptureTxMessage))
+    {
+        WeaveLogDetail(MessageLayer, "Message tagged for capture over Con  %04X ", LogId());
+        if (MessageLayer->OnMessageCapture)
+        {
+            MessageLayer->OnMessageCapture(msgBuf->Start(), msgBuf->DataLength(), msgInfo);
+        }
+        ExitNow(res);
+    }
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
 #if CONFIG_NETWORK_LAYER_BLE
     if (mBleEndPoint != NULL)

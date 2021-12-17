@@ -57,6 +57,12 @@ using namespace ::nl::Weave::Profiles::WeaveTunnel;
 #define NL_PATH_PROCNET_IPV6_ROUTE     "/proc/net/ipv6_route"
 #endif /* NL_PATH_PROCNET_IPV6_ROUTE */
 
+const nl::Weave::ExchangeContext::Timeout kResponseTimeoutMsec = 10000;
+const nl::Weave::ExchangeContext::Timeout kWRMPActiveRetransTimeoutMsec = 3000;
+const nl::Weave::ExchangeContext::Timeout kWRMPInitialRetransTimeoutMsec = 3000;
+const uint16_t kWRMPMaxRetrans = 3;
+const uint16_t kWRMPAckTimeoutMsec = 200;
+
 static bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
 static bool HandleNonOptionArgs(const char *progName, int argc, char *argv[]);
 static void
@@ -78,6 +84,14 @@ static void HandleTunnelTestResponse(ExchangeContext *ec, const IPPacketInfo *pk
                                      const WeaveMessageInfo *msgInfo, uint32_t profileId,
                                      uint8_t msgType, PacketBuffer *payload);
 static void ResetReconnectTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+static void MessageLayerPacketCaptureHandler(uint8_t *msgBuf, uint16_t msgLen, WeaveMessageInfo *msgInfo);
+
+static WEAVE_ERROR SendMessageForCapture(nl::Weave::Binding* binding);
+static void BindingEventCallback (void * const apAppState, const nl::Weave::Binding::EventType aEvent,
+        const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam);
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 static int AddDeleteIPv4Address(InterfaceId intf, const char *ipAddr, bool isAdd);
@@ -103,6 +117,8 @@ uint8_t gConnAttemptsBeforeReset = 0;
 bool gReconnectResetArmed = false;
 uint64_t gReconnectResetArmTime = 0;
 bool gtestDataSent = false;
+
+static nl::Weave::WRMPConfig gWRMPConfig = { kWRMPInitialRetransTimeoutMsec, kWRMPActiveRetransTimeoutMsec, kWRMPAckTimeoutMsec, kWRMPMaxRetrans };
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 bool gUseServiceDir = false;
@@ -2726,6 +2742,91 @@ exit:
 }
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+/**
+ * Test to capture a sent Tunneled Weave message.
+ * Binding API used to indicate intent to capture.
+ * Message Capture Handler receives captured message from WeaveMessageLayer.
+ */
+
+static void TestTunneledPacketCapture(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Done = false;
+    gTestSucceeded = false;
+    // Set a longer duration for the queueing test. 3 times the default test
+    // duration(~15 seconds) is sufficient for the completion of this test with
+    // close to 100% confidence.
+    gMaxTestDurationMillisecs = (DEFAULT_TEST_DURATION_MILLISECS * 3);
+    gCurrTestNum = kTestNum_TestTunneledPacketCapture;
+    gTestStartTime = Now();
+
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    if (gUseServiceDir)
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId,
+                            gAuthMode, &gServiceMgr);
+    }
+    else
+#endif
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId, gDestAddr,
+                            gAuthMode);
+    }
+
+
+    gTunAgent.OnServiceTunStatusNotify = WeaveTunnelOnStatusNotifyHandlerCB;
+
+    SuccessOrExit(err);
+
+    ExchangeMgr.MessageLayer->SetMessageLayerPktCaptureHandler(MessageLayerPacketCaptureHandler);
+
+    err = gTunAgent.StartServiceTunnel();
+    SuccessOrExit(err);
+
+    while (!Done)
+    {
+        struct timeval sleepTime;
+        sleepTime.tv_sec = TEST_SLEEP_TIME_WITHIN_LOOP_SECS;
+        sleepTime.tv_usec = TEST_SLEEP_TIME_WITHIN_LOOP_MICROSECS;
+
+        ServiceNetwork(sleepTime);
+
+        if (Now() < gTestStartTime + gMaxTestDurationMillisecs * System::kTimerFactor_micro_per_milli)
+        {
+            if (gTestSucceeded)
+            {
+                Done = true;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        else // Time's up
+        {
+            gTestSucceeded = false;
+            Done = true;
+        }
+
+        if (Done)
+        {
+
+            gTunAgent.StopServiceTunnel(WEAVE_NO_ERROR);
+        }
+    }
+
+exit:
+
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
+
+    gTunAgent.Shutdown();
+}
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+
 void HandleTunnelTestResponse(ExchangeContext *ec, const IPPacketInfo *pktInfo,
                               const WeaveMessageInfo *msgInfo, uint32_t profileId,
                               uint8_t msgType, PacketBuffer *payload)
@@ -2839,6 +2940,88 @@ WeaveTunnelTCPIdleNotifyHandlerCB(TunnelType tunType,
     }
 }
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+WEAVE_ERROR SendMessageForCapture(nl::Weave::Binding* binding)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    nl::Weave::ExchangeContext* ec = NULL;
+
+    err = binding->NewExchangeContext(ec);
+    SuccessOrExit(err);
+
+    WeaveLogDetail(WeaveTunnel, "Sending Echo Message for Capture\n");
+    err = SendTunnelTestMessage(ec, kWeaveProfile_Echo,
+                                kEchoMessageType_EchoRequest,
+                                0);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+
+}
+
+void MessageLayerPacketCaptureHandler(uint8_t *msgBuf, uint16_t msgLen, WeaveMessageInfo *msgInfo)
+{
+    WeaveLogDetail(WeaveTunnel, "Tunneled packet received by capture handler\n");
+
+    gTestSucceeded = true;
+}
+
+void
+BindingEventCallback(
+    void* const apAppState,
+    const nl::Weave::Binding::EventType aEventType,
+    const nl::Weave::Binding::InEventParam& aInParam,
+    nl::Weave::Binding::OutEventParam& aOutParam)
+{
+
+    nl::Weave::Binding* binding = aInParam.Source;
+
+    // TODO: Failure events need correct handling when they occur
+    switch (aEventType)
+    {
+        case nl::Weave::Binding::kEvent_PrepareRequested:
+        {
+            // Nothing to do here, since the binding preperation is done in
+            // Addbinding
+            break;
+        }
+        case nl::Weave::Binding::kEvent_BindingReady:
+        {
+            WeaveLogDetail(WeaveTunnel, "Binding Ready: Send for Capture\n");
+            /* Send the message for the binding that is ready
+             * in the un-cached binding model */
+            (void)SendMessageForCapture(binding);
+            break;
+        }
+        case nl::Weave::Binding::kEvent_PrepareFailed:
+        case nl::Weave::Binding::kEvent_BindingFailed:
+        {
+#if 0
+            nlVERIFY(binding != NULL);
+
+            // TODO: Currently no effort is made for recovery here.
+            // However, in the future we may be able to fail gracefully by
+            // re-trying the binding
+            NL_LOG((nlLPCrit,
+                   "Binding Failed Peer=%016" PRIX64,
+                   binding->GetPeerNodeId()));
+
+            // Pending command is no longer valid so remove command
+            // TODO: Report error back to the command requester.
+            _this->mPendingCommands.erase(binding);
+#endif
+            break;
+        }
+        default:
+            // All unhandled events must be delivered to the binding's default
+            // event handler.
+            nl::Weave::Binding::DefaultEventHandler(
+                apAppState, aEventType, aInParam, aOutParam);
+    }
+}
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
 void
 WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
@@ -3233,6 +3416,36 @@ WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyRea
         }
 
         break;
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+      case kTestNum_TestTunneledPacketCapture:
+        if (reason == WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp)
+        {
+            // Tunnel established; Formulate a message for capture and send it.
+
+            WeaveLogDetail(WeaveTunnel, "Tunnel Up for sending Capture message\n");
+            nl::Weave::Binding *newBinding = ExchangeMgr.NewBinding(BindingEventCallback, NULL);
+            VerifyOrExit(NULL != newBinding, err = WEAVE_ERROR_NO_MEMORY);
+
+            {
+                Binding::Configuration bindingConfig = newBinding->BeginConfiguration()
+                    .Target_NodeId(gDestNodeId)
+                    .TargetAddress_WeaveFabric(kWeaveSubnetId_Service)
+                    .Transport_UDP_WRM()
+                    //.Transport_UDP()
+                    .Transport_DefaultWRMPConfig(gWRMPConfig)
+                    .Exchange_ResponseTimeoutMsec(kResponseTimeoutMsec)
+                    .Security_None();
+
+                WeaveLogDetail(WeaveTunnel, "Set Binding flag for Capture\n");
+                bindingConfig.CaptureTxMessage();
+
+                err = bindingConfig.PrepareBinding();
+                SuccessOrExit(err);
+            }
+        }
+
+        break;
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
       default:
 
@@ -3285,6 +3498,9 @@ static const nlTest tunnelTests[] = {
     NL_TEST_DEF("TestTunnelResetReconnectBackoffImmediately", TestTunnelResetReconnectBackoffImmediately),
     NL_TEST_DEF("TestTunnelResetReconnectBackoffRandomized", TestTunnelResetReconnectBackoffRandomized),
     NL_TEST_DEF("TestTunnelNoStatusReportResetReconnectBackoff", TestTunnelNoStatusReportResetReconnectBackoff),
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    NL_TEST_DEF("TestTunneledPacketCapture", TestTunneledPacketCapture),
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 #if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
     NL_TEST_DEF("TestTunnelTCPIdle", TestTunnelTCPIdle),
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK

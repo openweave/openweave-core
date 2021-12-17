@@ -1374,6 +1374,14 @@ WEAVE_ERROR Binding::NewExchangeContext(nl::Weave::ExchangeContext *& appExchang
         appExchangeContext->SetAutoReleaseKey(true);
     }
 
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    // If message is marked for capture set flag in Exchange Context
+    if (GetFlag(kFlag_CaptureTxMessage))
+    {
+        appExchangeContext->SetCaptureSentMessage(true);
+    }
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+
     err = AdjustResponseTimeout(appExchangeContext);
     SuccessOrExit(err);
 
@@ -1929,6 +1937,19 @@ Binding::Configuration& Binding::Configuration::Security_AuthenticationMode(Weav
     mBinding.mAuthMode = aAuthMode;
     return *this;
 }
+
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+/**
+ *  Set the flag for capturing sent messages
+ *
+ *  @return                     A reference to the Binding object.
+ */
+Binding::Configuration& Binding::Configuration::CaptureTxMessage(void)
+{
+    mBinding.SetFlag(kFlag_CaptureTxMessage);
+    return *this;
+}
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 
 /**
  *  Configure the binding to allow communication with the sender of a received message.

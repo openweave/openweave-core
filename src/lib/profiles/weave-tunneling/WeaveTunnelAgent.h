@@ -654,7 +654,7 @@ private:
     // Message encapsulating/decapsulating functions for sending between Tunnel and other interfaces
 
     WEAVE_ERROR AddTunnelHdrToMsg(PacketBuffer *msg);
-    WEAVE_ERROR HandleSendingToService(PacketBuffer *msg);
+    WEAVE_ERROR HandleSendingToService(PacketBuffer *msg, const bool shouldCapture = false);
     WEAVE_ERROR HandleTunneledReceive(PacketBuffer *msg, TunnelType tunType);
 
     /// Decide based on lookup of nexthop table and send locally
@@ -718,6 +718,13 @@ private:
     void WeaveTunnelNotifyTCPSendIdleStateChange(const TunnelType tunType, const bool isIdle);
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
+#if WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
+    WEAVE_ERROR ReplaceDestSubnetInAddress(PacketBuffer *inMsg, const uint16_t subnetId);
+
+    WEAVE_ERROR ComputeUDPChecksumForIPv6Pkt(PacketBuffer *inMsg, const IPAddress &srcAddr, const IPAddress &destAddr);
+    uint32_t Checksum(uint16_t *buf, uint16_t len);
+
+#endif // WEAVE_CONFIG_ENABLE_MESSAGE_CAPTURE
 };
 
 
