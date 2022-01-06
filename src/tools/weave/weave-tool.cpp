@@ -61,6 +61,8 @@ static const char *const sHelp =
         "\n"
         "    validate-cert -- Validate a Weave certificate chain.\n"
         "\n"
+        "    print-access-token -- Print a Weave Access Token.\n"
+        "\n"
         "    print-cert -- Print a Weave certificate.\n"
         "\n"
         "    print-sig -- Print a Weave signature.\n"
@@ -136,6 +138,9 @@ int main(int argc, char *argv[])
 
     else if (strcasecmp(argv[1], "validate-cert") == 0 || strcasecmp(argv[1], "validatecert") == 0)
         res = Cmd_ValidateCert(argc - 1, argv + 1);
+
+    else if (strcasecmp(argv[1], "print-access-token") == 0 || strcasecmp(argv[1], "printaccesstoken") == 0)
+        res = Cmd_PrintAccessToken(argc - 1, argv + 1);
 
     else if (strcasecmp(argv[1], "print-cert") == 0 || strcasecmp(argv[1], "printcert") == 0)
         res = Cmd_PrintCert(argc - 1, argv + 1);
