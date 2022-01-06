@@ -48,6 +48,7 @@ static void _DumpWriter(const char *aFormat, ...);
 static OptionDef gCmdOptionDefs[] =
 {
     { "base64", kNoArgument, 'b' },
+    { "profile", kArgumentRequired, 'p' },
     { }
 };
 
@@ -55,6 +56,10 @@ static const char *const gCmdOptionHelp =
     "   -b, --base64\n"
     "\n"
     "       The file containing the TLV should be parsed as base64.\n"
+    "\n"
+    "   -p, --profile <profileNumber>\n"
+    "\n"
+    "       The profile number to be used for decoding implicit tags\n"
     "\n"
     ;
 
@@ -90,6 +95,7 @@ static OptionSet *gCmdOptionSets[] =
 
 static const char *gFileName = NULL;
 static bool gUseBase64Decoding = false;
+static uint32_t gImplicitProfileID = kProfileIdNotSpecified;
 
 bool Cmd_PrintTLV(int argc, char *argv[])
 {
@@ -98,6 +104,7 @@ bool Cmd_PrintTLV(int argc, char *argv[])
     uint8_t *raw = NULL;
     int fd;
     struct stat st;
+    WEAVE_ERROR err;
     TLVReader reader;
     uint32_t len;
 
@@ -145,8 +152,12 @@ bool Cmd_PrintTLV(int argc, char *argv[])
 
     printf("TLV length is %d bytes\n", len);
     reader.Init(raw, len);
-    nl::Weave::TLV::Debug::Dump(reader, _DumpWriter);
-
+    reader.ImplicitProfileId = gImplicitProfileID;
+    err = nl::Weave::TLV::Debug::Dump(reader, _DumpWriter);
+    if (err == WEAVE_ERROR_UNKNOWN_IMPLICIT_TLV_TAG)
+    {
+        printf("Data contains unknown implicit TLV encoding, for correct decode, please specify the correct implicit profile\n");
+    }
 exit:
     if (raw != NULL && raw != map)
     {
@@ -199,6 +210,13 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
         gUseBase64Decoding = true;
         break;
 
+    case 'p':
+        if (!ParseInt(arg, gImplicitProfileID))
+        {
+            PrintArgError("s: Invalid value specified for the profile ID, \"%s\" must be an integer\n", progName, arg);
+            return false;
+        }
+        break;
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
         return false;
