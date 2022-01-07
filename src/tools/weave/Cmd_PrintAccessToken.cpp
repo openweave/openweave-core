@@ -39,7 +39,7 @@
 using namespace nl::Weave::ASN1;
 using namespace nl::Weave::Profiles::Security;
 
-#define CMD_NAME "weave print-cert"
+#define CMD_NAME "weave print-access-token"
 
 static bool HandleNonOptionArgs(const char *progName, int argc, char *argv[]);
 static bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
@@ -66,7 +66,7 @@ static OptionSet gCmdOptions =
 };
 static HelpOptions gHelpOptions(
     CMD_NAME,
-    "Usage: " CMD_NAME " [<options...>] <cert-file>\n",
+    "Usage: " CMD_NAME " [<options...>] <access-token>\n",
     WEAVE_VERSION_STRING "\n" COPYRIGHT_STRING,
     "Print a Weave Access Token certificate.\n"
     "\n"
@@ -135,16 +135,10 @@ bool Cmd_PrintAccessToken(int argc, char *argv[])
         ExitNow(res = false);
     }
 
-    err = DetermineCertType(*certData);
-    if (err != WEAVE_NO_ERROR)
-    {
-        fprintf(stderr, "weave: %s.\n", nl::ErrorStr(err));
-        ExitNow(res = false);
-    }
-
     printf("Weave Access Token:\n");
 
     printf("Weave Certificate:\n");
+
     PrintCert(stdout, *certData, NULL, 2, true);
 
     printf("Access Token Private Key omitted\n");

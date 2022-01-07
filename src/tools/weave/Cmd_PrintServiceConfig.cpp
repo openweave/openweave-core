@@ -44,7 +44,7 @@ using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles::ServiceProvisioning;
 using namespace nl::Weave::Profiles;
 
-#define CMD_NAME "weave print-cert"
+#define CMD_NAME "weave print-service-config"
 
 static WEAVE_ERROR PrintServiceHostname(TLVReader &reader);
 static bool HandleNonOptionArgs(const char *progName, int argc, char *argv[]);
@@ -72,13 +72,13 @@ static OptionSet gCmdOptions =
 };
 static HelpOptions gHelpOptions(
     CMD_NAME,
-    "Usage: " CMD_NAME " [<options...>] <cert-file>\n",
+    "Usage: " CMD_NAME " [<options...>] <service-config-file>\n",
     WEAVE_VERSION_STRING "\n" COPYRIGHT_STRING,
     "Print a service config object.\n"
     "\n"
     "ARGUMENTS\n"
     "\n"
-    "  <access-token>\n"
+    "  <service-config-file>\n"
     "\n"
     "       A file containing a service config object either in binary (default) or in base-64 format\n"
     "\n"
@@ -152,7 +152,7 @@ bool Cmd_PrintServiceConfig(int argc, char *argv[])
     for (int i = 0; i < certSet.CertCount; i++)
     {
         printf("Certificate %d\n", i + 1);
-        PrintCert(stdout, certSet.Certs[i],NULL, 2, true);
+        PrintCert(stdout, certSet.Certs[i], NULL, 2, true);
     }
 
     err = reader.Next(kTLVType_Structure, ContextTag(kTag_ServiceEndPoint));
