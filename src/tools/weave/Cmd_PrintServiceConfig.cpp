@@ -121,13 +121,21 @@ bool Cmd_PrintServiceConfig(int argc, char *argv[])
     }
 
     if (!ReadFileIntoMem(gCertFileName, serviceConfig, serviceConfigLen))
+    {
         ExitNow(res = false);
+    }
 
     if (gUseBase64Decoding)
     {
         uint32_t b64len = serviceConfigLen;
         uint8_t * b64 = serviceConfig;
         serviceConfig = (uint8_t *)malloc(serviceConfigLen);
+        if (serviceConfig == NULL)
+        {
+            fprintf(stderr, "Memory allocation error\n");
+            free(b64);
+            ExitNow(res = false);
+        }
         serviceConfigLen = nl::Base64Decode((const char *)b64, b64len, serviceConfig);
         free(b64);
     }
@@ -188,7 +196,9 @@ exit:
     res = (err == WEAVE_NO_ERROR);
 
     if (serviceConfig != NULL)
+    {
         free(serviceConfig);
+    }
     return res;
 }
 

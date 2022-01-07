@@ -74,7 +74,8 @@ static HelpOptions gHelpOptions(
     "\n"
     "  <access-token>\n"
     "\n"
-    "       A file containing a Weave Access Token, in base-64 format\n"
+    "       A file containing a Weave Access Token either in raw TLV format (default)\n"
+    "       or in base-64 format with -b option.\n"
     "\n"
 );
 
@@ -88,7 +89,7 @@ static OptionSet *gCmdOptionSets[] =
 static const char *gCertFileName = NULL;
 static bool gUseBase64Decoding = false;
 enum {
-    kNumCerts = 3,
+    kNumCerts = 1,
     kCertBufSize = 1024,
 };
 
@@ -114,13 +115,21 @@ bool Cmd_PrintAccessToken(int argc, char *argv[])
     }
 
     if (!ReadFileIntoMem(gCertFileName, accessToken, accessTokenLen))
+    {
         ExitNow(res = false);
+    }
 
     if (gUseBase64Decoding)
     {
         uint32_t b64len = accessTokenLen;
         uint8_t * b64 = accessToken;
         accessToken = (uint8_t *)malloc(accessTokenLen);
+        if (accessToken == NULL)
+        {
+            fprintf(stderr, "Memory allocation error\n");
+            free(b64);
+            ExitNow(res = false);
+        }
         accessTokenLen = nl::Base64Decode((const char *)b64, b64len, accessToken);
         free(b64);
     }
