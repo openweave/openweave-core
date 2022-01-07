@@ -59,7 +59,13 @@ static const char *const sHelp =
         "\n"
         "    make-service-config -- Make a service config object.\n"
         "\n"
+        "    make-access-token -- Make a Weave Access Token.\n"
+        "\n"
         "    validate-cert -- Validate a Weave certificate chain.\n"
+        "\n"
+        "    print-access-token -- Print a Weave Access Token.\n"
+        "\n"
+        "    print-service-config -- Print a service config object\n"
         "\n"
         "    print-cert -- Print a Weave certificate.\n"
         "\n"
@@ -136,6 +142,12 @@ int main(int argc, char *argv[])
 
     else if (strcasecmp(argv[1], "validate-cert") == 0 || strcasecmp(argv[1], "validatecert") == 0)
         res = Cmd_ValidateCert(argc - 1, argv + 1);
+
+    else if (strcasecmp(argv[1], "print-access-token") == 0 || strcasecmp(argv[1], "printaccesstoken") == 0)
+        res = Cmd_PrintAccessToken(argc - 1, argv + 1);
+
+    else if (strcasecmp(argv[1], "print-service-config") == 0 || strcasecmp(argv[1], "printserviceconfig") == 0)
+        res = Cmd_PrintServiceConfig(argc - 1, argv + 1);
 
     else if (strcasecmp(argv[1], "print-cert") == 0 || strcasecmp(argv[1], "printcert") == 0)
         res = Cmd_PrintCert(argc - 1, argv + 1);

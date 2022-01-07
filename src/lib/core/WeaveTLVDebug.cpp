@@ -154,7 +154,10 @@ static void DumpHandler(DumpWriter aWriter, const char *aIndent, const TLVReader
                 err = temp.GetDataPtr(strbuf);
                 VerifyOrExit(err == WEAVE_NO_ERROR, aWriter("Error in kTLVType_ByteString"));
             }
-            aWriter("%p\n", strbuf);
+            for (int i = 0; i < len; i++) {
+              aWriter("%02x ", strbuf[i]);
+            }
+            aWriter("\n");
             break;
 
         case kTLVType_Null:

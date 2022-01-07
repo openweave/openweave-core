@@ -92,6 +92,8 @@ extern bool Cmd_MakeServiceConfig(int argc, char *argv[]);
 extern bool Cmd_MakeAccessToken(int argc, char *argv[]);
 extern bool Cmd_GenProvisioningData(int argc, char *argv[]);
 extern bool Cmd_ValidateCert(int argc, char *argv[]);
+extern bool Cmd_PrintAccessToken(int argc, char *argv[]);
+extern bool Cmd_PrintServiceConfig(int argc, char *argv[]);
 extern bool Cmd_PrintCert(int argc, char *argv[]);
 extern bool Cmd_PrintSig(int argc, char *argv[]);
 extern bool Cmd_PrintTLV(int argc, char *argv[]);

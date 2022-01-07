@@ -2998,20 +2998,6 @@ BindingEventCallback(
         case nl::Weave::Binding::kEvent_PrepareFailed:
         case nl::Weave::Binding::kEvent_BindingFailed:
         {
-#if 0
-            nlVERIFY(binding != NULL);
-
-            // TODO: Currently no effort is made for recovery here.
-            // However, in the future we may be able to fail gracefully by
-            // re-trying the binding
-            NL_LOG((nlLPCrit,
-                   "Binding Failed Peer=%016" PRIX64,
-                   binding->GetPeerNodeId()));
-
-            // Pending command is no longer valid so remove command
-            // TODO: Report error back to the command requester.
-            _this->mPendingCommands.erase(binding);
-#endif
             break;
         }
         default:
