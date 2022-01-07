@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2022 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@
 /**
  *    @file
  *      This file implements the command handler for the 'weave' tool
- *      that decodes and prints the contents of a Weave certificate.
+ *      that decodes and prints the contents of a Weave access token certificate.
  *
  */
 
