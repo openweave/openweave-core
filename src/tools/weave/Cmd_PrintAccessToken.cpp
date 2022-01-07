@@ -68,7 +68,7 @@ static HelpOptions gHelpOptions(
     CMD_NAME,
     "Usage: " CMD_NAME " [<options...>] <cert-file>\n",
     WEAVE_VERSION_STRING "\n" COPYRIGHT_STRING,
-    "Print a Weave certificate.\n"
+    "Print a Weave Access Token certificate.\n"
     "\n"
     "ARGUMENTS\n"
     "\n"
