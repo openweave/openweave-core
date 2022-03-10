@@ -111,7 +111,9 @@ AbsTopResultDir                                                 = $(PWD)/$(TopRe
 TargetTupleStem                                         = apple-darwin
 TargetTuple                                             = $(TargetTupleStem)-ios
 
-ARCHS                                                   = arm64 armv7 armv7s i386 x86_64
+DEVICE_ARCHS                                            = arm64 armv7 armv7s
+SIMULATOR_ARCHS                                         = i386 x86_64
+ARCHS                                                   = $(DEVICE_ARCHS) $(SIMULATOR_ARCHS)
 
 TopTargetLibDir                                         = $(TopResultDir)/$(if $(1),$(1)-,)$(TargetTuple)/lib
 
@@ -138,11 +140,14 @@ FrameworkPlist                                          = $(Framework)/$(Framewo
 FrameworkModuleMap                                      = $(Framework)/$(FrameworkModulesDirName)/$(FrameworkModuleMapName)
 
 FRAMEWORK_ARCHFLAGS                                     = $(addprefix -arch ,$(ARCHS))
+DEVICE_XARCHS                                           = $(foreach arch, $(DEVICE_ARCHS),-Xarch_$(arch) -isysroot$(IOS_DEVICE_SDK))
+SIMULATOR_XARCHS                                        = $(foreach arch, $(SIMULATOR_ARCHS),-Xarch_$(arch) -isysroot$(IOS_SIMULATOR_SDK))
 FRAMEWORK_FLAGS                                         = \
         $(FRAMEWORK_ARCHFLAGS) \
         $(IOS_MIN_VERSION_FLAG) \
         $(FRAMEWORK_ARCHFLAGS) \
-        -isysroot $(IOS_DEVICE_SDK) \
+	$(DEVICE_XARCHS) \
+	$(SIMULATOR_XARCHS) \
         -I$(IOS_DEVICE_SDK)/$(CoreFoundationHeaders) \
         -fpic \
         -lc++ \
