@@ -237,7 +237,7 @@ public:
         while (mReadPoint < mValEnd && isspace(*mReadPoint))
             mReadPoint++;
 
-        mFieldEnd = val;
+        mFieldEnd = mReadPoint;
 
         Version = (mReadPoint < mValEnd) ? *mReadPoint : 0;
         Key = 0;

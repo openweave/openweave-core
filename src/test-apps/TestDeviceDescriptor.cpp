@@ -88,6 +88,7 @@ void TestTextDecoding(void)
     const char *textDevDesc1 = "1S:01AA01AB5011003W$";
     const char *textDevDesc2 = "1V:235A$P:1$R:1$D:140914$S:05BA01AC0313003G$L:18B43000000A91B3$W:18B43001D183$I:TOPAZZZ-91B3$C:07KP74$";
     const char *textDevDesc3 = "1V:235A$P:13$R:1$D:160805$S:15AA01ZZ01160101$E:18B4300400000101$";
+    const char *textDevDesc4 = "     1V:E100$P:13$R:1$D:160805$S:15AA01ZZ01160101$E:18B4300400000101$";
 
     devDesc.Clear();
     WeaveDeviceDescriptor::DecodeText(textDevDesc1, strlen(textDevDesc1), devDesc);
@@ -120,6 +121,17 @@ void TestTextDecoding(void)
     devDesc.Clear();
     WeaveDeviceDescriptor::DecodeText(textDevDesc3, strlen(textDevDesc3), devDesc);
     AssertValue(devDesc.VendorId, kWeaveVendor_NestLabs);
+    AssertValue(devDesc.ProductId, 0x0013);
+    AssertValue(devDesc.ProductRevision, 1);
+    AssertValue(devDesc.SerialNumber, "15AA01ZZ01160101");
+    AssertValue(devDesc.ManufacturingDate.Year, 2016);
+    AssertValue(devDesc.ManufacturingDate.Month, 8);
+    AssertValue(devDesc.ManufacturingDate.Day, 5);
+    AssertValue(devDesc.DeviceId, 0x18B4300400000101UL);
+
+    devDesc.Clear();
+    WeaveDeviceDescriptor::DecodeText(textDevDesc3, strlen(textDevDesc3), devDesc);
+    AssertValue(devDesc.VendorId, kWeaveVendor_Google);
     AssertValue(devDesc.ProductId, 0x0013);
     AssertValue(devDesc.ProductRevision, 1);
     AssertValue(devDesc.SerialNumber, "15AA01ZZ01160101");
