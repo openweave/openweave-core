@@ -441,7 +441,7 @@ exit:
         dispatch_async(_mSelectQueue, ^(void) {
             // Wait for for I/O or for the next timer to expire.
             // Note that this is not a good practice to use with GCD, but it's
-            int pollRes = poll(pollFDs.data(), numPollFDs, sleepTime);
+            poll(pollFDs.data(), numPollFDs, sleepTime);
 
             dispatch_async(_mWorkQueue, ^(void) {
                 _mIsWaitingOnSelect = false;
