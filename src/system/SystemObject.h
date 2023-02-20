@@ -82,6 +82,21 @@ public:
     void Release(void);
     Layer& SystemLayer(void) const;
 
+    class AutoRelease {
+    public:
+        AutoRelease(Object& owner) : mOwner(owner)
+        {
+        }
+
+        ~AutoRelease(void)
+        {
+            mOwner.Release();
+        }
+
+    private:
+        Object& mOwner;
+    };
+
 protected:
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
     /**< What to do when DeferredRelease fails to post a kEvent_ReleaseObj. */

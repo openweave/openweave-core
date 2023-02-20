@@ -91,9 +91,9 @@ INET_ERROR DNSResolver::Resolve(const char *hostName, uint16_t hostNameLen, uint
         DNSResolver::OnResolveCompleteFunct onComplete, void *appState)
 {
     INET_ERROR res = INET_NO_ERROR;
+    Weave::System::Object::AutoRelease objectRelease(*this);
 
 #if !WEAVE_SYSTEM_CONFIG_USE_SOCKETS && !LWIP_DNS
-    Release();
     return INET_ERROR_NOT_IMPLEMENTED;
 #endif // !WEAVE_SYSTEM_CONFIG_USE_SOCKETS && !LWIP_DNS
 
@@ -108,7 +108,6 @@ INET_ERROR DNSResolver::Resolve(const char *hostName, uint16_t hostNameLen, uint
          addrFamilyOption != kDNSOption_AddrFamily_IPv6Preferred) ||
         (optionFlags & ~kDNSOption_ValidFlags) != 0)
     {
-        Release();
         return INET_ERROR_BAD_ARGS;
     }
 
@@ -164,7 +163,6 @@ INET_ERROR DNSResolver::Resolve(const char *hostName, uint16_t hostNameLen, uint
     if (addrFamilyOption == kDNSOption_AddrFamily_IPv6Only)
 #endif
     {
-        Release();
         return INET_ERROR_NOT_IMPLEMENTED;
     }
 
@@ -202,7 +200,6 @@ INET_ERROR DNSResolver::Resolve(const char *hostName, uint16_t hostNameLen, uint
     else if (lwipErr != ERR_INPROGRESS)
     {
         res = Weave::System::MapErrorLwIP(lwipErr);
-        Release();
     }
 
     return res;
@@ -227,9 +224,6 @@ INET_ERROR DNSResolver::Resolve(const char *hostName, uint16_t hostNameLen, uint
 
     // Invoke the caller's completion function.
     onComplete(appState, res, NumAddrs, addrArray);
-
-    // Release DNSResolver object.
-    Release();
 
     return INET_NO_ERROR;
 
@@ -298,12 +292,11 @@ INET_ERROR DNSResolver::Cancel()
  */
 void DNSResolver::HandleResolveComplete()
 {
+    Weave::System::Object::AutoRelease objectRelease(*this);
+        
     // Call the application's completion handler if the request hasn't been canceled.
     if (OnComplete != NULL)
         OnComplete(AppState, (NumAddrs > 0) ? INET_NO_ERROR : INET_ERROR_HOST_NOT_FOUND, NumAddrs, AddrArray);
-
-    // Release the resolver object.
-    Release();
 }
 
 
@@ -530,13 +523,13 @@ uint8_t DNSResolver::CountAddresses(int family, const struct addrinfo * addrs)
 
 void DNSResolver::HandleAsyncResolveComplete(void)
 {
+    Weave::System::Object::AutoRelease objectRelease(*this);
+
     // Copy the resolved address to the application supplied buffer, but only if the request hasn't been canceled.
     if (OnComplete && mState != kState_Canceled)
     {
         OnComplete(AppState, asyncDNSResolveResult, NumAddrs, AddrArray);
     }
-
-    Release();
 }
 #endif // INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
