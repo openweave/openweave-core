@@ -188,7 +188,7 @@ private:
     bool tav;
     char taw[20] = "boxedstring";
     // boxed float
-    int16_t tax;
+    double tax;
 
     bool nullified_path[Schema::Nest::Test::Trait::TestATrait::kPropertyHandle_TaJ_Value_SaB];
 
