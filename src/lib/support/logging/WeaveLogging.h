@@ -210,11 +210,15 @@ enum LogCategory
  *
  */
 #ifndef WeaveLogError
+#if WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+#define WeaveLogError(MOD, MSG, ...) nl::Weave::Logging::Log( nl::Weave::Logging::kLogModule_##MOD , nl::Weave::Logging::kLogCategory_Error, __FILE__, __LINE__, MSG, ## __VA_ARGS__)
+#else
 #define WeaveLogError(MOD, MSG, ...) nl::Weave::Logging::Log( nl::Weave::Logging::kLogModule_##MOD , nl::Weave::Logging::kLogCategory_Error, MSG, ## __VA_ARGS__)
-#endif
+#endif // #if WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+#endif // #ifndef WeaveLogError
 #else
 #define WeaveLogError(MOD, MSG, ...)
-#endif
+#endif // #if WEAVE_ERROR_LOGGING
 
 #ifndef WEAVE_PROGRESS_LOGGING
 #define WEAVE_PROGRESS_LOGGING 1
@@ -230,11 +234,15 @@ enum LogCategory
  *
  */
 #ifndef WeaveLogProgress
+#if WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+#define WeaveLogProgress(MOD, MSG, ...) nl::Weave::Logging::Log( nl::Weave::Logging::kLogModule_##MOD , nl::Weave::Logging::kLogCategory_Progress, __FILE__, __LINE__, MSG, ## __VA_ARGS__)
+#else
 #define WeaveLogProgress(MOD, MSG, ...) nl::Weave::Logging::Log( nl::Weave::Logging::kLogModule_##MOD , nl::Weave::Logging::kLogCategory_Progress, MSG, ## __VA_ARGS__)
-#endif
+#endif // #if WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+#endif // #ifndef WeaveLogProgress
 #else
 #define WeaveLogProgress(MOD, MSG, ...)
-#endif
+#endif // #if WEAVE_PROGRESS_LOGGING
 
 
 #ifndef WEAVE_DETAIL_LOGGING
@@ -251,11 +259,15 @@ enum LogCategory
  *
  */
 #ifndef WeaveLogDetail
+#if WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+#define WeaveLogDetail(MOD, MSG, ...) nl::Weave::Logging::Log( nl::Weave::Logging::kLogModule_##MOD , nl::Weave::Logging::kLogCategory_Detail, __FILE__, __LINE__, MSG, ## __VA_ARGS__)
+#else
 #define WeaveLogDetail(MOD, MSG, ...) nl::Weave::Logging::Log( nl::Weave::Logging::kLogModule_##MOD , nl::Weave::Logging::kLogCategory_Detail, MSG, ## __VA_ARGS__)
-#endif
+#endif // #if WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+#endif // #ifndef WeaveLogDetail
 #else
 #define WeaveLogDetail(MOD, MSG, ...)
-#endif
+#endif // #if WEAVE_DETAIL_LOGGING
 
 #ifndef WEAVE_RETAIN_LOGGING
 #define WEAVE_RETAIN_LOGGING WEAVE_PROGRESS_LOGGING
@@ -273,8 +285,12 @@ enum LogCategory
  *
  */
 #ifndef WeaveLogRetain
+#if WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+#define WeaveLogRetain(MOD, MSG, ...) nl::Weave::Logging::Log( nl::Weave::Logging::kLogModule_##MOD , nl::Weave::Logging::kLogCategory_Retain, __FILE__, __LINE__, MSG, ## __VA_ARGS__)
+#else
 #define WeaveLogRetain(MOD, MSG, ...) nl::Weave::Logging::Log( nl::Weave::Logging::kLogModule_##MOD , nl::Weave::Logging::kLogCategory_Retain, MSG, ## __VA_ARGS__)
 #endif
+#endif // #ifndef WeaveLogRetain
 
 #else // #if WEAVE_RETAIN_LOGGING
 #ifdef WeaveLogRetain
@@ -308,6 +324,9 @@ extern void GetMessageWithPrefix(char *buf, uint8_t bufSize, uint8_t module, con
 extern void GetModuleName(char *buf, uint8_t module);
 extern void GetCategoryName(char *buf, uint8_t bufSize, uint8_t category);
 extern void PrintMessagePrefix(uint8_t module);
+#if WEAVE_CONFIG_LOG_WITH_FILE_AND_LINE
+extern void Log(uint8_t module, uint8_t category, const char *fileName, int lineNumber, const char *msg, ...);
+#endif
 extern void Log(uint8_t module, uint8_t category, const char *msg, ...);
 extern uint8_t GetLogFilter(void);
 extern void SetLogFilter(uint8_t category);
