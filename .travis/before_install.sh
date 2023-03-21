@@ -159,6 +159,10 @@ case "${BUILD_TARGET}" in
 
         installdeps "happy-deps"
 
+        # install lcov
+        sudo apt-get update
+        sudo apt-get install lcov
+
         cd $HOME
         git clone https://github.com/openweave/happy.git
         cd ${HOME}/happy

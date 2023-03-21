@@ -100,8 +100,8 @@ deploy:
   bucket: openweave
   skip_cleanup: true
   acl: public-read
-  upload-dir: happy-test-log/$TRAVIS_BUILD_NUMBER
-  local-dir: "$TRAVIS_BUILD_DIR/happy-test-logs"
+  upload-dir: openweave-core-build-artifacts/$TRAVIS_BUILD_NUMBER
+  local-dir: "$TRAVIS_BUILD_DIR/build_artifacts"
   on:
     repo: openweave/openweave-core
     tags: true
