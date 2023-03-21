@@ -35,21 +35,22 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+/* BSS segment is limited on some device, provides an option to allocate large memory buffer on heap */
+#ifdef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_BUFFER_STATIC
 uint64_t gCritEventBuffer[RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE, sizeof(uint64_t)) / sizeof(uint64_t)];
-static nl::Weave::PersistedCounter sCritEventIdCounter;
-
 uint64_t gProdEventBuffer[RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE, sizeof(uint64_t)) / sizeof(uint64_t)];
-static nl::Weave::PersistedCounter sProdEventIdCounter;
-
 #if WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE
 uint64_t gInfoEventBuffer[RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE, sizeof(uint64_t)) / sizeof(uint64_t)];
-static nl::Weave::PersistedCounter sInfoEventIdCounter;
 #endif
-
 #if WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE
 uint64_t gDebugEventBuffer[RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE, sizeof(uint64_t)) / sizeof(uint64_t)];
-static nl::Weave::PersistedCounter sDebugEventIdCounter;
 #endif
+#endif
+
+static nl::Weave::PersistedCounter sCritEventIdCounter;
+static nl::Weave::PersistedCounter sProdEventIdCounter;
+static nl::Weave::PersistedCounter sInfoEventIdCounter;
+static nl::Weave::PersistedCounter sDebugEventIdCounter;
 
 WEAVE_ERROR InitWeaveEventLogging(void)
 {
@@ -62,6 +63,7 @@ WEAVE_ERROR InitWeaveEventLogging(void)
     nl::Weave::Platform::PersistedStorage::Key debugEventIdCounterStorageKey = WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_DEBUG_EIDC_KEY;
 #endif
 
+#ifdef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_BUFFER_STATIC
     nl::Weave::Profiles::DataManagement::LogStorageResources logStorageResources[] = {
         { static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer),
           &critEventIdCounterStorageKey,
@@ -88,6 +90,38 @@ WEAVE_ERROR InitWeaveEventLogging(void)
           nl::Weave::Profiles::DataManagement::ImportanceType::Debug },
 #endif
     };
+#else
+    nl::Weave::Profiles::DataManagement::LogStorageResources logStorageResources[] = {
+        { static_cast<void *>(malloc(RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE, sizeof(uint64_t)))),
+          RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE, sizeof(uint64_t)),
+          &critEventIdCounterStorageKey,
+          WEAVE_DEVICE_CONFIG_EVENT_ID_COUNTER_EPOCH,
+          &sCritEventIdCounter,
+          nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical },
+        { static_cast<void *>(malloc(RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE, sizeof(uint64_t)))),
+          RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE, sizeof(uint64_t)),
+          &prodEventIdCounterStorageKey,
+          WEAVE_DEVICE_CONFIG_EVENT_ID_COUNTER_EPOCH,
+          &sProdEventIdCounter,
+          nl::Weave::Profiles::DataManagement::ImportanceType::Production },
+#if WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE
+        { static_cast<void *>(malloc(RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE, sizeof(uint64_t)))),
+          RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE, sizeof(uint64_t)),
+          &infoEventIdCounterStorageKey,
+          WEAVE_DEVICE_CONFIG_EVENT_ID_COUNTER_EPOCH,
+          &sInfoEventIdCounter,
+          nl::Weave::Profiles::DataManagement::ImportanceType::Info },
+#endif
+#if WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE
+        { static_cast<void *>(malloc(RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE, sizeof(uint64_t)))),
+          RoundUp(WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE, sizeof(uint64_t)),
+          &debugEventIdCounterStorageKey,
+          WEAVE_DEVICE_CONFIG_EVENT_ID_COUNTER_EPOCH,
+          &sDebugEventIdCounter,
+          nl::Weave::Profiles::DataManagement::ImportanceType::Debug },
+#endif
+    };
+#endif
 
     nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
         &nl::Weave::DeviceLayer::ExchangeMgr,
