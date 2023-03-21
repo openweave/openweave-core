@@ -364,6 +364,19 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleAddUpdateNetw
 
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_SYSTEM_MANAGED_NETWORK
+
+    case kNetworkType_SystemManaged:
+
+        err = ConnectivityMgr().ProvisionSystemManagedNetwork();
+        VerifyOrExit(err == WEAVE_NO_ERROR, SendStatusReport(kWeaveProfile_NetworkProvisioning, 0, err));
+
+        netId = kSystemManagedNetworkId;
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_SYSTEM_MANAGED_NETWORK
+
     default:
 
         WeaveLogProgress(DeviceLayer, "%sUnsupported network type: %d", sLogPrefix, netInfo.NetworkType);

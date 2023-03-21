@@ -238,6 +238,7 @@ class DeviceMgrCmd(Cmd):
         'passive-rendezvous',
         'remote-passive-rendezvous',
         'reconnect',
+        'add-system-managed-network',
         'scan-networks',
         'add-wifi-network',
         'add-thread-network',
@@ -1026,6 +1027,33 @@ class DeviceMgrCmd(Cmd):
             self.devMgr.CloseEndpoints()
         except WeaveStack.WeaveStackException as ex:
             print(str(ex))
+
+    def do_addsystemmanagednetwork(self, line):
+        """
+          add-system-managed-network
+
+            Provision a system managed network.
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) != 0):
+            print("Usage:")
+            self.do_help('add-system-managed-network')
+            return
+
+        networkInfo = WeaveDeviceMgr.NetworkInfo(
+            networkType = WeaveDeviceMgr.NetworkType_SystemManaged)
+
+        try:
+            addResult = self.devMgr.AddNetwork(networkInfo)
+        except WeaveStack.WeaveStackException as ex:
+            print(str(ex))
+            return
+
+        self.lastNetworkId = addResult
+
+        print("Add system managed network complete (network id = " + str(addResult) + ")")
 
     def do_enableconnectionmonitor(self, line):
         """

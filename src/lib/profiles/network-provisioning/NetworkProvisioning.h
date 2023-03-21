@@ -162,7 +162,8 @@ enum NetworkType
     kNetworkType_NotSpecified                   = -1,
 
     kNetworkType_WiFi                           = 1,
-    kNetworkType_Thread                         = 2
+    kNetworkType_Thread                         = 2,
+    kNetworkType_SystemManaged                  = 3,
 };
 
 /**
