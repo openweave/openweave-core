@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -34,7 +35,8 @@
  * table.
  */
 
-class MockDMPublisher : public nl::Weave::Profiles::DataManagement::DMPublisher
+class MockDMPublisher __FINAL :
+    public nl::Weave::Profiles::DataManagement::DMPublisher
 {
 public:
     /*
@@ -46,7 +48,9 @@ public:
 
     WEAVE_ERROR UpdateIndication(ExchangeContext *aResponseCtx, ReferencedTLVData &aDataList);
 
-    void IncompleteIndication(const uint64_t &aPeerNodeId, StatusReport &aReport);
+    virtual void IncompleteIndication(const uint64_t &aPeerNodeId, StatusReport &aReport);
+
+    using DMPublisher::IncompleteIndication;
 
 #if WEAVE_CONFIG_WDM_ALLOW_PUBLISHER_SUBSCRIPTION
 
